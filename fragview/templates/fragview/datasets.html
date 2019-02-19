@@ -1,0 +1,67 @@
+
+{% extends 'fragview/base.html' %}
+
+
+{% block content %}
+
+{% load static %}
+<h1><a href="/">Datasets selection</a></h1>
+
+        
+ <table class="fulltable fgm-cell-dataset mdl-data-table mdl-js-data-table mdl-data-table--selectable " >
+  <thead>
+  <tr>
+  <th>
+    <label><input class="filled-in " id="selectalldata" name="selectalldatachck" type="checkbox"><span>&nbsp;</span></label></th>
+  <th>Protein</th>
+  <th>Sample name</th>
+  <th>Resolution</sub> [&Aring;]</th>
+  <th>Frames</th>
+  <th>Path</th>  
+  <th>Crystal Picture</th>  
+  <th>Ligand</th>
+
+  </tr>
+  </thead>
+  <tbody>
+    {% for img,prf,res,path,snap,acr,png in files %}
+    <tr>
+    <td>
+    <label><input class="filled-in " id={{ file }} name={{ file }} type="checkbox"><span>&nbsp;</span></label></td>
+
+    <td><p>{{ acr }}</p></td>
+    <td><p>{{ prf }}</p></td>
+    <td><p>{{ res }}</p></td>
+    <td><p>{{ img }}</p></td>
+    <td><p>{{ path }}</p></td>
+    {% comment %} <td><img src={{ snap }}></td>     {% endcomment %}
+
+    
+    <td>
+      <a href={{ snap }} target="_blank">
+        {% comment %} <img src={{ snap }} height="64" width="84"> {% endcomment %}
+        <object data={{ snap }} type="image/png" height="64" width="84">
+          <img src="/static/biomax/20180489/noloop2.png" alt="example" height="40" width="86">
+        </object>
+      </a>
+    </td>    
+      
+    <td>
+      <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Caffeine_molecule_ball_from_xtal_%281%29.png/220px-Caffeine_molecule_ball_from_xtal_%281%29.png" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Caffeine_molecule_ball_from_xtal_%281%29.png/220px-Caffeine_molecule_ball_from_xtal_%281%29.png"height="64" width="64"></td>
+      </a>
+    </tr>
+    {% endfor %}                   
+  </tbody>
+  </table>
+
+
+  </tbody>
+
+</table>
+
+
+{% endblock %}
+
+
+    

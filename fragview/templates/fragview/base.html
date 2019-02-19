@@ -1,0 +1,92 @@
+{% load static %}
+<html>
+    <head>
+
+        <title>FragMAX</title>
+
+        <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+        
+        {% include 'material/includes/material_css.html' %}
+        {% include 'material/includes/material_js.html' %}
+
+        <style>
+            
+
+            .sidenav_local {
+            height: 100%;
+            width: 200px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            padding-top: 50px;
+            }
+
+            .sidenav_local a {
+            padding: 6px 8px 6px 46px;
+            text-decoration: none;
+            font-size: 22px;
+            color: #818181;
+            display: block;
+            }
+
+            .sidenav_local a:hover {
+            color: #f1f1f1;
+            }
+
+            .main_local {
+            margin-left: 200px; /* Same as the width of the sidenav */
+            font-size: 28px; /* Increased text to enable scrolling */
+            padding: 0px 10px;
+            }
+
+            @media screen and (max-height: 450px) {
+            .sidenav {padding-top: 15px;}
+            .sidenav a {font-size: 18px;}
+            }
+
+            .container {
+                max-width: 80% !important;
+            }
+        </style>
+    </head>
+    
+    <body>    
+            <div class="sidenav_local">
+                <a href="/datasets">Dataset</a>
+                <a href="#services">Processing</a>
+                <a href="#contact">Refinement</a>
+                <a href="#contact2">Ligand fit</a>                
+                <a href="/pandda">Pandda</a>
+                <a href="/ugly">UglyMOL</a>                
+                <a href="/results">Results</a>
+                <a href="/admin">Admin</a>
+                {% comment %} <a href="{% url 'post_new' %}" class="top-menu">New post</a> {% endcomment %}
+
+
+            </div>
+        <div class="main_local">    
+        <div class="page-header">
+            
+        </div>
+        <div class="content container">
+            <div class="row">
+                <div class="col-md-8">
+                
+
+                  
+                    {% block content %}
+                    {% endblock %}                
+                    
+                    
+                </div>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+

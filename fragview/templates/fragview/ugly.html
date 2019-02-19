@@ -1,0 +1,130 @@
+
+{% extends 'fragview/base.html' %}
+
+
+{% block content %}
+
+<head>
+  <title>UglyMol Loader</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+   body { font-family: sans-serif; }
+   canvas { display: block; }
+   #viewer {
+     position: absolute;
+     left: 0;
+     top: 100px;
+     width: 100%;
+     height: 100%;
+   }
+   #hud {
+     font-size: 15px;
+     color: #ddd;
+     background-color: rgba(0,0,0,0.6);
+     text-align: center;
+     position: absolute;
+     top: 10px;
+     left: 10%;
+     width: 80%;
+     padding: 2px 8px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 20px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
+   }
+   a { color: #59C; }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+
+</head>
+<body style="background-color: black">
+<form action="/density/" method="get" id="my_form">
+    <input type="hidden" value="maps/hCAII-A1_1_dials_fsp.pdb;maps/hCAII-A1_1_dials_fsp_map.ccp4;maps/hCAII-A1_1_dials_fsp_dif.ccp4" name="structure" size="1"/>
+    
+<input type="button" value="Let's go!" onclick="return recentre()" style="    display: block;"></input>
+
+  </form>
+  <div id="viewer"></div>
+  <header id="hud" onmousedown="event.stopPropagation();"
+                   ondblclick="event.stopPropagation();"
+                   onkeydown="event.stopPropagation();"></header>
+  <footer id="help"></footer>
+  <div id="inset"></div>
+  <script>
+    V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+    function load(use_pdbe) {
+      var pdbid = document.getElementById('pdbid').value.toLowerCase();
+      var callback = function () {
+        V.hud('Model and maps for ' + pdbid + ' are loaded.<br/>' +
+              'You may also add <input type="submit" value="PDB-REDO model" ' +
+              'onclick="return load_pdb_redo(\'' + pdbid + '\');"/><br/>' +
+              'Reload the page to remove all the models and maps.<br/>' +
+              'H shows help',
+              'HTML');
+      };
+      if (use_pdbe) V.load_from_pdbe(pdbid, callback);
+      else V.load_from_rcsb(pdbid, callback);
+    }
+    function load_pdb_redo(id) {
+      var url = 'https://pdb-redo.eu/db/' + id + '/' + id + '_final.pdb';
+      V.load_pdb(url, {stay: true}, function () {
+      V.hud('Reload the page to remove all the models and maps.\n' +
+            'V hides one of the models. H shows help.');
+      });
+    }
+    V.set_pdb_and_map_dropzone(V.renderer.domElement);
+    var id_match = window.location.href.match(/[?&]id=([^&#]+)/);
+    if (id_match) {
+      V.load_from_pdbe(id_match[1].toLowerCase());
+    } else {
+      V.hud(
+    'Drag and drop your pdb and map (CCP4/DSN6) files to this window.' +
+    
+    //'<input type="submit" value="from RCSB" onclick="return load(false);"/>' +
+    '\nReload the page to remove all the models and maps.' +
+    '\n<a href="#" onclick="V.toggle_help(); return false;">H shows help.</a>',
+    'HTML');
+    }
+    function recentre(){
+        alert("aqu")
+        V.recenter([-5.35, 2.71, 15.78], null, 1);    
+    }
+  </script>
+</body>
+</html>
+document.getElementById('pdbid').value
+
+
+
+{% endblock %}

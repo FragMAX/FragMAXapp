@@ -15,8 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from material.frontend import urls as frontend_urls
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", include('blog.urls')),
+    path("", include('fragview.urls')),
+    path('', include(frontend_urls)),
 ]
