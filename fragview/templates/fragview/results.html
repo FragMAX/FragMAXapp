@@ -30,74 +30,14 @@
       cursor: pointer;
   }
 </style>
-<style>
 
-  html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}
-
-  element {
-  }
-  .fm-light-grey, .fm-hover-light-grey:hover, .fm-light-gray, .fm-hover-light-gray:hover {
-      color: #000 !important;
-      background-color: #f1f1f1 !important;
-  }
-  .fm-border-orange, .fm-hover-border-orange:hover {
-      border-color: #ff9800 !important;
-  }
-  .fm-padding {
-      padding: 8px 16px !important;
-  }
-  .fm-bottombar {
-      border-bottom: 6px solid #ccc !important;
-  }
-  .fm-col.m4, .fm-third {
-      width: 33.33333%;
-  }
-  .fm-col, .fm-half, .fm-third, .fm-twothird, .fm-threequarter, .fm-quarter {
-      float: left;
-      width: 100%;
-  }
-  *, *::before, *::after {
-      box-sizing: inherit;
-  }
-  a {
-      color: inherit;
-  }
-
-
-
-  @media (min-width:601px){.fm-third{width:33.33333%}
-  .fm-container{padding:0.01em 16px}}
-  /* Colors */
-  .fm-border-orange,.fm-hover-border-orange:hover{border-color:#ff9800!important}
-</style>
-<h1>Results viewer</h1>
+<h3>Results - PanDDA analysis</h3>
         
 
- <div class="fm-container">
 
-  <div class="fm-row">
-    <a href="javascript:void(0)" onclick="openRes(event, 'DataProc');">
-      <div class="fm-third tablink fm-bottombar fm-hover-light-grey fm-padding" align="center">Data Processing</div>
-    </a>
-    <a href="javascript:void(0)" onclick="openRes(event, 'Refinement');">
-      <div class="fm-third tablink fm-bottombar fm-hover-light-grey fm-padding" align="center">Refinement</div>
-    </a>
-    <a href="javascript:void(0)" onclick="openRes(event, 'Ligand Fit');">
-      <div class="fm-third tablink fm-bottombar fm-hover-light-grey fm-padding" align="center">Ligand Fit</div>
-    </a>
-  </div>
 
-  <div id="DataProc" class="fm-container result" style="display:none">
-  <div class="middle">
-    <center>
-	<h2>proc results here</h2>
-    </center>
-  </div>  
-  </div>
 
-  <div id="Refinement" class="fm-container result" style="display:none">
-    <br><br><br>
- <table  id="myTable">
+ <table  id="resultsTable">
    <thead>
   <tr>
    <th>Data set</th>
@@ -135,21 +75,6 @@
   </tbody>
 
 </table>
-    
-  </div>
-
-  <div id="Ligand Fit" class="fm-container result" style="display:none">
-      
-  <div class="middle">
-    <center>
-	<h2>ligfit results here</h2>
-  
-    </center>
-  </div>  
-  </div>
-</div>
-
-
 <script>
 const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
@@ -165,22 +90,5 @@ document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() =
         .forEach(tr => table.appendChild(tr) );
 })));
 </script>
-
-<script>
-function openRes(evt, resType) {
-  var i, x, tablinks;
-  x = document.getElementsByClassName("result");
-  for (i = 0; i < x.length; i++) {
-     x[i].style.display = "none";
-  }
-  tablinks = document.getElementsByClassName("tablink");
-  for (i = 0; i < x.length; i++) {
-     tablinks[i].className = tablinks[i].className.replace(" fm-border-orange", "");
-  }
-  document.getElementById(resType).style.display = "block";
-  evt.currentTarget.firstElementChild.className += " fm-border-orange";
-}
-</script>
-
 {% endblock %}
 

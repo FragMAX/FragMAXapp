@@ -8,19 +8,36 @@
 <h3>Datasets selection</h3>
 <style>
 
+
 th {
     cursor: pointer;
+    text-align: center;
 }
+
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+  } 
+tr:nth-child(even) {
+  background-color: #dddddd;
+  height: 150px;
+}
+
+tr td:nth-child(-n+5) {
+  text-align: center;
+}
+
 </style>
         
- <table id="myTable" >
+ <table id="datasetTable" >
   <thead>
-  <tr>
+  <tr >
   <th>
     <label><input class="filled-in " id="selectalldata" name="selectalldatachck" type="checkbox"><span>&nbsp;</span></label></th>
   <th>Protein</th>
-  <th >Sample name</th>
-  <th >Resolution</sub> [&Aring;]</th>
+  <th>Sample name</th>
+  <th>Resolution</sub> [&Aring;]</th>
   <th>Frames</th>
   <th>Path</th>  
   <th>Crystal Picture</th>  
@@ -46,7 +63,7 @@ th {
     <td>
       <a href={{ snap }} target="_blank">
         <object data={{ snap }} type="image/png" height="88" width="116">
-          <img src="/static/biomax/20180489/noloop2.png" alt="noloop" height="40" width="86">
+          {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noloop" height="40" width="86"> {% endcomment %}
         </object>
       </a>
     </td>    
@@ -55,7 +72,7 @@ th {
       <a href={{ png }} target="_blank">
 
         <object data={{ png }} type="image/png" height="116" width="116">
-          <img src="/static/biomax/20180489/noloop2.png" alt="noligand" height="40" width="86">
+          {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noligand" height="40" width="86"> {% endcomment %}
         </object>
       </a>
     </tr>

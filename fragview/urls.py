@@ -11,6 +11,8 @@ urlpatterns = [
     path('density/', views.request_page, name='density'),
     path('pandda/', views.pandda, name='pandda'),
     path('ugly/', views.ugly, name='ugly'),
+    path('dual_ligand/', views.dual_ligand, name='dual_ligand'),
+
 
 
 

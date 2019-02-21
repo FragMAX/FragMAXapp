@@ -8,6 +8,17 @@ import glob
 import os
 import random
 
+
+################################
+#User specific data
+#Changing this parameters for different projects based on user credentials
+acr="hCAII"
+proposal="20180489"
+shift="20190127"
+proposal_type="visitors"
+################################
+
+
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
     #posts = glob.glob("/data/visitors/*")
@@ -35,10 +46,7 @@ def post_new(request):
 
 
 def datasets(request):
-    acr="hCAII"
-    proposal="20180489"
-    shift="20190127"
-    proposal_type="visitors"
+
     
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
@@ -84,11 +92,12 @@ def ugly(request):
     a="load maps and pdb"
     return render(request,'fragview/ugly.html', {'Report': a})
 
-def pandda(request):
-    acr="hCAII"
-    proposal="20180489"
-    shift="20190127"
-    proposal_type="visitors"
+
+def dual_ligand(request):
+    a="load maps and pdb"
+    return render(request,'fragview/dual_ligand.html', {'Report': a})
+
+def pandda(request):    
     
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     

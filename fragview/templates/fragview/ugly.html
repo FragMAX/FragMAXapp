@@ -14,35 +14,19 @@
    canvas { display: block; }
    #viewer {
      position: absolute;
-     left: 0;
+     left: 100px;
      top: 100px;
-     width: 100%;
-     height: 100%;
+     width: calc(100% - 100px);
+     height: calc(100% - 100px);
    }
-   #hud {
-     font-size: 15px;
-     color: #ddd;
-     background-color: rgba(0,0,0,0.6);
-     text-align: center;
-     position: absolute;
-     top: 10px;
-     left: 10%;
-     width: 80%;
-     padding: 2px 8px;
-     border-radius: 5px;
-     z-index: 9;
-     white-space: pre-line;
-   }
-   #hud u { padding: 0 8px; text-decoration: none;
-            border: solid; border-width: 1px 0; }
-   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   
    #help {
      display: none;
      font-size: 16px;
      color: #eee;
      background-color: rgba(0,0,0,0.7);
      position: absolute;
-     left: 20px;
+     left: 200px;
      top: 50%;
      transform: translateY(-50%);
      cursor: default;
@@ -68,55 +52,71 @@
 
 
 </head>
-<body style="background-color: black">
-<input class="btn" type="button" value="Center protein" onclick="return recentre()" style="    display: block;"></input>
+<body style="background-color: #f0f0f0">
+<h5>Drag and drop your pdb and map (PDB/CCP4/DSN6) files to this window.</h5>
+<input class="btn" type="button" value="Previous blob" onclick="return previousblob()" ></input> 
+
+<input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
 
   <div id="viewer"></div>
- 
   <footer id="help"></footer>
   <div id="inset"></div>
+
   <script>
-    V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-    function load(use_pdbe) {
-      var pdbid = document.getElementById('pdbid').value.toLowerCase();
-      var callback = function () {
-        V.hud('Model and maps for ' + pdbid + ' are loaded.<br/>' +
-              'You may also add <input type="submit" value="PDB-REDO model" ' +
-              'onclick="return load_pdb_redo(\'' + pdbid + '\');"/><br/>' +
-              'Reload the page to remove all the models and maps.<br/>' +
-              'H shows help',
-              'HTML');
-      };
-      if (use_pdbe) V.load_from_pdbe(pdbid, callback);
-      else V.load_from_rcsb(pdbid, callback);
-    }
-    function load_pdb_redo(id) {
-      var url = 'https://pdb-redo.eu/db/' + id + '/' + id + '_final.pdb';
-      V.load_pdb(url, {stay: true}, function () {
-      V.hud('Reload the page to remove all the models and maps.\n' +
-            'V hides one of the models. H shows help.');
-      });
-    }
-    V.set_pdb_and_map_dropzone(V.renderer.domElement);
-    var id_match = window.location.href.match(/[?&]id=([^&#]+)/);
-    if (id_match) {
-      V.load_from_pdbe(id_match[1].toLowerCase());
-    } else {
-      V.hud(
-    'Drag and drop your pdb and map (CCP4/DSN6) files to this window.' +
     
-    //'<input type="submit" value="from RCSB" onclick="return load(false);"/>' +
-    '\nReload the page to remove all the models and maps.' +
-    '\n<a href="#" onclick="V.toggle_help(); return false;">H shows help.</a>',
-    'HTML');
+
+    V = new UM.Viewer({viewer: "viewer", hud: "", help: "help"});        
+    V.set_pdb_and_map_dropzone(V.renderer.domElement);
+   
+    {% comment %} V.load_pdb("/static/biomax/20180489/20190127/fragmax/results/pandda/pandda/processed_datasets/hCAII-A1_1_dials_dimple/modelled_structures/hCAII-A1_1_dials_dimple-pandda-model.pdb",null, function(){
+         V.recenter([0,0,0], null, 1);
+
+    }); {% endcomment %}
+
+    {% comment %} Blobs from dimple/fspipeline/etc {% endcomment %}
+    var blobs = [[-5.35, 2.71, 15.78],[-8.43, 8.58, 8.54],[-17.14, -16.94, 21.43],[-3.62, 5.76, 14.12]];
+    var index = 0;
+    var numblobs= blobs.length;
+
+    function nextblob(){
+        index = (index + 1) % numblobs;  
+        var blob =blobs[index];        
+        movetoblob(blob) 
+               
+
     }
-    function recentre(){
-        V.recenter([-5.35, 2.71, 15.78], null, 1);    
+    
+    function previousblob(){
+        index = (index - 1) % numblobs;
+        if (index<0){index=numblobs-1}
+        var blob =blobs[index];        
+        movetoblob(blob)        
+    }
+    function movetoblob(b){
+      V.recenter(b, null, 25);    
+      updateview()
+    }
+
+    function updateview(){
+      var keyboardEvent = document.createEvent("KeyboardEvent");
+      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+      keyboardEvent[initMethod](
+                        "keydown", // event type : keydown, keyup, keypress
+                          true, // bubbles
+                          true, // cancelable
+                          window, // viewArg: should be window
+                          false, // ctrlKeyArg
+                          false, // altKeyArg
+                          false, // shiftKeyArg
+                          false, // metaKeyArg
+                          82, // keyCodeArg : unsigned long the virtual key code, else 0
+                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+      );
+      document.dispatchEvent(keyboardEvent);
     }
   </script>
 </body>
 </html>
-document.getElementById('pdbid').value
 
 
 

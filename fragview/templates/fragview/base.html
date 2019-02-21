@@ -21,25 +21,28 @@
             z-index: 1;
             top: 0;
             left: 0;
-            background-color: #111;
+            background-color: #6e6e6e;
             overflow-x: hidden;
             padding-top: 50px;
             }
 
             .sidenav_local a {
-            padding: 6px 8px 6px 46px;
-            text-decoration: none;
-            font-size: 22px;
-            color: #818181;
-            display: block;
+            {% comment %} padding: 6px 8px 6px 46px; {% endcomment %}
+            {% comment %} text-decoration: none; {% endcomment %}
+            {% comment %} font-size: 22px; {% endcomment %}
+            color: #f0f0f0;
+            {% comment %} display: block; {% endcomment %}
             }
 
             .sidenav_local a:hover {
             color: #f1f1f1;
             }
-
+            .sidenav_local li > a {
+            color: #f0f0f0;
             .main_local {
-            margin-left: 200px; /* Same as the width of the sidenav */
+            display: block;
+            {% comment %} margin-left: 200px; /* Same as the width of the sidenav */ {% endcomment %}
+            
             font-size: 28px; /* Increased text to enable scrolling */
             padding: 0px 10px;
             }
@@ -56,19 +59,78 @@
     </head>
     
     <body>    
-            <div class="sidenav_local">
-                <a href="/datasets">Dataset</a>
+            {% comment %} <div class="sidenav_local">
+                <a href="/datasets"><i class="material-icons">people</i> Dataset</a>
                 <a href="#services">Processing</a>
                 <a href="#contact">Refinement</a>
-                <a href="#contact2">Ligand fit</a>                
+                <a href="/dual_ligand">Ligand fit</a>                
                 <a href="/pandda">Pandda</a>
                 <a href="/ugly">UglyMOL</a>                
                 <a href="/results">Results</a>
-                <a href="/admin">Admin</a>
+                <a href="/admin">Admin</a> {% endcomment %}
                 {% comment %} <a href="{% url 'post_new' %}" class="top-menu">New post</a> {% endcomment %}
+            {% comment %} </div> {% endcomment %}
 
 
+
+
+
+<dmc-sidenav>
+   <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default" style="transform: translateX(0px);" >
+      <li>
+         <div class="user-view">
+            <div class="background">
+               <img src="/static/material/imgs/sidenav.c2ef0f35e6c3.svg">
             </div>
+            {% comment %} <a href="#"><img class="circle" src="/static/material/imgs/user.346c12c47d28.png"></a> {% endcomment %}
+            <a href="#"><span class="black-text name">Admin</span></a>
+            <a href="#"><span class="black-text email"></span></a>
+         </div>
+      </li>
+      {% comment %} <li class="active">
+         <ul class="collapsible collapsible-accordion">
+            <li >
+               <a href="/" class="collapsible-header active">Overview<i class="material-icons">account_balance</i></a>
+               <div class="collapsible-body" style="display:block">
+               </div>
+            </li>
+         </ul>
+      </li> {% endcomment %}
+      <li>
+         <a href="/datasets/" class="collapsible-header" data-turbolinks="false">Dataset<i class="material-icons">people</i></a>
+      </li>
+      <li>
+         <a href="#services" class="collapsible-header" data-turbolinks="false">Processing<i class="material-icons">extension</i></a>
+      </li>
+      <li>
+         <a href="#services" class="collapsible-header" data-turbolinks="false">Refinement<i class="material-icons">dashboard</i></a>
+      </li>
+      <li>
+         <a href="/dual_ligand" class="collapsible-header" data-turbolinks="false">Ligand fit<i class="material-icons">assignment</i></a>
+      </li>
+      <li>
+         <a href="/pandda" class="collapsible-header" data-turbolinks="false">Pandda<i class="material-icons">assignment</i></a>
+      </li>
+      <li>
+         <a href="/ugly" class="collapsible-header" data-turbolinks="false">UglyMOL<i class="material-icons">assignment</i></a>
+      </li>
+      <li>
+         <a href="/results" class="collapsible-header" data-turbolinks="false">Results<i class="material-icons">assignment</i></a>
+      </li>
+      <li class="last">
+         <a href="/admin" class="collapsible-header" data-turbolinks="false">Admin<i class="material-icons">settings_input_component</i></a>
+      </li>
+      <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
+         <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
+      </div>
+      <div class="ps__scrollbar-y-rail" style="top: 0px; right: 0px;">
+         <div class="ps__scrollbar-y" tabindex="0" style="top: 0px; height: 0px;"></div>
+      </div>
+   </ul>
+</dmc-sidenav>
+
+
+
         <div class="main_local">    
         <div class="page-header">
             
