@@ -69,16 +69,10 @@
 
 </head>
 <body style="background-color: black">
-<form action="/density/" method="get" id="my_form">
-    <input type="hidden" value="maps/hCAII-A1_1_dials_fsp.pdb;maps/hCAII-A1_1_dials_fsp_map.ccp4;maps/hCAII-A1_1_dials_fsp_dif.ccp4" name="structure" size="1"/>
-    
-<input type="button" value="Let's go!" onclick="return recentre()" style="    display: block;"></input>
+<input class="btn" type="button" value="Center protein" onclick="return recentre()" style="    display: block;"></input>
 
-  </form>
   <div id="viewer"></div>
-  <header id="hud" onmousedown="event.stopPropagation();"
-                   ondblclick="event.stopPropagation();"
-                   onkeydown="event.stopPropagation();"></header>
+ 
   <footer id="help"></footer>
   <div id="inset"></div>
   <script>
@@ -117,7 +111,6 @@
     'HTML');
     }
     function recentre(){
-        alert("aqu")
         V.recenter([-5.35, 2.71, 15.78], null, 1);    
     }
   </script>
