@@ -21,7 +21,7 @@
             z-index: 1;
             top: 0;
             left: 0;
-            background-color: #6e6e6e;
+            background-color: #212121;
             overflow-x: hidden;
             padding-top: 50px;
             }
@@ -53,23 +53,14 @@
             }
 
             .container {
-                max-width: 80% !important;
+                width: 1600px; 
+                max-width: 250% !important;
             }
         </style>
+
     </head>
     
     <body>    
-            {% comment %} <div class="sidenav_local">
-                <a href="/datasets"><i class="material-icons">people</i> Dataset</a>
-                <a href="#services">Processing</a>
-                <a href="#contact">Refinement</a>
-                <a href="/dual_ligand">Ligand fit</a>                
-                <a href="/pandda">Pandda</a>
-                <a href="/ugly">UglyMOL</a>                
-                <a href="/results">Results</a>
-                <a href="/admin">Admin</a> {% endcomment %}
-                {% comment %} <a href="{% url 'post_new' %}" class="top-menu">New post</a> {% endcomment %}
-            {% comment %} </div> {% endcomment %}
 
 
 
@@ -80,45 +71,35 @@
       <li>
          <div class="user-view">
             <div class="background">
-               <img src="/static/material/imgs/sidenav.c2ef0f35e6c3.svg">
             </div>
-            {% comment %} <a href="#"><img class="circle" src="/static/material/imgs/user.346c12c47d28.png"></a> {% endcomment %}
-            <a href="#"><span class="black-text name">Admin</span></a>
-            <a href="#"><span class="black-text email"></span></a>
+            <a href="#"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
+            <a href="#"><span class="white-text name">Gustavo Lima</span></a>
+            {% comment %} <a href="#"><span class="black-text email">gustavo.lima@maxiv.lu.se</span></a> {% endcomment %}
          </div>
       </li>
-      {% comment %} <li class="active">
-         <ul class="collapsible collapsible-accordion">
-            <li >
-               <a href="/" class="collapsible-header active">Overview<i class="material-icons">account_balance</i></a>
-               <div class="collapsible-body" style="display:block">
-               </div>
-            </li>
-         </ul>
-      </li> {% endcomment %}
       <li>
-         <a href="/datasets/" class="collapsible-header" data-turbolinks="false">Dataset<i class="material-icons">people</i></a>
+         <a href="/datasets/" class="collapsible-header" data-turbolinks="false">Dataset<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
       </li>
       <li>
-         <a href="#services" class="collapsible-header" data-turbolinks="false">Processing<i class="material-icons">extension</i></a>
+         <a href="#services" class="collapsible-header" data-turbolinks="false">Processing<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
       </li>
       <li>
-         <a href="#services" class="collapsible-header" data-turbolinks="false">Refinement<i class="material-icons">dashboard</i></a>
+         <a href="#services" class="collapsible-header" data-turbolinks="false">Refinement<i class="material-icons" style="font-size:22px;color:white">leak_add</i></a>
       </li>
       <li>
-         <a href="/dual_ligand" class="collapsible-header" data-turbolinks="false">Ligand fit<i class="material-icons">assignment</i></a>
+         <a href="/dual_ligand" class="collapsible-header" data-turbolinks="false">Ligand fit<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
       </li>
       <li>
-         <a href="/pandda" class="collapsible-header" data-turbolinks="false">Pandda<i class="material-icons">assignment</i></a>
+         <a href="/pandda" class="collapsible-header" data-turbolinks="false">Pandda<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
       </li>
       <li>
-         <a href="/ugly" class="collapsible-header" data-turbolinks="false">UglyMOL<i class="material-icons">assignment</i></a>
+         <a href="/ugly" class="collapsible-header" data-turbolinks="false">UglyMOL<i class="material-icons" style="font-size:22px;color:white">art_track</i></a>
       </li>
       <li>
-         <a href="/results" class="collapsible-header" data-turbolinks="false">Results<i class="material-icons">assignment</i></a>
+         <a href="/results" class="collapsible-header" data-turbolinks="false">Results<i class="material-icons" style="font-size:22px;color:white">assignment</i></a>
       </li>
       <li class="last">
-         <a href="/admin" class="collapsible-header" data-turbolinks="false">Admin<i class="material-icons">settings_input_component</i></a>
+         <a href="/admin" class="collapsible-header" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
       </li>
       <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
          <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
