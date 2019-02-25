@@ -1,0 +1,97 @@
+
+{% extends 'fragview/base.html' %}
+
+
+{% block content %}
+
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+   
+
+   body {  background-color: #888; font-family: sans-serif; }
+   canvas { display: block; }
+   #viewer1, #viewer2 { position:absolute; top:0; width:calc((100% - 200px)/2); height:100%; }
+   #viewer1 { left: 200px; }
+   #viewer2 { right: 0; }
+   #hud {
+     font-size: 14px;
+     color: #ddd;
+     background-color: rgba(0,0,0,0.6);
+     text-align: center;
+     position: absolute;
+     top: 10px;
+     left: 50%;
+     transform: translateX(-50%);
+     padding: 2px 8px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 200px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   a { color: #59C; }
+   #viewer1 b, #viewer2 b { color: #000; background-color: rgba(255,255,255,0.4); }
+   #viewer1 b { position: absolute; bottom: 30px; left: 30px; }
+   #viewer2 b { position: absolute; bottom: 30px; right: 30px; }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+</head>
+
+<body>
+  <div id="viewer1"><b>RhoFit<br><img src="/static/blog/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
+  <div id="viewer2"><b>LigandFit<br><img src="/static/blog/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
+  <header id="hud">Automated ligand fit comparison. Press H for help.</header>
+  <footer id="help"></footer>
+  <script>
+
+    var acronym = "{{ ligfit_dataset }}"
+    V1 = new UM.Viewer({viewer: "viewer1", focusable: true});
+
+    V1.load_pdb_and_ccp4_maps("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/ligandfit/EDITED_final.pdb",
+                              "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_2mFo-DFc_filled.ccp4",
+                              "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_mFo-DFc.ccp4", function () {
+
+
+    });
+    V1.load_pdb("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/rhofit/best.pdb");
+
+    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1});
+    V2.load_pdb_and_ccp4_maps("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/ligandfit/EDITED_final.pdb",
+                              "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_2mFo-DFc_filled.ccp4",
+                              "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_mFo-DFc.ccp4", function () {  
+
+    });
+    V2.load_pdb("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/ligandfit/ligand_fit_1.pdb");
+
+    V1.renderer.domElement.focus();
+    V1.change_zoom_by_factor(3.5);
+    
+      
+
+
+  </script>
+</body>
+</html>
+
+
+{% endblock %}

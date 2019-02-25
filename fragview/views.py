@@ -16,6 +16,9 @@ acr="hCAII"
 proposal="20180489"
 shift="20190127"
 proposal_type="visitors"
+
+path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
+subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 ################################
 
 
@@ -66,13 +69,7 @@ def datasets(request):
 
 
 def results(request):
-    acr="hCAII"
-    proposal="20180489"
-    shift="20190127"
-    proposal_type="visitors"
     
-    path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 
     with open(path+"/fragmax/process/refsum.csv","r") as inp:
         a=inp.readlines()
@@ -96,6 +93,24 @@ def ugly(request):
 def dual_ligand(request):
     a="load maps and pdb"
     return render(request,'fragview/dual_ligand.html', {'Report': a})
+
+##################################
+####### COMPARE TWO LIGANDS ######
+##################################
+def compare_poses(request):
+    
+    a=str(request.GET.get('ligfit_dataset')) 
+    b=a.split(acr+"-")[-1].split("_")[0]
+    return render(request,'fragview/dual_density.html', {'ligfit_dataset': a,'png':b})
+
+def ligfit_results(request):
+    with open(path+"/fragmax/process/autolig.csv","r") as outp:
+        a="".join(outp.readlines())
+    
+    return render(request,'fragview/ligfit_results.html', {'resTable': a})
+
+###################################
+
 
 def pandda(request):    
     

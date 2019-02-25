@@ -12,7 +12,8 @@ urlpatterns = [
     path('pandda/', views.pandda, name='pandda'),
     path('ugly/', views.ugly, name='ugly'),
     path('dual_ligand/', views.dual_ligand, name='dual_ligand'),
-
+    path('ligfit_results/', views.ligfit_results, name='ligfit_results'),
+    path('dual_density/', views.compare_poses, name='dual_density'),
 
 
 
