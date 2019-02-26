@@ -100,8 +100,10 @@ def dual_ligand(request):
 def compare_poses(request):
     
     a=str(request.GET.get('ligfit_dataset')) 
-    b=a.split(acr+"-")[-1].split("_")[0]
-    return render(request,'fragview/dual_density.html', {'ligfit_dataset': a,'png':b})
+    data=a.split(";")[0]
+    blob=a.split(";")[1]
+    png=data.split(acr+"-")[-1].split("_")[0]
+    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png})
 
 def ligfit_results(request):
     with open(path+"/fragmax/process/autolig.csv","r") as outp:

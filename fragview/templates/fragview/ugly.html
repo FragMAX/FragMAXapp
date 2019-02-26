@@ -68,12 +68,6 @@
     V = new UM.Viewer({viewer: "viewer", hud: "", help: "help"});        
     V.set_pdb_and_map_dropzone(V.renderer.domElement);
    
-    {% comment %} V.load_pdb("/static/biomax/20180489/20190127/fragmax/results/pandda/pandda/processed_datasets/hCAII-A1_1_dials_dimple/modelled_structures/hCAII-A1_1_dials_dimple-pandda-model.pdb",null, function(){
-         V.recenter([0,0,0], null, 1);
-
-    }); {% endcomment %}
-
-    {% comment %} Blobs from dimple/fspipeline/etc {% endcomment %}
     var blobs = [[-5.35, 2.71, 15.78],[-8.43, 8.58, 8.54],[-17.14, -16.94, 21.43],[-3.62, 5.76, 14.12]];
     var index = 0;
     var numblobs= blobs.length;

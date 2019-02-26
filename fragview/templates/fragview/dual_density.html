@@ -60,7 +60,7 @@
 <body>
   <div id="viewer1"><b>RhoFit<br><img src="/static/blog/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
   <div id="viewer2"><b>LigandFit<br><img src="/static/blog/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
-  <header id="hud">Automated ligand fit comparison. Press H for help.</header>
+  <header id="hud">Automated ligand fit comparison for fragment {{png}}. Press H for help.</header>
   <footer id="help"></footer>
   <script>
 
@@ -70,7 +70,7 @@
     V1.load_pdb_and_ccp4_maps("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/ligandfit/EDITED_final.pdb",
                               "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_2mFo-DFc_filled.ccp4",
                               "/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/final_mFo-DFc.ccp4", function () {
-
+                              V1.recenter({{blob}}, null, 100)
 
     });
     V1.load_pdb("/static/biomax/20180489/20190127/fragmax/results/ligandfit/"+acronym+"/rhofit/best.pdb");
