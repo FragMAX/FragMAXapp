@@ -50,8 +50,8 @@
 
 </head>
 <body style="background-color: white">
-{% for pdb,nat,dif,center in structure %}
-<h5>{{pdb | cut:"biomax/20180489/20190127/fragmax/results/pandda/pandda/processed_datasets/" }} </h5>
+{% for name,pdb,nat,dif,xyzlist,center in structure %}
+<h5>Showing results for: {{name }} </h5>
 <input class="btn" type="button" value="Previous blob" onclick="return previousblob()" ></input> 
 
 <input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
@@ -68,9 +68,11 @@
 
     });
     V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
-    {% endfor %}   
 
-    var blobs = [[-5.35, 2.71, 15.78],[-8.43, 8.58, 8.54],[-17.14, -16.94, 21.43],[-3.62, 5.76, 14.12]];
+    var blobs = [{{xyzlist}}];
+    
+        {% endfor %}   
+
     var index = 0;
     var numblobs= blobs.length;
 

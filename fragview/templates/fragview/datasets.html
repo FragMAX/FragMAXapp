@@ -5,7 +5,7 @@
 {% block content %}
 
 {% load static %}
-<h3>Datasets selection</h3>
+<h4>Datasets selection</h4>
 <style>
 
 
@@ -18,16 +18,24 @@ th {
   td, th {
     border: 1px solid #f0f0f0;
     padding: 8px;
+    text-align: center;
+
   } 
 tr:nth-child(even) {
   background-color: #dddddd;
   height: 150px;
+
 }
 
-tr td:nth-child(-n+5) {
-  text-align: center;
-}
+tr td:nth-child(6) {
+    text-align: left;
 
+}
+.container {
+    margin: 0 50px 50px 250px !important;
+    max-width: 100% !important;
+    width: calc(100% - 300px) !important;
+}
 </style>
         
  <table id="datasetTable" >

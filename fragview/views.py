@@ -49,13 +49,12 @@ def post_new(request):
 
 
 def datasets(request):
-
-    
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 
     with open(path+"/fragmax/process/datacollectionPar.csv","r") as inp:
         a=inp.readlines()
+
     acr_list=a[1].split(",")
     prf_list=a[2].split(",")
     res_list=a[3].split(",")
@@ -69,21 +68,29 @@ def datasets(request):
 
 
 def results(request):
-    
-
-    with open(path+"/fragmax/process/refsum.csv","r") as inp:
+    with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
         a=inp.readlines()
-
     return render_to_response('fragview/results.html', {'files': a})
 
 
 def request_page(request):
+    a=str(request.GET.get('structure'))     
+    name=a.split(";")[0].split("/modelled_structures/")[-1].split(".pdb")[0]  
+    a=zip([a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]])  
     
-    a=str(request.GET.get('structure')) 
-    print(a)
-    a=zip([a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]])    
-    return render(request,'fragview/density.html', {'structure': a})
+    return render(request,'fragview/pandda_density.html', {'structure': a,'protname':name})
 
+def request_page_res(request):
+    a=str(request.GET.get('structure')) 
+    center=""
+    if "],[" in a.split(";")[3]:
+        center=a.split(";")[3].split("],[")[0]+"]"
+    else:
+        center=a.split(";")[3].replace("],","")
+    center=[a.split(";")[0]]    
+    a=zip([a.split(";")[0].split("/pandda/")[-1].split("/final")[0]],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
+    
+    return render(request,'fragview/density.html', {'structure': a})
 
 def ugly(request):
     a="load maps and pdb"
@@ -98,7 +105,6 @@ def dual_ligand(request):
 ####### COMPARE TWO LIGANDS ######
 ##################################
 def compare_poses(request):
-    
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
@@ -115,12 +121,34 @@ def ligfit_results(request):
 
 
 def pandda(request):    
-    
-    path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    
     with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
         a="".join(inp.readlines())
 
-    a=a.replace("<title>PANDDA Processing Output</title>","<style>.container{width: 1600px; max-width: 250% !important;} label{font-size: 1.8rem !important;}</style><title>PANDDA Processing 12Output</title>")
-        
+    with open(path+"/fragmax/process/panddarefsum.csv","r") as inp:
+        body="".join(inp.readlines())
+    thead_ini=a.index("<thead>")+8
+    thead_end=a.index("</thead>") 
+    tbody_ini=a.index("<tbody>")+8
+    tbody_end=a.index("</tbody>")     
+    a=a.replace(a[thead_ini:thead_end],"""<tr>
+            <th>Data set</th>
+            <th>Space group</th>
+            <th>Res. [Å]</th>
+            <th>R<sub>work</sub> [%]</th>
+            <th>R<sub>free</sub> [%]</th>
+            <th>RMS bonds [Å]</th>
+            <th>RMS angles [°]</th>
+            <th>a</th>
+            <th>b</th>
+            <th>c</th>
+            <th>α</th>
+            <th>β</th>
+            <th>γ</th>
+            <th>Unmodelled blobs</th>
+            <th>σ</th>
+            <th>Event</th>
+            </tr>""")
+    a=a.replace(a[tbody_ini:tbody_end],"<tr></tr>"+body)
+    a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+    
     return render(request,'fragview/pandda.html', {'Report': a})

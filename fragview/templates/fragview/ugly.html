@@ -14,10 +14,10 @@
    canvas { display: block; }
    #viewer {
      position: absolute;
-     left: 100px;
-     top: 100px;
-     width: calc(100% - 100px);
-     height: calc(100% - 100px);
+     left: 50px;
+     top: 50px;
+     width: calc(100% - 50px);
+     height: calc(100% - 50px);
    }
    
    #help {
@@ -54,9 +54,9 @@
 </head>
 <body style="background-color: #f0f0f0">
 <h5>Drag and drop your pdb and map (PDB/CCP4/DSN6) files to this window.</h5>
-<input class="btn" type="button" value="Previous blob" onclick="return previousblob()" ></input> 
+{% comment %} <input class="btn" type="button" value="Previous blob" onclick="return previousblob()" ></input> 
 
-<input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
+<input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input>  {% endcomment %}
 
   <div id="viewer"></div>
   <footer id="help"></footer>

@@ -3,8 +3,63 @@
 
 
 {% block content %}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
 
+  }
+  th {
+    text-align: center;
+    height: 50px;
+  }
+  td{
+            height: 100px;
+  }
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n+2) {
+    text-align: center !important;
+  }
+  tr th:nth-child(n+2) {
+    text-align: center !important;
+  }
+  th {
+      cursor: pointer;
+  }
+
+.container {
+    max-width: 100% !important;
+    margin: 0 50px 50px 150px !important;
+    width: calc(100% - 200px) !important;
+}
+.col-md-8 {
+width: 100% !important;
+}
+label{font-size: 1.8rem !important;}
+</style>
 {{Report |safe}}
 
+<script>
+const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+// do the work...
+document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+    const table = th.closest('table');
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => table.appendChild(tr) );
+})));
+</script>
 {% endblock %}

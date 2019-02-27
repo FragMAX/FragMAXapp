@@ -1,0 +1,71 @@
+
+{% extends 'fragview/base.html' %}
+
+
+{% block content %}
+
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+   body { font-family: sans-serif; }
+   canvas { display: block; }
+   #viewer {
+     position: absolute;
+     left: 50px;
+     top: 60px;
+     width: calc(100% - 49.9px);
+     height: calc(100% - 59.9px);
+   }
+   
+   #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 200px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
+   }
+   a { color: #59C; }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+</head>
+<body style="background-color: white">
+{% for pdb,nat,dif,center in structure %}
+<h5>Pandda event map for: {{protname}} </h5>
+  <div id="viewer"></div>
+  <footer id="help"></footer>
+  <div id="inset"></div>
+  <script>
+    V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});   
+    V.load_pdb("/static/{{pdb}}",null, function(){
+         V.recenter({{center}}, null, 1);
+    });
+    V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
+    {% endfor %}   
+
+  </script>
+</body>
+</html>
+
+
+{% endblock %}
