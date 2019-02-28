@@ -50,28 +50,23 @@
 
 </head>
 <body style="background-color: white">
-{% for name,pdb,nat,dif,xyzlist,center in structure %}
-<h5>Showing results for: {{name }} </h5>
-<input class="btn" type="button" value="Previous blob" onclick="return previousblob()" ></input> 
+  {% for name,pdb,nat,dif,xyzlist,center in structure %}
+    <h5>Showing results for: {{name }} </h5>
+    <input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> 
+    <input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
+    <div id="viewer"></div>
+    <footer id="help"></footer>
+    <div id="inset"></div>
+    <script>
+      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      V.load_pdb("/static/{{pdb}}",null, function(){
+          V.recenter({{center}}, null, 1);
+      });
+      V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
 
-<input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
-  <div id="viewer"></div>
-  <footer id="help"></footer>
-  <div id="inset"></div>
-  <script>
-    V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      var blobs = [{{xyzlist}}];
     
-    
-    
-    V.load_pdb("/static/{{pdb}}",null, function(){
-         V.recenter({{center}}, null, 1);
-
-    });
-    V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
-
-    var blobs = [{{xyzlist}}];
-    
-        {% endfor %}   
+    {% endfor %}   
 
     var index = 0;
     var numblobs= blobs.length;

@@ -21,6 +21,17 @@ path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
 subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 ################################
 
+def load_project_summary(request):
+    a="data from user project"
+    return render(request,'fragview/project_summary.html', {'structure': a,})
+
+def dataset_info(request):
+    a="data from user project"
+    return render(request,'fragview/dataset_info.html', {'structure': a,})
+
+
+
+    
 
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')

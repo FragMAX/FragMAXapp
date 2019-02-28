@@ -1,0 +1,240 @@
+
+{% extends 'fragview/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+
+  th {
+      cursor: pointer;
+  }
+
+    .flexdiv {
+        display: flex;
+        {% comment %} margin: 0 50px 50px 250px !important;
+        max-width: 100% !important;
+        width: calc(100% - 300px) !important; {% endcomment %}
+    }
+    .left-panel {
+        flex-basis: 50%;
+    }
+
+.right-panel {
+    flex-basis: 50%;
+    min-width: 550px;
+    margin-left: .375rem;
+    margin-right: .375rem;
+}
+</style>
+<h4>Dataset information</h4>
+        
+<div class="flexdiv">
+                
+
+<div class="left-panel">
+    <div class="card">
+        <div class="card-content">            
+            <div class="card-title">Experiment parameters</div>
+            <table class="table bordered">                
+                <tbody>
+                    <tr>
+                        <th>Img directory</th>
+                        <td>/data/visitors/biomax/20180489/20190127/raw/hCAII/hCAII-Apo14/</td>                    
+                    </tr>
+                    <tr>
+                        <th>Img prefix</th>
+                        <td>hCAII- </td>                    
+                    </tr>
+                    
+                    <tr>
+                        <th># of images</th>
+                        <td>3600 </td>
+                    </tr>
+                    <tr>
+                        <th>Start time</th>
+                        <td>27-01-2019 16:22:47 </td>
+                    </tr>
+                    <tr>
+                        <th>End time</th>
+                        <td>27-01-2019 16:23:05 </td>
+                    </tr>
+                    <tr>
+                        <th>Type of experiment</th>
+                        <td>OSC </td>
+                    </tr>
+                    <tr>
+                        <th>Wavelength</th>
+                        <td>0.953722 Å </td>
+                    </tr>
+                    <tr>
+                        <th>Energy</th>
+                        <td>13 keV </td>
+                    </tr>
+                    <tr>
+                        <th>Phi Start</th>
+                        <td>360° </td>
+                    </tr>
+                    <tr>
+                        <th>Oscillation range</th>
+                        <td>0.1° </td>
+                    </tr>
+                    <tr>
+                        <th>Overlap</th>
+                        <td>0° </td>
+                    </tr>
+                    <tr>
+                        <th>Exposure time</th>
+                        <td>0.04 s </td>
+                    </tr>
+                    <tr>
+                        <th>Total Exposure time</th>
+                        <td>144 s</td>
+                    </tr>
+                    <tr>
+                        <th>Estimated dose</th>
+                        <td>Not defined </td>
+                    </tr>
+                    <tr>
+                        <th>Detector distance</th>
+                        <td>222.32 mm </td>
+                    </tr>
+                    <tr>
+                        <th>Resolution at edge</th>
+                        <td>1.6 Å </td>
+                    </tr>
+                    <tr>
+                        <th>Resolution at corner</th>
+                        <td>1.21 Å </td>
+                    </tr>
+                    <tr>
+                        <th>Xbeam</th>
+                        <td>2099.04 mm</td>
+                    </tr>
+                    <tr>
+                        <th>Ybeam</th>
+                        <td>2125.08 mm</td>
+                    </tr>
+                    <tr>
+                        <th>Kappa</th>
+                        <td>0 </td>
+                    </tr>
+                    <tr>
+                        <th>Phi</th>
+                        <td>0 </td>
+                    </tr>
+
+                </tbody>
+            
+            </table>
+        </div>
+        
+    </div>
+</div>
+
+
+<div class="right-panel">
+    <div class="card">
+        <div class="card-content">            
+            <div class="card-title">Beamline parameters</div>
+            <table class="table bordered">
+                <tbody>
+                    <tr>
+                        <th>Synchrotron</td>
+                        <td>MAX IV Laboratory</td>
+                    </tr>
+                    <tr>
+                        <th>Filling mode</td>
+                        <td>Variable TopUp</td>
+                    </tr>
+                    
+                    <tr>
+                        <th>Beamline</td>
+                        <td>BioMAX</td>
+                    </tr>
+                    <tr>
+                        <th>Beam transmission</td>
+                        <td>20.09%</td>
+                    </tr>
+                    <tr>
+                        <th>Slit gap hor</td>
+                        <td>50 μm</td>
+                    </tr>
+                    <tr>
+                        <th>Slit gap ver</td>
+                        <td>50 μm</td>
+                    </tr>
+                    <tr>
+                        <th>Detector type</td>
+                        <td>Hybrid pixel direct counting device</td>
+                    </tr>
+                    <tr>
+                        <th>Detector model</td>
+                        <td>Eiger 16M</td>
+                    </tr>
+                    <tr>
+                        <th>Detector pixel size (HxV)</td>
+                        <td>0.075 mm x 0.075 mm</td>
+                    </tr>
+                    <tr>
+                        <th>Focusing optics</td>
+                        <td>KB mirrors</td>
+                    </tr>
+                    <tr>
+                        <th>Monochromator type</td>
+                        <td>Si(111)</td>
+                    </tr>
+                    <tr>
+                        <th>Beam shape</td>
+                        <td>Ellipse</td>
+                    </tr>
+                    <tr>
+                        <th>Flux</td>
+                        <td>1.4 10^11 ph/s</td>
+                    </tr>
+                    <tr>
+                        <th>Beam size at sample (HxV)</td>
+                        <td>20 μm x 20 μm</td>
+                    </tr>
+                    <tr>
+                        <th>Beam divergence (HxV)</td>
+                        <td>6 μrad x 104 μrad</td>
+                    </tr>
+                    <tr>
+                        <th>Polarisation</td>
+                        <td>0.99°</td>
+                    </tr>
+                    
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+{% endblock %}
+

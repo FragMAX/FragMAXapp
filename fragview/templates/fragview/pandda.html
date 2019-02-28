@@ -3,6 +3,8 @@
 
 
 {% block content %}
+
+
 <style>
 table {
     font-family: arial, sans-serif;
@@ -18,7 +20,7 @@ table {
   }
   td, th {
     border: 1px solid #f0f0f0;
-    padding: 5px;
+    padding: 15px;
   }
   
   tr:nth-child(even) {
@@ -43,7 +45,13 @@ table {
 .col-md-8 {
 width: 100% !important;
 }
-label{font-size: 1.8rem !important;}
+label {
+  font-size: 1.8rem !important;
+  }
+a:hover {
+  text-decoration: none !important;
+}
+
 </style>
 {{Report |safe}}
 
