@@ -21,6 +21,10 @@ path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
 subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 ################################
 
+def index(request):
+    return render(request, "fragview/index.html")
+
+
 def load_project_summary(request):
     a="data from user project"
     return render(request,'fragview/project_summary.html', {'structure': a,})
