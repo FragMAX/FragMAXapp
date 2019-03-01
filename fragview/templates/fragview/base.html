@@ -10,7 +10,7 @@
         
         {% include 'material/includes/material_css.html' %}
         {% include 'material/includes/material_js.html' %}
-
+        <link rel="icon" href="{% static 'img/favicon.png' %}">
         <style>
             
 
@@ -54,6 +54,17 @@
             .sidenav a {font-size: 18px;}
             }
         </style>
+        <style>
+        .isDisabled {
+            opacity: 0.5;
+         }
+         .isDisabled > a {
+            color: currentColor;
+            display: inline-block;  /* For IE11/ MS Edge bug */
+            pointer-events: none;
+            text-decoration: none;
+         }
+        </style>
 
     </head>
     
@@ -80,13 +91,14 @@
       <li>
          <a href="/dataset_info" class="collapsible-header" data-turbolinks="false">Processing<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
       </li>
-      <li>
+      <li class="isDisabled">
          <a href="#services" class="collapsible-header" data-turbolinks="false">Refinement<i class="material-icons" style="font-size:22px;color:white">leak_add</i></a>
       </li>      
       <li>
          <a href="/pandda" class="collapsible-header" data-turbolinks="false">Pandda<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
       </li>      
-      <li>
+      
+      <li class="isDisabled">
          <a href="/ugly" class="collapsible-header" data-turbolinks="false">Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
       </li>
       <li>

@@ -7,234 +7,589 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 <style>
-  table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-
-  }
-  th {
-    text-align: center;
-
-  }
-
-  td, th {
-    border: 1px solid #f0f0f0;
-    padding: 8px;
-
-  }
-
-  tr:nth-child(even) {
-    background-color: #e2e2e2;
-  }
-
-
-  th {
-      cursor: pointer;
-  }
-
+    td, th {
+        padding: 5px 5px;
+        display: table-cell;
+        text-align: left;
+        vertical-align: middle;
+        border-radius: 2px;
+        font-size: 12px;
+    }
+    .content {
+        margin: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .card-content-left{
+        padding: 24px 24px 60px 24px !important;
+    }
+    .card-content-right{
+        padding: 24px 24px 190px 24px !important;
+    }
+    .card_options {
+        padding-left: 260px  !important;
+        max-width: 2455px  !important;
+    }
     .flexdiv {
         display: flex;
-        {% comment %} margin: 0 50px 50px 250px !important;
-        max-width: 100% !important;
-        width: calc(100% - 300px) !important; {% endcomment %}
+        padding-left: 250px;
     }
-    .left-panel {
-        flex-basis: 50%;
+    .flexdiv_options {
+        display: flex;
+        padding-left: 40px;
+    }
+    .flex-left {
+        flex-basis: 1;
     }
 
-.right-panel {
-    flex-basis: 50%;
-    min-width: 550px;
-    margin-left: .375rem;
-    margin-right: .375rem;
-}
+    .flex-right {
+        margin-left:10px;     
+    }    
+    .flex-center {
+        margin-left:10px;     
+    }
+    .crystalsnap {
+        width: 400px;
+        padding: 10px;
+    }
+    .flexdiv_snapshot {
+        display: flex;
+    }
+    .selectbox {
+        display: flex !important; 
+    }
+    .optionstable {
+    border-collapse: separate;
+    border-spacing: 0;
+    }
+    .bottom-right    {
+        right: 30;
+        bottom: 20;
+        position: absolute;
+        
+    }
+    .btn-right {
+        float:right !important;
+    }
+    .maxivorange {
+        background-color: #fea901;
+    }
+    .custompar {
+        background-color: #f0f0f0;
+    }
+</style> 
+
+<style>
+    .myImg {
+    cursor: pointer;}
+
+    /* The Modal (background) */
+    .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    max-height: 100%;
+    left: 200px;
+    top: 0;
+    width: calc(100% - 200px); /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+    }
+
+    /* Modal Content (image) */
+    .modal-content {
+    margin: auto;
+    display: block;
+    max-height: 960px;
+    }
 </style>
-<h4>Dataset information</h4>
+
+
+{% comment %} <meta http-equiv="refresh" content="5" /> {% endcomment %}
+
+<div>
+    <h5 style="padding-left:260px;">hCAII-Apo14 Dataset information</h5>                            
+    <h6 style="padding-left:260px; padding-bottom:20px;" ><a href="#">Open previous results</a></h6> 
+</div>
+
         
-<div class="flexdiv">
+<!-- The Modal -->
+<div id="myModal" class="modal">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="img01">
+  <div id="caption"></div>
+</div>
+
+<div class="card_options">
+<div class="flexdiv_options card "> 
+    <div class="flex-left">
+        <div >
+            <div class="card-content card-content-left">            
+                <div class="card-title">Data processing</div>
+                <table class="optionstable">           
+                    <col width="200">
+                    <col width="450">     
+                    <tbody>
+                        <tr>
+                            <th>Software</th>
+                            <td>
+                            <select class="selectbox" name="procSW">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="dials">XIA2/DIALS</option>
+                                <option value="xdsxscale">XIA2/XDS_XSCALE</option>
+                                <option value="autoproc">autoProc</option>
+                                <option value="xdsapp">XDSAPP</option>                                
+                            </select>
+                            </div>
+                            
+                            
+                            </td>                     
+                        </tr>
+                        <tr>
+                            <th>Space group</th>
+                            <td>
+                            <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
+                            </td>                    
+                        </tr>
+                        
+                        <tr>
+                            <th>Cell parameters</th>
+                            <td><input class="selectbox" name="spacegroup" placeholder="(a, b, c, α, β, γ)"></input> </td>
+                        </tr>
+                        <tr>
+                            <th>Friedel law</th>
+                            <td>
+                            <select class="selectbox" name="friedel">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="friedeltrue">True</option>
+                                <option value="friedelfalse">False</option>
+                            </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Data range</th>
+                            <td><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                        </tr>
+                        <tr>
+                            <th>Resolution cutoff</th>
+                            <td><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr>
+                            <th>CC1/2 cutoff</th>
+                            <td><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr>
+                            <th>I/σ(I) cutoff</th>
+                            <td><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr class="custompar">
+                            <th>Custom parameters</th>
+                            <td><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <td style="padding-top:20px">
+                            <input type="button" class="btn btn-right" value="Run data processing"> </input>
+                            </td>
+                        </tr>
+
+                    </tbody>
                 
-
-<div class="left-panel">
-    <div class="card">
-        <div class="card-content">            
-            <div class="card-title">Experiment parameters</div>
-            <table class="table bordered">                
-                <tbody>
-                    <tr>
-                        <th>Img directory</th>
-                        <td>/data/visitors/biomax/20180489/20190127/raw/hCAII/hCAII-Apo14/</td>                    
-                    </tr>
-                    <tr>
-                        <th>Img prefix</th>
-                        <td>hCAII- </td>                    
-                    </tr>
-                    
-                    <tr>
-                        <th># of images</th>
-                        <td>3600 </td>
-                    </tr>
-                    <tr>
-                        <th>Start time</th>
-                        <td>27-01-2019 16:22:47 </td>
-                    </tr>
-                    <tr>
-                        <th>End time</th>
-                        <td>27-01-2019 16:23:05 </td>
-                    </tr>
-                    <tr>
-                        <th>Type of experiment</th>
-                        <td>OSC </td>
-                    </tr>
-                    <tr>
-                        <th>Wavelength</th>
-                        <td>0.953722 Å </td>
-                    </tr>
-                    <tr>
-                        <th>Energy</th>
-                        <td>13 keV </td>
-                    </tr>
-                    <tr>
-                        <th>Phi Start</th>
-                        <td>360° </td>
-                    </tr>
-                    <tr>
-                        <th>Oscillation range</th>
-                        <td>0.1° </td>
-                    </tr>
-                    <tr>
-                        <th>Overlap</th>
-                        <td>0° </td>
-                    </tr>
-                    <tr>
-                        <th>Exposure time</th>
-                        <td>0.04 s </td>
-                    </tr>
-                    <tr>
-                        <th>Total Exposure time</th>
-                        <td>144 s</td>
-                    </tr>
-                    <tr>
-                        <th>Estimated dose</th>
-                        <td>Not defined </td>
-                    </tr>
-                    <tr>
-                        <th>Detector distance</th>
-                        <td>222.32 mm </td>
-                    </tr>
-                    <tr>
-                        <th>Resolution at edge</th>
-                        <td>1.6 Å </td>
-                    </tr>
-                    <tr>
-                        <th>Resolution at corner</th>
-                        <td>1.21 Å </td>
-                    </tr>
-                    <tr>
-                        <th>Xbeam</th>
-                        <td>2099.04 mm</td>
-                    </tr>
-                    <tr>
-                        <th>Ybeam</th>
-                        <td>2125.08 mm</td>
-                    </tr>
-                    <tr>
-                        <th>Kappa</th>
-                        <td>0 </td>
-                    </tr>
-                    <tr>
-                        <th>Phi</th>
-                        <td>0 </td>
-                    </tr>
-
-                </tbody>
-            
-            </table>
-        </div>
-        
-    </div>
-</div>
-
-
-<div class="right-panel">
-    <div class="card">
-        <div class="card-content">            
-            <div class="card-title">Beamline parameters</div>
-            <table class="table bordered">
-                <tbody>
-                    <tr>
-                        <th>Synchrotron</td>
-                        <td>MAX IV Laboratory</td>
-                    </tr>
-                    <tr>
-                        <th>Filling mode</td>
-                        <td>Variable TopUp</td>
-                    </tr>
-                    
-                    <tr>
-                        <th>Beamline</td>
-                        <td>BioMAX</td>
-                    </tr>
-                    <tr>
-                        <th>Beam transmission</td>
-                        <td>20.09%</td>
-                    </tr>
-                    <tr>
-                        <th>Slit gap hor</td>
-                        <td>50 μm</td>
-                    </tr>
-                    <tr>
-                        <th>Slit gap ver</td>
-                        <td>50 μm</td>
-                    </tr>
-                    <tr>
-                        <th>Detector type</td>
-                        <td>Hybrid pixel direct counting device</td>
-                    </tr>
-                    <tr>
-                        <th>Detector model</td>
-                        <td>Eiger 16M</td>
-                    </tr>
-                    <tr>
-                        <th>Detector pixel size (HxV)</td>
-                        <td>0.075 mm x 0.075 mm</td>
-                    </tr>
-                    <tr>
-                        <th>Focusing optics</td>
-                        <td>KB mirrors</td>
-                    </tr>
-                    <tr>
-                        <th>Monochromator type</td>
-                        <td>Si(111)</td>
-                    </tr>
-                    <tr>
-                        <th>Beam shape</td>
-                        <td>Ellipse</td>
-                    </tr>
-                    <tr>
-                        <th>Flux</td>
-                        <td>1.4 10^11 ph/s</td>
-                    </tr>
-                    <tr>
-                        <th>Beam size at sample (HxV)</td>
-                        <td>20 μm x 20 μm</td>
-                    </tr>
-                    <tr>
-                        <th>Beam divergence (HxV)</td>
-                        <td>6 μrad x 104 μrad</td>
-                    </tr>
-                    <tr>
-                        <th>Polarisation</td>
-                        <td>0.99°</td>
-                    </tr>
-                    
-
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-
+                </table>
             </div>
+            
+        </div>
+    </div>
+
+    <div class="flex-center">
+        <div >
+                
+            <div class="card-content card-content-left">            
+                <div class="card-title">Structure Refinement</div>
+                <table class="optionstable">           
+                    <col width="200">
+                    <col width="450">     
+                    <tbody>
+                        <tr>
+                            <th>Software</th>
+                            <td>
+                            <select class="selectbox" name="refinSW">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="dimple">Dimple</option>
+                                <option value="buster">BUSTER</option>
+                                <option value="fsp">FSpipeline</option>                                
+                            </select>
+                            </div>
+                            
+                            
+                            </td>                    
+                        </tr>                     
+                        <tr>
+                            <th>Refinement mode</th>
+                            <td>
+                            <select class="selectbox" name="refMode">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="refslow">Extra (Slowest)</option>
+                                <option value="refslow">Normal (Slow)</option>
+                                <option value="reffast">Quick (Fast)</option>                               
+                            </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Threshold for MR</th>
+                            <td>
+                            <input  class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Resolution cutoff</th>
+                            <td>
+                            <input  class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>PDB model</th>
+                            <td>
+                            <input  class="selectbox" name="refrescutoff" placeholder="PDB ID or full path"></input>
+                            </td>
+                        </tr>
+                        <tr class="custompar">
+                            <th>Custom parameters</th>
+                            <td><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr >
+                            <th></th>
+                            <td style="padding-top:20px">
+                            <input  type="button" class="btn btn-right" value="Run refinement"> </input>
+                            </td>
+                        </tr>
+                    </tbody>
+                
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <div class="flex-right">
+        <div >
+            <div class="card-content card-content-right">            
+                <div class="card-title">Ligand fitting</div>
+                <table class="optionstable">
+                    <col width="200">
+                    <col width="450"> 
+                    <tbody>
+                        <tr>
+                            <th>Software</th>
+                            <td>
+                            <select class="selectbox" name="ligfitSW">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="rhofit">RhoFit</option>
+                                <option value="phenixligfit">Phenix LigFit</option>                                
+                            </select>
+                            </div>
+                        </tr>
+                            <th>Ligand SMILES</th>
+                            <td>
+                            <input  class="selectbox" name="ligsmiles" placeholder="CN1C=NC2=C1C(=O)N(C(=O)N2C)C"></input>
+                            </td>                        
+                        <tr>
+                            <th>Copies to search</th>
+                            <td>
+                            <input  class="selectbox" name="numberofcopies" placeholder="default: 1"></input>
+                            </td>                        
+                        <tr>
+                        </tr>
+                        <tr>
+                            <th>Fitting process</th>
+                            <td>
+                            <select class="selectbox" name="fitprocess">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="ligfitquick">Quick</option>
+                                <option value="ligfitthorough">Thorough</option>                                
+                            </select>
+                            </td>                        
+                        <tr>
+                        </tr>
+                        <tr>
+                            <th>Scan chirals</th>
+                            <td>
+                            <select class="selectbox" name="scanchirals">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="chiralsyes">Yes</option>
+                                <option value="chiralsno">No</option>                                
+                            </select>
+                            </td>   
+                        </tr>
+                        <tr class="custompar">
+                            <th>Custom parameters</th>
+                            <td><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <td style="padding-top:20px">
+
+                            <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>                
+            </div>        
+        </div>        
+    </div>
+        <div class="bottom-right">
+            <input type="button" class="btn-large maxivorange" value="Run All"> </input>
+        </div>
+</div>
+</div>
+<div class="flexdiv"> 
+    <div>              
+    <div class="flexdiv_snapshot">
+        <div class="diff1">
+            <img class="myImg crystalsnap" id="diff1" src="/static/userDataFiles/hCAII_90.jpg">
+        </div>
+        <div class="diff2">
+            <img class="myImg crystalsnap" id="diff2" src="/static/userDataFiles/hCAII_45.jpg">
+        </div>
+    </div>
+
+    <div class="flexdiv_snapshot">
+        <div class="snap1">
+        <img class="myImg crystalsnap" id="snap1" src="/static/userDataFiles/hCAII_90_snap.jpg">
+        </div>
+        <div class="snap2">
+            <img class="myImg crystalsnap" id="snap2" src="/static/userDataFiles/hCAII_45_snap.jpg">
+        </div>
+    </div>
+    </div>
+
+    <div class="flex-left">
+        <div class="card">
+            <div class="card-content card-content-left">            
+                <div class="card-title">Experiment parameters</div>
+                <table class="">           
+                <col width="200">
+                <col width="450">     
+                    <tbody>
+                        <tr>
+                            <th>Img directory</th>
+                            <td>/data/visitors/biomax/20180489/20190127/raw/hCAII/hCAII-Apo14/</td>                    
+                        </tr>
+                        <tr>
+                            <th>Img prefix</th>
+                            <td>hCAII- </td>                    
+                        </tr>
+                        
+                        <tr>
+                            <th># of images</th>
+                            <td>3600 </td>
+                        </tr>
+                        <tr>
+                            <th>Start time</th>
+                            <td>27-01-2019 16:22:47 </td>
+                        </tr>
+                        <tr>
+                            <th>End time</th>
+                            <td>27-01-2019 16:23:05 </td>
+                        </tr>
+                        <tr>
+                            <th>Type of experiment</th>
+                            <td>OSC </td>
+                        </tr>
+                        <tr>
+                            <th>Wavelength</th>
+                            <td>0.953722 Å </td>
+                        </tr>
+                        <tr>
+                            <th>Energy</th>
+                            <td>13 keV </td>
+                        </tr>
+                        <tr>
+                            <th>Phi Start</th>
+                            <td>360° </td>
+                        </tr>
+                        <tr>
+                            <th>Oscillation range</th>
+                            <td>0.1° </td>
+                        </tr>
+                        <tr>
+                            <th>Overlap</th>
+                            <td>0° </td>
+                        </tr>
+                        <tr>
+                            <th>Exposure time</th>
+                            <td>0.04 s </td>
+                        </tr>
+                        <tr>
+                            <th>Total Exposure time</th>
+                            <td>144 s</td>
+                        </tr>
+                        <tr>
+                            <th>Estimated dose</th>
+                            <td>Not defined </td>
+                        </tr>
+                        <tr>
+                            <th>Detector distance</th>
+                            <td>222.32 mm </td>
+                        </tr>
+                        <tr>
+                            <th>Resolution at edge</th>
+                            <td>1.6 Å </td>
+                        </tr>
+                        <tr>
+                            <th>Resolution at corner</th>
+                            <td>1.21 Å </td>
+                        </tr>
+                        <tr>
+                            <th>Xbeam</th>
+                            <td>2099.04 mm</td>
+                        </tr>
+                        <tr>
+                            <th>Ybeam</th>
+                            <td>2125.08 mm</td>
+                        </tr>
+                        <tr>
+                            <th>Kappa</th>
+                            <td>0 </td>
+                        </tr>
+                        <tr>
+                            <th>Phi</th>
+                            <td>0 </td>
+                        </tr>
+
+                    </tbody>
+                
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <div class="flex-right">
+        <div class="card">
+            <div class="card-content card-content-right">            
+                <div class="card-title">Beamline parameters</div>
+                <table class="tableInfo">
+                <col width="200">
+                <col width="450"> 
+                    <tbody>
+                        <tr>
+                            <th>Synchrotron</td>
+                            <td>MAX IV Laboratory</td>
+                        </tr>
+                        <tr>
+                            <th>Filling mode</td>
+                            <td>Variable TopUp</td>
+                        </tr>
+                        
+                        <tr>
+                            <th>Beamline</td>
+                            <td>BioMAX</td>
+                        </tr>
+                        <tr>
+                            <th>Beam transmission</td>
+                            <td>20.09%</td>
+                        </tr>
+                        <tr>
+                            <th>Slit gap hor</td>
+                            <td>50 μm</td>
+                        </tr>
+                        <tr>
+                            <th>Slit gap ver</td>
+                            <td>50 μm</td>
+                        </tr>
+                        <tr>
+                            <th>Detector type</td>
+                            <td>Hybrid pixel direct counting device</td>
+                        </tr>
+                        <tr>
+                            <th>Detector model</td>
+                            <td>Eiger 16M</td>
+                        </tr>
+                        <tr>
+                            <th>Detector pixel size (HxV)</td>
+                            <td>0.075 mm x 0.075 mm</td>
+                        </tr>
+                        <tr>
+                            <th>Focusing optics</td>
+                            <td>KB mirrors</td>
+                        </tr>
+                        <tr>
+                            <th>Monochromator type</td>
+                            <td>Si(111)</td>
+                        </tr>
+                        <tr>
+                            <th>Beam shape</td>
+                            <td>Ellipse</td>
+                        </tr>
+                        <tr>
+                            <th>Flux</td>
+                            <td>1.4 10^11 ph/s</td>
+                        </tr>
+                        <tr>
+                            <th>Beam size at sample (HxV)</td>
+                            <td>20 μm x 20 μm</td>
+                        </tr>
+                        <tr>
+                            <th>Beam divergence (HxV)</td>
+                            <td>6 μrad x 104 μrad</td>
+                        </tr>
+                        <tr>
+                            <th>Polarisation</td>
+                            <td>0.99°</td>
+                        </tr>
+                        
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get the modal
+    var modal = document.getElementById('myModal');
+
+    // Get the image and insert it inside the modal - use its "alt" text as a caption
+    var img = document.getElementById('diff1');
+    var img2 = document.getElementById('diff2');
+    var img3 = document.getElementById('snap1');
+    var img4 = document.getElementById('snap2');
+
+    var modalImg = document.getElementById("img01");
+
+    img.onclick = function(){
+    modal.style.display = "block";
+    modalImg.src = this.src;
+    captionText.innerHTML = this.alt;
+    }
+    img2.onclick = function(){
+    modal.style.display = "block";
+    modalImg.src = this.src;
+    captionText.innerHTML = this.alt;
+    }
+    img3.onclick = function(){
+    modal.style.display = "block";
+    modalImg.src = this.src;
+    captionText.innerHTML = this.alt;
+    }
+    img4.onclick = function(){
+    modal.style.display = "block";
+    modalImg.src = this.src;
+    captionText.innerHTML = this.alt;
+    }
+    window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+    }
+</script>
 {% endblock %}
 
