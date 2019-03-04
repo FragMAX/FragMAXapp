@@ -18,6 +18,8 @@ urlpatterns = [
     path('dual_density/', views.compare_poses, name='dual_density'),
     path('project_summary/', views.load_project_summary, name='project_summary'),
     path('dataset_info/', views.dataset_info, name='dataset_info'),
+    path('process_all/', views.process_all, name='process_all'),
+    
 
 
 

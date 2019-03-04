@@ -5,7 +5,8 @@
 {% block content %}
 
 {% load static %}
-<h4>Datasets selection</h4>
+
+{% comment %} Define dataset run number <- Edit CSV file and update views {% endcomment %}
 <style>
 
 
@@ -27,7 +28,7 @@ tr:nth-child(even) {
 
 }
 
-tr td:nth-child(6) {
+tr td:nth-child(7) {
     text-align: left;
 
 }
@@ -36,15 +37,31 @@ tr td:nth-child(6) {
     max-width: 100% !important;
     width: calc(100% - 300px) !important;
 }
+.crystalsnap {
+  height:88px;
+  width:116px;
+}
+.ligpng {
+  height:116px;
+  width:116px;
+}
 </style>
-        
- <table id="datasetTable" >
+  <div>
+    <h4>Datasets selection</h4> 
+      <form action="/process_all/" method="get" id="procButton">
+        <button class="btn" type="submit" value="process" name="proteinPrefix" size="1">Process All</button>
+      </form>  
+  </div>
+  <p></p>
+
+
+ <table id="datasetTable">
   <thead>
-  <tr >
-  <th>
-    <label><input class="filled-in " id="selectalldata" name="selectalldatachck" type="checkbox"><span>&nbsp;</span></label></th>
+  <tr>
+  <th>Info/Process</th>
   <th>Protein</th>
   <th>Sample name</th>
+  <th>Run</th>
   <th>Resolution</sub> [&Aring;]</th>
   <th>Frames</th>
   <th>Path</th>  
@@ -59,10 +76,26 @@ tr td:nth-child(6) {
     {% for img,prf,res,path,snap,acr,png in files %}
     <tr>
     <td>
-    <label><input class="filled-in " id={{ file }} name={{ file }} type="checkbox"><span>&nbsp;</span></label></td>
+    {% comment %} <form action="/dataset_info">
+        <input class="btn-small" id={{prf}} name={{ prf }} type="submit" value="Get Info" />
+    </form> {% endcomment %}
 
+
+
+    <form action="/dataset_info/" method="get" id={{prf}}>
+      <button class="btn" type="submit" value={{prf}};{{img}} name="proteinPrefix" size="1">Info</button>
+      {% comment %} <a href="javascript:{}" onclick="document.getElementById({{prf}}).submit();">hCAII-H5_testing</a> {% endcomment %}
+    </form>
+
+
+
+
+
+
+    </td>
     <td><p>{{ acr }}</p></td>
     <td><p>{{ prf }}</p></td>
+    <td><p>1</p></td>
     <td><p>{{ res }}</p></td>
     <td><p>{{ img }}</p></td>
     <td><p>{{ path }}</p></td>
@@ -70,8 +103,9 @@ tr td:nth-child(6) {
     
     <td>
       <a href={{ snap }} target="_blank">
-        <object data={{ snap }} type="image/png" height="88" width="116">
+          {% comment %} <object data={{ snap }} type="image/png" height="88" width="116"> {% endcomment %}
           {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noloop" height="40" width="86"> {% endcomment %}
+          <img class="crystalsnap" id="snap1" src={{ snap }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         </object>
       </a>
     </td>    
@@ -79,7 +113,9 @@ tr td:nth-child(6) {
     <td>
       <a href={{ png }} target="_blank">
 
-        <object data={{ png }} type="image/png" height="116" width="116">
+        {% comment %} <object data={{ png }} type="image/png" height="116" width="116"> {% endcomment %}
+        <img class="ligpng" id="ligand" src={{ png }} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';">
+
           {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noligand" height="40" width="86"> {% endcomment %}
         </object>
       </a>
@@ -94,7 +130,6 @@ tr td:nth-child(6) {
 </table>
 <script>
 const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-
 const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
     )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));

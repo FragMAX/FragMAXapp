@@ -24,17 +24,109 @@ subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 def index(request):
     return render(request, "fragview/index.html")
 
-
+def process_all(request):
+    return render(request, "fragview/process_all.html")
+    
 def load_project_summary(request):
     a="data from user project"
     return render(request,'fragview/project_summary.html', {'structure': a,})
 
-def dataset_info(request):
-    a="data from user project"
-    return render(request,'fragview/dataset_info.html', {'structure': a,})
+def dataset_info(request):    
+    a=str(request.GET.get('proteinPrefix'))     
+    prefix=a.split(";")[0]
+    images=a.split(";")[1]
+    images=str(int(images)/2)
+    xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_1.xml"
+    datainfo=retrieveParameters(xmlfile)    
+    energy=format(float(datainfo["wavelength"])*13.6307922,".2f")
+    totalExposure=str(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]))
+    edgeResolution=str(float(datainfo["resolution"])*0.75625)
+    ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
+    fragConc="100 mM"
+    solventConc="15%"
+    soakTime="24h"
+    if "Apo" in prefix:
+        soakTime="Soaking not performed"
+        fragConc="-"
+        solventConc="-"
 
 
+    return render(request,'fragview/dataset_info.html', {
+        'imgprf': prefix, 
+        'imgs': images,
+        "ligand": ligpng,
+        "fragConc": fragConc,
+        "solventConc":solventConc,
+        "soakTime":soakTime,
+        "axisEnd":datainfo["axisEnd"],
+        "axisRange":datainfo["axisRange"],
+        "axisStart":datainfo["axisStart"],
+        "beamShape":datainfo["beamShape"],
+        "beamSizeSampleX":datainfo["beamSizeSampleX"],
+        "beamSizeSampleY":datainfo["beamSizeSampleY"],
+        "detectorDistance":datainfo["detectorDistance"],
+        "endTime":datainfo["endTime"],
+        "exposureTime":datainfo["exposureTime"],
+        "flux":datainfo["flux"],
+        "imageDirectory":datainfo["imageDirectory"],
+        "imagePrefix":datainfo["imagePrefix"],
+        "kappaStart":datainfo["kappaStart"],
+        "numberOfImages":datainfo["numberOfImages"],
+        "overlap":datainfo["overlap"],
+        "phiStart":datainfo["phiStart"],
+        "resolution":datainfo["resolution"],
+        "rotatioAxis":datainfo["rotatioAxis"],
+        "runStatus":datainfo["runStatus"],
+        "slitV":datainfo["slitV"],
+        "slitH":datainfo["slitH"],
+        "startTime":datainfo["startTime"],
+        "synchrotronMode":datainfo["synchrotronMode"],
+        "transmission":datainfo["transmission"],
+        "wavelength":datainfo["wavelength"],
+        "xbeampos":datainfo["xbeampos"],
+        "snapshot1":datainfo["snapshot1"],
+        "snapshot2":datainfo["snapshot2"],
+        "snapshot3":datainfo["snapshot3"],
+        "snapshot4":datainfo["snapshot4"],
+        "ybeampos":datainfo["ybeampos"],        
+        "energy":energy,
+        "totalExposure":totalExposure,
+        "edgeResolution":edgeResolution,
+        "acr":prefix.split("-")[0]
+        })
 
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 
 def post_list(request):
@@ -65,7 +157,6 @@ def post_new(request):
 
 def datasets(request):
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
 
     with open(path+"/fragmax/process/datacollectionPar.csv","r") as inp:
         a=inp.readlines()
@@ -167,3 +258,58 @@ def pandda(request):
     a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
     
     return render(request,'fragview/pandda.html', {'Report': a})
+
+
+
+
+
+
+
+
+#####################################################################################
+#####################################################################################
+########################## REGULAR PYTHON FUNCTIONS #################################
+#####################################################################################
+#####################################################################################
+
+
+def retrieveParameters(xmlfile):
+    #Dictionary with parameters for dataset info template page
+    
+    with open(xmlfile,"r") as inp:
+        a=inp.readlines()
+
+    paramDict=dict()
+    paramDict["axisEnd"]=format(float(a[4].split("</")[0].split(">")[1]),".1f")
+    paramDict["axisRange"]=format(float(a[5].split("</")[0].split(">")[1]),".1f")
+    paramDict["axisStart"]=format(float(a[6].split("</")[0].split(">")[1]),".1f")
+    paramDict["beamShape"]=a[7].split("</")[0].split(">")[1]
+    paramDict["beamSizeSampleX"]=format(float(a[8].split("</")[0].split(">")[1])*1000,".0f")
+    paramDict["beamSizeSampleY"]=format(float(a[9].split("</")[0].split(">")[1])*1000,".0f")
+    paramDict["detectorDistance"]=format(float(a[16].split("</")[0].split(">")[1]),".2f")
+    paramDict["endTime"]=a[18].split("</")[0].split(">")[1]
+    paramDict["exposureTime"]=format(float(a[19].split("</")[0].split(">")[1]),".3f")
+    paramDict["flux"]=a[22].split("</")[0].split(">")[1]
+    paramDict["imageDirectory"]=a[23].split("</")[0].split(">")[1]
+    paramDict["imagePrefix"]=a[24].split("</")[0].split(">")[1]
+    paramDict["kappaStart"]=format(float(a[26].split("</")[0].split(">")[1]),".2f")
+    paramDict["numberOfImages"]=a[27].split("</")[0].split(">")[1]
+    paramDict["overlap"]=format(float(a[29].split("</")[0].split(">")[1]),".1f")
+    paramDict["phiStart"]=format(float(a[30].split("</")[0].split(">")[1]),".2f")
+    paramDict["resolution"]=format(float(a[32].split("</")[0].split(">")[1]),".2f")
+    paramDict["rotatioAxis"]=a[33].split("</")[0].split(">")[1]
+    paramDict["runStatus"]=a[34].split("</")[0].split(">")[1]
+    paramDict["slitV"]=format(float(a[35].split("</")[0].split(">")[1])*1000,".1f")
+    paramDict["slitH"]=format(float(a[36].split("</")[0].split(">")[1])*1000,".1f")
+    paramDict["startTime"]=a[38].split("</")[0].split(">")[1]
+    paramDict["synchrotronMode"]=a[39].split("</")[0].split(">")[1]
+    paramDict["transmission"]=format(float(a[40].split("</")[0].split(">")[1]),".3f")
+    paramDict["wavelength"]=format(float(a[41].split("</")[0].split(">")[1]),".6f")
+    paramDict["xbeampos"]=format(float(a[42].split("</")[0].split(">")[1]),".2f")
+    paramDict["snapshot1"]=a[43].split("</")[0].split(">")[1]
+    paramDict["snapshot2"]=a[44].split("</")[0].split(">")[1]
+    paramDict["snapshot3"]=a[45].split("</")[0].split(">")[1]
+    paramDict["snapshot4"]=a[46].split("</")[0].split(">")[1]
+    paramDict["ybeampos"]=format(float(a[47].split("</")[0].split(">")[1]),".2f")
+    
+    return paramDict
