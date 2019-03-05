@@ -20,5 +20,7 @@ urlpatterns = [
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('process_all/', views.process_all, name='process_all'),
     path('procReport/', views.procReport, name='procReport'),
-    path('test/', views.test, name='test'),
+    path('reproc_web/', views.reproc_web, name='reproc_web'),
+    path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
+    
 ]

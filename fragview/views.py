@@ -258,10 +258,65 @@ def procReport(request):
     return render(request,'fragview/procReport.html', {'Report': html})
 
 
-def test(request):
+def reproc_web(request):
     dataproc = str(request.GET.get("submitProc"))
-    return render(request,'fragview/test.html', {'command': dataproc})
+    outdir=dataproc.split(";")[0]
+    data=dataproc.split(";")[1]
+    
+    import subprocess
+    from time import sleep
+    base_script="""#!/bin/bash
+    #!/bin/bash
+    #SBATCH -t 99:55:00
+    #SBATCH -J FragWeb
+    #SBATCH --exclusive
+    #SBATCH -N1
+    #SBATCH --cpus-per-task=48
+    #SBATCH --mem=220000
+    #SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out
+    #SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err
+    module load CCP4 XDSAPP autoPROC Phenix BUSTER
 
+    {0}
+    {1}
+
+    """.format(outdir, data)
+
+    with open("/data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh","w") as inp:
+        inp.write(base_script)
+
+    command ='echo "module purge | module load CCP4 XDSAPP | sbatch /data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh " | ssh -F ~/.ssh/ clu0-fe-1'
+    sleep(1)
+    subprocess.call(command,shell=True)
+
+    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    output=""
+    for i in out.decode("UTF-8").split("\n")[1:-1]:
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td></tr>"
+
+    return render(request,'fragview/reproc_web.html', {'command': output})
+
+
+def hpcstatus(request):
+    import subprocess
+
+    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    output=""
+    for i in out.decode("UTF-8").split("\n")[1:-1]:
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>job_"+i.split()[0]+".out</td><td>job_"+i.split()[0]+".err</td></tr>"
+
+    proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out_sacct, err_sacct = proc_sacct.communicate()
+    sacct=""
+    for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
+        linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
+        linelist=[x.replace(" ","") for x in linelist]
+        sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
+
+      
+    return render(request,'fragview/hpcstatus.html', {'command': output, 'history': sacct})
 #####################################################################################
 #####################################################################################
 ########################## REGULAR PYTHON FUNCTIONS #################################

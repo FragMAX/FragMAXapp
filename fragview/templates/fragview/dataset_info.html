@@ -223,7 +223,7 @@
                 <tr>
                     <th></th>
                     <td style="padding-top:20px">
-                         <form action="/test/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
+                         <form action="/reproc_web/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
                             <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
                         </form>
 
@@ -707,7 +707,7 @@ var f = document.getElementById("procB");
 
             console.log(chdir)
             console.log(dataprocCommand)
-            document.getElementsByName("submitProc")[0].value = dataprocCommand
+            document.getElementsByName("submitProc")[0].value = chdir+";"+dataprocCommand
         }
 
     }
