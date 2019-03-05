@@ -26,7 +26,7 @@
         padding: 24px 24px 38px 24px !important;
     }
     .card-content-right{
-        padding: 24px 24px 6px 24px !important;
+        padding: 24px 24px 28px 24px !important;
     }
     .card_options {
         padding-left: 260px  !important;
@@ -130,9 +130,23 @@
 {% comment %}
 <meta http-equiv="refresh" content="5" /> {% endcomment %}
 
-<div>
-    <h5 style="padding-left:260px;"> {{imgprf}} Dataset information </h5>
-    <h6 style="padding-left:260px; padding-bottom:20px;"><a href="#">Open previous processing results</a></h6>
+<div >
+    <h5 style="padding-left:260px;" > {{imgprf}}_{{run}} Dataset information </h5>
+    
+    <form style="padding-left:260px;" action="/procReport/" method="get" id="dialsreport">
+    <input type="hidden" value="dials{{imgprf}}" name="dataHeader2" size="1">
+    <a href="javascript:{}" onclick="document.getElementById('dialsreport').submit();"><h6 >Open DIALS processing report</h6></a></form>
+
+    <div style="display:flex; padding-left:260px; ">
+        <h6 >Open processing report</h6>
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
+            <button class="btn-small" type="submit" value="dials{{imgprf}}" name="dataHeader" size="1">DIALS</button>
+        </form>
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
+            <button class="btn-small" type="submit" value="autoPROC{{imgprf}}" name="dataHeader" size="1">autoPROC</button>
+        </form>
+
+    </div>
 </div>
 
 
@@ -149,7 +163,7 @@
             <div>
                 <div class="card-content card-content-left">
                     <div class="card-title">Data processing</div>
-                    <table class="optionstable" >
+                    <table class="optionstable" > 
                         <col width="200">
                         <col width="450">
                         <tbody>
@@ -162,12 +176,9 @@
                                         <option value="xdsxscale">XIA2/XDS_XSCALE</option>
                                         <option value="autoproc">autoProc</option>
                                         <option value="xdsapp">XDSAPP</option>
-                                    </select>
-                </div>
-
-
-                </td>
-                </tr>
+                                    </select>                
+                                </td>
+                            </tr>
                 <tr>
                     <th class=" top-options">Space group</th>
                     <td class=" top-options">
@@ -177,7 +188,7 @@
 
                 <tr>
                     <th class=" top-options">Cell parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="spacegroup" placeholder="(a, b, c, α, β, γ)"></input> </td>
+                    <td class=" top-options"><input class="selectbox" name="cellparameters" placeholder="(a, b, c, α, β, γ)"></input> </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Friedel law</th>
@@ -212,7 +223,11 @@
                 <tr>
                     <th></th>
                     <td style="padding-top:20px">
-                        <input type="button" class="btn btn-right" value="Run data processing"> </input>
+                         <form action="/test/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
+                        </form>
+
+
                     </td>
                 </tr>
 
@@ -242,11 +257,8 @@
                                     <option value="buster">BUSTER</option>
                                     <option value="fsp">FSpipeline</option>
                                 </select>
-            </div>
-
-
-            </td>
-            </tr>
+                            </td>
+                        </tr>
             <tr>
                 <th class=" top-options">Refinement mode</th>
                 <td class=" top-options">
@@ -311,8 +323,8 @@
                                 <option value="rhofit">RhoFit</option>
                                 <option value="phenixligfit">Phenix LigFit</option>
                             </select>
-        </div>
-        </tr>
+                        </td>
+                    </tr>
         <th class=" top-options">Ligand SMILES</th>
         <td class=" top-options">
             <input class="selectbox" name="ligsmiles" placeholder="CN1C=NC2=C1C(=O)N(C(=O)N2C)C"></input>
@@ -388,7 +400,7 @@
             </div>
         </div>
     </div>
-
+    
     <div class="flex-left">
         <div class="card">
             <div class="card-content card-content-left">
@@ -399,13 +411,16 @@
                     <tbody>
                         <tr>
                             <th>Img directory</th>
-                            <td>/data/visitors/biomax/20180489/20190127/raw/{{acr}}/{{imgprf}}/</td>
+                            <td name="imgdirNAME" id="imgdirID">/data/visitors/biomax/20180489/20190127/raw/{{acr}}/{{imgprf}}/</td>
                         </tr>
                         <tr>
                             <th>Img prefix</th>
                             <td>{{acr}}</td>
                         </tr>
-
+                        <tr>
+                            <th>Run number</th>
+                            <td>{{run}}</td>
+                        </tr>
                         <tr>
                             <th># of images</th>
                             <td>{{numberOfImages}}</td>
@@ -490,7 +505,6 @@
 
         </div>
     </div>
-
 
     <div class="flex-right">
         <div class="card">
@@ -602,6 +616,101 @@
 </div>
 
 <script>
+var f = document.getElementById("procB");
+    
+    f.onsubmit = function dataproc() {
+        var dataprocCommand="";
+        var procSW   = document.getElementsByName("procSW")[0].value;
+        var SPG      = document.getElementsByName("spacegroup")[0].value;
+        var CellPar  = document.getElementsByName("cellparameters")[0].value;
+        var Friedel  = document.getElementsByName("friedel")[0].value;
+        var DRange   = document.getElementsByName("datarange")[0].value;
+        var ResCutoff= document.getElementsByName("rescutoff")[0].value;
+        var CCCutoff = document.getElementsByName("cccutoff")[0].value;
+        var Isigma   = document.getElementsByName("isigmacutoff")[0].value;
+        var custom   = document.getElementsByName("customdataproc")[0].value;
+        var imgdir   = document.getElementsByName("imgdirNAME")[0].innerHTML;
+        var chdir    = "";
+        
+        if (procSW == "") {
+            return False
+        }
+        else{
+            
+            if (Friedel == "") {
+                    Friedel = "true"
+            }
+
+            //define XDSAPP running command
+            if (procSW == "xdsapp") {
+                //Set default values for data range if none is provided
+                if (DRange == "") {
+                    DRange = '1\\ {{numberOfImages}} '
+                    }
+                else {
+                    DRange = DRange.replace("-", "\\ ")
+                }
+
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/xdsapp"                
+                dataprocCommand = "xdsapp --cmd --dir /data/visitors/biomax/20180489/20190127/fragmax/manualproc/ -j 8 -c 6 -i "+imgdir+"{{imgprf}}_{{run}}_master.h5 --fried="+Friedel+" --range="+DRange+" "+custom
+                }
+
+            if (procSW == "dials") {
+                //Set default values for data range if none is provided
+                if (DRange == "") {
+                    DRange = '1:{{numberOfImages}}'
+                    }
+                else {
+                    DRange = DRange.replace("-", ":")
+                }
+                if (SPG != "") {
+                    spginput="space_group="+SPG	
+                }    
+                else{
+                    spginput=""	
+                }       
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials"                
+                dataprocCommand = 'xia2 goniometer.axes=0,1,0 pipeline=dials failover=true '+spginput+' nproc=48  image='+imgdir+'{{imgprf}}_{{run}}_master.h5:'+DRange+' multiprocessing.mode=serial  multiprocessing.njob=1  multiprocessing.nproc=auto'+" "+custom
+                }
+
+            if (procSW == "xdsxscale") {
+                //Set default values for data range if none is provided
+                if (DRange == "") {
+                    DRange = '1:{{numberOfImages}}'
+                    }
+                else {
+                    DRange = DRange.replace("-", ":")
+                }
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials"    
+                if (SPG != "") {
+                    spginput="space_group="+SPG	
+                }    
+                else{
+                    spginput=""	
+                }        
+                dataprocCommand = 'xia2 goniometer.axes=0,1,0 pipeline=3dii failover=true '+spginput+' nproc=48  image='+imgdir+'{{imgprf}}_{{run}}_master.h5:'+DRange+' multiprocessing.mode=serial  multiprocessing.njob=1  multiprocessing.nproc=auto'+" "+custom
+                } 
+
+            if (procSW == "autoproc") {
+                //Set default values for data range if none is provided
+                if (DRange == "") {
+                    DRange = '1\\ {{numberOfImages}}'
+                    }
+                else {
+                    DRange = DRange.replace("-", "\\ ")
+                }
+                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}{{run}}1/autoproc"                
+                outdir   = imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/autoproc"
+                dataprocCommand = 'process -h5 '+imgdir+'{{imgprf}}_{{run}}_master.h5 -noANO  autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0  -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+'  -d '+outdir+' '+custom
+                }
+
+            console.log(chdir)
+            console.log(dataprocCommand)
+            document.getElementsByName("submitProc")[0].value = dataprocCommand
+        }
+
+    }
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -638,5 +747,6 @@
             modal.style.display = "none";
         }
     }
+    
 </script>
 {% endblock %}

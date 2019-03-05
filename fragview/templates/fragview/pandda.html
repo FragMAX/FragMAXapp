@@ -6,53 +6,54 @@
 
 
 <style>
-table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
+  table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
 
-  }
-  th {
-    text-align: center;
-    height: 50px;
-  }
-  td{
-    height: 100px;
-  }
-  td, th {
-    border: 1px solid #f0f0f0;
-    padding: 15px !important;
-  }
-  
-  tr:nth-child(even) {
-    background-color: #e2e2e2;
-  }
+    }
+    th {
+      text-align: center;
+      height: 50px;
+    }
+    td{
+      height: 100px;
+    }
+    td, th {
+      border: 1px solid #f0f0f0;
+      padding: 15px !important;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #e2e2e2;
+    }
 
-  tr td:nth-child(n+2) {
-    text-align: center !important;
-  }
-  tr th:nth-child(n+2) {
-    text-align: center !important;
-  }
-  th {
-      cursor: pointer;
-  }
+    tr td:nth-child(n+2) {
+      text-align: center !important;
+    }
+    tr th:nth-child(n+2) {
+      text-align: center !important;
+    }
+    th {
+        cursor: pointer;
+    }
 
-.container {
-    max-width: 100% !important;
-    margin: 0 50px 50px 150px !important;
-    width: calc(100% - 200px) !important;
-}
-.col-md-8 {
-width: 100% !important;
-}
-label {
-  font-size: 1.8rem !important;
+  .container {
+      max-width: 100% !important;
+      margin: 0 50px 50px 150px !important;
+      width: calc(100% - 200px) !important;
   }
-a:hover {
-  text-decoration: none !important;
-}
+  .col-md-8 {
+  width: 100% !important;
+  }
+  label {
+    font-size: 1.2rem !important;
+    }
+  a:hover {
+    text-decoration: none !important;
+  }
 
 </style>
+
 {{Report |safe}}
 
 <script>
@@ -69,5 +70,6 @@ document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() =
         .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
         .forEach(tr => table.appendChild(tr) );
 })));
+
 </script>
 {% endblock %}

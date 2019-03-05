@@ -1,0 +1,24 @@
+
+{% extends 'fragview/base.html' %}
+
+
+{% block content %}
+<style>
+.content {
+  overflow: visible !important;
+  margin-left: 200px !important;
+
+}
+.sidebar {    
+    padding: 8px !important;    
+    height: 100% !important;
+    
+    
+}
+</style>
+
+{{Report | safe}}
+
+
+
+{% endblock %}

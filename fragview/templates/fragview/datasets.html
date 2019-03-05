@@ -8,43 +8,41 @@
 
 {% comment %} Define dataset run number <- Edit CSV file and update views {% endcomment %}
 <style>
+  th {
+      cursor: pointer;
+      text-align: center;
+  }
 
 
-th {
-    cursor: pointer;
-    text-align: center;
-}
+    td, th {
+      border: 1px solid #f0f0f0;
+      padding: 8px;
+      text-align: center;
 
+    } 
+  tr:nth-child(even) {
+    background-color: #dddddd;
+    height: 150px;
 
-  td, th {
-    border: 1px solid #f0f0f0;
-    padding: 8px;
-    text-align: center;
+  }
 
-  } 
-tr:nth-child(even) {
-  background-color: #dddddd;
-  height: 150px;
+  tr td:nth-child(7) {
+      text-align: left;
 
-}
-
-tr td:nth-child(7) {
-    text-align: left;
-
-}
-.container {
-    margin: 0 50px 50px 250px !important;
-    max-width: 100% !important;
-    width: calc(100% - 300px) !important;
-}
-.crystalsnap {
-  height:88px;
-  width:116px;
-}
-.ligpng {
-  height:116px;
-  width:116px;
-}
+  }
+  .container {
+      margin: 0 50px 50px 250px !important;
+      max-width: 100% !important;
+      width: calc(100% - 300px) !important;
+  }
+  .crystalsnap {
+    height:88px;
+    width:116px;
+  }
+  .ligpng {
+    height:116px;
+    width:116px;
+  }
 </style>
   <div>
     <h4>Datasets selection</h4> 
@@ -54,7 +52,12 @@ tr td:nth-child(7) {
   </div>
   <p></p>
 
-
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchSample" onkeyup="searchSampleName()"  title="Type in a sample name">
+        <label for="searchSample">Search for Sample names..</label>        
+    </div>
+    
  <table id="datasetTable">
   <thead>
   <tr>
@@ -73,32 +76,30 @@ tr td:nth-child(7) {
   <tbody>
     <tr >
     </tr>
-    {% for img,prf,res,path,snap,acr,png in files %}
+    {% for img,prf,res,path,snap,acr,png,run in files %}
     <tr>
     <td>
     {% comment %} <form action="/dataset_info">
         <input class="btn-small" id={{prf}} name={{ prf }} type="submit" value="Get Info" />
+          <a href="javascript:{}" onclick="document.getElementById({{prf}}).submit();">hCAII-H5_testing</a> 
+
     </form> {% endcomment %}
 
 
 
-    <form action="/dataset_info/" method="get" id={{prf}}>
-      <button class="btn" type="submit" value={{prf}};{{img}} name="proteinPrefix" size="1">Info</button>
-      {% comment %} <a href="javascript:{}" onclick="document.getElementById({{prf}}).submit();">hCAII-H5_testing</a> {% endcomment %}
+    <form action="/dataset_info/" method="get" id={{prf}} target="_blank">
+      <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
     </form>
-
-
-
 
 
 
     </td>
     <td><p>{{ acr }}</p></td>
     <td><p>{{ prf }}</p></td>
-    <td><p>1</p></td>
+    <td><p>{{run}}</p></td>
     <td><p>{{ res }}</p></td>
     <td><p>{{ img }}</p></td>
-    <td><p>{{ path }}</p></td>
+    <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td>
 
     
     <td>
@@ -141,6 +142,24 @@ document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() =
         .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
         .forEach(tr => table.appendChild(tr) );
 })));
+function searchSampleName() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchSample");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("datasetTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+            }       
+        }
+        }
 </script>
 
 {% endblock %}

@@ -20,20 +20,25 @@
   td, th {
     border: 1px solid #f0f0f0;
     padding: 8px;
+      text-align: center;
+
   }
 
   tr:nth-child(even) {
     background-color: #e2e2e2;
   }
 
-
+  td {
+    height: 133px !important;
+  }
   th {
       cursor: pointer;
   }
 
 
-tr td:nth-child(n+3) {
-  text-align: center;
+tr td:nth-child(2) {
+    text-align: left;
+
 }
 
 .container {
@@ -47,6 +52,12 @@ tr td:nth-child(n+3) {
 
 
 
+
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchLig" onkeyup="searchLigName()"  title="Type in a Dataset name">
+        <label for="searchLig">Search for Dataset names..</label>        
+    </div>
 
  <table  id="resultsTable">
    <thead>
@@ -88,6 +99,25 @@ document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() =
         .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
         .forEach(tr => table.appendChild(tr) );
 })));
+
+function searchLigName() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchLig");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("resultsTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1];
+            if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+            }       
+        }
+        }
 </script>
 {% endblock %}
 
