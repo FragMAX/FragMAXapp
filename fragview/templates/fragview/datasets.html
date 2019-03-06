@@ -40,8 +40,8 @@
     width:116px;
   }
   .ligpng {
-    height:116px;
-    width:116px;
+    height:88px;
+    width:88px;
   }
 </style>
   <div>
@@ -87,7 +87,7 @@
 
 
 
-    <form action="/dataset_info/" method="get" id={{prf}} target="_blank">
+    <form action="/dataset_info/" method="get" id={{prf}} >
       <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
     </form>
 
@@ -104,8 +104,6 @@
     
     <td>
       <a href={{ snap }} target="_blank">
-          {% comment %} <object data={{ snap }} type="image/png" height="88" width="116"> {% endcomment %}
-          {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noloop" height="40" width="86"> {% endcomment %}
           <img class="crystalsnap" id="snap1" src={{ snap }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         </object>
       </a>
@@ -114,8 +112,7 @@
     <td>
       <a href={{ png }} target="_blank">
 
-        {% comment %} <object data={{ png }} type="image/png" height="116" width="116"> {% endcomment %}
-        <img class="ligpng" id="ligand" src={{ png }} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';">
+        <img class="ligpng" id="ligand" src={{ png }} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="40" width="86">
 
           {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noligand" height="40" width="86"> {% endcomment %}
         </object>
