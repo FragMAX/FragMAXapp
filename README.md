@@ -7,11 +7,11 @@ Django application to plan fragment screening experiments, process data, visuali
 Uses [UglyMOL](http://uglymol.github.io/) for electron density visualisation
 Uses CCP4, XDS, Phenix packages for data processing and analysis
 
-##Application map
+## Application map
 
--Plan soaking for Crystal Shifter
--Data processing using: XIA2/DIALS, XIA2/XDS.XSCALE, XDSAPP, autoPROC
--Structure Solving/Refinement: Dimple, BUSTER, FSpipeline
--Ligand fitting: RhoFit, Phenix LigFit
+- Plan soaking for Crystal Shifter
+- Data processing using: XIA2/DIALS, XIA2/XDS.XSCALE, XDSAPP, autoPROC
+- Structure Solving/Refinement: Dimple, BUSTER, FSpipeline
+- Ligand fitting: RhoFit, Phenix LigFit
 
 Dataset analysis with Pandda
