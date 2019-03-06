@@ -269,21 +269,21 @@ def reproc_web(request):
     import subprocess
     from time import sleep
     base_script="""#!/bin/bash
-    #!/bin/bash
-    #SBATCH -t 99:55:00
-    #SBATCH -J FragWeb
-    #SBATCH --exclusive
-    #SBATCH -N1
-    #SBATCH --cpus-per-task=48
-    #SBATCH --mem=220000
-    #SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out
-    #SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err
-    module load CCP4 XDSAPP autoPROC Phenix BUSTER
+#!/bin/bash
+#SBATCH -t 99:55:00
+#SBATCH -J FragWeb
+#SBATCH --exclusive
+#SBATCH -N1
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=220000
+#SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out
+#SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err
+module purge
+module load CCP4 XDSAPP autoPROC Phenix BUSTER
 
-    {0}
-    {1}
-
-    """.format(outdir, data)
+{0}
+{1}
+""".format(outdir, data)
 
     with open("/data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh","w") as inp:
         inp.write(base_script)
@@ -307,8 +307,20 @@ def hpcstatus(request):
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     output=""
+
+    
+
+
     for i in out.decode("UTF-8").split("\n")[1:-1]:
-        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>job_"+i.split()[0]+".out</td><td>job_"+i.split()[0]+".err</td></tr>"
+        proc_info = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scontrol', 'show', 'jobid', '-dd', i.split()[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out_info, err_info = proc_info.communicate()
+        stdout_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
+        stderr_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
+        try:
+            prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
+        except:
+            prosw="Unkown"
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+".err</a></td><td><button class='btn-small'>Kill</button></td></tr>"
 
     proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out_sacct, err_sacct = proc_sacct.communicate()
@@ -318,7 +330,8 @@ def hpcstatus(request):
         linelist=[x.replace(" ","") for x in linelist]
         sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
 
-      
+    
+
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': sacct})
 #####################################################################################
 #####################################################################################

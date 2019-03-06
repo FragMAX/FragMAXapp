@@ -651,7 +651,7 @@ var f = document.getElementById("procB");
                     DRange = DRange.replace("-", "\\ ")
                 }
 
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/xdsapp"                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/xdsapp #SW=XDSAPP"                
                 dataprocCommand = "xdsapp --cmd --dir /data/visitors/biomax/20180489/20190127/fragmax/manualproc/ -j 8 -c 6 -i "+imgdir+"{{imgprf}}_{{run}}_master.h5 --fried="+Friedel+" --range="+DRange+" "+custom
                 }
 
@@ -669,7 +669,7 @@ var f = document.getElementById("procB");
                 else{
                     spginput=""	
                 }       
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials"                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials #SW=XIA2/DIALS"                
                 dataprocCommand = 'xia2 goniometer.axes=0,1,0 pipeline=dials failover=true '+spginput+' nproc=48  image='+imgdir+'{{imgprf}}_{{run}}_master.h5:'+DRange+' multiprocessing.mode=serial  multiprocessing.njob=1  multiprocessing.nproc=auto'+" "+custom
                 }
 
@@ -681,7 +681,7 @@ var f = document.getElementById("procB");
                 else {
                     DRange = DRange.replace("-", ":")
                 }
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials"    
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials #SW=XIA2/XDS"    
                 if (SPG != "") {
                     spginput="space_group="+SPG	
                 }    
@@ -700,7 +700,7 @@ var f = document.getElementById("procB");
                     DRange = DRange.replace("-", "\\ ")
                 }
                 
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}{{run}}1/autoproc"                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}{{run}}1/autoproc #SW=autoPROC"                
                 outdir   = imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/autoproc"
                 dataprocCommand = 'process -h5 '+imgdir+'{{imgprf}}_{{run}}_master.h5 -noANO  autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0  -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+'  -d '+outdir+' '+custom
                 }
