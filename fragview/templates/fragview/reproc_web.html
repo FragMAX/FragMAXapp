@@ -51,29 +51,17 @@
             <div class="card-title">HPC Status for user: guslim
             </div>
             <br>
-            <table class="table bordered">
-                <thead>
-                <tr>
-                    <th>JOB ID</th>
-                    <th>PARTITION</th>
-                    <th>NAME</th>
-                    <th>USER</th>
-                    <th>ST  </th>
-                    <th>TIME</th>
-                    <th>NODES</th>
-                    <th>NODELIST(REASON)</th>                    
-                </tr>
-                </thead>
-                <tbody>
-                    {{command | safe}}                
-                </tbody>
+            <p>You will be redirected to HPC status page in 3 seconds automatically. If not, <a href="http://w-guslim-cc-0:8080/hpcstatus/"> click here</a></p>
+            <br>
+            <p>Submitted command:</br>
+            {{command | safe}}  
             </table>
         </div>
     </div>
-<script>
+ <script>
          setTimeout(function(){
             window.location.href = 'http://w-guslim-cc-0:8080/hpcstatus/';
-         }, 1000);
-      </script>
+         }, 3000);
+      </script> 
 
 {% endblock %}

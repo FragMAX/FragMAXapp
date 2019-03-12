@@ -7,7 +7,9 @@ from difflib import SequenceMatcher
 import glob
 import os
 import random
-
+import natsort
+import subprocess
+from time import sleep
 
 ################################
 #User specific data
@@ -51,9 +53,13 @@ def dataset_info(request):
         soakTime="Soaking not performed"
         fragConc="-"
         solventConc="-"
-
+    new_run="None"
+    if os.path.exists(datainfo["imageDirectory"].replace("raw","fragmax/manual_proc").replace("20190125","20190127")):
+        new_run="<p style='padding-left:260px;'><font color='red'>You have manual processed data not merged to your project. <a href='#'>Click here</a> to compare results</font></p>"
+        #new_run+=datainfo["imageDirectory"].replace("raw","fragmax/manual_proc").replace("20190125","20190127")
 
     return render(request,'fragview/dataset_info.html', {
+        "new_proc_run":new_run,
         "run":run,
         'imgprf': prefix, 
         'imgs': images,
@@ -174,7 +180,6 @@ def ugly(request):
     a="load maps and pdb"
     return render(request,'fragview/ugly.html', {'Report': a})
 
-
 def dual_ligand(request):
     a="load maps and pdb"
     return render(request,'fragview/dual_ligand.html', {'Report': a})
@@ -262,12 +267,18 @@ def procReport(request):
 
 
 def reproc_web(request):
+    
     dataproc = str(request.GET.get("submitProc"))
     outdir=dataproc.split(";")[0]
     data=dataproc.split(";")[1]
+    SW=outdir.split(" #")[-1]
+    outdir=add_run_DP(outdir)
+    if "autoPROC" in SW:
+        data=data+" -d "+outdir.split("cd ")[-1].split(" #")[0]
+    if "XDSAPP" in SW:
+        data=data.replace("xdsapp --cmd","xdsapp --cmd "+" --dir "+outdir.split("cd ")[-1].split(" #")[0])
+
     
-    import subprocess
-    from time import sleep
     base_script="""#!/bin/bash
 #!/bin/bash
 #SBATCH -t 99:55:00
@@ -289,7 +300,7 @@ module load CCP4 XDSAPP autoPROC Phenix BUSTER
         inp.write(base_script)
 
     command ='echo "module purge | module load CCP4 XDSAPP | sbatch /data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh " | ssh -F ~/.ssh/ clu0-fe-1'
-    sleep(1)
+    #sleep(0)
     subprocess.call(command,shell=True)
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -297,12 +308,50 @@ module load CCP4 XDSAPP autoPROC Phenix BUSTER
     output=""
     for i in out.decode("UTF-8").split("\n")[1:-1]:
         output+="<tr><td>"+"</td><td>".join(i.split())+"</td></tr>"
+    base_script=base_script.replace("\n","<br>")
+    return render(request,'fragview/reproc_web.html', {'command': base_script})
 
-    return render(request,'fragview/reproc_web.html', {'command': output})
+def kill_HPC_job(request):
+    jobid_k=str(request.GET.get('jobid_kill'))     
 
+    subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    sleep(5)
+    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    output=""   
+
+
+    for i in out.decode("UTF-8").split("\n")[1:-1]:
+        proc_info = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scontrol', 'show', 'jobid', '-dd', i.split()[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out_info, err_info = proc_info.communicate()
+        stdout_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
+        stderr_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
+        try:
+            prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
+        except:
+            prosw="Unkown"
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+""".err</a></td><td>
+           
+        <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
+            <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
+        </form>
+
+        </tr>""".format(i.split()[0])
+
+    proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out_sacct, err_sacct = proc_sacct.communicate()
+    sacct=""
+    for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
+        linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
+        linelist=[x.replace(" ","") for x in linelist]
+        sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
+
+    
+    
+    return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': sacct})
 
 def hpcstatus(request):
-    import subprocess
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -320,7 +369,13 @@ def hpcstatus(request):
             prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
         except:
             prosw="Unkown"
-        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+".err</a></td><td><button class='btn-small'>Kill</button></td></tr>"
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+""".err</a></td><td>
+           
+        <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
+            <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
+        </form>
+
+        </tr>""".format(i.split()[0])
 
     proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out_sacct, err_sacct = proc_sacct.communicate()
@@ -333,11 +388,32 @@ def hpcstatus(request):
     
 
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': sacct})
+
+
+
+
 #####################################################################################
 #####################################################################################
 ########################## REGULAR PYTHON FUNCTIONS #################################
 #####################################################################################
 #####################################################################################
+
+def add_run_DP(outdir):
+    fout=outdir.split("cd ")[-1].split(" #")[0]
+    SW=outdir.split(" #")[-1]
+    runs=[x for x in glob.glob(fout+"/*") if os.path.isdir(x) and "run_" in x]
+    if len(runs)==0:
+        last_run=0
+    else:
+        rlist=[x.split("/")[-1] for x in runs]
+        last_run=[int(x.replace("run_","")) for x in natsort.natsorted(rlist)][-1]
+    
+    next_run=fout+"/run_"+str(last_run+1)
+    
+    if not os.path.exists(next_run) and "autoPROC" not in SW:
+        os.makedirs(next_run, exist_ok=True)
+
+    return "cd "+next_run+" #"+SW
 
 
 def retrieveParameters(xmlfile):

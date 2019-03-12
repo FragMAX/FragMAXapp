@@ -127,16 +127,12 @@
 </style>
 
 
-{% comment %}
-<meta http-equiv="refresh" content="5" /> {% endcomment %}
-
 <div >
     <h5 style="padding-left:260px;" > {{imgprf}}_{{run}} Dataset information </h5>
-    
-    <form style="padding-left:260px;" action="/procReport/" method="get" id="dialsreport">
+{% comment %}<form style="padding-left:260px;" action="/procReport/" method="get" id="dialsreport">
     <input type="hidden" value="dials{{imgprf}}" name="dataHeader2" size="1">
-    <a href="javascript:{}" onclick="document.getElementById('dialsreport').submit();"><h6 >Open DIALS processing report</h6></a></form>
-
+    <a href="javascript:{}" onclick="document.getElementById('dialsreport').submit();"><h6 >Open DIALS processing report</h6></a></form> {% endcomment %}
+    {{new_proc_run | safe}}
     <div style="display:flex; padding-left:260px; ">
         <h6 >Open processing report</h6>
         <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
@@ -651,8 +647,8 @@ var f = document.getElementById("procB");
                     DRange = DRange.replace("-", "\\ ")
                 }
 
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/xdsapp #SW=XDSAPP"                
-                dataprocCommand = "xdsapp --cmd --dir /data/visitors/biomax/20180489/20190127/fragmax/manualproc/ -j 8 -c 6 -i "+imgdir+"{{imgprf}}_{{run}}_master.h5 --fried="+Friedel+" --range="+DRange+" "+custom
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/manual_proc/")+"{{imgprf}}_{{run}}/xdsapp #SW=XDSAPP"                
+                dataprocCommand = "xdsapp --cmd -j 8 -c 6 -i "+imgdir+"{{imgprf}}_{{run}}_master.h5 --fried="+Friedel+" --range="+DRange+" "+custom
                 }
 
             if (procSW == "dials") {
@@ -669,7 +665,7 @@ var f = document.getElementById("procB");
                 else{
                     spginput=""	
                 }       
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials #SW=XIA2/DIALS"                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/manual_proc/")+"{{imgprf}}_{{run}}/dials #SW=XIA2/DIALS"                
                 dataprocCommand = 'xia2 goniometer.axes=0,1,0 pipeline=dials failover=true '+spginput+' nproc=48  image='+imgdir+'{{imgprf}}_{{run}}_master.h5:'+DRange+' multiprocessing.mode=serial  multiprocessing.njob=1  multiprocessing.nproc=auto'+" "+custom
                 }
 
@@ -681,7 +677,7 @@ var f = document.getElementById("procB");
                 else {
                     DRange = DRange.replace("-", ":")
                 }
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/dials #SW=XIA2/XDS"    
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/manual_proc/")+"{{imgprf}}_{{run}}/xia2xds #SW=XIA2/XDS"    
                 if (SPG != "") {
                     spginput="space_group="+SPG	
                 }    
@@ -700,9 +696,9 @@ var f = document.getElementById("procB");
                     DRange = DRange.replace("-", "\\ ")
                 }
                 
-                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}{{run}}1/autoproc #SW=autoPROC"                
+                chdir    = "cd "+imgdir.replace("/raw/","/fragmax/manual_proc/")+"{{imgprf}}_{{run}}/autoproc #SW=autoPROC"                
                 outdir   = imgdir.replace("/raw/","/fragmax/process/")+"{{imgprf}}_{{run}}/autoproc"
-                dataprocCommand = 'process -h5 '+imgdir+'{{imgprf}}_{{run}}_master.h5 -noANO  autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0  -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+'  -d '+outdir+' '+custom
+                dataprocCommand = 'process -h5 '+imgdir+'{{imgprf}}_{{run}}_master.h5 -noANO  autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0  -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
                 }
 
             console.log(chdir)
