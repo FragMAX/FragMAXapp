@@ -39,25 +39,47 @@ def dataset_info(request):
     prefix=a.split(";")[0]
     images=a.split(";")[1]
     run=a.split(";")[2]
+
     images=str(int(images)/2)
     xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_1.xml"
     datainfo=retrieveParameters(xmlfile)    
+
     energy=format(float(datainfo["wavelength"])*13.6307922,".2f")
     totalExposure=str(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]))
     edgeResolution=str(float(datainfo["resolution"])*0.75625)
     ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
+
     fragConc="100 mM"
     solventConc="15%"
     soakTime="24h"
+
     if "Apo" in prefix:
         soakTime="Soaking not performed"
         fragConc="-"
         solventConc="-"
-    new_run="None"
-    if os.path.exists(datainfo["imageDirectory"].replace("raw","fragmax/manual_proc").replace("20190125","20190127")):
-        new_run="<p style='padding-left:260px;'><font color='red'>You have manual processed data not merged to your project. <a href='#'>Click here</a> to compare results</font></p>"
-        #new_run+=datainfo["imageDirectory"].replace("raw","fragmax/manual_proc").replace("20190125","20190127")
+    
+    new_run=""
+    search_new_run_path=path+"/fragmax/manual_proc/"+acr+"/"+prefix
 
+    if os.path.exists(search_new_run_path):
+        if glob.glob(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/*") == []:
+            new_run="<p style='padding-left:260px;'><font color='green'>All processed data are merged to your project.</font></p>"    
+        elif os.path.exists(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat"):
+            with open(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat","r") as inp:
+                if "None" in inp.readlines()[0]:
+                    new_run="<p style='padding-left:260px;'><font color='green'>All processed data are merged to your project.</font></p>"    
+                else:
+                    new_run="""<form style="padding-left:260px;" action="/dataproc_merge/" method="get" id="mergeproc">
+                               <p><font color='red'>You have manual processed data not merged to your project. 
+                               <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
+                               <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""
+        else:
+            new_run="""<form style="padding-left:260px;" action="/dataproc_merge/" method="get" id="mergeproc">
+                       <p><font color='red'>You have manual processed data not merged to your project. 
+                       <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
+                       <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""
+        #new_run+=search_new_run_path
+    #new_run="<p style='padding-left:260px;'>"+path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"     "+search_new_run_path+"</p>"
     return render(request,'fragview/dataset_info.html', {
         "new_proc_run":new_run,
         "run":run,
@@ -155,7 +177,6 @@ def results(request):
     with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
         a=inp.readlines()
     return render_to_response('fragview/results.html', {'files': a})
-
 
 def request_page(request):
     a=str(request.GET.get('structure'))     
@@ -265,6 +286,13 @@ def procReport(request):
 
     return render(request,'fragview/procReport.html', {'Report': html})
 
+def dataproc_merge(request):    
+    outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
+    
+    runList="<br>".join(glob.glob(outinfo+"*/*"))
+    
+    return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
+
 
 def reproc_web(request):
     
@@ -277,24 +305,8 @@ def reproc_web(request):
         data=data+" -d "+outdir.split("cd ")[-1].split(" #")[0]
     if "XDSAPP" in SW:
         data=data.replace("xdsapp --cmd","xdsapp --cmd "+" --dir "+outdir.split("cd ")[-1].split(" #")[0])
-
     
-    base_script="""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 99:55:00
-#SBATCH -J FragWeb
-#SBATCH --exclusive
-#SBATCH -N1
-#SBATCH --cpus-per-task=48
-#SBATCH --mem=220000
-#SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out
-#SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err
-module purge
-module load CCP4 XDSAPP autoPROC Phenix BUSTER
-
-{0}
-{1}
-""".format(outdir, data)
+    base_script="""#!/bin/bash\n#!/bin/bash\n#SBATCH -t 99:55:00\n#SBATCH -J FragWeb\n#SBATCH --exclusive\n#SBATCH -N1\n#SBATCH --cpus-per-task=48\n#SBATCH --mem=220000\n#SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out\n#SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err\nmodule purge\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER\n\n{0}\n\n{1}\n""".format(outdir, data)
 
     with open("/data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh","w") as inp:
         inp.write(base_script)
@@ -388,8 +400,6 @@ def hpcstatus(request):
     
 
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': sacct})
-
-
 
 
 #####################################################################################

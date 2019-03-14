@@ -23,5 +23,6 @@ urlpatterns = [
     path('reproc_web/', views.reproc_web, name='reproc_web'),
     path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
     path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
-    
+    path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
+
 ]
