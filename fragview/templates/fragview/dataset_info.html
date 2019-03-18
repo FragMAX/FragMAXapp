@@ -29,12 +29,12 @@
         padding: 24px 24px 28px 24px !important;
     }
     .card_options {
-        padding-left: 260px  !important;
+        padding-left: 310px  !important;
         max-width: 2455px  !important;
     }
     .flexdiv {
         display: flex;
-        padding-left: 250px;
+        padding-left: 300px;
         max-width: 2455px !important;
     }
     .flexdiv_options {
@@ -52,13 +52,37 @@
     .flex-center {
         margin-left:10px;     
     }
+
+
     .crystalsnap {
-        width: 400px;
+        max-width: 400px;
         padding: 10px;
+    }
+    .diffimg {
+        max-width: 100%;
+        height: auto;
+        width: auto\9; /* ie8 */
+        }
+    .diffsnap{
+        max-width:400px;
+        padding:10px;
     }
     .flexdiv_snapshot {
         display: flex;
     }
+
+    #snaps {
+    width: 800px;
+    height: 800px;
+    margin: 0 auto;
+    }
+
+    #snaps > img {
+    float: left;
+    width: 45%;
+    margin: 1.66%;
+    }
+
     .selectbox {
         display: flex !important; 
     }
@@ -109,7 +133,7 @@
         z-index: 1; /* Sit on top */
         padding-top: 100px; /* Location of the box */
         max-height: 100%;
-        left: 200px;
+        left: 250px;
         top: 0;
         width: calc(100% - 200px); /* Full width */
         height: 100%; /* Full height */
@@ -128,12 +152,12 @@
 
 
 <div >
-    <h5 style="padding-left:260px;" > {{imgprf}}_{{run}} Dataset information </h5>
+    <h5 style="padding-left:310px;" > {{imgprf}}_{{run}} Dataset information </h5>
 {% comment %}<form style="padding-left:260px;" action="/procReport/" method="get" id="dialsreport">
     <input type="hidden" value="dials{{imgprf}}" name="dataHeader2" size="1">
     <a href="javascript:{}" onclick="document.getElementById('dialsreport').submit();"><h6 >Open DIALS processing report</h6></a></form> {% endcomment %}
     {{new_proc_run | safe}}
-    <div style="display:flex; padding-left:260px; ">
+    <div style="display:flex; padding-left:310px; ">
         <h6 >Open processing report</h6>
         <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
             <button class="btn-small" type="submit" value="dials{{imgprf}}" name="dataHeader" size="1">DIALS</button>
@@ -376,27 +400,39 @@
 </div>
 </div>
 <div class="flexdiv">
-    <div>
+    {% comment %} <div>
         <div class="flexdiv_snapshot">
-            <div class="diff1">
-                <img class="myImg crystalsnap" id="diff1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
+            <div class="diffimg">
+                <img class="myImg diffsnap" id="diff1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
             </div>
-            <div class="diff2">
-                <img class="myImg crystalsnap" id="diff2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_1.jpg">
+            <div class="diffimg">
+                <img class="myImg diffsnap" id="diff2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_1.jpg">
             </div>
         </div>
 
         <div class="flexdiv_snapshot">
-            <div class="snap1">
+            <div class="diffimg">
                 <img class="myImg crystalsnap" id="snap1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
                 
             </div>
-            <div class="snap2">
+            <div class="diffimg">
                 <img class="myImg crystalsnap" id="snap2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             </div>
         </div>
+    </div> {% endcomment %}
+    <div id="snaps">
+        
+        
+                <img class="myImg diffsnap" id="diff1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
+        
+                <img class="myImg diffsnap" id="diff2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_1.jpg">
+        
+                <img class="myImg crystalsnap" id="snap1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+        
+                <img class="myImg crystalsnap" id="snap2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+        
+        
     </div>
-    
     <div class="flex-left">
         <div class="card">
             <div class="card-content card-content-left">

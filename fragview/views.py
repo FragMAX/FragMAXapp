@@ -63,18 +63,18 @@ def dataset_info(request):
 
     if os.path.exists(search_new_run_path):
         if glob.glob(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/*") == []:
-            new_run="<p style='padding-left:260px;'><font color='green'>All processed data are merged to your project.</font></p>"    
+            new_run="<p style='padding-left:310px;'><font color='green'>All processed data are merged to your project.</font></p>"    
         elif os.path.exists(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat"):
             with open(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat","r") as inp:
                 if "None" in inp.readlines()[0]:
-                    new_run="<p style='padding-left:260px;'><font color='green'>All processed data are merged to your project.</font></p>"    
+                    new_run="<p style='padding-left:310px;'><font color='green'>All processed data are merged to your project.</font></p>"    
                 else:
-                    new_run="""<form style="padding-left:260px;" action="/dataproc_merge/" method="get" id="mergeproc">
+                    new_run="""<form style="padding-left:310px;" action="/dataproc_merge/" method="get" id="mergeproc">
                                <p><font color='red'>You have manual processed data not merged to your project. 
                                <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
                                <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""
         else:
-            new_run="""<form style="padding-left:260px;" action="/dataproc_merge/" method="get" id="mergeproc">
+            new_run="""<form style="padding-left:310px;" action="/dataproc_merge/" method="get" id="mergeproc">
                        <p><font color='red'>You have manual processed data not merged to your project. 
                        <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
                        <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""

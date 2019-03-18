@@ -18,7 +18,7 @@
 
             .sidenav_local {
             height: 100%;
-            width: 200px;
+            width: 250px;
             position: fixed;
             z-index: 1;
             top: 0;
@@ -29,9 +29,10 @@
             font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important;
 
             }
-
+            .sidenav-links {
+               padding-left: 32px !important;
+            }
             .sidenav_local a {
-            {% comment %} padding: 6px 8px 6px 46px; {% endcomment %}
             {% comment %} text-decoration: none; {% endcomment %}
             {% comment %} font-size: 22px; {% endcomment %}
             color: #f0f0f0;
@@ -105,14 +106,14 @@
             <a href="/project_summary"><span class="white-text name">FirstName Last</span></a>            
             <a href="https://duo.maxiv.lu.se" target="_blank"><span class="white-text ">Prop: 20180489</span></a>
          </div>
-{% comment %}       
+      {% comment %}       
       <li>
             <input type="radio" name="menuopt" id="drop1" />
             <label class="opener collapsible-header headli" for="drop1"><i class="material-icons" style="font-size:22px;color:white">bubble_chart</i>Sample Prep +</label>
             <label class="closer collapsible-header headli" for="dropclose"><i class="material-icons" style="font-size:22px;color:white">bubble_chart</i>Sample Prep -</label>
             <ul >
                 <li class="isDisabled">
-                  <a href="#" class="collapsible-header " data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
+                  <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
                </li>
                <li class="isDisabled">
                   <a href="#" class="collapsible-header" data-turbolinks="false">Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
@@ -168,44 +169,44 @@
 
 
       <li class="isDisabled">
-         <a href="#" class="collapsible-header " data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
+         <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
       </li>
       <li class="isDisabled">
-         <a href="#" class="collapsible-header" data-turbolinks="false">Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
+         <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
       </li>
       <li>
-         <a href="/datasets" class="collapsible-header" data-turbolinks="false">Dataset<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
+         <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">Dataset<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
       </li>
       <li >
-         <a href="/process_all" class="collapsible-header" data-turbolinks="false">Processing<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
+         <a href="/process_all" class="collapsible-header sidenav-links" data-turbolinks="false">Processing<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
       </li>
       <li class="isDisabled">
-         <a href="#services" class="collapsible-header" data-turbolinks="false">Refinement<i class="material-icons" style="font-size:22px;color:white">leak_add</i></a>
+         <a href="#services" class="collapsible-header sidenav-links" data-turbolinks="false">Refinement<i class="material-icons" style="font-size:22px;color:white">leak_add</i></a>
       </li>  
       <li>
-         <a href="/pandda" class="collapsible-header" data-turbolinks="false">Pandda<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
+         <a href="/pandda" class="collapsible-header sidenav-links" data-turbolinks="false">Pandda<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
       </li>  
       <li class="isDisabled">
-         <a href="/ugly" class="collapsible-header" data-turbolinks="false">Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
+         <a href="/ugly" class="collapsible-header sidenav-links" data-turbolinks="false">Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
       </li>
       <li>
-         <a href="/ligfit_results" class="collapsible-header" data-turbolinks="false">LigaFit Results<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
+         <a href="/ligfit_results" class="collapsible-header sidenav-links" data-turbolinks="false">LigaFit Results<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
       </li>     
       <li>
-         <a href="/results" class="collapsible-header" data-turbolinks="false">Ref Results<i class="material-icons" style="font-size:22px;color:white">polymer</i></a>
+         <a href="/results" class="collapsible-header sidenav-links" data-turbolinks="false">Ref Results<i class="material-icons" style="font-size:22px;color:white">polymer</i></a>
       </li>
 
       
       <li>
-         <a href="/ugly" class="collapsible-header" data-turbolinks="false">UglyMOL<i class="material-icons" style="font-size:22px;color:white">art_track</i></a>
+         <a href="/ugly" class="collapsible-header sidenav-links" data-turbolinks="false">UglyMOL<i class="material-icons" style="font-size:22px;color:white">art_track</i></a>
       </li>
       <li >
-         <a href="/hpcstatus" class="collapsible-header" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
+         <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
       </li>
       <li class="last">
-         <a href="/admin" class="collapsible-header" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
+         <a href="/admin" class="collapsible-header sidenav-links" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
       </li>
-      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:10px;padding-top:50px">
+      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px;padding-top:50px">
 
       <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
          <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
