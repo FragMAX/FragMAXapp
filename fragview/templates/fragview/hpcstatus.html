@@ -45,35 +45,34 @@
 
 
 <div class="card">
-        <div class="card-content">
-            
-            <div class="card-title">HPC Status for user: guslim
-                <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
-            </div>
-            <br>
-            <table class="table bordered">
-                <thead>
-                <tr>
-                    <th>JOB ID</th>
-                    <th>PARTITION</th>
-                    <th>NAME</th>
-                    <th>USER</th>
-                    <th>ST  </th>
-                    <th>TIME</th>
-                    <th>NODES</th>
-                    <th>NODELIST(REASON)</th>       
-                    <th>Software</th>                          
-                    <th>Output file</th>             
-                    <th>Error file</th>             
-                    <th>Kill Job</th>             
-                </tr>
-                </thead>
-                <tbody>
-                    {{command | safe}}                
-                </tbody>
-            </table>
-        </div>
-    </div>
+  <div class="card-content">      
+      <div class="card-title">HPC Status for user: guslim
+          <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
+      </div>
+      <br>
+      <table class="table bordered">
+          <thead>
+          <tr>
+              <th>JOB ID</th>
+              <th>PARTITION</th>
+              <th>NAME</th>
+              <th>USER</th>
+              <th>ST  </th>
+              <th>TIME</th>
+              <th>NODES</th>
+              <th>NODELIST(REASON)</th>       
+              <th>Software</th>                          
+              <th>Output file</th>             
+              <th>Error file</th>             
+              <th>Kill Job</th>             
+          </tr>
+          </thead>
+          <tbody>
+              {{command | safe}}                
+          </tbody>
+      </table>
+  </div>
+</div>
 
 <div class="card">
         <div class="card-content">

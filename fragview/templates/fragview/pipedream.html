@@ -1,0 +1,351 @@
+{% extends 'fragview/base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+    td, th {
+        padding: 5px 5px;
+        display: table-cell;
+        text-align: left;
+        vertical-align: middle;
+        border-radius: 2px;
+        font-size: 12px;
+    }
+    .top-options {
+        font-size: 15px !important;
+    }
+    .content {
+        margin: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .card-content-left{
+        padding: 24px 24px 38px 24px !important;
+    }
+    .card-content-right{
+        padding: 24px 24px 28px 24px !important;
+    }
+    .card_options {
+        padding-left: 310px  !important;
+        max-width: 2455px  !important;
+    }
+    .flexdiv {
+        display: flex;
+        padding-left: 300px;
+        max-width: 2455px !important;
+    }
+    .flexdiv_options {
+        display: flex;
+        padding-left: 40px;
+    }
+    .flex-left {
+        flex-basis: 1;
+        max-width:750px; 
+    }
+    .flex-right {
+        margin-left:10px;    
+        max-width:750px; 
+    }    
+    .flex-center {
+        margin-left:10px;     
+    }
+
+    .flexdiv_snapshot {
+        display: flex;
+    }
+
+
+    .selectbox {
+        display: flex !important; 
+    }
+    .datasetbox{
+        max-width: 350px;
+        margin-left: 16px;
+    }
+    .optionstable {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .tableSoak {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100% !important;
+
+    }
+    .tableInfo {
+        width: 100% !important;
+    }
+    
+    .bottom-right    {
+        right: 30;
+        bottom: 20;
+        position: absolute;        
+    }
+    .btn-right {
+        float:right !important;
+    }
+    .maxivorange {
+        background-color: #fea901;
+    }
+    .custompar {
+        background-color: #f0f0f0;
+    }
+    .ligpng {
+        height: 95px;
+    }
+    .card-title {
+        display:inline-flex !important;
+    }
+</style>
+
+
+
+<div >
+    <h5 style="padding-left:310px;" > Pipedream </h5>
+    <div style="display:flex; padding-left:310px; ">
+        <h6 >Select dataset for Pipedream</h6>
+        <select class="selectbox datasetbox" name="procSW">
+            <option disabled selected value> -- select a dataset -- </option>
+            {% for datasetPath,datasetName in data %}
+
+            <option value={{datasetPath}}>{{datasetName}}</option>    
+            {% endfor %}                                    
+        </select>    
+
+    </div>
+</div>
+
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="img01">
+    <div id="caption"></div>
+</div>
+
+<div class="card_options">
+    <div class="flexdiv_options card ">
+        <div class="flex-left">
+            <div>
+                <div class="card-content card-content-left">
+                    <div class="card-title">autoPROC options</div>
+                    <table class="optionstable" > 
+                        <col width="200">
+                        <col width="450">
+                        <tbody>
+                            
+                <tr>
+                    <th class=" top-options">Space group</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class=" top-options">Cell parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="cellparameters" placeholder="(a, b, c, α, β, γ)"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Friedel law</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="friedel">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="friedeltrue">True</option>
+                            <option value="friedelfalse">False</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Data range</th>
+                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="e.g.:  1-1800"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">CC1/2 cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">I/σ(I) cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>
+                {% comment %} <tr>
+                    <th></th>
+                    <td style="padding-top:20px">
+                         <form action="/reproc_web/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
+                        </form>
+
+
+                    </td>
+                </tr> {% endcomment %}
+
+                </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex-center">
+        <div>
+
+            <div class="card-content card-content-left">
+                <div class="card-title">BUSTER options</div>
+                <table class="optionstable">
+                    <col width="200">
+                    <col width="450">
+                    <tbody>
+                        
+            <tr>
+                <th class=" top-options">Refinement mode</th>
+                <td class=" top-options">
+                    <select class="selectbox" name="refMode">
+                        <option disabled selected value> -- select an option -- </option>
+                        <option value="refslow">Extra (Slowest)</option>
+                        <option value="refslow">Normal (Slow)</option>
+                        <option value="reffast">Quick (Fast)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th class=" top-options">Threshold for MR</th>
+                <td class=" top-options">
+                    <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                </td>
+            </tr>
+            <tr>
+                <th class=" top-options">Resolution cutoff</th>
+                <td class=" top-options">
+                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                </td>
+            </tr>
+            <tr>
+                <th class=" top-options">PDB model</th>
+                <td class=" top-options">
+                    <input class="selectbox" name="refrescutoff" placeholder="PDB ID or full path"></input>
+                </td>
+            </tr>
+            <tr class="custompar">
+                <th class=" top-options">Custom parameters</th>
+                <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+            </tr>
+            {% comment %} <tr>
+                <th></th>
+                <td style="padding-top:20px">
+                    <input type="button" class="btn btn-right" value="Run refinement"> </input>
+                </td>
+            </tr> {% endcomment %}
+            </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="flex-right">
+    <div>
+        <div class="card-content card-content-right">
+            <div class="card-title">RhoFit options</div>
+            <table class="optionstable">
+                <col width="200">
+                <col width="450">
+                <tbody>
+        
+        <tr>            
+        <th class=" top-options">Ligand (select 1)</th>
+        <td class=" top-options">
+            <input class="selectbox" name="ligsmiles" placeholder="CN1C=NC2=C1C(=O)N(C(=O)N2C)C"></input>
+        </td>
+        </tr>
+        <tr>            
+        <th ></th>
+        <td class=" top-options">
+            <input class="selectbox" name="ligscreencode" placeholder="JBSB3"></input>
+        </td>
+        </tr>
+        <tr>            
+        <th ></th>
+            <td class=" top-options">
+                <form id="swSelectionForrefinement" >
+                    
+                    <div class="checkbox" id="dials">
+                    <label>
+                        <input id="ligfromname" name="ligfromname" type="checkbox" class="filled-in dt-checkboxes" value="ligfromnameValue">
+                        <span for="ligfromname">Get from sample name </span>
+                    </label>
+                    </div>                    
+                    
+                </form>        
+            </td>
+        </tr>
+        <tr>
+            <th class=" top-options">Copies to search</th>
+            <td class=" top-options">
+                <input class="selectbox" name="numberofcopies" placeholder="default: 1"></input>
+            </td>
+        <tr>
+        </tr>
+        <tr>
+            <th class=" top-options">Fitting process</th>
+            <td class=" top-options">
+                <select class="selectbox" name="fitprocess">
+                    <option disabled selected value> -- select an option -- </option>
+                    <option value="ligfitquick">Quick</option>
+                    <option value="ligfitthorough">Thorough</option>
+                </select>
+            </td>
+        <tr>
+        </tr>
+        <tr>
+            <th class=" top-options">Scan chirals</th>
+            <td class=" top-options">
+                <select class="selectbox" name="scanchirals">
+                    <option disabled selected value> -- select an option -- </option>
+                    <option value="chiralsyes">Yes</option>
+                    <option value="chiralsno">No</option>
+                </select>
+            </td>
+        </tr>
+        <tr class="custompar">
+            <th class=" top-options">Custom parameters</th>
+            <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
+        </tr>
+        {% comment %} <tr>
+            <th></th>
+            <td style="padding-top:20px">
+
+                <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
+            </td>
+        </tr> {% endcomment %}
+
+        </tbody>
+        </table>
+    </div>
+</div>
+</div>
+<div class="bottom-right">
+    <input type="button" class="btn-large maxivorange" value="Run Pipedream"> </input>
+</div>
+</div>
+</div>
+
+
+<script>
+
+    
+</script>
+{% endblock %}

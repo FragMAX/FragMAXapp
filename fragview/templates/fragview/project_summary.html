@@ -41,6 +41,45 @@
 <h4>Project Summary</h4>
         
 
+<div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">Project actions</div><br>
+            <table class="table bordered">
+                
+                <tbody>
+                <tr>
+                    <th>
+                    <form action="/project_summary_load/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="colParam" name="submitProc" size="1">Load data collection</button>
+                    </form>
+                    </th>                    
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="panddaResults" name="submitProc" size="1">Load PanDDA results</button>
+                    </form>
+                    </th>                    
+                </tr>
+                <tr>
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="procRef" name="submitProc" size="1">Load Proc/Ref</button>
+                    </form>
+                    </th>       
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="ligfitting" name="submitProc" size="1">Load Ligand Fitting</button>
+                    </form>
+                    </th>                                    
+                </tr>
+                
+                
+            </tbody>
+            </table>
+
+            </div>
+    </div>
+
 
 <div class="card">
         <div class="card-content">

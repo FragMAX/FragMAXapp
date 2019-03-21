@@ -24,5 +24,9 @@ urlpatterns = [
     path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
     path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
     path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
+    path('pipedream/', views.pipedream, name='pipedream'),
+    path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
+    
+
 
 ]

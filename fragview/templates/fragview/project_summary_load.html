@@ -1,0 +1,136 @@
+
+{% extends 'fragview/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+      height: 60px;
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+
+  th {
+      cursor: pointer;
+  }
+  .container {
+    padding-left: 200px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+}
+</style>
+<h4>Project Summary</h4>
+<h6>{{option}}</h6>
+
+<div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">Project actions loaded </div><br>
+
+            <table class="table bordered">
+                
+                <tbody>
+                <tr>
+                    <th>
+                    <form action="/project_summary_load/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit"  value="colParam" name="submitProc" size="1">Load data collection</button>
+                    </form>
+                    </th>                    
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit"  value="panddaResults" name="submitProc" size="1">Load PanDDA results</button>
+                    </form>
+                    </th>                    
+                </tr>
+                <tr>
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit"  value="procRef" name="submitProc" size="1">Load Proc/Ref</button>
+                    </form>
+                    </th>       
+                    <th>
+                    <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
+                            <button class="btn btn-right" type="submit"  value="ligfitting" name="submitProc" size="1">Load Ligand Fitting</button>
+                    </form>
+                    </th>                                    
+                </tr>
+                
+                
+            </tbody>
+            </table>
+
+            </div>
+    </div>
+
+
+<div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">Proposal name: Fragment screening of Bovine Carbonic Anhydrase II</div><br>
+            <table class="table bordered">
+                
+                <tbody>
+                <tr>
+                    <th>Proposal Number</th>
+                    <td>20180489</td>                    
+                </tr>
+                <tr>
+                    <th>Protein</th>
+                    <td>hCAII - Human Carbonic Anhydrase II</td>                    
+                </tr>
+                <tr>
+                    <th>User type</th>
+                    <td>Academic visitor</td>                    
+                </tr>
+                <tr>
+                    <th>Datasets collected</th>
+                    <td>152 datasets</td>                    
+                </tr>
+                <tr>
+                    <th>Known Apo datasets</th>
+                    <td>43 datasets</td>                    
+                </tr>
+                <tr>
+                    <th>Protein sequence</th>
+                    <td><a href="/static/userDataFiles/hCAII.fasta"> hCAII.fasta</a></td>                    
+                </tr>
+                <tr>
+                    <th>Protein model</th>
+                    <td><a href="/static/userDataFiles/hCAII.pdb"> hCAII.pdb</a></td>                    
+                </tr>
+                <tr>
+                    <th>Fragment Libraries</th>
+                    <td>JBS96, ICCBS</td>                    
+                </tr>
+                <tr>
+                    <th>Experiment date</th>
+                    <td>2019 Jan 27</td>
+                    
+                </tr>
+                
+                </tr>
+                
+            </tbody></table>
+        </div>
+    </div>
+{% endblock %}
+
