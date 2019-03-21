@@ -31,7 +31,9 @@
     }
     .card_options {
         padding-left: 310px  !important;
+
         max-width: 2455px  !important;
+        min-width: 1800px;
     }
     .flexdiv {
         display: flex;
@@ -110,6 +112,7 @@
         <h6 >Select dataset for Pipedream</h6>
         <select class="selectbox datasetbox" name="procSW">
             <option disabled selected value> -- select a dataset -- </option>
+            <option > Process ALL datasets </option>
             {% for datasetPath,datasetName in data %}
 
             <option value={{datasetPath}}>{{datasetName}}</option>    
@@ -150,14 +153,18 @@
                     <td class=" top-options"><input class="selectbox" name="cellparameters" placeholder="(a, b, c, α, β, γ)"></input> </td>
                 </tr>
                 <tr>
-                    <th class=" top-options">Friedel law</th>
+                    <th class=" top-options">StarANISO</th>
                     <td class=" top-options">
-                        <select class="selectbox" name="friedel">
+                        <select class="selectbox" name="staraniso">
                             <option disabled selected value> -- select an option -- </option>
-                            <option value="friedeltrue">True</option>
-                            <option value="friedelfalse">False</option>
+                            <option value="staranisotrue">Yes</option>
+                            <option value="staranisofalse">No</option>
                         </select>
                     </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Beam centre (X,Y)</th>
+                    <td class=" top-options"><div style="display:flex"><input class="selectbox" name="xbeampos" placeholder="X: 2574"></input>&nbsp&nbsp<input  class="selectbox" name="ybeampos" placeholder="Y: 1895"></input></div> </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Data range</th>
@@ -167,6 +174,20 @@
                     <th class=" top-options">Resolution cutoff</th>
                     <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
                 </tr>
+
+                <tr>
+                    <th class=" top-options">Min High-Res limit</th>
+                    <td class=" top-options"><input class="selectbox" name="rmin" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Max Rpim</th>
+                    <td class=" top-options"><input class="selectbox" name="rpim" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Min Completeness</th>
+                    <td class=" top-options"><input class="selectbox" name="completeness" placeholder="default: None"></input> </td>
+                </tr>
+
                 <tr>
                     <th class=" top-options">CC1/2 cutoff</th>
                     <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
@@ -207,14 +228,31 @@
                     <col width="200">
                     <col width="450">
                     <tbody>
-                        
+            <tr>
+                <th class=" top-options">PDB Model</th>
+                <td class=" top-options">
+                    <input type="file"  id="myPDBFile"></input>
+                </td>
+            </tr>    
+            <tr>
+                <th class=" top-options"></th>
+                <td class=" top-options">
+                    <input class="selectbox" name="PDBID_code" placeholder="PDBID; ex: 5U04 or full path"></input>
+                </td>
+            </tr>      
+            <tr>
+                <th class=" top-options">MTZ Reference</th>
+                <td class=" top-options">
+                    <input type="file"  id="myHKLFile"></input>
+                </td>
+            </tr>    
+              
             <tr>
                 <th class=" top-options">Refinement mode</th>
                 <td class=" top-options">
                     <select class="selectbox" name="refMode">
                         <option disabled selected value> -- select an option -- </option>
-                        <option value="refslow">Extra (Slowest)</option>
-                        <option value="refslow">Normal (Slow)</option>
+                        <option value="refslow">Thorough (Slow)</option>
                         <option value="reffast">Quick (Fast)</option>
                     </select>
                 </td>
@@ -225,16 +263,62 @@
                     <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
                 </td>
             </tr>
+
             <tr>
-                <th class=" top-options">Resolution cutoff</th>
+                <th class=" top-options">Grouping Chains</th>
                 <td class=" top-options">
-                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                    <input class="selectbox" name="chains" placeholder="AB C D"></input>
                 </td>
             </tr>
             <tr>
-                <th class=" top-options">PDB model</th>
+                <th class=" top-options">Brute-force TF</th>
                 <td class=" top-options">
-                    <input class="selectbox" name="refrescutoff" placeholder="PDB ID or full path"></input>
+                    <select class="selectbox" name="btf">
+                        <option value="btffalse" selected value>False</option>
+                        <option value="btftrue">True</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th class=" top-options">Resolution limits</th>
+                <td class=" top-options">
+                    <input class="selectbox" name="resolutionlimits" placeholder="[<reslow>] <reshigh>"></input>
+                </td>
+            </tr>
+
+            <tr>
+                <th class=" top-options">Angular range for RF</th>
+                <td class=" top-options">
+                    <select class="selectbox" name="bigrotrange">
+                        <option value="btffalse" selected value>False</option>
+                        <option value="btftrue">True</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th class=" top-options">PDB_REDO</th>
+                <td class=" top-options">
+                    <form id="swSelectionForrefinement" >
+                            <div class="checkbox" id="dials">
+                            <label>
+                                <input id="remediateckbx" name="remediateckbx" type="checkbox" class="filled-in dt-checkboxes" value="remediate">
+                                <span for="dimplecheckboxinput">SideAide refit</span>
+                            </label>
+                            </div>
+                            <div class="checkbox" id="xdsxscale" >
+                            <label>
+                                <input id="sidechainbuildckbx" name="sidechainbuildckbx" type="checkbox" class="filled-in dt-checkboxes" value="sidechainbuild">
+                                <span for="bustercheckboxinput">SideAide rebuild </span>
+                            </label>
+                            </div>
+                            
+                            <div class="checkbox" id="autoproc">
+                            <label>
+                                <input id="runpepflipckbx" name="runpepflipckbx" type="checkbox" class="filled-in dt-checkboxes" value="runpepflip">
+                                <span for="fspcheckboxinput">PepFlip check and correct </span>
+                            </label>
+                            </div>
+                    </form>
                 </td>
             </tr>
             <tr class="custompar">
@@ -294,10 +378,44 @@
         </tr>
         <tr>
             <th class=" top-options">Copies to search</th>
+            <td class=" top-options"><input class="selectbox" name="numberofcopies" placeholder="default: 1"></input></td>
+        <tr>
+
+        <tr>
+            <th class=" top-options">Keep Hydrogens</th>
+            <td class=" top-options"><input class="selectbox" name="keepH" placeholder="default: 1"></input></td>
+        <tr>
+        <tr>
+            <th class=" top-options">Fit ligand in all sites</th>
+            <td class=" top-options"><input class="selectbox" name="allclusters" placeholder="default: 1"></input></td>
+        <tr>
+        <tr>
+            <th class=" top-options">Fit ligand to best N sites</th>
+            <td class=" top-options"><input class="selectbox" name="xclusters" placeholder="default: 1"></input></td>
+        <tr>
+        <tr>
+            <th class=" top-options">Post refine to solution</th>
             <td class=" top-options">
-                <input class="selectbox" name="numberofcopies" placeholder="default: 1"></input>
+                <select class="selectbox" name="postquickrefine">                    
+                    <option value="postref" selected value>No</option>
+                    <option value="postquick">Quick</option>
+                    <option value="postthorough">Thorough</option>
+                </select>
             </td>
         <tr>
+        <tr>
+            <th class=" top-options">Refine ligand occupancy</th>
+            <td class=" top-options">
+                <select class="selectbox" name="nooccref">                    
+                    <option value="nooccreftrue" selected value>True</option>
+                    <option value="nooccreffalse">False</option>
+                    
+                </select>
+            </td>
+        <tr>
+        
+
+
         </tr>
         <tr>
             <th class=" top-options">Fitting process</th>
@@ -336,11 +454,14 @@
         </table>
     </div>
 </div>
+
 </div>
 <div class="bottom-right">
     <input type="button" class="btn-large maxivorange" value="Run Pipedream"> </input>
 </div>
 </div>
+<h6>More information can be found at: <a href="https://www.globalphasing.com/buster/manual/pipedream/manual/index.html">Global Phasing Pipedream Manual</a></h6>
+
 </div>
 
 

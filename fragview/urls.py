@@ -27,6 +27,4 @@ urlpatterns = [
     path('pipedream/', views.pipedream, name='pipedream'),
     path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
     
-
-
 ]
