@@ -13,6 +13,7 @@
         vertical-align: middle;
         border-radius: 2px;
         font-size: 12px;
+
     }
     .top-options {
         font-size: 15px !important;
@@ -30,28 +31,35 @@
     }
     .card_options {
         padding-left: 310px  !important;
-        max-width: 2455px  !important;
-        min-width: 1800px;
+
+        max-width: calc(100% - 50px)  !important;
+        {% comment %} max-width: 2455px  !important;
+        min-width: 1800px; {% endcomment %}
     }
     .flexdiv {
         display: flex;
         padding-left: 300px;
-        max-width: 2455px !important;
+        max-width: calc(100% - 50px)  !important;
+
+        {% comment %} max-width: 2455px !important; {% endcomment %}
     }
     .flexdiv_options {
         display: flex;
         padding-left: 40px;
     }
     .flex-left {
-        flex-basis: 1;
         max-width:750px; 
+        width: 33%
     }
     .flex-right {
         margin-left:10px;    
         max-width:750px; 
+        width: 33%
     }    
     .flex-center {
-        margin-left:10px;     
+        margin-left:10px; 
+        max-width:750px;     
+        width: 33%
     }
 
 
@@ -185,8 +193,8 @@
                 <div class="card-content card-content-left">
                     <div class="card-title">Data processing</div>
                     <table class="optionstable" > 
-                        <col width="200">
-                        <col width="450">
+                        <col width="8%">
+                        <col width="17%">
                         <tbody>
                             <tr>
                                 <th class="top-options">Software</th>
@@ -266,8 +274,8 @@
             <div class="card-content card-content-left">
                 <div class="card-title">Structure Refinement</div>
                 <table class="optionstable">
-                    <col width="200">
-                    <col width="450">
+                    <col width="8%">
+                    <col width="17%">
                     <tbody>
                         <tr>
                             <th class=" top-options">Software</th>
@@ -333,8 +341,8 @@
         <div class="card-content card-content-right">
             <div class="card-title">Ligand fitting</div>
             <table class="optionstable">
-                <col width="200">
-                <col width="450">
+                <col width="8%">
+                <col width="17%">
                 <tbody>
                     <tr>
                         <th class=" top-options">Software</th>
@@ -446,7 +454,7 @@
                     <tbody>
                         <tr>
                             <th>Img directory</th>
-                            <td name="imgdirNAME" id="imgdirID">/data/visitors/biomax/20180489/20190127/raw/{{acr}}/{{imgprf}}/</td>
+                            <td name="imgdirNAME" id="imgdirID"><p style="word-break: break-all;">/data/visitors/biomax/20180489/20190127/raw/{{acr}}/{{imgprf}}/</p></td>
                         </tr>
                         <tr>
                             <th>Img prefix</th>

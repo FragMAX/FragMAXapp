@@ -13,10 +13,10 @@
         vertical-align: middle;
         border-radius: 2px;
         font-size: 12px;
+
     }
     .top-options {
         font-size: 15px !important;
-
     }
     .content {
         margin: auto !important;
@@ -24,43 +24,62 @@
         width: 100% !important;
     }
     .card-content-left{
-        padding: 24px 24px 60px 24px !important;
+        padding: 24px 24px 38px 24px !important;
     }
     .card-content-right{
-        padding: 24px 24px 190px 24px !important;
+        padding: 24px 24px 28px 24px !important;
     }
     .card_options {
         padding-left: 310px  !important;
-        max-width: 2455px  !important;
-        min-width: 1800px;
-        padding-top: 30px;
 
+        max-width: calc(100% - 50px)  !important;
+        {% comment %} max-width: 2455px  !important;
+        min-width: 1800px; {% endcomment %}
     }
     .flexdiv {
         display: flex;
         padding-left: 300px;
+        max-width: calc(100% - 50px)  !important;
+
+        {% comment %} max-width: 2455px !important; {% endcomment %}
     }
     .flexdiv_options {
         display: flex;
         padding-left: 40px;
     }
     .flex-left {
-        flex-basis: 1;
+        max-width:750px; 
+        width: 33%
     }
-
     .flex-right {
-        margin-left:10px;     
+        margin-left:10px;    
+        max-width:750px; 
+        width: 33%
     }    
     .flex-center {
-        margin-left:10px;     
+        margin-left:10px; 
+        max-width:750px;     
+        width: 33%
     }
+
+
     .crystalsnap {
-        width: 400px;
+        max-width: 400px;
         padding: 10px;
+    }
+    .diffimg {
+        max-width: 100%;
+        height: auto;
+        width: auto\9; /* ie8 */
+        }
+    .diffsnap{
+        max-width:400px;
+        padding:10px;
     }
     .flexdiv_snapshot {
         display: flex;
     }
+
     .selectbox {
         display: flex !important; 
     }
@@ -68,6 +87,16 @@
         border-collapse: separate;
         border-spacing: 0;
     }
+    .tableSoak {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100% !important;
+
+    }
+    .tableInfo {
+        width: 100% !important;
+    }
+    
     .bottom-right    {
         right: 30;
         bottom: 20;
@@ -82,8 +111,11 @@
     .custompar {
         background-color: #f0f0f0;
     }
-    label {
-        color: #000000 !important;
+    .ligpng {
+        height: 95px;
+    }
+    .card-title {
+        display:inline-flex !important;
     }
 </style>
 
@@ -113,8 +145,8 @@
                 <div class="card-content card-content-left">
                     <div class="card-title">Data processing</div>
                     <table class="optionstable" >
-                        <col width="200">
-                        <col width="450">
+                        <col width="8%">
+                        <col width="17%">
                         <tbody>
                             <tr>
                                 <th class="top-options">Software</th>
@@ -216,8 +248,8 @@
             <div class="card-content card-content-left">
                 <div class="card-title">Structure Refinement</div>
                 <table class="optionstable">
-                    <col width="200">
-                    <col width="450">
+                    <col width="8%">
+                    <col width="17%">
                     <tbody>
                         <tr>
                             <th class=" top-options">Software</th>
@@ -247,11 +279,12 @@
                                         </div>
                                         </div>                     
                                 </form>
-            </div>
+                                </td>
+                        </tr>
+                 </div>
 
 
-            </td>
-            </tr>
+            
             <tr>
                 <th class=" top-options">Refinement mode</th>
                 <td class=" top-options">
@@ -305,8 +338,8 @@
         <div class="card-content card-content-right">
             <div class="card-title">Ligand fitting</div>
             <table class="optionstable">
-                <col width="200">
-                <col width="450">
+                <col width="8%">
+                <col width="17%">
                 <tbody>
                     <tr>
                         <th class=" top-options">Software</th>

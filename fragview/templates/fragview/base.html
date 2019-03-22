@@ -14,7 +14,9 @@
 
          
         <style>
-            
+            .user-view {
+                   padding: 0px 32px 0 !important;
+            }
 
             .sidenav_local {
             height: 100%;
@@ -97,7 +99,7 @@
 
 
 <dmc-sidenav>
-   <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px);" >
+   <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden" >
       <li>
          <div class="user-view">
             <div class="background">
@@ -207,7 +209,7 @@
       <li class="last">
          <a href="/admin" class="collapsible-header sidenav-links" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
       </li>
-      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px;padding-top:50px">
+      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px">
 
       <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
          <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
