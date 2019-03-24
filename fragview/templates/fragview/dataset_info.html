@@ -414,33 +414,33 @@
     {% comment %} <div>
         <div class="flexdiv_snapshot">
             <div class="diffimg">
-                <img class="myImg diffsnap" id="diff1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
+                <img class="myImg diffsnap" id="diff1" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
             </div>
             <div class="diffimg">
-                <img class="myImg diffsnap" id="diff2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_1.jpg">
+                <img class="myImg diffsnap" id="diff2" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_1_1.jpg">
             </div>
         </div>
 
         <div class="flexdiv_snapshot">
             <div class="diffimg">
-                <img class="myImg crystalsnap" id="snap1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap1" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
                 
             </div>
             <div class="diffimg">
-                <img class="myImg crystalsnap" id="snap2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap2" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             </div>
         </div>
     </div> {% endcomment %}
     <div id="snaps">
         
         
-                <img class="myImg diffsnap" id="diff1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
+                <img class="myImg diffsnap" id="diff1" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_1_{{imgs}}.jpg">
         
-                <img class="myImg diffsnap" id="diff2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_1_1.jpg">
+                <img class="myImg diffsnap" id="diff2" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/{{imgprf}}/{{imgprf}}_1_1.jpg">
         
-                <img class="myImg crystalsnap" id="snap1" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap1" src="/static/pyarch/visitors/{{proposal}}/{{shift}}/raw/{{acr}}/{{imgprf}}/{{imgprf}}_{{run}}_1.snapshot.jpeg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         
-                <img class="myImg crystalsnap" id="snap2" src="/static/biomax/20180489/20190127/fragmax/process/hCAII/{{imgprf}}/{{imgprf}}_snapshot.jpg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap2" src="/static/pyarch/visitors/{{proposal}}/{{shift}}/raw/{{acr}}/{{imgprf}}/{{imgprf}}_{{run}}_1.snapshot.jpeg" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         
         
     </div>
@@ -454,7 +454,7 @@
                     <tbody>
                         <tr>
                             <th>Img directory</th>
-                            <td name="imgdirNAME" id="imgdirID"><p style="word-break: break-all;">/data/visitors/biomax/20180489/20190127/raw/{{acr}}/{{imgprf}}/</p></td>
+                            <td name="imgdirNAME" id="imgdirID"><p style="word-break: break-all;">/data/visitors/biomax/{{proposal}}/{{shift}}/raw/{{acr}}/{{imgprf}}/</p></td>
                         </tr>
                         <tr>
                             <th>Img prefix</th>
@@ -748,8 +748,6 @@ var f = document.getElementById("procB");
                 dataprocCommand = 'process -h5 '+imgdir+'{{imgprf}}_{{run}}_master.h5 -noANO  autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0  -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
                 }
 
-            console.log(chdir)
-            console.log(dataprocCommand)
             document.getElementsByName("submitProc")[0].value = chdir+";"+dataprocCommand
         }
 

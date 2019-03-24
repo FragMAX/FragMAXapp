@@ -41,7 +41,7 @@
 <h4>Project Summary</h4>
         
 
-<div class="card">
+<div class="card" hidden>
         <div class="card-content">
             
             <div class="card-title">Project actions</div><br>
@@ -56,19 +56,19 @@
                     </th>                    
                     <th>
                     <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
-                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="panddaResults" name="submitProc" size="1">Load PanDDA results</button>
+                            <button class="btn btn-right" type="submit" onsubmit="return loadpandda()" value="panddaResults" name="submitProc" size="1">Load PanDDA results</button>
                     </form>
                     </th>                    
                 </tr>
                 <tr>
                     <th>
                     <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
-                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="procRef" name="submitProc" size="1">Load Proc/Ref</button>
+                            <button class="btn btn-right" type="submit" onsubmit="return loadresults()" value="procRef" name="submitProc" size="1">Load Proc/Ref</button>
                     </form>
                     </th>       
                     <th>
                     <form action="/project_summary/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" >
-                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="ligfitting" name="submitProc" size="1">Load Ligand Fitting</button>
+                            <button class="btn btn-right" type="submit" onsubmit="return loadligfit()" value="ligfitting" name="submitProc" size="1">Load Ligand Fitting</button>
                     </form>
                     </th>                                    
                 </tr>
@@ -81,20 +81,23 @@
     </div>
 
 
+
+
+
 <div class="card">
         <div class="card-content">
             
-            <div class="card-title">Proposal name: Fragment screening of Bovine Carbonic Anhydrase II</div><br>
+            <div class="card-title">Proposal name: Fragment screening of {{acronym}}</div><br>
             <table class="table bordered">
                 
                 <tbody>
                 <tr>
                     <th>Proposal Number</th>
-                    <td>20180489</td>                    
+                    <td>{{proposal}}</td>                    
                 </tr>
                 <tr>
                     <th>Protein</th>
-                    <td>hCAII - Human Carbonic Anhydrase II</td>                    
+                    <td>{{acronym}}</td>                    
                 </tr>
                 <tr>
                     <th>User type</th>
@@ -102,27 +105,27 @@
                 </tr>
                 <tr>
                     <th>Datasets collected</th>
-                    <td>152 datasets</td>                    
+                    <td>{{num_dataset}} datasets</td>                    
                 </tr>
                 <tr>
                     <th>Known Apo datasets</th>
-                    <td>43 datasets</td>                    
+                    <td>{{known_apo}} datasets</td>                    
                 </tr>
-                <tr>
+                <tr hidden>
                     <th>Protein sequence</th>
                     <td><a href="/static/userDataFiles/hCAII.fasta"> hCAII.fasta</a></td>                    
                 </tr>
-                <tr>
+                <tr hidden>
                     <th>Protein model</th>
                     <td><a href="/static/userDataFiles/hCAII.pdb"> hCAII.pdb</a></td>                    
                 </tr>
                 <tr>
                     <th>Fragment Libraries</th>
-                    <td>JBS96, ICCBS</td>                    
+                    <td>{{fraglib}}</td>                    
                 </tr>
                 <tr>
                     <th>Experiment date</th>
-                    <td>2019 Jan 27</td>
+                    <td>{{exp_date}}</td>
                     
                 </tr>
                 
