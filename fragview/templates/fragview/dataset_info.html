@@ -168,13 +168,18 @@
     {{new_proc_run | safe}}
     <div style="display:flex; padding-left:310px; ">
         <h6 >Open processing report</h6>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
             <button class="btn-small" type="submit" value="dials{{imgprf}}" name="dataHeader" size="1">DIALS</button>
         </form>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; ">
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="xdsxscale{{imgprf}}" name="dataHeader" size="1">XDS/XSCALE</button>
+        </form>
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
             <button class="btn-small" type="submit" value="autoPROC{{imgprf}}" name="dataHeader" size="1">autoPROC</button>
         </form>
-
+        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="xdsapp{{imgprf}}" name="dataHeader" size="1">XDSAPP</button>
+        </form>
     </div>
 </div>
 

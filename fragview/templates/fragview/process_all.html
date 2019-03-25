@@ -45,21 +45,21 @@
     }
     .flexdiv_options {
         display: flex;
-        padding-left: 40px;
+        {% comment %} padding-left: 40px; {% endcomment %}
     }
     .flex-left {
         max-width:750px; 
-        width: 33%
+        width: 30%
     }
     .flex-right {
-        margin-left:10px;    
+        margin-left:3%;    
         max-width:750px; 
-        width: 33%
+        width: 30%
     }    
     .flex-center {
-        margin-left:10px; 
+        margin-left:3%; 
         max-width:750px;     
-        width: 33%
+        width: 30%
     }
 
 
@@ -152,29 +152,26 @@
                                 <th class="top-options">Software</th>
                                 <td class=" top-options">
                                     <form id="swSelectionFordataproc" >
-                                        <div style="display:flex">
+                                        <div>
                                         <div class="checkbox" id="dials">
                                         <label>
                                             <input id="dialscheckboxinput" name="dialscheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="dials">
                                             <span for="dialscheckboxinput">XIA2/DIALS </span>
                                         </label>
                                         </div>
-                                        <div class="checkbox" id="xdsxscale" style="padding-left:100px">
+                                        <div class="checkbox" id="xdsxscale" >
                                         <label>
                                             <input id="xdsxscalecheckboxinput" name="xdsxscalecheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsxscale">
                                             <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE </span>
                                         </label>
                                         </div>
-                                        </div>
-                                        <div style="display:flex">
-                                        
                                         <div class="checkbox" id="xdsapp" >
                                             <label>
                                                 <input id="xdsappcheckboxinput" name="xdsappcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsapp">
                                                 <span for="xdsappcheckboxinput">XDSAPP </span>
                                             </label>
                                         </div>    
-                                        <div class="checkbox" id="autoproc" style="padding-left:122px" >
+                                        <div class="checkbox" id="autoproc"  >
                                         <label>
                                             <input id="autoproccheckboxinput" name="autoproccheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="autoproc">
                                             <span for="autoproccheckboxinput">autoProc </span>
@@ -258,21 +255,19 @@
                             <td class=" top-options">
                                 
                                 <form id="swSelectionForrefinement" >
-                                        <div style="display:flex">
+                                        <div>
                                         <div class="checkbox" id="dials">
                                         <label>
                                             <input id="dimplecheckboxinput" name="dimplecheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="dimple">
                                             <span for="dimplecheckboxinput">Dimple </span>
                                         </label>
                                         </div>
-                                        <div class="checkbox" id="xdsxscale" style="padding-left:100px">
+                                        <div class="checkbox" id="xdsxscale" >
                                         <label>
                                             <input id="bustercheckboxinput" name="bustercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="buster">
                                             <span for="bustercheckboxinput">BUSTER </span>
                                         </label>
                                         </div>
-                                        </div>
-                                        <div style="display:flex">
                                         <div class="checkbox" id="autoproc">
                                         <label>
                                             <input id="fspcheckboxinput" name="fspcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="fsp">
@@ -356,14 +351,14 @@
                         <th class=" top-options">Software</th>
                         <td class=" top-options">                            
                             <form id="swSelectionForrefinement" >
-                                <div style="display:flex">
+                                <div>
                                     <div class="checkbox" id="rhofit">
                                     <label>
                                         <input id="rhofitcheckboxinput" name="rhofitcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="rhofit">
                                         <span for="rhofitcheckboxinput">RhoFit </span>
                                     </label>
                                     </div>
-                                    <div class="checkbox" id="ligfit" style="padding-left:100px">
+                                    <div class="checkbox" id="ligfit">
                                     <label>
                                         <input id="phenixligfitcheckboxinput" name="phenixligfitcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixligfit">
                                         <span for="phenixligfitcheckboxinput">Phenix LigFit </span>

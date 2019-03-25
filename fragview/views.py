@@ -346,6 +346,30 @@ def procReport(request):
             html='<h5 style="padding-left:260px;" >DIALS report for this dataset is not available</h5>'
         html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
         html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+    
+    if a.startswith("xdsxscale"):
+        a=a.replace("xdsxscale","")
+        a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/xdsxscale/xia2.html"
+        if os.path.exists(a):
+            with open(a,"r") as inp:
+                html="".join(inp.readlines())
+        else:
+            html='<h5 style="padding-left:260px;" >XDS/XSCALE report for this dataset is not available</h5>'
+        html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
+        html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+    
+    if a.startswith("xdsapp"):
+        a=a.replace("xdsapp","")
+        a=path+"/fragmax/process/"+acr+"/"+a+"/"+a+"_1/xdsapp/results_"+a+"_1_data.txt"
+        #a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/xdsxscale/xia2.html"
+        if os.path.exists(a):
+            with open(a,"r") as inp:
+                html="<br>".join(inp.readlines())
+        else:
+            html='<h5 style="padding-left:260px;" >XDSAPP report for this dataset is not available</h5>'
+        #html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
+        #html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+        html='''<style>  .card {  margin: 40px 0 0 50px !important; }</style><div class="card" ><div class="card-content"><div class="card-title">XDSAPP Processing report</div><br>'''+html+'</div></div>'
 
     if a.startswith("autoPROC"):
         a=a.replace("autoPROC","")
@@ -456,9 +480,9 @@ def dataproc_datasets(request):
             sbatch_script_list.append(path+"/fragmax/scripts/xdsxscale_fragmax_part2.sh")
         
         
-        for script in sbatch_script_list:            
-            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
+        #for script in sbatch_script_list:            
+        #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        #    subprocess.call(command,shell=True)
         
     
     if refprc!="None":
@@ -1232,6 +1256,10 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         for num,chunk in enumerate(chunkScripts):
             with open(path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
+            
+            script=path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
 
 
 
@@ -1413,11 +1441,12 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
         nodes=3
         chunkScripts=[autoPROCHeader+"".join(x) for x in list(split(scriptList,nodes) )]
 
-
         for num,chunk in enumerate(chunkScripts):
             with open(path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
-
+            script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
 
     runFragMAX()
 
@@ -1492,7 +1521,7 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
             #DIALS definitions
 
 
-            dialscontent+="cd "+outd+"/dials "
+            dialscontent+="cd "+outd+"/xdsxscale "
             dialscontent+="\n"
             dialscontent+="xia2 goniometer.axes=0,1,0  "                
             dialscontent+="    pipeline=3dii failover=true  nproc=48"                
@@ -1612,7 +1641,9 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         for num,chunk in enumerate(chunkScripts):
             with open(path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
-
+            script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
 
     runFragMAX()
 
@@ -1807,7 +1838,10 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         for num,chunk in enumerate(chunkScripts):
             with open(path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
-
+            
+            script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
 
     runFragMAX()
 
