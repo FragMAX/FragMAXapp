@@ -2,7 +2,10 @@
 <html>
     <head>
 
-        <title>FragMAX WebApp</title>
+        <title>    
+         {% block title %}{% endblock %}
+         
+        </title>
 
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -104,9 +107,9 @@
          <div class="user-view">
             <div class="background">
             </div>
-            <a href="/project_summary"><img class="circle" src="/static/userPics/user.png" ></a> 
-            <a href="/project_summary"><span class="white-text name">FirstName Last</span></a>            
-            <a href="https://duo.maxiv.lu.se" target="_blank"><span class="white-text ">Prop: 20180489</span></a>
+            <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
+            <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
+            <a href="https://duo.maxiv.lu.se" target="_blank" hidden><span class="white-text ">Prop: 20180489</span></a>
          </div>
       {% comment %}       
          <li>

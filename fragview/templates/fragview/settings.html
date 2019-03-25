@@ -1,0 +1,105 @@
+
+{% extends 'fragview/base.html' %}
+
+{% load static %}
+{% block title %}FragMAX - Settings{% endblock %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+      height: 60px;
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+
+  th {
+      cursor: pointer;
+  }
+  .container {
+    padding-left: 200px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+}
+</style>
+<h4>Project Settings</h4>
+        
+
+
+
+
+
+<div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">Set experiment definitions</div><br>
+            Status: {{upd}}
+            <table class="table bordered">
+                
+                <tbody>
+                <tr>
+                    <th>Proposal Number</th>
+                    <td><input class="selectbox" name="proposal" placeholder="20180489"></input></td>                    
+                </tr>
+                <tr>
+                    <th>Shift</th>
+                    <td><input class="selectbox" name="shift" placeholder="20190127"></input></td>                    
+                    
+                </tr>
+                <tr>
+                    <th>Protein</th>
+                    <td><input class="selectbox" name="acronym" placeholder="Protein acronym"></input></td>                    
+                </tr>
+                <tr>
+                    <th>User type</th>
+                    <td><input class="selectbox" name="exptype" placeholder="visitors"></input></td>                    
+                </tr>
+                
+                
+                </tr>
+                
+            </tbody></table>
+            <div style="padding-top:20px">
+            <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
+                <button class="btn-large" type="submit" onsubmit="return update_experiment()" value="NoneUpdate" name="updatedefinitions" size="1">Update definitions</button>
+            </form>
+            </div>            
+        </div>
+    </div>
+
+<script>
+
+var f = document.getElementById("updatedefinitionsBtn");
+    
+    f.onsubmit = function update_experiment() {
+        var proposal = ";proposal:"+document.getElementsByName("proposal")[0].value;
+        var shift    = ";shift:"+document.getElementsByName("shift")[0].value;
+        var acronym  = ";acronym:"+document.getElementsByName("acronym")[0].value;
+        var usertype = ";usertype:"+document.getElementsByName("exptype")[0].value;
+
+        var newsettings = proposal+shift+acronym+usertype
+        document.getElementsByName("updatedefinitions")[0].value = newsettings
+    }
+
+
+
+</script>
+{% endblock %}
+
