@@ -294,6 +294,12 @@
                 </td>
             </tr>
             <tr>
+                    <th class=" top-options">Space group</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="refspacegroup" placeholder="P43212"></input>
+                    </td>
+                </tr>
+            <tr>
                 <th class=" top-options">Refinement mode</th>
                 <td class=" top-options">
                     <select class="selectbox" name="refMode">
@@ -326,7 +332,7 @@
             <tr>
                 <th></th>
                 <td style="padding-top:20px">
-                    <form action="/dataproc_datasets/" method="get" id="rfprocBtn" name="rfprocButton" size="1" target="_blank">
+                    <form action="/refine_datasets/" method="get" id="rfprocBtn" name="rfprocButton" size="1" target="_blank">
                         <button class="btn  btn-right" type="submit" onsubmit="return refineproc()" value="No Software Selected" name="submitrfProc" size="1">Run refinement</button>
                     </form>
                 </td>
@@ -401,7 +407,7 @@
                     <tr>
                         <th></th>
                         <td style="padding-top:20px">
-                            <form action="/dataproc_datasets/" method="get" id="ligprocBtn" name="ligprocButton" size="1" target="_blank">
+                            <form action="/ligfit_datasets/" method="get" id="ligprocBtn" name="ligprocButton" size="1" target="_blank">
                                 <button class="btn  btn-right" type="submit" onsubmit="return ligandfitproc()" value="No Software Selected" name="submitligProc" size="1">Run ligand fitting</button>
                             </form>
                         </td>
@@ -450,20 +456,21 @@ var f2 = document.getElementById("rfprocBtn");
     
     f2.onsubmit = function refineproc() {
        //Refinement options
-        var dimpleSW        = ";dimpleSW:"+document.getElementsByName("dimplecheckboxname")[0].checked
-        var fspSW           = ";fspSW:"+document.getElementsByName("fspcheckboxname")[0].checked
-        var busterSW        = ";busterSW:"+document.getElementsByName("bustercheckboxname")[0].checked
-        var refinemode      = ";refinemode:"+document.getElementsByName("refMode")[0].value
-        var mrthreshold     = ";mrthreshold:"+document.getElementsByName("mrthresh")[0].value
-        var refinerescutoff = ";refinerescutoff:"+document.getElementsByName("refrescutoff")[0].value
+        var dimpleSW        = ";;dimpleSW:"+document.getElementsByName("dimplecheckboxname")[0].checked
+        var fspSW           = ";;fspSW:"+document.getElementsByName("fspcheckboxname")[0].checked
+        var busterSW        = ";;busterSW:"+document.getElementsByName("bustercheckboxname")[0].checked
+        var refinemode      = ";;refinemode:"+document.getElementsByName("refMode")[0].value
+        var mrthreshold     = ";;mrthreshold:"+document.getElementsByName("mrthresh")[0].value
+        var refinerescutoff = ";;refinerescutoff:"+document.getElementsByName("refrescutoff")[0].value
         if (document.getElementById("pdbcontent").innerHTML.includes("ATOM")) {
-            var pdbmodel    = ";pdbupload:"+document.getElementById("pdbcontent").innerHTML
+            var pdbmodel    = ";;pdbupload:"+document.getElementById("pdbcontent").innerHTML
             } else {
-                var pdbmodel    = ";pdbmodel:"+document.getElementsByName("pdbcode")[0].value
+                var pdbmodel    = ";;pdbmodel:"+document.getElementsByName("pdbcode")[0].value
         }
-        var customrefparam  = ";customrefine:"+document.getElementsByName("customrefine")[0].value
+        var refspacegroup   = ";;refspacegroup:"+document.getElementsByName("refspacegroup")[0].value
+        var customrefparam  = ";;customrefine:"+document.getElementsByName("customrefine")[0].value
 
-        var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel
+        var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel+refspacegroup
         document.getElementsByName("submitrfProc")[0].value = refinecmd
 
     }

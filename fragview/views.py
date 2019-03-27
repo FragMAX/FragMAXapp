@@ -94,6 +94,11 @@ def pipedream(request):
 
 def submit_pipedream(request):
     ppdCMD=str(request.GET.get("ppdform"))
+
+    empty,ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
+
+    
+
     return render(request, "fragview/submit_pipedream.html",{"command":ppdCMD})
     
 def load_project_summary(request):
@@ -136,8 +141,6 @@ def project_summary_load(request):
         parseLigand_results()
         out="Ligand fitting results synced"
     return render(request,'fragview/project_summary_load.html', {'option': out})
-
-
 
 def dataset_info(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -463,7 +466,6 @@ def dataproc_merge(request):
     
     return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
 
-
 def reproc_web(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     
@@ -493,6 +495,39 @@ def reproc_web(request):
     base_script=base_script.replace("\n","<br>")
     return render(request,'fragview/reproc_web.html', {'command': base_script})
 
+def refine_datasets(request):
+    userInput=str(request.GET.get("submitrfProc"))
+    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup=userInput.split(";;")
+    if "false" in dimpleSW:
+        useDIMPLE=False
+    else:
+        useDIMPLE=True
+    if "false" in fspSW:
+        useFSP=False
+    else:
+        useFSP=True
+    if "false" in busterSW:
+        useBUSTER=False
+    else:
+        useBUSTER=True
+    if len(userPDB)<20:
+        pdbmodel=userPDB.replace("pdbmodel:","")
+    if "ATOM" in userPDB:
+        userPDB=userPDB.replace("pdbmodel:","")
+        pdbmodel=path+"fragmax/process/userPDB.pdb"
+        with open(path+"fragmax/process/userPDB.pdb","w") as pdbfile:
+            pdbfile.write(userPDB)
+    spacegroup=refspacegroup.replace("refspacegroup:","")
+    t = threading.Thread(target=run_structure_solving,args=(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup))
+    t.daemon = True
+    t.start()
+    #run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
+    outinfo = "<br>".join(userInput.split(";;"))
+
+    return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
+
+def ligfit_datasets(request):
+    return render(request,'fragview/ligfit_datasets.html', {'allproc': "textao ligfit"})
 
 def dataproc_datasets(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -554,10 +589,12 @@ def dataproc_datasets(request):
         #for script in sbatch_script_list:            
         #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         #    subprocess.call(command,shell=True)
-        
+        return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
+
     
     if refprc!="None":
         pass
+
     if ligproc!="None":
         pass
     return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
@@ -618,14 +655,29 @@ def hpcstatus(request):
     for i in out.decode("UTF-8").split("\n")[1:-1]:
         proc_info = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scontrol', 'show', 'jobid', '-dd', i.split()[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out_info, err_info = proc_info.communicate()
-        stdout_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
-        stderr_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
+        try:
+            stdout_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
+            stderr_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
+        except IndexError:
+            stdout_file="No_output"
+            stderr_file="No_output"
+
         try:
             prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
         except:
             prosw="Unkown"
+        
+        # if not os.path.exists(stdout_file):
+        #     output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td>No output</td><td>No output"+"""</a></td><td>
+            
+        #     <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
+        #         <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
+        #     </form>
+
+        #     </tr>""".format(i.split()[0])
+        # else:
         output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+""".err</a></td><td>
-           
+        
         <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
             <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
         </form>
@@ -1940,6 +1992,480 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
 
 
+
+
+##User specific inputs
+def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
+
+    def listdir_fullpath(d):
+        return [os.path.join(d, f) for f in os.listdir(d)]
+
+    def search(myDict, lookup):
+        for key, value in myDict.items():
+            for v in value:
+                if lookup in v:
+                    return key
+
+
+    def find_hkl(search_path):
+        auto_mtz=[]
+        fragmax_mtz=[]
+        for roots, dirs, files in os.walk(search_path):
+            if "results" in roots and "lyso_back" not in roots:            
+                auto_mtz+=glob.glob(roots+"/*.mtz*")
+            if "fragmax" in roots and "lyso_back" not in roots:
+                fragmax_mtz+=glob.glob(roots+"/*.mtz")
+        auto_mtz=[x for x in auto_mtz if "_sorted" not in x and "_scaled" not in x]    
+        return auto_mtz, fragmax_mtz
+
+
+    def mtz_rearrange(mtz_dict):
+        #This function creates a dictionary with the original mtz output from 
+        #different pipelines for data processing and the output dir inside 
+        #fragmax folder.
+
+        results_dic=dict()
+        for sw in mtz_dict["autoPROC"]:
+            #if "results" in sw and "/fragmax" not in sw:
+            #    sw2=sw.split("autoPROC")[0]
+            #    sw2=sw2.split("/")[-2]
+            #    sw2=sw2.split("xds_")[1]
+            #    if sw2[-2] == "_":
+            #        sw2=sw2[:-2]
+            #    elif sw2[-3] == "_":
+            #        sw2=sw2[:-3]
+            #    sw2=path+"/fragmax/results/"+sw2+"/autoproc/"
+            #    results_dic[sw]=sw2
+            if not "results" in sw:
+                sw2=sw.split("autoproc")[0]
+                sw2=sw2.split("/")[-2]       
+                sw2=path+"/fragmax/results/"+sw2+"/autoproc/"
+                results_dic[sw]=sw2
+
+        for sw in mtz_dict["fastdp"]:
+            if "results" in sw and "/fragmax" not in sw:
+                sw2=sw.split("fastdp")[0]
+                sw2=sw2.split("/")[-2]
+                sw2=sw2.split("xds_")[1]
+                if sw2[-2] == "_":
+                    sw2=sw2[:-2]
+                elif sw2[-3] == "_":
+                    sw2=sw2[:-3]
+                sw2=path+"/fragmax/results/"+sw2+"/fastdp/"
+                results_dic[sw]=sw2
+
+        for sw in mtz_dict["EDNA"]:
+            if "results" in sw and "/fragmax" not in sw:
+                sw2=sw.split("EDNA_proc")[0]
+                sw2=sw2.split("/")[-2]
+                sw2=sw2.split("xds_")[1]        
+                if sw2[-2] == "_":
+                    sw2=sw2[:-2]
+                elif sw2[-3] == "_":
+                    sw2=sw2[:-3]
+                sw2=path+"/fragmax/results/"+sw2+"/EDNA_proc/"
+                results_dic[sw]=sw2
+
+        for sw in mtz_dict["XDSAPP"]:
+            if not "results" in sw:
+                sw2=sw.split("xdsapp")[0]
+                sw2=sw2.split("/")[-2]       
+                sw2=path+"/fragmax/results/"+sw2+"/xdsapp/"
+                results_dic[sw]=sw2
+
+        for sw in mtz_dict["DIALS"]:
+            if not "results" in sw:
+                sw2=sw.split("dials")[0]
+                sw2=sw2.split("/")[-2]      
+            
+            sw2=path+"/fragmax/results/"+sw2+"/dials/"
+            sw2.replace("//","/")
+            results_dic[sw]=sw2
+        
+        for sw in mtz_dict["XDSXSCALE"]:
+            if not "results" in sw:
+                sw2=sw.split("xdsxscale")[0]
+                sw2=sw2.split("/")[-2]      
+            
+            sw2=path+"/fragmax/results/"+sw2+"/xdsxscale/"
+            sw2.replace("//","/")
+            results_dic[sw]=sw2
+            
+        return (results_dic)
+
+
+    def gen_pointless(mtz_dict, spacegroup):
+        ##This function returns the pointless command line to scale a mtz file
+        ##it will also make a copy of the original (unmerged and unscaled) file to results folder
+        
+        ##Extra options I could add at somepoint, for reprocess
+        #echo "resolution 2.5" | aimless hklin pointless.mtz hklout aimless.mtz | tee aimless.log
+        #echo "nres 999" | truncate hklin aimless.mtz hklout merged.mtz | tee truncate.log
+        #each new input inside echo expression needs a \n to properly work with pointless
+
+        mtzin   =list(mtz_dict.keys())[0]
+        outdir  =list(mtz_dict.values())[0]
+        
+        
+        proc_sw =outdir.split("/")[-2]
+        outfile =outdir.split("/")[-3]
+        mtzout  =outdir+outfile+"_"+proc_sw+"_scaled.mtz"
+            
+        ##If no space group is defined, pointless will choose automatically one for the dataset. 
+        ##If this is not the same as the PDB file, some pipelines will crash.
+        if spacegroup:
+            pointless="""\necho "choose spacegroup """+spacegroup+"""" | pointless HKLIN """
+        else:
+            pointless="""pointless HKLIN """
+        
+        
+        if "fastdp" in proc_sw:
+            pointless+=outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz"
+        else:
+            pointless+=mtzin
+            
+            
+        pointless+=" HKLOUT "
+        pointless+=mtzout
+        pointless+=" | tee "+outdir+"pointless.log"
+        
+        if "fastdp" in proc_sw:
+            cp_original="cp -n "+mtzin+" "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz"
+            #fastdp_gz+=outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz;"
+        else:
+            cp_original="cp -n "+mtzin+" "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz"
+        
+        mkdir_full="mkdir -p "+outdir
+        
+        ##Make a copy of original mtz and create results folder
+        subprocess.call(mkdir_full, shell=True)
+        subprocess.call(cp_original, shell=True)
+        if "fastdp" in proc_sw:
+            if not os.path.exists(outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz"):
+                subprocess.call("gunzip "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz",shell=True)
+
+        
+        return pointless,mtzout
+
+
+    def gen_aimless(mtz):
+        outdir  ="/".join(mtz.split("/")[:-1])+"/"
+        outfile =mtz.split("/")[-1][:-11]+"_merged.mtz"
+        mtzin = mtz
+        
+        aimless= """\necho 'START' | aimless HKLIN """
+        aimless+=mtzin
+        aimless+=" HKLOUT "
+        aimless+=outdir+outfile
+        
+        aimless+= """ | tee """+outdir+"""aimless.log """
+        
+        aimlessout=outdir+outfile
+        return aimless, aimlessout
+        
+
+    def scale_merge_hpc(pointless_list, aimless_list):
+        
+        #Creates hpc script to scale and merge all mtz
+        #using pointless and aimless. It will also define the 
+        
+        pointOut=""
+        
+        #define env for script for dimple
+        pointOut+= """#!/bin/bash\n"""
+        pointOut+= """#!/bin/bash\n"""
+        pointOut+= """#SBATCH -t 99:55:00\n"""
+        pointOut+= """#SBATCH -J scale_merge\n"""
+        pointOut+= """#SBATCH --exclusive\n"""
+        pointOut+= """#SBATCH -N1\n"""
+        pointOut+= """#SBATCH --cpus-per-task=48\n"""
+        pointOut+= """#SBATCH --mem=220000\n""" 
+        pointOut+= """#SBATCH -o """+path+"""/fragmax/logs/scale_merge_fragmax_%j.out\n"""
+        pointOut+= """#SBATCH -e """+path+"""/fragmax/logs/scale_merge_fragmax_%j.err\n"""    
+        pointOut+= """module purge\n"""
+        pointOut+= """module load CCP4 \n\n"""
+        
+        scaleOut=pointOut.replace("scale_merge","pointless")+" & ".join(pointless_list)
+        #pointOut+="\n\n"
+        mergedOut=pointOut.replace("scale_merge","aimless")+" & ".join(aimless_list)
+        
+
+        return scaleOut,mergedOut#pointOut
+        
+
+    def dimple_hpc(mtzlist, PDB):
+        #Creates HPC script to run dimple on all mtz files provided.
+        #PDB file can be provided in the header of the python script and parse to all 
+        #pipelines (Dimple, pipedream, bessy)
+        
+        
+        ##This line will make dimple run on unscaled unmerged files. It seems that works 
+        ##better sometimes
+        mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
+        
+        
+        dimpleOut=""
+        
+        #define env for script for dimple
+        dimpleOut+= """#!/bin/bash\n"""
+        dimpleOut+= """#!/bin/bash\n"""
+        dimpleOut+= """#SBATCH -t 99:55:00\n"""
+        dimpleOut+= """#SBATCH -J dimple\n"""
+        dimpleOut+= """#SBATCH --exclusive\n"""
+        dimpleOut+= """#SBATCH -N1\n"""
+        dimpleOut+= """#SBATCH --cpus-per-task=48\n"""
+        dimpleOut+= """#SBATCH --mem=220000\n""" 
+        dimpleOut+= """#SBATCH -o """+path+"""/fragmax/logs/dimple_fragmax_%j.out\n"""
+        dimpleOut+= """#SBATCH -e """+path+"""/fragmax/logs/dimple_fragmax_%j.err\n"""    
+        dimpleOut+= """module purge\n"""
+        dimpleOut+= """module load CCP4 \n\n"""
+        
+        ##Tries to find PDB with similar names inside init_models folder (this will be taken from ISPyB upload)
+        ##If the dataset name is weird, this will fail
+        for mtz in mtzlist:
+            mtz_acr=mtz.split("/results/")[1].split("/")[0]
+            key_for_mtz=search(proteinNames,mtz_acr[:-4])
+            if key_for_mtz is None:
+                key_for_mtz=search(proteinNames,mtz_acr[:-6])
+                if key_for_mtz is None:
+                    key_for_mtz=search(proteinNames,mtz_acr[:-8])
+                    if key_for_mtz is None:
+                        key_for_mtz=search(proteinNames,mtz_acr[:-10])
+                        if key_for_mtz is None:
+                            key_for_mtz=search(proteinNames,mtz_acr[:-12])
+                            if key_for_mtz is None:
+                                key_for_mtz=search(proteinNames,mtz_acr[:-14])
+            
+            if not PDB:
+                if os.path.isdir(path+"/fragmax/init_models/"+key_for_mtz):
+                    pdb_model=path+"/fragmax/init_models/"+key_for_mtz+"/"+os.listdir(path+"/fragmax/init_models/"+key_for_mtz)[0]
+                else:
+                    pdb_model=None
+
+            else:
+                pdb_model=PDB
+        
+            #dimple doesnt play well with many jobs sent at the same time to HPC. not sure why though
+            if pdb_model:
+                dimpleOut+="\ndimple "+mtz+" "+pdb_model+" "+"/".join(mtz.split("/")[:-1])+"/dimple &> "+mtz[:-4]+"_dimple.log"
+            
+            
+            
+        #dimpleOut+=" & ".join(dimp)
+        dimpleOut+="\n\n"
+        
+        return dimpleOut
+        
+
+    def bessy_hpc(path, PDB):
+        #This pipeline will run bessy fspipeline on all mtz files under the current directory
+        #for now, results are not exported in a convenient way. I will have to fix this in the future
+        
+        #Create exclude list with previous successful run 
+        exc_list,exc_path=fspipeline_success(path+"/fragmax/results/")
+        if len(exc_list)==0:
+            exc_list=" "
+        else:    
+            exc_list=" ".join(exc_list)
+        
+        
+        fsp_exec_path="/data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py"
+        
+        fspOut=""
+        
+        #define env for script for fspipeline
+        fspOut+= """#!/bin/bash\n"""
+        fspOut+= """#!/bin/bash\n"""
+        fspOut+= """#SBATCH -t 99:55:00\n"""
+        fspOut+= """#SBATCH -J fsp\n"""
+        fspOut+= """#SBATCH --exclusive\n"""
+        fspOut+= """#SBATCH -N1\n"""
+        fspOut+= """#SBATCH --cpus-per-task=48\n"""
+        fspOut+= """#SBATCH --mem=220000\n""" 
+        fspOut+= """#SBATCH -o """+path+"""/fragmax/logs/fsp_fragmax_%j.out\n"""
+        fspOut+= """#SBATCH -e """+path+"""/fragmax/logs/fsp_fragmax_%j.err\n"""    
+        fspOut+= """module purge\n"""
+        fspOut+= """module load CCP4 Phenix\n\n"""
+        fspOut+= "cd "+path+"/fragmax/results/"+"\n\n"
+        fspOut+="python "
+        fspOut+=fsp_exec_path
+        fspOut+=" --refine="
+        fspOut+=PDB
+        fspOut+=" --exclude='unmerged unscaled scaled final "+exc_list+"'"
+        fspOut+=" --cpu=48"
+        fspOut+=" --dir="+path+"/fragmax/results/"+"fspipeline"
+        
+        
+        
+        return fspOut
+
+
+    def BUSTER_hpc(path, PDB):
+        #Creates HPC script to run dimple on all mtz files provided.
+        #PDB file can be provided in the header of the python script and parse to all 
+        #pipelines (Dimple, pipedream, bessy)
+        
+        
+        ##This line will make dimple run on unscaled unmerged files. It seems that works 
+        ##better sometimes
+        mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
+        
+        
+        busterOut=""
+        
+        #define env for script for dimple
+        busterOut+= """#!/bin/bash\n"""
+        busterOut+= """#!/bin/bash\n"""
+        busterOut+= """#SBATCH -t 99:55:00\n"""
+        busterOut+= """#SBATCH -J BUSTER\n"""
+        busterOut+= """#SBATCH --exclusive\n"""
+        busterOut+= """#SBATCH -N1\n"""
+        busterOut+= """#SBATCH --cpus-per-task=48\n"""
+        busterOut+= """#SBATCH --mem=220000\n""" 
+        busterOut+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\n"""
+        busterOut+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\n"""    
+        busterOut+= """module purge \n"""
+        busterOut+= """module load CCP4 \n\n"""
+        
+        
+        #dimple doesnt play well with many jobs sent at the same time to HPC. not sure why though           
+            
+            
+        busterOut+="\n\n"
+        
+        return busterOut
+
+
+    def fspipeline_success(inpath):
+        ##Take each folder with mtz2map (last file created after successful run) and
+        ##retrieve dataset name. This is usefull to set as exclude list in fsp_run
+        
+        fsp_list =glob.glob(inpath+"/*fspipeline*")
+        success_path_list=list()
+        for fsp_run in fsp_list:
+            for roots, dirs, files in os.walk(fsp_run):
+                if "mtz2map.log" in files:      
+                    success_path_list.append(roots)
+        
+        success_run=[x.split("/")[-2].split("_merged")[0] for x in success_path_list]
+        
+        return success_run,success_path_list
+                    
+                
+    def fspipeline_rearrange(success_list,path_list):
+        ##This function will take the file list from successful fspipeline run
+        ##and copy to results folder along other pipelines (dimple, pipedream)
+        ##input for this function is the output of fspipeline_success()
+        softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
+        for _file,fpath in zip(success_list,path_list):
+            pipel=""
+            acr_prot=""
+            outdir=path+"/fragmax/results/"
+            #print(file,fpath)
+            for sw in softwares:
+                if sw in _file:
+                    outp=outdir+_file.split("_"+sw)[0]+"/"+sw
+                    copy_string="cp -Rnf "+fpath+" "+outp+"/fspipeline"
+                    subprocess.call(copy_string, shell=True)
+                    
+    opt_model = userPDB
+    #spacegroup ="P43212"
+
+
+    proteinNames      = dict() 
+
+    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
+    acronyms=[x for x in acronyms if "DS_Store" not in x]
+
+    for acronym in acronyms: 
+            #creat a dict of protein names
+            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
+
+
+    # In[8]:
+
+    auto,frag = find_hkl(path)
+
+
+    ##Creating dict structure with mtz files for all pipelines
+    ##If any new pipeline is added to fragmax, this should be updated
+
+    processed_files=dict()
+    processed_files={
+        "EDNA"    :[x for x in auto+frag if "EDNA_proc" in x and "truncate" in x and "_noanom" in x],
+        "autoPROC":[x for x in auto+frag if "autoproc" in x and "truncate" in x ],
+        "fastdp"  :[x for x in auto+frag if "fastdp" in x],
+        "XDSAPP"  :[x for x in auto+frag if "xdsapp" in x and "_F.mtz" in x],
+        "DIALS"   :[x for x in auto+frag if "dials" in x and "DataFiles" in x and "free.mtz" in x],   
+        "XDSXSCALE"   :[x for x in auto+frag if "xdsxscale" in x and "DataFiles" in x and "free.mtz" in x]   
+
+    }
+    ##
+
+    results_dic = mtz_rearrange(processed_files)
+
+    i=0
+    point_list       =list()
+    aimle_list       =list()
+    scale_merge_list =list()
+
+    os.makedirs(path+"/fragmax/logs", exist_ok=True)
+
+    for key, value in results_dic.items():
+        d={key:value}   
+        
+        if i == 0:
+            print("Copying unmerged/unscaled files\n")
+        i+=1
+        if i == len(results_dic):
+            print("Files copied succesfully\n\n")    
+        
+        
+        pointless,pointlessout=gen_pointless(d,spacegroup)
+        point_list.append(pointless)
+        
+        aimless, aimlessout=gen_aimless(pointlessout)
+        aimle_list.append(aimless)
+        scale_merge_list.append(aimlessout)
+        
+    for fastdpgz in glob.glob(path+"/fragmax/results/*/*/*.gz"):
+        os.remove(fastdpgz)
+            
+    
+    scscript,mrscript =scale_merge_hpc(point_list, aimle_list)
+    dimscript =dimple_hpc(scale_merge_list, opt_model)
+    fspscript =bessy_hpc(path,opt_model)
+    with open(path+"/fragmax/scripts/scale.sh","w") as smhpc:
+        smhpc.write(scscript)
+        smhpc.write("\n\n\nsbatch "+path+"/fragmax/scripts/merge.sh")
+    with open(path+"/fragmax/scripts/merge.sh","w") as smhpc:
+        smhpc.write(mrscript)
+        smhpc.write("\n\n\nsbatch "+path+"/fragmax/scripts/run_fsp.sh & sbatch "+path+"/fragmax/scripts/run_dimple.sh")
+        
+        
+    with open(path+"/fragmax/scripts/run_dimple.sh","w") as dmhpc:
+        dmhpc.write(dimscript)
+        
+    with open(path+"/fragmax/scripts/run_fsp.sh","w") as fshpc:
+        fshpc.write(fspscript)
+    
+    if os.path.exists(path+"/fragmax/scripts/scale.sh"):
+        script=path+"/fragmax/scripts/scale.sh"
+        command ='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+    #if useFSP:
+    #    script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #    subprocess.call(command,shell=True)
+    #if useDIMPLE:
+    #    script=path+"/fragmax/scripts/run_dimple.sh"
+    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #    subprocess.call(command,shell=True)
+    #if useBUSTER:
+    #    script=path+"/fragmax/scripts/run_fsp.sh"
+    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #    subprocess.call(command,shell=True)
+    
 ###############################
 
 #################################

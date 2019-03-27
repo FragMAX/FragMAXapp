@@ -1677,3 +1677,224 @@ Quit the server with CONTROL-C.
 [27/Mar/2019 09:30:19] "GET /procReport/?dataHeader=xdsxscaleProteinaseK-JBSB5 HTTP/1.1" 200 7652
 [27/Mar/2019 09:30:35] "GET /pipedream HTTP/1.1" 301 0
 [27/Mar/2019 09:30:35] "GET /pipedream/ HTTP/1.1" 200 53160
+Performing system checks...
+
+System check identified no issues (0 silenced).
+March 26, 2019 - 15:29:27
+Django version 2.1.7, using settings 'fragmax.settings'
+Starting development server at http://0.0.0.0:8080/
+Quit the server with CONTROL-C.
+[27/Mar/2019 10:42:46] "GET /dataset_info/?proteinPrefix=ProteinaseK-Apo6%3B3600%3B1 HTTP/1.1" 200 37249
+[27/Mar/2019 10:42:46] "GET /static/blog/fragment/JBS/Apo6/image.png HTTP/1.1" 404 1724
+[27/Mar/2019 10:42:47] "GET /static/img/favicon.png HTTP/1.1" 200 708
+[27/Mar/2019 10:42:49] "GET /procReport/?dataHeader=autoPROCProteinaseK-Apo6 HTTP/1.1" 200 141775
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/run_idxref_spot_hkl_hist.png HTTP/1.1" 200 133962
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/SPOT.XDS.SpotsPerImage.png HTTP/1.1" 200 174417
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_detector_center_origin.png HTTP/1.1" 200 55500
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_scale.png HTTP/1.1" 200 55734
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_standard_deviation.png HTTP/1.1" 200 73002
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_distance.png HTTP/1.1" 200 29054
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_SPOT_never-indexed.noHKL.png HTTP/1.1" 200 84184
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_divergence-mosaicity.png HTTP/1.1" 200 175975
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_cell_axes_devmean.png HTTP/1.1" 200 21977
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_standard_deviation.png HTTP/1.1" 200 72439
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_misfits.png HTTP/1.1" 200 207336
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_scale.png HTTP/1.1" 200 55734
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_divergence-mosaicity.png HTTP/1.1" 200 172741
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_angle_cell_axis_ABC.png HTTP/1.1" 200 56092
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/0_angle_cell_axis0_ABC.png HTTP/1.1" 200 67359
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_detector_center_origin.png HTTP/1.1" 200 34236
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_cell_axes.png HTTP/1.1" 200 23465
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_cell_axes_devmean.png HTTP/1.1" 200 58223
+Not Found: /procReport/ana_aimless_Bscale.png
+Not Found: /procReport/ana_aimless_Scale.png
+[27/Mar/2019 10:42:49] "GET /procReport/ana_aimless_Bscale.png HTTP/1.1" 404 7445
+[27/Mar/2019 10:42:49] "GET /procReport/ana_aimless_Scale.png HTTP/1.1" 404 7442
+Not Found: /procReport/aimless.mrfana.Rmerge_Rmeas_Rpim.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.Rmerge_Rmeas_Rpim.png HTTP/1.1" 404 7487
+Not Found: /procReport/aimless.mrfana.Multiplicity.png
+Not Found: /procReport/aimless.mrfana.Completeness.png
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_angle_cell_axis0_ABC.png HTTP/1.1" 200 64693
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_angle_cell_axis_ABC.png HTTP/1.1" 200 50458
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.Completeness.png HTTP/1.1" 404 7472
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.Multiplicity.png HTTP/1.1" 404 7472
+[27/Mar/2019 10:42:49] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/1_misfits.png HTTP/1.1" 200 193092
+Not Found: /procReport/aimless.mrfana.IsigI.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.IsigI.png HTTP/1.1" 404 7451
+Not Found: /procReport/aimless.mrfana.CC12.png
+Not Found: /procReport/aimless.mrfana.Rmerge_Rmeas_Rpim_batch.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.CC12.png HTTP/1.1" 404 7448
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.Rmerge_Rmeas_Rpim_batch.png HTTP/1.1" 404 7505
+Not Found: /procReport/aimless.mrfana.SigAno.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.SigAno.png HTTP/1.1" 404 7454
+Not Found: /procReport/aimless.mrfana.Completeness_batch.png
+Not Found: /procReport/aimless.mrfana.CCano.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.Completeness_batch.png HTTP/1.1" 404 7490
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessSph.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.CCano.png HTTP/1.1" 404 7451
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.Rmerge_Rmeas_Rpim.png
+[27/Mar/2019 10:42:49] "GET /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessSph.png HTTP/1.1" 404 7538
+Not Found: /procReport/aimless.mrfana.I_IsigI_batch.png
+[27/Mar/2019 10:42:49] "GET /procReport/staraniso_alldata.mrfana_meas_ell.Rmerge_Rmeas_Rpim.png HTTP/1.1" 404 7544
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.MultiplicitySph.png
+[27/Mar/2019 10:42:49] "GET /procReport/aimless.mrfana.I_IsigI_batch.png HTTP/1.1" 404 7475
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.IsigI.png
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.CC12.png
+[27/Mar/2019 10:42:49] "GET /procReport/staraniso_alldata.mrfana_meas_ell.IsigI.png HTTP/1.1" 404 7508
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessEll.png
+[27/Mar/2019 10:42:49] "GET /procReport/staraniso_alldata.mrfana_meas_ell.CC12.png HTTP/1.1" 404 7505
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.SigAno.png
+[27/Mar/2019 10:42:49] "GET /procReport/staraniso_alldata.mrfana_meas_ell.MultiplicitySph.png HTTP/1.1" 404 7538
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.SigAno.png HTTP/1.1" 404 7511
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.CCano.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessEll.png HTTP/1.1" 404 7538
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.Rmerge_Rmeas_Rpim_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.CCano.png HTTP/1.1" 404 7508
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.I_IsigI_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.Rmerge_Rmeas_Rpim_batch.png HTTP/1.1" 404 7562
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.Rmerge_Rmeas_Rpim.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.I_IsigI_batch.png HTTP/1.1" 404 7532
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.Completeness_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.Rmerge_Rmeas_Rpim.png HTTP/1.1" 404 7541
+Not Found: /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessEll_batch.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.MultiplicitySph.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessSph.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.CompletenessEll_batch.png HTTP/1.1" 404 7556
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_meas_ell.Completeness_batch.png HTTP/1.1" 404 7547
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.MultiplicitySph.png HTTP/1.1" 404 7535
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessSph.png HTTP/1.1" 404 7535
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessEll.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.IsigI.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.IsigI.png HTTP/1.1" 404 7505
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.CC12.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.CCano.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.Rmerge_Rmeas_Rpim_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.CC12.png HTTP/1.1" 404 7502
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.SigAno.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessEll.png HTTP/1.1" 404 7535
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.I_IsigI_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.Rmerge_Rmeas_Rpim_batch.png HTTP/1.1" 404 7559
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.CCano.png HTTP/1.1" 404 7505
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.SigAno.png HTTP/1.1" 404 7508
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.I_IsigI_batch.png HTTP/1.1" 404 7529
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.Completeness_batch.png
+Not Found: /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessEll_batch.png
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.Completeness_batch.png HTTP/1.1" 404 7544
+[27/Mar/2019 10:42:50] "GET /procReport/staraniso_alldata.mrfana_obs_ell.CompletenessEll_batch.png HTTP/1.1" 404 7553
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-0kl.png HTTP/1.1" 200 106656
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-hk0.png HTTP/1.1" 200 91719
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-h0l.png HTTP/1.1" 200 106733
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-0qr.png HTTP/1.1" 200 81414
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-p0r.png HTTP/1.1" 200 81632
+[27/Mar/2019 10:42:50] "GET /static/biomax/20180479/20190323/fragmax/process/ProteinaseK/ProteinaseK-Apo6/ProteinaseK-Apo6_1/autoproc/staraniso_alldata.ismean-pq0.png HTTP/1.1" 200 95909
+Performing system checks...
+
+System check identified no issues (0 silenced).
+March 27, 2019 - 10:42:36
+Django version 2.1.7, using settings 'fragmax.settings'
+Starting development server at http://0.0.0.0:8080/
+Quit the server with CONTROL-C.
+Unhandled exception in thread started by <function check_errors.<locals>.wrapper at 0x7f3953ee7c80>
+Traceback (most recent call last):
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/autoreload.py", line 225, in wrapper
+    fn(*args, **kwargs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/commands/runserver.py", line 117, in inner_run
+    self.check(display_num_errors=True)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/base.py", line 379, in check
+    include_deployment_checks=include_deployment_checks,
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/base.py", line 366, in _run_checks
+    return checks.run_checks(**kwargs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/registry.py", line 71, in run_checks
+    new_errors = check(app_configs=app_configs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/urls.py", line 40, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/urls.py", line 57, in _load_all_namespaces
+    url_patterns = getattr(resolver, 'url_patterns', [])
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/functional.py", line 37, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/resolvers.py", line 533, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/functional.py", line 37, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/resolvers.py", line 526, in urlconf_module
+    return import_module(self.urlconf_name)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 994, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 678, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/mxn/home/guslim/Projects/webapp/fragmax/urls.py", line 23, in <module>
+    path("", include('fragview.urls')),
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/conf.py", line 34, in include
+    urlconf_module = import_module(urlconf_module)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 994, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 678, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/mxn/home/guslim/Projects/webapp/fragview/urls.py", line 2, in <module>
+    from . import views
+  File "/mxn/home/guslim/Projects/webapp/fragview/views.py", line 565
+    t = threading.Thread(target=run_structure_solving,args=(dimple=True, fsp=True, buster=False, userPDB="1IC6", spacegroup="P43212"))
+                                                                  ^
+SyntaxError: invalid syntax
+Performing system checks...
+
+Unhandled exception in thread started by <function check_errors.<locals>.wrapper at 0x7f13064b6c80>
+Traceback (most recent call last):
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/autoreload.py", line 225, in wrapper
+    fn(*args, **kwargs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/commands/runserver.py", line 117, in inner_run
+    self.check(display_num_errors=True)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/base.py", line 379, in check
+    include_deployment_checks=include_deployment_checks,
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/management/base.py", line 366, in _run_checks
+    return checks.run_checks(**kwargs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/registry.py", line 71, in run_checks
+    new_errors = check(app_configs=app_configs)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/urls.py", line 40, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/core/checks/urls.py", line 57, in _load_all_namespaces
+    url_patterns = getattr(resolver, 'url_patterns', [])
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/functional.py", line 37, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/resolvers.py", line 533, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/utils/functional.py", line 37, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/resolvers.py", line 526, in urlconf_module
+    return import_module(self.urlconf_name)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 994, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 678, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/mxn/home/guslim/Projects/webapp/fragmax/urls.py", line 23, in <module>
+    path("", include('fragview.urls')),
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/site-packages/django/urls/conf.py", line 34, in include
+    urlconf_module = import_module(urlconf_module)
+  File "/mxn/home/guslim/anaconda2/envs/Python36/lib/python3.6/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 994, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 678, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/mxn/home/guslim/Projects/webapp/fragview/urls.py", line 2, in <module>
+    from . import views
+  File "/mxn/home/guslim/Projects/webapp/fragview/views.py", line 565
+    t = threading.Thread(target=run_structure_solving,args=(dimple=True, fsp=True, buster=False, userPDB="1IC6", spacegroup="P43212"))
+                                                                  ^
+SyntaxError: invalid syntax
+Performing system checks...
+

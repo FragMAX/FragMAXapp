@@ -43,4 +43,7 @@ urlpatterns = [
     path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
     
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
+    path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
+    path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
+
 ]
