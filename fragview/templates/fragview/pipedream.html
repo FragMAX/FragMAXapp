@@ -468,7 +468,9 @@
 </div>
 
 <div class="bottom-right">
-    <input type="button" class="btn-large maxivorange" onclick="submit_pipedream()" value="Run Pipedream"> </input>
+    <form action="/submit_pipedream/" method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1" >
+        <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pipedream()" value="pipedreamInput" name="ppdform" size="1">Run Pipedream</button>
+    </form>
 </div>
 </div>
 <h6>More information can be found at: <a href="https://www.globalphasing.com/buster/manual/pipedream/manual/index.html" target="_blank">Global Phasing Pipedream Manual</a></h6>
@@ -500,7 +502,9 @@ function onChooseFile(event, onLoadFileHandler) {
     fr.readAsText(file);
 }
 
-function submit_pipedream(){
+var f = document.getElementById("sendpipedreamBtn");
+    
+    f.onsubmit = function submit_pipedream(){
 
     var datasetSelect=document.getElementsByName("dropdownDataset")[0].value
     if (datasetSelect != "alldatasets"){
@@ -556,54 +560,93 @@ function submit_pipedream(){
 
 
     //processed
-    var rho_ligand ="still not here"
-    var pdbinp="3ks3"
+    var rho_ligand ="still not here" //define the ligand from one of the options
+    var pdbinp="3ks3" //get path or file content from user
     var beamcentre = '"'+ap_xbeamcent+' '+ap_ybeamcent+'"'
 
 
     //pipedream command line generator
-    var pipedream_cmd= "pipedream"
+    var pipedream_cmd= ""
     //autoPROC
-    pipedream_cmd+=' -h5 '+datasetSelect
-    pipedream_cmd+=' -d '+outdir
-    pipedream_cmd+=' -xyzin '+pdbinp
-    pipedream_cmd+=' -hklref '+b_userMTZfile 
-    pipedream_cmd+=' -cell '+'"'+ap_cellparam+'"'
-    pipedream_cmd+=' -beam '+beamcentre
-    pipedream_cmd+=' -apcommands '+ap_custompar
-    pipedream_cmd+=' -useaniso '+ap_staraniso
-    pipedream_cmd+=' -rmin '+ap_highreslim
-    pipedream_cmd+=' -rpim '+ap_maxrpim
-    pipedream_cmd+=' -completeness '+ap_mincomplet
-    pipedream_cmd+=' -chains '+b_chainsgroup
-    pipedream_cmd+=' -btf '+b_bruteforcetf
-    pipedream_cmd+=' -mrres '+b_reslimits
-    pipedream_cmd+=' -bigrotrange '+b_angularrf
-    //BUSTER
-    pipedream_cmd+=' -quick '+b_refinemode
-    pipedream_cmd+=' -thorough '+b_refinemode
-    pipedream_cmd+=' -abcommands '+b_custompar
-    pipedream_cmd+=' -remediate '+b_sideaiderefit
-    pipedream_cmd+=' -sidechainrebuild '+b_sideaiderebuild
-    pipedream_cmd+=' -runpepflip '+b_pepflip
-    //Rhofit
-    pipedream_cmd+=' -rhofit '+rho_ligand
-    pipedream_cmd+=' -keepH '+rho_keepH
-    pipedream_cmd+=' -nochirals '+rho_scanchirals
-    pipedream_cmd+=' -allclusters '+rho_allclusters
-    pipedream_cmd+=' -xclusters '+rho_xclusters
-    pipedream_cmd+=' -rhoquick '+rho_fittingproc
-    pipedream_cmd+=' -rhothorough '+rho_fittingproc
-    pipedream_cmd+=' -rhocommands '+rho_custompar
-    pipedream_cmd+=' -postref '+rho_postrefine
-    pipedream_cmd+=' -postquick '+rho_postrefine
-    pipedream_cmd+=' -postthorough '+rho_postrefine
-    pipedream_cmd+=' -nooccref '+rho_occuprefine
-    pipedream_cmd+=' -nthreads -1  -v '
+    //if (datasetSelect!=""){pipedream_cmd+=' -h5 '+datasetSelect}
+    //if (outdir!=""){pipedream_cmd+=' -d '+outdir}
+    //if (pdbinp!=""){pipedream_cmd+=' -xyzin '+pdbinp}
+    //if (b_userMTZfile!=""){pipedream_cmd+=' -hklref '+b_userMTZfile } else {pipedream_cmd+=' -nofreeref'}
+    //if (ap_cellparam!=""){pipedream_cmd+=' -cell '+'"'+ap_cellparam+'"'}
+    //if (ap_xbeamcent!=""){pipedream_cmd+=' -beam '+beamcentre}
+    //if (ap_custompar!=""){pipedream_cmd+=' -apcommands '+ap_custompar}
+    //if (ap_staraniso!=""){pipedream_cmd+=' -useaniso '+ap_staraniso}
+    //if (ap_highreslim!=""){pipedream_cmd+=' -rmin '+ap_highreslim}
+    //if (ap_maxrpim!=""){pipedream_cmd+=' -rpim '+ap_maxrpim}
+    //if (ap_mincomplet!=""){pipedream_cmd+=' -completeness '+ap_mincomplet}
+    //if (b_chainsgroup!=""){pipedream_cmd+=' -chains '+b_chainsgroup}
+    //if (b_bruteforcetf!=""){pipedream_cmd+=' -btf '+b_bruteforcetf}
+    //if (b_reslimits!=""){pipedream_cmd+=' -mrres '+b_reslimits}
+    //if (b_angularrf!=""){pipedream_cmd+=' -bigrotrange '+b_angularrf}
+    ////BUSTER
+    //if (b_refinemode!=""){pipedream_cmd+=' -quick '+b_refinemode}
+    //if (b_refinemode!=""){pipedream_cmd+=' -thorough '+b_refinemode}
+    //if (b_custompar!=""){pipedream_cmd+=' -abcommands '+b_custompar}
+    //if (b_sideaiderefit!=""){pipedream_cmd+=' -remediate '+b_sideaiderefit}
+    //if (b_sideaiderebuild!=""){pipedream_cmd+=' -sidechainrebuild '+b_sideaiderebuild}
+    //if (b_pepflip!=""){pipedream_cmd+=' -runpepflip '+b_pepflip}
+    ////Rhofit
+    //if (rho_ligand!=""){pipedream_cmd+=' -rhofit '+rho_ligand}
+    //if (rho_keepH!=""){pipedream_cmd+=' -keepH '+rho_keepH}
+    //if (rho_scanchirals!=""){pipedream_cmd+=' -nochirals '+rho_scanchirals}
+    //if (rho_allclusters!=""){pipedream_cmd+=' -allclusters '+rho_allclusters}
+    //if (rho_xclusters!=""){pipedream_cmd+=' -xclusters '+rho_xclusters}
+    //if (rho_fittingproc!=""){pipedream_cmd+=' -rhoquick '+rho_fittingproc}
+    //if (rho_fittingproc!=""){pipedream_cmd+=' -rhothorough '+rho_fittingproc}
+    //if (rho_custompar!=""){pipedream_cmd+=' -rhocommands '+rho_custompar}
+    //if (rho_postrefine!=""){pipedream_cmd+=' -postref '+rho_postrefine}
+    //if (rho_postrefine!=""){pipedream_cmd+=' -postquick '+rho_postrefine}
+    //if (rho_postrefine!=""){pipedream_cmd+=' -postthorough '+rho_postrefine}
+    //if (rho_occuprefine!=""){pipedream_cmd+=' -nooccref '+rho_occuprefine}
     
 
+    pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup       
+    pipedream_cmd+=";;ap_cellparam:"+ap_cellparam      
+    pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
+    pipedream_cmd+=";;ap_xbeamcent:"+ap_xbeamcent
+    pipedream_cmd+=";;ap_ybeamcent:"+ap_ybeamcent
+    pipedream_cmd+=";;ap_datarange:"+ap_datarange
+    pipedream_cmd+=";;ap_rescutoff:"+ap_rescutoff
+    pipedream_cmd+=";;ap_highreslim:"+ap_highreslim
+    pipedream_cmd+=";;ap_maxrpim:"+ap_maxrpim
+    pipedream_cmd+=";;ap_mincomplet:"+ap_mincomplet
+    pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
+    pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
+    pipedream_cmd+=";;ap_custompar:"+ap_custompar
+    pipedream_cmd+=";;b_userPDBfile:"+b_userPDBfile
+    pipedream_cmd+=";;b_userPDBcode:"+b_userPDBcode
+    pipedream_cmd+=";;b_userMTZfile:"+b_userMTZfile
+    pipedream_cmd+=";;b_refinemode:"+b_refinemode
+    pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
+    pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
+    pipedream_cmd+=";;b_bruteforcetf:"+b_bruteforcetf
+    pipedream_cmd+=";;b_reslimits:"+b_reslimits
+    pipedream_cmd+=";;b_angularrf:"+b_angularrf
+    pipedream_cmd+=";;b_sideaiderefit:"+b_sideaiderefit
+    pipedream_cmd+=";;b_sideaiderebuild:"+b_sideaiderebuild
+    pipedream_cmd+=";;b_pepflip:"+b_pepflip
+    pipedream_cmd+=";;b_custompar:"+b_custompar
+    pipedream_cmd+=";;rho_ligandsmiles:"+rho_ligandsmiles
+    pipedream_cmd+=";;rho_ligandcode:"+rho_ligandcode
+    pipedream_cmd+=";;rho_ligandfromname:"+rho_ligandfromname
+    pipedream_cmd+=";;rho_copiestosearch:"+rho_copiestosearch
+    pipedream_cmd+=";;rho_keepH:"+rho_keepH
+    pipedream_cmd+=";;rho_allclusters:"+rho_allclusters
+    pipedream_cmd+=";;rho_xclusters:"+rho_xclusters
+    pipedream_cmd+=";;rho_postrefine:"+rho_postrefine
+    pipedream_cmd+=";;rho_occuprefine:"+rho_occuprefine
+    pipedream_cmd+=";;rho_fittingproc:"+rho_fittingproc
+    pipedream_cmd+=";;rho_scanchirals:"+rho_scanchirals
+    pipedream_cmd+=";;rho_custompar:"+rho_custompar
+    pipedream_cmd+=';;extras:-nthreads -1  -v '
 
 
+    document.getElementsByName("ppdform")[0].value = pipedream_cmd
 
     
     console.log(pipedream_cmd)

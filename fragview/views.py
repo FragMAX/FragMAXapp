@@ -91,6 +91,10 @@ def pipedream(request):
     datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList]
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
+
+def submit_pipedream(request):
+    ppdCMD=str(request.GET.get("ppdform"))
+    return render(request, "fragview/submit_pipedream.html",{"command":ppdCMD})
     
 def load_project_summary(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -325,7 +329,8 @@ def dual_ligand(request):
 ####### COMPARE TWO LIGANDS ######
 ##################################
 
-def compare_poses(request):
+def compare_poses(request):   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
@@ -556,8 +561,6 @@ def dataproc_datasets(request):
     if ligproc!="None":
         pass
     return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
-
-
 
 def kill_HPC_job(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()

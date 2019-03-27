@@ -17,22 +17,6 @@
     text-align: center;
 
   }
-
-  td, th {
-    border: 1px solid #f0f0f0;
-    padding: 8px;
-      height: 60px;
-
-  }
-
-  tr:nth-child(even) {
-    background-color: #e2e2e2;
-  }
-
-
-  th {
-      cursor: pointer;
-  }
   .container {
     padding-left: 200px;
     max-width: 1280 !important;
@@ -79,6 +63,12 @@
             <div style="padding-top:20px">
             <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
                 <button class="btn-large" type="submit" onsubmit="return update_experiment()" value="NoneUpdate" name="updatedefinitions" size="1">Update definitions</button>
+            </form>
+            <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
+                <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180489;20190127;hCAII;visitors" name="updatedefinitions" size="1">20180489/20190127</button>
+            </form>
+            <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
+                <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190323;ProteinaseK;visitors" name="updatedefinitions" size="1">20180479/20190323</button>
             </form>
             </div>            
         </div>
