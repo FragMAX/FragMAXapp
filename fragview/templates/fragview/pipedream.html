@@ -247,7 +247,13 @@
                 <td class=" top-options">
                     <input class="selectbox" name="PDBID_code" placeholder="PDBID; ex: 5U04 or full path"></input>
                 </td>
-            </tr>      
+            </tr>    
+            <tr>
+                <th class=" top-options">Chain</th>
+                <td class=" top-options">
+                   <input class="selectbox" name="pdb_chain" placeholder="ex: A or A,B,D"></input>
+                </td>
+            </tr>   
             <tr>
                 <th class=" top-options">MTZ Reference</th>
                 <td class=" top-options">
@@ -386,7 +392,7 @@
                 </form>        
             </td>
         </tr>
-        <tr>
+        <tr hidden>
             <th class=" top-options">Copies to search</th>
             <td class=" top-options"><input class="selectbox" name="numberofcopies" placeholder="default: 1"></input></td>
         <tr>
@@ -407,8 +413,9 @@
             <th class=" top-options">Post refine to solution</th>
             <td class=" top-options">
                 <select class="selectbox" name="postrefine">                    
-                    <option value="postref" selected value>No</option>
+                    <option selected value>No</option>             
                     <option value="postquick">Quick</option>
+                    <option value="poststandard">Standard</option>
                     <option value="postthorough">Thorough</option>
                 </select>
             </td>
@@ -417,8 +424,8 @@
             <th class=" top-options">Refine ligand occupancy</th>
             <td class=" top-options">
                 <select class="selectbox" name="nooccref">                    
-                    <option value="nooccreftrue" selected value>True</option>
-                    <option value="nooccreffalse">False</option>
+                    <option value="true" selected value>True</option>
+                    <option value="false">False</option>
                     
                 </select>
             </td>
@@ -443,8 +450,8 @@
             <td class=" top-options">
                 <select class="selectbox" name="scanchirals">
                     <option disabled selected value> -- select an option -- </option>
-                    <option value="chiralsyes">Yes</option>
-                    <option value="chiralsno">No</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
                 </select>
             </td>
         </tr>
@@ -567,44 +574,8 @@ var f = document.getElementById("sendpipedreamBtn");
 
     //pipedream command line generator
     var pipedream_cmd= ""
-    //autoPROC
-    //if (datasetSelect!=""){pipedream_cmd+=' -h5 '+datasetSelect}
-    //if (outdir!=""){pipedream_cmd+=' -d '+outdir}
-    //if (pdbinp!=""){pipedream_cmd+=' -xyzin '+pdbinp}
-    //if (b_userMTZfile!=""){pipedream_cmd+=' -hklref '+b_userMTZfile } else {pipedream_cmd+=' -nofreeref'}
-    //if (ap_cellparam!=""){pipedream_cmd+=' -cell '+'"'+ap_cellparam+'"'}
-    //if (ap_xbeamcent!=""){pipedream_cmd+=' -beam '+beamcentre}
-    //if (ap_custompar!=""){pipedream_cmd+=' -apcommands '+ap_custompar}
-    //if (ap_staraniso!=""){pipedream_cmd+=' -useaniso '+ap_staraniso}
-    //if (ap_highreslim!=""){pipedream_cmd+=' -rmin '+ap_highreslim}
-    //if (ap_maxrpim!=""){pipedream_cmd+=' -rpim '+ap_maxrpim}
-    //if (ap_mincomplet!=""){pipedream_cmd+=' -completeness '+ap_mincomplet}
-    //if (b_chainsgroup!=""){pipedream_cmd+=' -chains '+b_chainsgroup}
-    //if (b_bruteforcetf!=""){pipedream_cmd+=' -btf '+b_bruteforcetf}
-    //if (b_reslimits!=""){pipedream_cmd+=' -mrres '+b_reslimits}
-    //if (b_angularrf!=""){pipedream_cmd+=' -bigrotrange '+b_angularrf}
-    ////BUSTER
-    //if (b_refinemode!=""){pipedream_cmd+=' -quick '+b_refinemode}
-    //if (b_refinemode!=""){pipedream_cmd+=' -thorough '+b_refinemode}
-    //if (b_custompar!=""){pipedream_cmd+=' -abcommands '+b_custompar}
-    //if (b_sideaiderefit!=""){pipedream_cmd+=' -remediate '+b_sideaiderefit}
-    //if (b_sideaiderebuild!=""){pipedream_cmd+=' -sidechainrebuild '+b_sideaiderebuild}
-    //if (b_pepflip!=""){pipedream_cmd+=' -runpepflip '+b_pepflip}
-    ////Rhofit
-    //if (rho_ligand!=""){pipedream_cmd+=' -rhofit '+rho_ligand}
-    //if (rho_keepH!=""){pipedream_cmd+=' -keepH '+rho_keepH}
-    //if (rho_scanchirals!=""){pipedream_cmd+=' -nochirals '+rho_scanchirals}
-    //if (rho_allclusters!=""){pipedream_cmd+=' -allclusters '+rho_allclusters}
-    //if (rho_xclusters!=""){pipedream_cmd+=' -xclusters '+rho_xclusters}
-    //if (rho_fittingproc!=""){pipedream_cmd+=' -rhoquick '+rho_fittingproc}
-    //if (rho_fittingproc!=""){pipedream_cmd+=' -rhothorough '+rho_fittingproc}
-    //if (rho_custompar!=""){pipedream_cmd+=' -rhocommands '+rho_custompar}
-    //if (rho_postrefine!=""){pipedream_cmd+=' -postref '+rho_postrefine}
-    //if (rho_postrefine!=""){pipedream_cmd+=' -postquick '+rho_postrefine}
-    //if (rho_postrefine!=""){pipedream_cmd+=' -postthorough '+rho_postrefine}
-    //if (rho_occuprefine!=""){pipedream_cmd+=' -nooccref '+rho_occuprefine}
-    
-
+        
+    pipedream_cmd+=";;input_data:"+datasetSelect
     pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup       
     pipedream_cmd+=";;ap_cellparam:"+ap_cellparam      
     pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
@@ -618,9 +589,9 @@ var f = document.getElementById("sendpipedreamBtn");
     pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
     pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
     pipedream_cmd+=";;ap_custompar:"+ap_custompar
-    pipedream_cmd+=";;b_userPDBfile:"+b_userPDBfile
+    pipedream_cmd+=";;b_userPDBfile:"+"b_userPDBfile"
     pipedream_cmd+=";;b_userPDBcode:"+b_userPDBcode
-    pipedream_cmd+=";;b_userMTZfile:"+b_userMTZfile
+    pipedream_cmd+=";;b_userMTZfile:"+"b_userMTZfile"
     pipedream_cmd+=";;b_refinemode:"+b_refinemode
     pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
     pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
@@ -648,8 +619,6 @@ var f = document.getElementById("sendpipedreamBtn");
 
     document.getElementsByName("ppdform")[0].value = pipedream_cmd
 
-    
-    console.log(pipedream_cmd)
 }
     
 </script>

@@ -14,6 +14,7 @@ import h5py
 import itertools
 from time import sleep
 import threading
+import pypdb
 
 
 
@@ -93,13 +94,310 @@ def pipedream(request):
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
 def submit_pipedream(request):
+
+    #Function definitions
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     ppdCMD=str(request.GET.get("ppdform"))
+    empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
-    empty,ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
+    #variables init
+    ligand="none"
+    ppdoutdir="none"
+    ppd="INITVALUE"
+    userPDB="NoPDB"
+    pdbchains="A"
+    userPDBpath=""
+    #Select one dataset or entire project
+    if "alldatasets" not in input_data:
+        input_data=input_data.replace("input_data:","")
+        ppdoutdir=input_data.replace("/raw/","/fragmax/process/pipedream/").replace("_master.h5","")
+        os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
+        if os.path.exists(ppdoutdir):
+            try:
+                int(ppdoutdir[-1])
+            except ValueError:
+                run="1"
+            else:
+                run=str(int(ppdoutdir[-1])+1)
+            
 
-    
+            ppdoutdir=ppdoutdir+"_run"+run
+        
+        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
+            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
+            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
+            
+            ## Download and prepare PDB file - remove waters and HETATM
+            with open(userPDBpath,"w") as pdb:
+               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
+            
+            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
+            subprocess.call(preparePDB,shell=True)
 
-    return render(request, "fragview/submit_pipedream.html",{"command":ppdCMD})
+        #STARANISO setting    
+        if "true" in ap_staraniso:
+            useANISO=" -useaniso"
+        else:
+            useANISO=""
+        
+        #BUSTER refinement mode
+        if "thorough" in b_refinemode:
+            refineMode=" -thorough"
+        elif "quick" in b_refinemode:
+            refineMode=" -quick"
+        else:
+            refineMode=" "
+
+        #PDB_REDO options
+        pdbREDO=""
+        if "true" in b_sideaiderefit:
+            pdbREDO+=" -remediate"
+            refineMode=" -thorough"
+        if "true" in b_sideaiderebuild:
+            if "remediate" not in pdbREDO:
+                pdbREDO+=" -remediate"
+            pdbREDO+=" -sidechainrebuild"
+        if "true" in b_pepflip:
+            pdbREDO+=" -runpepflip"
+
+        #Rhofit ligand
+        if "true" in rho_ligandfromname:
+            ligand = input_data.split("/")[-1][:-12].replace(acr+"-","")
+        elif "false" in rho_ligandfromname:
+            if len(rho_ligandcode)>15:
+                ligand=rho_ligandcode.replace("rho_ligandcode:","")
+            elif len(rho_ligandsmiles)>17:
+                ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
+        lib=""
+        try:
+            int(ligand[-2])
+        except ValueError:
+            lib=ligand[:-2]
+        else:
+            lib=ligand[:-3]
+        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+lib+"/"+ligand+"/"+ligand+".cif"
+        
+        #### Create symlink of fragment library to user project folder (/fragmax/process/fragment/lib)
+        os.makedirs(path+"/fragmax/process/fragment/", exist_ok=True)
+        if os.path.lexists(path+"/fragmax/process/fragment/"+lib):
+            os.remove(path+"/fragmax/process/fragment/"+lib)
+        os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
+
+
+        #Keep Hydrogen RhoFit
+        keepH=""
+        if "true" in rho_keepH:
+            keepH=" -keepH"
+
+        #Cluster to search for ligands
+        clusterSearch=""
+        if len(rho_allclusters)>16:
+            if "true" in rho_allclusters.split(":")[-1].lower(): 
+                clusterSearch=" -allclusters"
+            else:
+                ncluster=rho_xclusters.split(":")[-1]
+                clusterSearch=" -xcluster "+ncluster
+        else:
+            ncluster=rho_xclusters.split(":")[-1]
+            clusterSearch=" -xcluster "+ncluster
+
+        #Search mode for RhoFit
+        if "thorough" in rho_fittingproc:
+            fitrefineMode=" -rhothorough"
+        elif "quick" in rho_fittingproc:
+            fitrefineMode=" -rhoquick"
+        else:
+            fitrefineMode=" "
+        #Post refine for RhoFit
+        if "thorough" in rho_postrefine:
+            postrefineMode=" -postthorough"
+        elif "standard" in rho_postrefine:
+            postrefineMode=" -postref"
+        elif "quick" in rho_postrefine:
+            postrefineMode=" -postquick"
+        else:
+            postrefineMode=" "
+        
+        scanChirals=""
+        if "false" in rho_scanchirals:
+            scanChirals=" -nochirals"
+        
+        occRef=""
+        if "false" in rho_occuprefine:
+            occRef=" -nooccref"
+        
+        singlePipedreamOut=""
+        singlePipedreamOut+= """#!/bin/bash\n"""
+        singlePipedreamOut+= """#!/bin/bash\n"""
+        singlePipedreamOut+= """#SBATCH -t 99:55:00\n"""
+        singlePipedreamOut+= """#SBATCH -J pipedream\n"""
+        singlePipedreamOut+= """#SBATCH --exclusive\n"""
+        singlePipedreamOut+= """#SBATCH -N1\n"""
+        singlePipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
+        singlePipedreamOut+= """#SBATCH --mem=220000\n""" 
+        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.out\n"""
+        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.err\n"""    
+        singlePipedreamOut+= """module purge\n"""
+        singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
+        
+        chdir="cd "+"/".join(ppdoutdir.split("/")[:-1])
+        ppd="pipedream -h5 "+input_data+" -d "+ppdoutdir+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef+" -nofreeref -nthreads -1 -v"
+        
+        singlePipedreamOut+=chdir+"\n"
+        singlePipedreamOut+=ppd
+
+        with open(path+"/fragmax/scripts/pipedream_"+ligand+".sh","w") as ppdsh:
+            ppdsh.write(singlePipedreamOut)
+        
+
+    if "alldatasets" in input_data:
+        ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
+        ppdoutdirList=[x.replace("/raw/","/fragmax/process/pipedream/").replace("_master.h5","") for x in ppddatasetList]
+        
+        for i in ppdoutdirList:
+            os.makedirs("/".join(i.split("/")[:-1]),exist_ok=True)
+
+            if os.path.exists(ppdoutdir):
+                try:
+                    int(ppdoutdir[-1])
+                except ValueError:
+                    run="1"
+                else:
+                    run=str(int(ppdoutdir[-1])+1)
+                shutil.copytree(i,i+"_run"+run)
+            
+        
+        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
+            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
+            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
+            
+            ## Download and prepare PDB file - remove waters and HETATM
+            with open(userPDBpath,"w") as pdb:
+               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
+            
+            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
+            subprocess.call(preparePDB,shell=True)
+
+        #STARANISO setting    
+        if "true" in ap_staraniso:
+            useANISO=" -useaniso"
+        else:
+            useANISO=""
+        
+        #BUSTER refinement mode
+        if "thorough" in b_refinemode:
+            refineMode=" -thorough"
+        elif "quick" in b_refinemode:
+            refineMode=" -quick"
+        else:
+            refineMode=" "
+
+        #PDB_REDO options
+        pdbREDO=""
+        if "true" in b_sideaiderefit:
+            pdbREDO+=" -remediate"
+            refineMode=" -thorough"
+        if "true" in b_sideaiderebuild:
+            if "remediate" not in pdbREDO:
+                pdbREDO+=" -remediate"
+            pdbREDO+=" -sidechainrebuild"
+        if "true" in b_pepflip:
+            pdbREDO+=" -runpepflip"
+
+        #Rhofit ligand
+        
+        
+        lib=rho_ligandcode.replace("rho_ligandcode:","")
+                
+        
+        #### Create symlink of fragment library to user project folder (/fragmax/process/fragment/lib)
+        os.makedirs(path+"/fragmax/process/fragment/", exist_ok=True)
+        if os.path.lexists(path+"/fragmax/process/fragment/"+lib):
+            try:
+                os.remove(path+"/fragmax/process/fragment/"+lib)
+            except:
+                pass
+            else:
+                os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
+        else:
+            os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
+
+
+        #Keep Hydrogen RhoFit
+        keepH=""
+        if "true" in rho_keepH:
+            keepH=" -keepH"
+
+        #Cluster to search for ligands
+        clusterSearch=""
+        if len(rho_allclusters)>16:
+            if "true" in rho_allclusters.split(":")[-1].lower(): 
+                clusterSearch=" -allclusters"
+            else:
+                ncluster=rho_xclusters.split(":")[-1]
+                clusterSearch=" -xcluster "+ncluster
+        else:
+            ncluster=rho_xclusters.split(":")[-1]
+            clusterSearch=" -xcluster "+ncluster
+
+        #Search mode for RhoFit
+        if "thorough" in rho_fittingproc:
+            fitrefineMode=" -rhothorough"
+        elif "quick" in rho_fittingproc:
+            fitrefineMode=" -rhoquick"
+        else:
+            fitrefineMode=" "
+        #Post refine for RhoFit
+        if "thorough" in rho_postrefine:
+            postrefineMode=" -postthorough"
+        elif "standard" in rho_postrefine:
+            postrefineMode=" -postref"
+        elif "quick" in rho_postrefine:
+            postrefineMode=" -postquick"
+        else:
+            postrefineMode=" "
+        
+        scanChirals=""
+        if "false" in rho_scanchirals:
+            scanChirals=" -nochirals"
+        
+        occRef=""
+        if "false" in rho_occuprefine:
+            occRef=" -nooccref"
+        
+        allPipedreamOut=""
+        allPipedreamOut+= """#!/bin/bash\n"""
+        allPipedreamOut+= """#!/bin/bash\n"""
+        allPipedreamOut+= """#SBATCH -t 99:55:00\n"""
+        allPipedreamOut+= """#SBATCH -J pipedream\n"""
+        allPipedreamOut+= """#SBATCH --exclusive\n"""
+        allPipedreamOut+= """#SBATCH -N1\n"""
+        allPipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
+        allPipedreamOut+= """#SBATCH --mem=220000\n""" 
+        allPipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
+        allPipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
+        allPipedreamOut+= """module purge\n"""
+        allPipedreamOut+= """module load autoPROC BUSTER\n\n"""
+        
+        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):
+            chdir="cd "+"/".join(ppdout.split("/")[:-1])
+            if "apo" not in ppddata.lower():
+                ligand = ppddata.split("/")[-1][:-12].replace(acr+"-","")
+                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+lib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
+            if "apo" in ppddata.lower():
+                rhofitINPUT=""
+            ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
+        
+            allPipedreamOut+=chdir+"\n"
+            allPipedreamOut+=ppd+"\n\n"
+
+        with open(path+"/fragmax/scripts/pipedream_allDatasets.sh","w") as ppdsh:
+            ppdsh.write(allPipedreamOut)
+        
+        
+        
+        
+    return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
 def load_project_summary(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
