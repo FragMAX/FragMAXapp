@@ -15,6 +15,8 @@ import itertools
 from time import sleep
 import threading
 import pypdb
+import ast
+
 
 
 
@@ -248,7 +250,10 @@ def submit_pipedream(request):
 
         with open(path+"/fragmax/scripts/pipedream_"+ligand+".sh","w") as ppdsh:
             ppdsh.write(singlePipedreamOut)
-        
+
+        script=path+"/fragmax/scripts/pipedream_"+ligand+".sh"
+        command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
     if "alldatasets" in input_data:
         ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
@@ -395,7 +400,10 @@ def submit_pipedream(request):
             ppdsh.write(allPipedreamOut)
         
         
-        
+        script=path+"/fragmax/scripts/pipedream_allDatasets.sh"
+        command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+
         
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
@@ -585,7 +593,8 @@ def datasets(request):
     
 def results(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
+    if not os.path.exists(path+"/fragmax/process/generalrefsum.csv"):
+        resultSummary()
     try:
         with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
             a=inp.readlines()
@@ -694,9 +703,20 @@ def pandda(request):
             
             return render(request,'fragview/pandda.html', {'Report': a})
         except:
-            return render(request,'fragview/pandda_notready.html')
+            actionbtn=str(request.GET.get("runpanddafolderform"))
+            return render(request,'fragview/pandda_notready.html',{"panddafolder":actionbtn})
     else:
-        return render(request,'fragview/pandda_notready.html')
+        folderbtn=str(request.GET.get("runpanddafolderform"))
+        runpanddabtn=str(request.GET.get("runpanddaform"))
+        actionbtn="noaction"
+        if "run" in folderbtn:
+            actionbtn="makefolders"
+            t = threading.Thread(target=prepare_pandda_folder,args=())
+            t.daemon = True
+            t.start()
+        if "run" in runpanddabtn:
+            actionbtn="runpandda"
+        return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -1410,11 +1430,133 @@ def panddaResultSummary():
     with open(path+"/fragmax/process/panddarefsum.csv","w") as outp:
         outp.write(sortedline)
 
+def dpl_info_general(entry):
+    acr=""
+    spg=""
+    res=""
+    r_work=""
+    r_free=""
+    bonds=""
+    angles=""
+    blob=""
+    sigma=""
+    a=""
+    b=""
+    c=""
+    alpha=""
+    beta=""
+    gamma=""
+    
+    with open(entry,"r") as inp:
+        dimple_log=inp.readlines()
+    for n,line in enumerate(dimple_log):
+        if "data_file: " in line:
+            acr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
+        if "# MTZ " in line:
+            spg=line.split(")")[1].split("(")[0].replace(" ","")
+            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+            alpha=str("{0:.2f}".format(float(alpha)))
+            beta=str("{0:.2f}".format(float(beta)))
+            gamma=str("{0:.2f}".format(float(gamma)))
+        if line.startswith( "info:  8/8   R/Rfree"):
+            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+            r_free=str("{0:.2f}".format(float(r_free)))
+            r_work=str("{0:.2f}".format(float(r_work)))
+        if line.startswith( "density_info: Density"):
+            sigma=line.split("(")[-1].split(" sigma")[0]
+        if line.startswith("blobs: "):
+            l=""
+            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
+            blob="<br>".join(map(str,l[:3]))
+        if line.startswith("#     RMS: "):
+            bonds,angles=line.split()[5],line.split()[9]
+        if line.startswith("info: resol. "):
+            res=line.split()[2]
+            res=str("{0:.2f}".format(float(res)))
+    
+    try:        
+        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final.pdb"        
+        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_2mFo-DFc_filled.ccp4"
+        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_mFo-DFc.ccp4"
+        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+
+    except:    
+        pdbout="None"
+        event1="None"
+        ccp4_nat="None"
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+    return tr
+
+def fsp_info_general(entry):
+    acr=""
+    spg=""
+    res=""
+    r_work=""
+    r_free=""
+    bonds=""
+    angles=""
+    blob=""
+    sigma=""
+    a=""
+    b=""
+    c=""
+    alpha=""
+    beta=""
+    gamma=""
+    blist=""    
+    acr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fsp"
+        
+    with open(entry,"r") as inp:
+        pdb_file=inp.readlines()
+    
+    for line in pdb_file:
+        if "REMARK Final:" in line:            
+            r_work=line.split()[4]
+            r_free=line.split()[7]
+            r_free=str("{0:.2f}".format(float(r_free)))
+            r_work=str("{0:.2f}".format(float(r_work)))
+            bonds=line.split()[10]
+            angles=line.split()[13]
+        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+            res=line.split(":")[-1].replace(" ","").replace("\n","")
+            res=str("{0:.2f}".format(float(res)))
+        if "CRYST1" in line:
+            a,b,c,alpha,beta,gamma=line.split()[1:-4]
+            a=str("{0:.2f}".format(float(a)))
+            b=str("{0:.2f}".format(float(b)))
+            c=str("{0:.2f}".format(float(c)))
+
+            spg="".join(line.split()[-4:])
+            
+    with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:
+        blobs_log=inp.readlines()
+    for line in blobs_log:
+        if "using sigma cut off " in line:
+            sigma=line.split("cut off")[-1].replace(" ","").replace("\n","")
+        if "INFO:: cluster at xyz = " in line:
+            blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
+            blob="["+blob+"]"
+            blist=blob+"<br>"+blist
+        #print(blist)
+    blist="<br>".join(blist.split("<br>")[:3])
+    try:
+        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final.pdb"
+        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_2mFo-DFc_filled.ccp4"
+        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_mFo-DFc.ccp4"
+        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
+    except:
+        pdbout="None"
+        event1="None"
+        ccp4_nat="None"
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+    
+    return tr
+#
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
 
-    acr_list=glob.glob(subpath+"*/fragmax/results/"+acrOriginal+"*")
+    acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
     pipeline_dict=dict()
     for acr in acr_list:
         pipeline_dict[acr.split("/")[-1]]=glob.glob(acr+"/*")
@@ -1457,7 +1599,7 @@ def resultSummary():
         for j in dl:
             if i in j:
                 sortedline+=j+"\n"            
-
+    sortedline=sortedline.replace("_filled","")
     with open(path+"/fragmax/process/generalrefsum.csv","w") as outp:
         outp.write(sortedline)
 
@@ -2289,10 +2431,87 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     runFragMAX()
 
 
+def prepare_pandda_folder():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
+    pandda_dir=path+"/fragmax/results/pandda/"
+    os.makedirs(pandda_dir, exist_ok=True)
+    #Copy dimple files
+    for _file in glob.glob(path+"/fragmax/results/*/*/dimple/*final*"):
+        dataset_name=_file.split("results/")[1].split("/")
+        os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
+        #print(dataset_name[1])
+        if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
+            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1])
+    
+    #Copy fsp files
+    for _file in glob.glob(path+"/fragmax/results/*/*/fsp/*final*"):
+        dataset_name=_file.split("results/")[1].split("/")
+        os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
+        #print(dataset_name[1])
+        if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
+            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1])
 
+    
+    mtzList=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")+glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz")
 
-##User specific inputs
+    outDirs=["/".join(x.split("/")[:-1]) for x in mtzList]
+
+    nthreads=str(48)
+      
+    pythonOut=""
+    
+    pythonOut+='import multiprocessing\n'
+    pythonOut+='import time\n'
+    pythonOut+='import os\n'
+    pythonOut+='import shutil\n'
+    pythonOut+='import subprocess\n\n\n'    
+    
+    pythonOut+='outDirs=["'+'",\n"'.join(outDirs)+'"]\n\n'
+    pythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
+    pythonOut+='inpdata=list()\n'
+    pythonOut+='for a,b in zip(outDirs,mtzList):\n'
+    pythonOut+='    inpdata.append([a,b])\n'
+    pythonOut+='\n'
+    pythonOut+='def fragmax_worker((di, mtz)):\n'
+    pythonOut+='    command="phenix.mtz2map %s directory=%s" %(mtz, di)\n'    
+    pythonOut+='    subprocess.call(command, shell=True) \n'  
+    pythonOut+='\n'
+    pythonOut+='def mp_handler():\n'
+    pythonOut+='    p = multiprocessing.Pool('+nthreads+')\n'
+    pythonOut+='    p.map(fragmax_worker, inpdata)\n'
+    pythonOut+='\n'
+    pythonOut+="""if __name__ == '__main__':\n"""
+    pythonOut+='    mp_handler()\n'
+
+    
+    with open(path+"/fragmax/scripts/ccp4maps.py", "w") as outfile:
+        outfile.write(pythonOut)  
+    
+    sbathcCCP4maps=""
+    sbathcCCP4maps+="#!/bin/bash\n"
+    sbathcCCP4maps+="#!/bin/bash\n"
+    sbathcCCP4maps+="#SBATCH -t 99:55:00\n"
+    sbathcCCP4maps+="#SBATCH -J ccp4maps\n"
+    sbathcCCP4maps+="#SBATCH --exclusive\n"
+    sbathcCCP4maps+="#SBATCH -N1\n"
+    sbathcCCP4maps+="#SBATCH --cpus-per-task=48\n"
+    sbathcCCP4maps+="#SBATCH --mem=220000\n"
+    sbathcCCP4maps+="#SBATCH -o "+path+"/fragmax/logs/ccp4maps_%j.out\n"
+    sbathcCCP4maps+="#SBATCH -e "+path+"/fragmax/logs/ccp4maps_%j.err\n"
+    sbathcCCP4maps+="module purge\n"
+    sbathcCCP4maps+="\n"
+    sbathcCCP4maps+="module load CCP4 Phenix\n"
+    sbathcCCP4maps+="\n"
+    sbathcCCP4maps+="python2 "+path+"/fragmax/scripts/ccp4maps.py"  
+
+    with open(path+"/fragmax/scripts/ccp4maps.sh","w") as outfile:
+        outfile.write(sbathcCCP4maps)
+
+    script=path+"/fragmax/scripts/ccp4maps.sh"
+    command ='echo "module purge | module load CCP4 Phenix DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
+
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
 
     def listdir_fullpath(d):
