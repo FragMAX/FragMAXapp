@@ -385,6 +385,13 @@ def submit_pipedream(request):
         allPipedreamOut+= """module load autoPROC BUSTER\n\n"""
         
         for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):
+            lib=""
+            try:
+                int(ligand[-2])
+            except ValueError:
+                lib=ligand[:-2]
+            else:
+                lib=ligand[:-3]
             chdir="cd "+"/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
                 ligand = ppddata.split("/")[-1][:-12].replace(acr+"-","")
@@ -593,6 +600,10 @@ def datasets(request):
     
 def results(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    
+    resync=str(request.GET.get("resync"))
+    if "resyncresults" in resync:
+        resultSummary()
     if not os.path.exists(path+"/fragmax/process/generalrefsum.csv"):
         resultSummary()
     try:
@@ -708,6 +719,7 @@ def pandda(request):
     else:
         folderbtn=str(request.GET.get("runpanddafolderform"))
         runpanddabtn=str(request.GET.get("runpanddaform"))
+        populateMissing=str(request.GET.get("missingreflform"))
         actionbtn="noaction"
         if "run" in folderbtn:
             actionbtn="makefolders"
@@ -716,6 +728,12 @@ def pandda(request):
             t.start()
         if "run" in runpanddabtn:
             actionbtn="runpandda"
+        if "run" in populateMissing:
+            actionbtn="population missing reflections"
+            t = threading.Thread(target=populate_missing,args=())
+            t.daemon = True
+            t.start()
+            
         return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
@@ -1172,7 +1190,7 @@ def create_dataColParam(acr, path):
             except:
                 print("No data for "+key) 
     
-def fsp_info(entry):
+def fsp_info_todelete(entry):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
     usracr=""
@@ -1191,7 +1209,7 @@ def fsp_info(entry):
     beta=""
     gamma=""
     blist=""    
-    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fsp"
+    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
         
     with open(entry,"r") as inp:
         pdb_file=inp.readlines()
@@ -1238,7 +1256,7 @@ def fsp_info(entry):
     
     return tr
 
-def dpl_info(entry):
+def dpl_info_todelete(entry):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
     usracr=""
@@ -1467,7 +1485,8 @@ def dpl_info_general(entry):
         if line.startswith("blobs: "):
             l=""
             l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
-            blob="<br>".join(map(str,l[:3]))
+            blob="<br>".join(map(str,l[:5]))
+            #blob="<br>".join(map(str,l))
         if line.startswith("#     RMS: "):
             bonds,angles=line.split()[5],line.split()[9]
         if line.startswith("info: resol. "):
@@ -1504,7 +1523,7 @@ def fsp_info_general(entry):
     beta=""
     gamma=""
     blist=""    
-    acr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fsp"
+    acr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
         
     with open(entry,"r") as inp:
         pdb_file=inp.readlines()
@@ -1538,7 +1557,8 @@ def fsp_info_general(entry):
             blob="["+blob+"]"
             blist=blob+"<br>"+blist
         #print(blist)
-    blist="<br>".join(blist.split("<br>")[:3])
+    blist="<br>".join(blist.split("<br>")[:5])
+    #blist="<br>".join(blist.split("<br>"))
     try:
         pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final.pdb"
         event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_2mFo-DFc_filled.ccp4"
@@ -2430,29 +2450,157 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
     runFragMAX()
 
+def populate_missing():
+    def getRes(mtzfile):
+        stdout = Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=PIPE).stdout
+        output = stdout.read().decode("utf-8")
+        for line in output.split("\n"):
+            if "Resolution range" in line:
+                lowres, highres=line.split()[-2],line.split()[-1]
+        if "free" in "".join(output).lower():
+            for line in output.split("\n"):
+                if "free" in line.lower():
+                    freeRflag=line.split()[0]
+        else:  
+            freeRflag="R-free-flags"
+            
+        print(lowres, highres, freeRflag)
+        return lowres, highres, freeRflag
+
+    def buildResDict(dataPaths):
+        resdict=dict()
+        Rflagdict=dict()
+        for data in dataPaths:
+            l,h,Rflag =getRes(data)
+            resdict[data] = h
+            Rflagdict[data] = Rflag
+        return resdict,Rflagdict
+    
+    def fixData(key,value,rflag):
+        #shutil.copyfile(key,key+".bak")
+        outmtz=key.split("final.mtz")[0]+"final.mtz"
+        
+        #Start and move to data folder
+        command=""
+        command+="\n\ncd "+key.replace("/results/","/process/").replace("final.mtz","")       
+        command+="\n\n"
+        
+        #Uniqueify dataset 
+
+        command+="uniqueify -f "+rflag+" "+key+" "+key.replace("/results/","/process/")
+        command+="\n\n"
+        
+        #CAD
+        
+        command+="cad hklin1 "+key+ " hklout " +outmtz+ " <<eof\n"
+        command+=" monitor BRIEF\n"
+        command+=" labin file 1 - \n"
+        command+="  ALL\n"
+        command+=" resolution file 1 999.0 "+ value+"\n"
+        command+="eof\n\n"    
+        
+        #Phenix maps
+        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n\n"    
+        
+        #final_2mFo-DFc_map.ccp4 
+        #final_map_coeffs.mtz
+
+        #Move results back to original folder
+        command+="mv -f "+key.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+key.replace(".mtz",".ccp4")+"\n"
+        command+="mv -f "+key.replace("final.mtz","final_map_coeffs.mtz"    )+" "+key+"\n\n"
+        
+        return command
+
+    def rerunRefine(key,value):
+        command=""
+        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n"    
+        return command
+
+
+    def makeScript():    
+        #init variables
+        resdict,Rflagdict=buildResDict(reprocDataPaths)
+        
+        panddaOut    = ""    
+    
+        #define env for script for XDSAPP
+        panddaOut+= """#!/bin/bash\n"""
+        panddaOut+= """#!/bin/bash\n"""
+        panddaOut+= """#SBATCH -t 99:55:00\n"""
+        panddaOut+= """#SBATCH -J PanddaFix\n"""
+        panddaOut+= """#SBATCH --exclusive\n"""
+        panddaOut+= """#SBATCH -N1\n"""
+        panddaOut+= """#SBATCH --cpus-per-task=48\n"""
+        panddaOut+= """#SBATCH --mem=220000\n""" 
+        panddaOut+= """#SBATCH -o """+path+"""/fragmax/logs/pandda_repopReflections_%j.out\n"""
+        panddaOut+= """#SBATCH -e """+path+"""/fragmax/logs/pandda_repopReflections_%j.err\n"""    
+        panddaOut+= """module load CCP4 Phenix PyMOL/2.1.0-PReSTO\n\n"""
+        
+        cmdList=list()
+        for key, value in resdict.items():
+            cmdList.append("\n"+fixData(key,value,Rflagdict[key]))
+        
+        nodes=5
+        chunkScripts=[panddaOut+"".join(x) for x in list(split(cmdList,nodes) )]
+        
+        
+        for num,chunk in enumerate(chunkScripts):
+            with open(path+"/fragmax/scripts/panddafix_part"+str(num)+".sh", "w") as outfile:
+                outfile.write(chunk)
+
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+        
+    #Run populate missing reflection in all dataset
+
+    dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
+    for key in dataissuePaths:
+        os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""), exist_ok=True)
+
+    makeScript()
 
 def prepare_pandda_folder():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
+    fsp_list =glob.glob(path+"/fragmax/results/*fspipeline*")
+    path_list=list()
+    for fsp_run in fsp_list:
+        for roots, dirs, files in os.walk(fsp_run):
+            if "mtz2map.log" in files:      
+                path_list.append(roots)
+
+    success_list=[x.split("/")[-2].split("_merged")[0] for x in path_list]
+
+
+    ##This function will take the file list from successful fspipeline run
+    ##and copy to results folder along other pipelines (dimple, pipedream)
+
+    softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
+    for file,fpath in zip(success_list,path_list):
+        outdir=path+"/fragmax/results/"
+        
+        for sw in softwares:
+            if sw in file:
+                outp=outdir+file.split("_"+sw)[0]+"/"+sw
+                copy_string="rsync --ignore-existing -raz --progress "+fpath+"/* "+outp+"/fspipeline"
+                subprocess.call(copy_string, shell=True)
+                print(copy_string)
     pandda_dir=path+"/fragmax/results/pandda/"
     os.makedirs(pandda_dir, exist_ok=True)
     #Copy dimple files
     for _file in glob.glob(path+"/fragmax/results/*/*/dimple/*final*"):
         dataset_name=_file.split("results/")[1].split("/")
         os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
-        #print(dataset_name[1])
         if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
             shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1])
     
     #Copy fsp files
-    for _file in glob.glob(path+"/fragmax/results/*/*/fsp/*final*"):
+    for _file in glob.glob(path+"/fragmax/results/*/*/fspipeline/*final*"):
         dataset_name=_file.split("results/")[1].split("/")
         os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
-        #print(dataset_name[1])
         if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
-            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1])
+            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/final"+dataset_name[-1].split("_merged")[-1])
 
-    
+
     mtzList=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")+glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz")
 
     outDirs=["/".join(x.split("/")[:-1]) for x in mtzList]
@@ -2507,6 +2655,30 @@ def prepare_pandda_folder():
 
     with open(path+"/fragmax/scripts/ccp4maps.sh","w") as outfile:
         outfile.write(sbathcCCP4maps)
+
+
+    ##Copy fragments to pandda folders
+    panddaDatasets=glob.glob(path+"/fragmax/results/pandda/"+"*")
+    ligList=glob.glob(path+"/fragmax/process/fragment/*/*/*.cif")
+
+    fragDict=dict()
+    for frag in ligList:
+        fragDict[frag.split("/")[-1][:-4]]=frag
+
+    panddaDict=dict()
+    for data in panddaDatasets:
+        panddaDict[data.split(acr+"-")[-1].split("_")[0]]=data
+        
+    for value in panddaDatasets:
+        key=value.split(acr+"-")[-1].split("_")[0]
+        if "Apo" not in key:
+            if not os.path.exists(value+"/"+key+".cif"):
+                shutil.copyfile(fragDict[key],value+"/"+key+".cif")
+            if not os.path.exists(value+"/"+key+".pdb"):
+                shutil.copyfile(fragDict[key].replace(".cif",".pdb"),value+"/"+key+".pdb")
+            if not os.path.exists(value+"/"+key+".pickle"):
+                shutil.copyfile(fragDict[key].replace(".cif",".pickle"),value+"/"+key+".pickle")
+
 
     script=path+"/fragmax/scripts/ccp4maps.sh"
     command ='echo "module purge | module load CCP4 Phenix DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
@@ -2869,21 +3041,21 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         return success_run,success_path_list
                     
                 
-    def fspipeline_rearrange(success_list,path_list):
-        ##This function will take the file list from successful fspipeline run
-        ##and copy to results folder along other pipelines (dimple, pipedream)
-        ##input for this function is the output of fspipeline_success()
-        softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
-        for _file,fpath in zip(success_list,path_list):
-            pipel=""
-            acr_prot=""
-            outdir=path+"/fragmax/results/"
-            #print(file,fpath)
-            for sw in softwares:
-                if sw in _file:
-                    outp=outdir+_file.split("_"+sw)[0]+"/"+sw
-                    copy_string="cp -Rnf "+fpath+" "+outp+"/fspipeline"
-                    subprocess.call(copy_string, shell=True)
+    # def fspipeline_rearrange(success_list,path_list):
+    #     ##This function will take the file list from successful fspipeline run
+    #     ##and copy to results folder along other pipelines (dimple, pipedream)
+    #     ##input for this function is the output of fspipeline_success()
+    #     softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
+    #     for _file,fpath in zip(success_list,path_list):
+    #         pipel=""
+    #         acr_prot=""
+    #         outdir=path+"/fragmax/results/"
+    #         #print(file,fpath)
+    #         for sw in softwares:
+    #             if sw in _file:
+    #                 outp=outdir+_file.split("_"+sw)[0]+"/"+sw
+    #                 copy_string="cp -Rnf "+fpath+" "+outp+"/fspipeline"
+    #                 subprocess.call(copy_string, shell=True)
                     
     opt_model = userPDB
     #spacegroup ="P43212"
@@ -2982,7 +3154,9 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     #    script=path+"/fragmax/scripts/run_fsp.sh"
     #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     #    subprocess.call(command,shell=True)
-    
+
+
+
 ###############################
 
 #################################

@@ -58,6 +58,9 @@
   <form action="/pandda_notready/" method="get" id="runPanDDAfolderid" name="runPanDDAfoldername" size="1" >
         <button class="btn-large maxivorange" type="submit" onsubmit="return submit_panndafolder()" value="runpanddafolderinput" name="runpanddafolderform" size="1">Prepare folder structure</button>
     </form>
+    <form action="/pandda_notready/" method="get" id="runPanDDAmissingid" name="runPanDDAmissing" size="1" >
+        <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pandda()" value="runmisreflpanddainput" name="missingreflform" size="1">Populate missing reflections</button>
+    </form>
     <form action="/pandda_notready/" method="get" id="runPanDDAid" name="runPanDDAname" size="1" >
         <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pandda()" value="runpanddainput" name="runpanddaform" size="1">Run PanDDA</button>
     </form>
@@ -67,5 +70,4 @@
 
 
 
-</script>
 {% endblock %}
