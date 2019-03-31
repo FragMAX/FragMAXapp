@@ -52,6 +52,9 @@ def project_definitions():
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
     panddaprocessed="/fragmax/results/pandda/pandda/processed_datasets/"
+ 
+
+    
 
     
     return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,panddaprocessed
@@ -580,7 +583,12 @@ def post_new(request):
 def datasets(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
-
+    resyncAction=str(request.GET.get("resyncdsButton"))
+    if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
+        if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
+            os.remove(path+"/fragmax/process/datacollectionPar.csv")
+        # if "resyncDataset" in resyncAction:
+        #     shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
     #path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     create_dataColParam(acr,path)
     
@@ -730,7 +738,34 @@ def pandda(request):
             t.daemon = True
             t.start()
         if "run" in runpanddabtn:
+
             actionbtn="runpandda"
+            panddaRUNscript=""
+            panddaRUNscript+='#!/bin/bash\n'
+            panddaRUNscript+='#!/bin/bash\n'
+            panddaRUNscript+='#SBATCH -t 99:55:00\n'
+            panddaRUNscript+='#SBATCH -J PanDDA\n'
+            panddaRUNscript+='#SBATCH --exclusive\n'
+            panddaRUNscript+='#SBATCH -N1\n'
+            panddaRUNscript+='#SBATCH --cpus-per-task=48\n'
+            panddaRUNscript+='#SBATCH --mem=220000\n'
+            panddaRUNscript+='#SBATCH -o '+path+'/fragmax/logs/panddarun_%j.out\n'
+            panddaRUNscript+='#SBATCH -e '+path+'/fragmax/logs/panddarun_%j.err\n'
+            panddaRUNscript+='module purge\n'
+            panddaRUNscript+='module load CCP4 PyMOL\n\n'
+            panddaRUNscript+='cd '+path+'/fragmax/results/pandda/\n'
+            panddaRUNscript+='pandda.analyse data_dirs="'+path+'/fragmax/results/pandda/*" cpus=48  input.max_new_datasets=1000  \n'
+            panddaRUNscript+='python '+path+'/fragmax/scripts/checkPanDDA.py '+path
+
+            if not os.path.exists(path+"/fragmax/scripts/panddaRUN.sh"):
+                with open(path+"/fragmax/scripts/panddaRUN.sh","w") as outp:
+                    outp.write(panddaRUNscript)
+
+            script=path+"/fragmax/scripts/panddaRUN.sh"
+            command ='echo "module purge | module load CCP4 PyMOL | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
+
+
         if "run" in populateMissing:
             actionbtn="population missing reflections"
             t = threading.Thread(target=populate_missing,args=())
@@ -1105,9 +1140,16 @@ def retrieveParameters(xmlfile):
     return paramDict
 
 def create_dataColParam(acr, path):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    
     if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
         return
     else:
+        
+        t = threading.Thread(target=ligandToSVG,args=())
+        t.daemon = True
+        t.start()
+
         xml_list=glob.glob(path+"*/process/"+acr+"/*/*/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
         img_list=list()
         prf_list=list()
@@ -1142,18 +1184,25 @@ def create_dataColParam(acr, path):
             path_list.append(xml.split("xds")[0].replace("process","raw"))
             acr_list.append(acr)
         
-                            
+        lib="F2XEntry"                   
         #Create fragment list png for Datasets view                         
         pngDict=dict()
         for prf in prf_list:
             if "Apo" in prf:
                 pngDict[prf]="/static/img/apo.png"
-            elif "Apo" not in prf and "DM" not in prf and "ICC" not in prf:
-                wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]="/static/blog/fragment/"+"JBS"+"/"+wellNo+"/"+wellNo+".png"
+            #elif "Apo" not in prf and "DM" not in prf and "ICC" not in prf:
+            #    wellNo=prf.split(acr+"-")[-1]        
+            #    pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+lib+"/"+wellNo+"/"+wellNo+".svg"
             elif "ICC" in prf:
                 wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]="/static/blog/fragment/"+"ICCBS"+"/"+wellNo+"/"+wellNo+".png"
+                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"ICCBS"+"/"+wellNo+"/"+wellNo+".svg"
+            elif "F2XEntry" in prf:
+                wellNo=prf.split(acr+"-")[-1]        
+                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"F2XEntry"+"/"+wellNo+"/"+wellNo+".svg"
+            elif "JBS" in prf:
+                wellNo=prf.split(acr+"-")[-1]        
+                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"JBS"+"/"+wellNo+"/"+wellNo+".svg"
+            
             else:
                 pngDict[prf]="/static/img/nolig.png"
 
@@ -1192,6 +1241,11 @@ def create_dataColParam(acr, path):
                 hdf2jpg(paramDict)
             except:
                 print("No data for "+key) 
+
+        t = threading.Thread(target=ligandToSVG,args=(lib))
+        t.daemon = True
+        t.start()
+        
     
 def fsp_info_todelete(entry):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -2456,8 +2510,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 def populate_missing():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
-    with open(path+"/fragmax/start.txt","w") as out:
-        out.write("ini1")
+    
 
     def getRes(mtzfile):
         stdout = Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=PIPE).stdout
@@ -2556,7 +2609,9 @@ def populate_missing():
             with open(path+"/fragmax/scripts/panddafix_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
 
-    
+            script=path+"/fragmax/scripts/panddafix_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
     
     #Run populate missing reflection in all dataset
 
@@ -2668,7 +2723,9 @@ def prepare_pandda_folder():
     ##Copy fragments to pandda folders
     panddaDatasets=glob.glob(path+"/fragmax/results/pandda/"+"*")
     ligList=glob.glob(path+"/fragmax/process/fragment/*/*/*.cif")
-
+    # userPDB=glob.glob(path+"/fragmax/process/*.pdb")[0]
+    # for folder in panddaDatasets:
+    #     shutil.copyfile(userPDB,folder+"/model.pdb")
     fragDict=dict()
     for frag in ligList:
         fragDict[frag.split("/")[-1][:-4]]=frag
@@ -3163,7 +3220,23 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     #    subprocess.call(command,shell=True)
 
+def ligandToSVG():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
+    lib="F2XEntry"
+    ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
+    for ligPDB in ligPDBlist:
+        
+        inp=ligPDB
+        out=ligPDB.replace(".pdb",".svg")
+        if not os.path.exists(out):
+            subprocess.call("babel "+inp+" "+out+" -d",shell=True)
+            with open(out,"r") as outr:
+                content=outr.readlines()
+            with open(out,"w") as outw:
+                content="".join(content).replace(inp,"").replace("- Open Babel Depiction", "FragMAX")
+                content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
+                outw.write(content)
 
 ###############################
 
