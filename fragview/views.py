@@ -16,6 +16,9 @@ from time import sleep
 import threading
 import pypdb
 import ast
+import sys 
+from subprocess import Popen, PIPE
+
 
 
 
@@ -720,7 +723,7 @@ def pandda(request):
         folderbtn=str(request.GET.get("runpanddafolderform"))
         runpanddabtn=str(request.GET.get("runpanddaform"))
         populateMissing=str(request.GET.get("missingreflform"))
-        actionbtn="noaction"
+        actionbtn="No Action"
         if "run" in folderbtn:
             actionbtn="makefolders"
             t = threading.Thread(target=prepare_pandda_folder,args=())
@@ -733,7 +736,7 @@ def pandda(request):
             t = threading.Thread(target=populate_missing,args=())
             t.daemon = True
             t.start()
-            
+            #populate_missing()
         return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
@@ -2451,6 +2454,11 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     runFragMAX()
 
 def populate_missing():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
+    with open(path+"/fragmax/start.txt","w") as out:
+        out.write("ini1")
+
     def getRes(mtzfile):
         stdout = Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=PIPE).stdout
         output = stdout.read().decode("utf-8")
@@ -2464,8 +2472,10 @@ def populate_missing():
         else:  
             freeRflag="R-free-flags"
             
-        print(lowres, highres, freeRflag)
         return lowres, highres, freeRflag
+    def splitsc(a, n):
+        k, m = divmod(len(a), n)
+        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     def buildResDict(dataPaths):
         resdict=dict()
@@ -2502,8 +2512,6 @@ def populate_missing():
         #Phenix maps
         command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n\n"    
         
-        #final_2mFo-DFc_map.ccp4 
-        #final_map_coeffs.mtz
 
         #Move results back to original folder
         command+="mv -f "+key.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+key.replace(".mtz",".ccp4")+"\n"
@@ -2519,7 +2527,7 @@ def populate_missing():
 
     def makeScript():    
         #init variables
-        resdict,Rflagdict=buildResDict(reprocDataPaths)
+        resdict,Rflagdict=buildResDict(dataissuePaths)
         
         panddaOut    = ""    
     
@@ -2541,22 +2549,22 @@ def populate_missing():
             cmdList.append("\n"+fixData(key,value,Rflagdict[key]))
         
         nodes=5
-        chunkScripts=[panddaOut+"".join(x) for x in list(split(cmdList,nodes) )]
+        chunkScripts=[panddaOut+"".join(x) for x in list(splitsc(cmdList,nodes) )]
         
         
         for num,chunk in enumerate(chunkScripts):
             with open(path+"/fragmax/scripts/panddafix_part"+str(num)+".sh", "w") as outfile:
                 outfile.write(chunk)
 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-        
+    
+    
     #Run populate missing reflection in all dataset
 
-    dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
     for key in dataissuePaths:
         os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""), exist_ok=True)
-
+    #
     makeScript()
+    
 
 def prepare_pandda_folder():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()

@@ -33,6 +33,9 @@
      z-index: 9;
      white-space: pre-line;
    }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
    #inset {
      width: 200px;
      height: 200px;
@@ -52,11 +55,19 @@
 <body style="background-color: white">
   {% for name,pdb,nat,dif,xyzlist,center in structure %}
     <h5>Showing results for: {{name }} </h5>
-    <input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> 
-    <input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> 
+    <div style="display:flex;">
+    <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
+    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div>
+    <div style="padding-left:20px !important; padding-top:7px !important">
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div>
+    </div>
+
     <div id="viewer"></div>
+
     <footer id="help"></footer>
     <div id="inset"></div>
+
     <script>
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
       V.load_pdb("/static/{{pdb}}",null, function(){
