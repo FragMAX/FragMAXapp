@@ -85,17 +85,16 @@
     function nextblob(){
         index = (index + 1) % numblobs;  
         var blob =blobs[index];        
-        movetoblob(blob) 
-               
-
-    }
-    
+        movetoblob(blob)          
+    }    
     function previousblob(){
         index = (index - 1) % numblobs;
         if (index<0){index=numblobs-1}
         var blob =blobs[index];        
         movetoblob(blob)        
     }
+
+    
     function movetoblob(b){
       V.recenter(b, null, 25);    
       updateview()

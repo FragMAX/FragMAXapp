@@ -8,6 +8,7 @@
 
 {% comment %} Define dataset run number <- Edit CSV file and update views {% endcomment %}
 <style>
+  
   th {
       cursor: pointer;
       text-align: center;
@@ -26,10 +27,10 @@
 
   }
 
-  tr td:nth-child(7) {
+  {% comment %} tr td:nth-child(10) {
       text-align: left;
 
-  }
+  } {% endcomment %}
   .container {
       margin: 0 50px 50px 300px !important;
       max-width: 100% !important;
@@ -47,11 +48,14 @@
   <div>
     <h4>Datasets selection</h4> 
     <div style="display:flex;">
-      <form action="/process_all/" method="get" id="procButton">
+      {% comment %} <form action="/process_all/" method="get" id="procButton">
         <button class="btn" type="submit" value="process" name="proteinPrefix" size="1">Process All</button>
-      </form>  
+      </form>   {% endcomment %}
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncDataset" name="resyncdsButton" size="1">Resync datasets</button>
+      </form>  
+      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+        <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Resync status</button>
       </form>  
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncImages" name="resyncImgButton" size="1">Resync SVG and Diff</button>
@@ -73,9 +77,14 @@
   <th>Protein</th>
   <th>Sample name</th>
   <th>Run</th>
+
+  <th>Proc Status</th>
+  <th>Ref Status</th>
+  <th>Lig Status</th>
+
   <th>Resolution</sub> [&Aring;]</th>
   <th>Frames</th>
-  <th>Path</th>  
+  {% comment %} <th>Path</th>   {% endcomment %}
   <th>Crystal Picture</th>  
   <th>Ligand</th>
 
@@ -99,15 +108,30 @@
       <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
     </form>
 
-
-
     </td>
     <td><p>{{ acr }}</p></td>
     <td><p>{{ prf }}</p></td>
-    <td><p>{{run}}</p></td>
+    <td><p>{{ run }}</p></td>
+    <td>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
+    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+    </td>
+    <td>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>
+    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
+    </td>
+    <td>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
+    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
+    </td>
     <td><p>{{ res }}</p></td>
     <td><p>{{ img }}</p></td>
-    <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td>
+    {% comment %} <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td> {% endcomment %}
 
     
     <td>

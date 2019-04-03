@@ -48,6 +48,7 @@
      white-space: pre-line;
    }
    a { color: #59C; }
+   img {cursor: pointer;}
    #viewer1 b, #viewer2 b { color: #000; background-color: rgba(255,255,255,0.8); }
    #viewer1 b { position: absolute; bottom: 30px; left: 30px; }
    #viewer2 b { position: absolute; bottom: 30px; right: 30px; }
@@ -58,9 +59,9 @@
 </head>
 
 <body>
-  <div id="viewer1"><b>RhoFit<br><img src="/static/{{path}}/fragmax/process/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
-  <div id="viewer2"><b>LigandFit<br><img src="/static/{{path}}/fragmax/process/fragment/JBS/{{png}}/image.png" width="116" height="116"></b></div>
-  <header id="hud">Automated ligand fit comparison for fragment {{png}}. Press H for help.</header>
+  <div id="viewer1" ><b>RhoFit<br><img src="/static/{{path}}/fragmax/process/fragment/JBS/{{png}}/image.png" width="116" height="116" onclick="movetorhofitblob()"></b></div>
+  <div id="viewer2" ><b>LigandFit<br><img src="/static/{{path}}/fragmax/process/fragment/JBS/{{png}}/image.png" width="116" height="116" onclick="movetoligfitblob()"></b></div>
+  <header id="hud">Automated ligand fit comparison for fragment {{png}}. Click on the ligand image to center view. Press H for help.</header>
   <footer id="help"></footer>
   <script>
 
@@ -87,7 +88,37 @@
     
       
 
+    function movetorhofitblob(){
+      V1.recenter({{rhofitcenter}}, null, 25);  
+      V1.renderer.domElement.focus();  
 
+      updateview()
+      
+
+    }
+    function movetoligfitblob(){
+      V2.recenter({{ligandfitcenter}}, null, 25);   
+      V2.renderer.domElement.focus(); 
+      updateview()
+    }
+
+    function updateview(){
+      var keyboardEvent = document.createEvent("KeyboardEvent");
+      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+      keyboardEvent[initMethod](
+                        "keydown", // event type : keydown, keyup, keypress
+                          true, // bubbles
+                          true, // cancelable
+                          window, // viewArg: should be window
+                          false, // ctrlKeyArg
+                          false, // altKeyArg
+                          false, // shiftKeyArg
+                          false, // metaKeyArg
+                          82, // keyCodeArg : unsigned long the virtual key code, else 0
+                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+      );
+      document.dispatchEvent(keyboardEvent);
+    }
   </script>
 </body>
 </html>

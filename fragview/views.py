@@ -587,17 +587,15 @@ def datasets(request):
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncImages=str(request.GET.get("resyncImgButton"))
-    
+    resyncImages=str(request.GET.get("resyncstButton"))
+
     if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
         with open(path+"/fragmax/process/datacollectionPar.csv") as csvinp:
             if acr not in "".join(csvinp.readlines()):
-                #if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
                 os.remove(path+"/fragmax/process/datacollectionPar.csv")
                 create_dataColParam(acr,path)            
     else:
         create_dataColParam(acr,path)            
-        # if "resyncDataset" in resyncAction:
-        #     shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
     if "resyncDataset" in resyncAction:
         shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
         create_dataColParam(acr,path)
@@ -610,13 +608,20 @@ def datasets(request):
         a=inp.readlines()
     try:
         acr_list=a[1].split(",")
-        prf_list=a[2].split(",")
+        prf_list=[x.split(acr+"-")[-1] for x in a[2].split(",")]
         res_list=a[3].split(",")
         img_list=a[4].split(",")
         path_list=a[5].split(",")
         snap_list=a[6].split(",")
         png_list=a[7].split(",")
         run_list=a[8].split(",")
+
+
+        ##Proc status
+
+        ##Ref status
+
+        ##Lig status
 
         results = zip(img_list,prf_list,res_list,path_list,snap_list,acr_list,png_list,run_list)
         return render_to_response('fragview/datasets.html', {'files': results})
@@ -677,12 +682,28 @@ def dual_ligand(request):
 def compare_poses(request):   
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
-    path=path.replace("/data/visitors/","")
     data=a.split(";")[0]
     blob=a.split(";")[1]
     png=data.split(acr+"-")[-1].split("_")[0]
-    fragment_pdb="/static/"+path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
-    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png, "path":path})
+    rhofit=path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
+    ligfit=path+"/fragmax/results/ligandfit/"+data+"/ligandfit/ligand_fit_1.pdb"
+    ligcenter="[]"
+    rhocenter="[]"
+    if os.path.exists(ligfit):
+        with open(ligfit,"r") as ligfitfile:
+            for line in ligfitfile.readlines():
+                if line.startswith("HETATM"):
+                    ligcenter="["+",".join(line[32:54].split())+"]"
+                    break
+    if os.path.exists(rhofit):                    
+        with open(rhofit,"r") as rhofitfile:
+            for line in rhofitfile.readlines():
+                if line.startswith("HETATM"):
+                    rhocenter="["+",".join(line[32:54].split())+"]"
+                    break
+    path=path.replace("/data/visitors/","")
+        
+    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png, "path":path,"rhofitcenter":rhocenter,"ligandfitcenter":ligcenter})
 
 def ligfit_results(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
