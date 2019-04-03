@@ -9,6 +9,7 @@ import os
 import random
 import natsort
 import shutil
+import pyfastcopy
 import subprocess
 import h5py
 import itertools
@@ -199,6 +200,7 @@ def submit_pipedream(request):
 
         #Cluster to search for ligands
         clusterSearch=""
+        ncluster="1"
         if len(rho_allclusters)>16:
             if "true" in rho_allclusters.split(":")[-1].lower(): 
                 clusterSearch=" -allclusters"
@@ -584,14 +586,26 @@ def datasets(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
     resyncAction=str(request.GET.get("resyncdsButton"))
+    resyncImages=str(request.GET.get("resyncImgButton"))
+    
     if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
-        if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
-            os.remove(path+"/fragmax/process/datacollectionPar.csv")
+        with open(path+"/fragmax/process/datacollectionPar.csv") as csvinp:
+            if acr not in "".join(csvinp.readlines()):
+                #if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
+                os.remove(path+"/fragmax/process/datacollectionPar.csv")
+                create_dataColParam(acr,path)            
+    else:
+        create_dataColParam(acr,path)            
         # if "resyncDataset" in resyncAction:
         #     shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
-    #path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    create_dataColParam(acr,path)
+    if "resyncDataset" in resyncAction:
+        shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
+        create_dataColParam(acr,path)
+    if "resyncImages" in resyncImages:
+        project_dif_svg()        
+        
     
+
     with open(path+"/fragmax/process/datacollectionPar.csv","r") as inp:
         a=inp.readlines()
     try:
@@ -639,10 +653,9 @@ def request_page_res(request):
     a=str(request.GET.get('structure')) 
     center=""
     if "],[" in a.split(";")[3]:
-        center=a.split(";")[3].split("],[")[0]+"]"
+        center=[a.split(";")[3].split("],[")[0]+"]"]
     else:
-        center=a.split(";")[3].replace("],","")
-    center=[a.split(";")[0]]    
+        center=[a.split(";")[-1].replace("],","]")]    
     a=zip([a.split(";")[0].split("/pandda/")[-1].split("/final")[0]],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
     
     return render(request,'fragview/density.html', {'structure': a})
@@ -664,10 +677,12 @@ def dual_ligand(request):
 def compare_poses(request):   
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
+    path=path.replace("/data/visitors/","")
     data=a.split(";")[0]
     blob=a.split(";")[1]
     png=data.split(acr+"-")[-1].split("_")[0]
-    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png})
+    fragment_pdb="/static/"+path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
+    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png, "path":path})
 
 def ligfit_results(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -692,35 +707,40 @@ def pandda(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
     if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
+        if not os.path.exists(path+"/fragmax/process/panddarefsum.csv"):
+            panddaResultSummary()
+            parseLigand_results()
         try:
             with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-
+            
+                
             with open(path+"/fragmax/process/panddarefsum.csv","r") as inp:
                 body="".join(inp.readlines())
             thead_ini=a.index("<thead>")+8
             thead_end=a.index("</thead>") 
             tbody_ini=a.index("<tbody>")+8
             tbody_end=a.index("</tbody>")     
-            a=a.replace(a[thead_ini:thead_end],"""<tr>
-                    <th>Data set</th>
-                    <th>Space group</th>
-                    <th>Res. [Å]</th>
-                    <th>R<sub>work</sub> [%]</th>
-                    <th>R<sub>free</sub> [%]</th>
-                    <th>RMS bonds [Å]</th>
-                    <th>RMS angles [°]</th>
-                    <th>a</th>
-                    <th>b</th>
-                    <th>c</th>
-                    <th>α</th>
-                    <th>β</th>
-                    <th>γ</th>
-                    <th>Unmodelled blobs</th>
-                    <th>σ</th>
-                    <th>Event</th>
-                    </tr>""")
-            a=a.replace(a[tbody_ini:tbody_end],"<tr></tr>"+body)
+            a=a.replace(a[thead_ini:tbody_end],"""<tr>
+                <th>Data set</th>
+                <th>Space group</th>
+                <th>Res. [Å]</th>
+                <th>R<sub>work</sub> [%]</th>
+                <th>R<sub>free</sub> [%]</th>
+                <th>RMS bonds [Å]</th>
+                <th>RMS angles [°]</th>
+                <th>a</th>
+                <th>b</th>
+                <th>c</th>
+                <th>α</th>
+                <th>β</th>
+                <th>γ</th>
+                <th>Unmodelled blobs</th>
+                <th>σ</th>
+                <th>Event</th>
+                </tr>
+                </thead>
+                <tbody><tr></tr>"""+body)
             a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
             
             return render(request,'fragview/pandda.html', {'Report': a})
@@ -901,7 +921,23 @@ def refine_datasets(request):
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
 
 def ligfit_datasets(request):
-    return render(request,'fragview/ligfit_datasets.html', {'allproc': "textao ligfit"})
+    userInput=str(request.GET.get("submitligProc"))
+    empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname=userInput.split(";;")
+    useRhoFit="False"
+    useLigFit="False"
+    if "true" in rhofitSW:
+        useRhoFit="True"
+    if "true" in ligfitSW:
+        useLigFit="True"
+
+    if "True" in useRhoFit:
+        gen_rhofitpythonScript()
+    if "True" in useLigFit:
+        gen_ligandfitpythonScript()        
+    t1 = threading.Thread(target=autoLigandFit,args=())
+    t1.daemon = True
+    t1.start()
+    return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -1150,7 +1186,7 @@ def create_dataColParam(acr, path):
         t.daemon = True
         t.start()
 
-        xml_list=glob.glob(path+"*/process/"+acr+"/*/*/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        xml_list=glob.glob(path+"**/process/"+acr+"/**/*/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
         img_list=list()
         prf_list=list()
         res_list=list()
@@ -1231,151 +1267,9 @@ def create_dataColParam(acr, path):
                 with open(subpath+x+"/fragmax/process/datacollectionPar.csv","w") as outp:
                     outp.write(line)
 
-        xmlDict=dict()
-        for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*.xml"):
-            xmlDict[x.split("/")[9]]=x
         
-        for key,value in xmlDict.items():
-            paramDict=retrieveParameters(value)
-            try:
-                hdf2jpg(paramDict)
-            except:
-                print("No data for "+key) 
-
-        t = threading.Thread(target=ligandToSVG,args=(lib))
-        t.daemon = True
-        t.start()
-        
-    
-def fsp_info_todelete(entry):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
-    usracr=""
-    spg=""
-    res=""
-    r_work=""
-    r_free=""
-    bonds=""
-    angles=""
-    blob=""
-    sigma=""
-    a=""
-    b=""
-    c=""
-    alpha=""
-    beta=""
-    gamma=""
-    blist=""    
-    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
-        
-    with open(entry,"r") as inp:
-        pdb_file=inp.readlines()
-    
-    for line in pdb_file:
-        if "REMARK Final:" in line:            
-            r_work=line.split()[4]
-            r_free=line.split()[7]
-            r_free=str("{0:.2f}".format(float(r_free)))
-            r_work=str("{0:.2f}".format(float(r_work)))
-            bonds=line.split()[10]
-            angles=line.split()[13]
-        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-            res=line.split(":")[-1].replace(" ","").replace("\n","")
-            res=str("{0:.2f}".format(float(res)))
-        if "CRYST1" in line:
-            a,b,c,alpha,beta,gamma=line.split()[1:-4]
-            a=str("{0:.2f}".format(float(a)))
-            b=str("{0:.2f}".format(float(b)))
-            c=str("{0:.2f}".format(float(c)))
-
-            spg="".join(line.split()[-4:])
-            
-    with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:
-        blobs_log=inp.readlines()
-    for line in blobs_log:
-        if "using sigma cut off " in line:
-            sigma=line.split("cut off")[-1].replace(" ","").replace("\n","")
-        if "INFO:: cluster at xyz = " in line:
-            blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
-            blob="["+blob+"]"
-            blist=blob+"<br>"+blist
-        #print(blist)
-    try:
-        pdbout=[x for x in glob.glob(path+panddaprocessed+usracr+"/*/*.pdb") if "fitted" not in x and "ligand" not in x][0].replace("/data/visitors/","")
-        event1=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "event_1" in x][0].replace("/data/visitors/","")
-        ccp4_nat=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "z_map.native" in x][0].replace("/data/visitors/","")
-        tr= """<tr><td><form action="/pandda_density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.split("<br>")[0],acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
-    except:
-        pdbout="None"
-        event1="None"
-        ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-    
-    return tr
-
-def dpl_info_todelete(entry):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
-    usracr=""
-    spg=""
-    res=""
-    r_work=""
-    r_free=""
-    bonds=""
-    angles=""
-    blob=""
-    sigma=""
-    a=""
-    b=""
-    c=""
-    alpha=""
-    beta=""
-    gamma=""
-    
-    with open(entry,"r") as inp:
-        dimple_log=inp.readlines()
-    for n,line in enumerate(dimple_log):
-        if "data_file: " in line:
-            usracr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
-        if "# MTZ " in line:
-            spg=line.split(")")[1].split("(")[0].replace(" ","")
-            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-            alpha=str("{0:.2f}".format(float(alpha)))
-            beta=str("{0:.2f}".format(float(beta)))
-            gamma=str("{0:.2f}".format(float(gamma)))
-        if line.startswith( "info:  8/8   R/Rfree"):
-            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-            r_free=str("{0:.2f}".format(float(r_free)))
-            r_work=str("{0:.2f}".format(float(r_work)))
-        if line.startswith( "density_info: Density"):
-            sigma=line.split("(")[-1].split(" sigma")[0]
-        if line.startswith("blobs: "):
-            l=""
-            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
-            blob="<br>".join(map(str,l[:3]))
-            #print(blob)
-        if line.startswith("#     RMS: "):
-            bonds,angles=line.split()[5],line.split()[9]
-        if line.startswith("info: resol. "):
-            res=line.split()[2]
-            res=str("{0:.2f}".format(float(res)))
-    try:
-        pdbout=[x for x in glob.glob(path+panddaprocessed+usracr+"/*/*.pdb") if "fitted" not in x and "ligand" not in x][0].replace("/data/visitors/","")
-        event1=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "event_1" in x][0].replace("/data/visitors/","")
-        ccp4_nat=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "z_map.native" in x][0].replace("/data/visitors/","")
-        tr= """<tr><td><form action="/pandda_density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.split("<br>")[0],acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-
-    except:
-        pdbout="None"
-        event1="None"
-        ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-    return tr
-
 def parseLigand_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
-    #acr=acrOriginal
+    acr=acrOriginal
 
     procDict=dict()
     rhofitDict=dict()
@@ -1427,38 +1321,50 @@ def parseLigand_results():
             blobsDict[d.split("<tr><td>")[-1].split("</td><td>")[0]]=d.split("</td><td>")[-3].split("<br>")[0].replace(" ","")
 
     sortedList=list()
-    for key,value in procDict.items():
-        if key in resDict and rhofitScore and ligfitScore and ligpng:
-            l='''<tr>
-            <td>
-            <form action="/dual_density/" method="get" id="%s_form" target="_blank">
-            <button class="btn" type="submit" value="%s;%s" name="ligfit_dataset" size="1">Open Dual Viewer</button>
-            </form>
-            </td>
-            <td>%s</td>
-            <td>%s</td>
-            <td>%s</td>
-            <td>%s</td>
-            <td>
-              <a href=%s target="_blank">
-                <object data=%s type="image/png" height="116" width="116">          
-                </object>
-              </a>
-            </td>  
-            </tr>
-            '''.replace("","") % (key,key,blobsDict[key],key,resDict[key],rhofitScore[key],ligfitScore[key],ligpng[key],ligpng[key])
+    procDictset=set(procDict)
+    resDictset=set(resDict)
+    rhofitScoreset=set(rhofitScore)
+    ligfitScoreset=set(ligfitScore)
+    ligpngset=set(ligpng)
+    blobsDictset=set(blobsDict)
+    #for key,value in procDict.items():
+    #    if key in resDict and key in rhofitScore and key in ligfitScore and key in ligpng:
+    for key in procDictset.intersection(resDictset,rhofitScoreset,ligfitScoreset,ligpngset,blobsDictset):
+
+        l='''<tr>
+        <td>
+        <form action="/dual_density/" method="get" id="%s_form" target="_blank">
+        <button class="btn" type="submit" value="%s;%s" name="ligfit_dataset" size="1">Open Dual Viewer</button>
+        </form>
+        </td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>
+        <a href=%s target="_blank">
+            <object data=%s type="image/png" height="116" width="116">          
+            </object>
+        </a>
+        </td>  
+        </tr>
+        '''.replace("","") % (key,key,blobsDict[key],key,resDict[key],rhofitScore[key],ligfitScore[key],ligpng[key],ligpng[key])
 
 
         sortedList.append(l)
 
     with open(path+"/fragmax/process/autolig.csv","w") as outp:
-            outp.write("".join(sortedList))
+            outp.write("".join(sortedList))                                                                     
+
 
 def panddaResultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
 
+    fix_pandda_symlinks
+    tpandda = threading.Thread(target=fix_pandda_symlinks, args=())
+    tpandda.start()
 
-    acr_list=glob.glob(subpath+"*/fragmax/results/"+acrOriginal+"*")
+    acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
     pipeline_dict=dict()
     for acr in acr_list:
         pipeline_dict[acr.split("/")[-1]]=glob.glob(acr+"/*")
@@ -1505,66 +1411,8 @@ def panddaResultSummary():
     with open(path+"/fragmax/process/panddarefsum.csv","w") as outp:
         outp.write(sortedline)
 
-def dpl_info_general(entry):
-    acr=""
-    spg=""
-    res=""
-    r_work=""
-    r_free=""
-    bonds=""
-    angles=""
-    blob=""
-    sigma=""
-    a=""
-    b=""
-    c=""
-    alpha=""
-    beta=""
-    gamma=""
-    
-    with open(entry,"r") as inp:
-        dimple_log=inp.readlines()
-    for n,line in enumerate(dimple_log):
-        if "data_file: " in line:
-            acr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
-        if "# MTZ " in line:
-            spg=line.split(")")[1].split("(")[0].replace(" ","")
-            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-            alpha=str("{0:.2f}".format(float(alpha)))
-            beta=str("{0:.2f}".format(float(beta)))
-            gamma=str("{0:.2f}".format(float(gamma)))
-        if line.startswith( "info:  8/8   R/Rfree"):
-            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-            r_free=str("{0:.2f}".format(float(r_free)))
-            r_work=str("{0:.2f}".format(float(r_work)))
-        if line.startswith( "density_info: Density"):
-            sigma=line.split("(")[-1].split(" sigma")[0]
-        if line.startswith("blobs: "):
-            l=""
-            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
-            blob="<br>".join(map(str,l[:5]))
-            #blob="<br>".join(map(str,l))
-        if line.startswith("#     RMS: "):
-            bonds,angles=line.split()[5],line.split()[9]
-        if line.startswith("info: resol. "):
-            res=line.split()[2]
-            res=str("{0:.2f}".format(float(res)))
-    
-    try:        
-        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final.pdb"        
-        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_2mFo-DFc_filled.ccp4"
-        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_mFo-DFc.ccp4"
-        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-
-    except:    
-        pdbout="None"
-        event1="None"
-        ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-    return tr
-
 def fsp_info_general(entry):
-    acr=""
+    usracr=""
     spg=""
     res=""
     r_work=""
@@ -1580,7 +1428,7 @@ def fsp_info_general(entry):
     beta=""
     gamma=""
     blist=""    
-    acr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
+    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
         
     with open(entry,"r") as inp:
         pdb_file=inp.readlines()
@@ -1614,29 +1462,205 @@ def fsp_info_general(entry):
             blob="["+blob+"]"
             blist=blob+"<br>"+blist
         #print(blist)
-    blist="<br>".join(blist.split("<br>")[:5])
-    #blist="<br>".join(blist.split("<br>"))
+    blist="<br>".join(blist.split("<br>")[:3])
     try:
-        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final.pdb"
-        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_2mFo-DFc_filled.ccp4"
-        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+acr+"/final_mFo-DFc.ccp4"
-        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(acr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),acr,acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
+        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final.pdb"
+        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_2mFo-DFc.ccp4"
+        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_mFo-DFc.ccp4"
+        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
     except:
         pdbout="None"
         event1="None"
         ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(acr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
     
     return tr
-#
+
+def dpl_info_general(entry):
+    usracr=""
+    spg=""
+    res=""
+    r_work=""
+    r_free=""
+    bonds=""
+    angles=""
+    blob=""
+    sigma=""
+    a=""
+    b=""
+    c=""
+    alpha=""
+    beta=""
+    gamma=""
+    
+    with open(entry,"r") as inp:
+        dimple_log=inp.readlines()
+    for n,line in enumerate(dimple_log):
+        if "data_file: " in line:
+            usracr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
+        if "# MTZ " in line:
+            spg=line.split(")")[1].split("(")[0].replace(" ","")
+            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+            alpha=str("{0:.2f}".format(float(alpha)))
+            beta=str("{0:.2f}".format(float(beta)))
+            gamma=str("{0:.2f}".format(float(gamma)))
+        if line.startswith( "info:  8/8   R/Rfree"):
+            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+            r_free=str("{0:.2f}".format(float(r_free)))
+            r_work=str("{0:.2f}".format(float(r_work)))
+        if line.startswith( "density_info: Density"):
+            sigma=line.split("(")[-1].split(" sigma")[0]
+        if line.startswith("blobs: "):
+            l=""
+            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
+            blob="<br>".join(map(str,l[:3]))
+        if line.startswith("#     RMS: "):
+            bonds,angles=line.split()[5],line.split()[9]
+        if line.startswith("info: resol. "):
+            res=line.split()[2]
+            res=str("{0:.2f}".format(float(res)))
+    
+    try:        
+        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final.pdb"        
+        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_2mFo-DFc.ccp4"
+        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_mFo-DFc.ccp4"
+        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+
+    except:    
+        pdbout="None"
+        event1="None"
+        ccp4_nat="None"
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+    return tr
+
+def dpl_info(entry):
+    usracr=""
+    spg=""
+    res=""
+    r_work=""
+    r_free=""
+    bonds=""
+    angles=""
+    blob=""
+    sigma=""
+    a=""
+    b=""
+    c=""
+    alpha=""
+    beta=""
+    gamma=""
+    
+    with open(entry,"r") as inp:
+        dimple_log=inp.readlines()
+    for n,line in enumerate(dimple_log):
+        if "data_file: " in line:
+            usracr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
+        if "# MTZ " in line:
+            spg=line.split(")")[1].split("(")[0].replace(" ","")
+            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+            alpha=str("{0:.2f}".format(float(alpha)))
+            beta=str("{0:.2f}".format(float(beta)))
+            gamma=str("{0:.2f}".format(float(gamma)))
+        if line.startswith( "info:  8/8   R/Rfree"):
+            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+            r_free=str("{0:.2f}".format(float(r_free)))
+            r_work=str("{0:.2f}".format(float(r_work)))
+        if line.startswith( "density_info: Density"):
+            sigma=line.split("(")[-1].split(" sigma")[0]
+        if line.startswith("blobs: "):
+            l=""
+            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
+            blob="<br>".join(map(str,l[:3]))
+            #print(blob)
+        if line.startswith("#     RMS: "):
+            bonds,angles=line.split()[5],line.split()[9]
+        if line.startswith("info: resol. "):
+            res=line.split()[2]
+            res=str("{0:.2f}".format(float(res)))
+    try:
+        pdbout=[x for x in glob.glob(path+panddaprocessed+usracr+"/*/*.pdb") if "fitted" not in x and "ligand" not in x][0].replace("/data/visitors/","")
+        event1=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "event_1" in x][0].replace("/data/visitors/","")
+        ccp4_nat=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "z_map.native" in x][0].replace("/data/visitors/","")
+        tr= """<tr><td><form action="/pandda_density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.split("<br>")[0],usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+
+    except:
+        pdbout="None"
+        event1="None"
+        ccp4_nat="None"
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+    return tr
+
+def fsp_info(entry):
+    usracr=""
+    spg=""
+    res=""
+    r_work=""
+    r_free=""
+    bonds=""
+    angles=""
+    blob=""
+    sigma=""
+    a=""
+    b=""
+    c=""
+    alpha=""
+    beta=""
+    gamma=""
+    blist=""    
+    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
+    with open(entry,"r") as inp:
+        pdb_file=inp.readlines()
+    
+    for line in pdb_file:
+        if "REMARK Final:" in line:            
+            r_work=line.split()[4]
+            r_free=line.split()[7]
+            r_free=str("{0:.2f}".format(float(r_free)))
+            r_work=str("{0:.2f}".format(float(r_work)))
+            bonds=line.split()[10]
+            angles=line.split()[13]
+        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+            res=line.split(":")[-1].replace(" ","").replace("\n","")
+            res=str("{0:.2f}".format(float(res)))
+        if "CRYST1" in line:
+            a,b,c,alpha,beta,gamma=line.split()[1:-4]
+            a=str("{0:.2f}".format(float(a)))
+            b=str("{0:.2f}".format(float(b)))
+            c=str("{0:.2f}".format(float(c)))
+
+            spg="".join(line.split()[-4:])
+            
+    with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:
+        blobs_log=inp.readlines()
+    for line in blobs_log:
+        if "using sigma cut off " in line:
+            sigma=line.split("cut off")[-1].replace(" ","").replace("\n","")
+        if "INFO:: cluster at xyz = " in line:
+            blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
+            blob="["+blob+"]"
+            blist=blob+"<br>"+blist
+        #print(blist)
+    try:
+        pdbout=[x for x in glob.glob(path+panddaprocessed+usracr+"/*/*.pdb") if "fitted" not in x and "ligand" not in x][0].replace("/data/visitors/","")
+        event1=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "event_1" in x][0].replace("/data/visitors/","")
+        ccp4_nat=[x for x in glob.glob(path+panddaprocessed+usracr+"/*.ccp4") if "z_map.native" in x][0].replace("/data/visitors/","")
+        tr= """<tr><td><form action="/pandda_density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.split("<br>")[0],usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
+    except:
+        pdbout="None"
+        event1="None"
+        ccp4_nat="None"
+        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+    
+    return tr
+#fsp_info("/data/visitors/biomax/20180479/20190323/fragmax/results/ProteinaseK-JBSE7_1/xdsapp/fspipeline/final_13_ProteinaseK-JBSE7_1_xdsapp_merged.pdb")
+
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
-
+    
     acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
     pipeline_dict=dict()
-    for acr in acr_list:
-        pipeline_dict[acr.split("/")[-1]]=glob.glob(acr+"/*")
+    for pacr in acr_list:
+        pipeline_dict[pacr.split("/")[-1]]=glob.glob(pacr+"/*")
 
     dimple_dict=dict()
     fspipe_dict=dict()
@@ -1676,7 +1700,8 @@ def resultSummary():
         for j in dl:
             if i in j:
                 sortedline+=j+"\n"            
-    sortedline=sortedline.replace("_filled","")
+
+
     with open(path+"/fragmax/process/generalrefsum.csv","w") as outp:
         outp.write(sortedline)
 
@@ -1713,7 +1738,7 @@ def hdf2jpg(paramDict):
 
 
     for i in imglist:        
-        t = Thread(target=convert, args=(i,))
+        t = threading.Thread(target=convert, args=(i,))
         t.start()
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
@@ -2507,6 +2532,9 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
     runFragMAX()
 
+
+
+################ PANDDA #####################
 def populate_missing():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
     dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
@@ -2748,6 +2776,20 @@ def prepare_pandda_folder():
     script=path+"/fragmax/scripts/ccp4maps.sh"
     command ='echo "module purge | module load CCP4 Phenix DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
+
+
+def fix_pandda_symlinks():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    linksFolder=glob.glob(path+"/fragmax/results/pandda/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    for i in linksFolder:
+        print(i)
+        folder="/".join(i.split("/")[:-1])+"/"
+        pdbs=os.listdir(folder)
+        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
+        print(pdb)
+        shutil.move(i,i+".bak")
+        shutil.copyfile(pdb,i)
+#############################################
 
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
 
@@ -3238,6 +3280,180 @@ def ligandToSVG():
                 content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
                 outw.write(content)
 
+def autoLigandFit():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+
+    resList=os.listdir(path+"/fragmax/results/pandda/")
+    keywordFilter=["Apo","fspipeline","pandda","DMSO","DS_Store","DMOS"]
+    resList = [path+"/fragmax/results/pandda/"+x for x in resList 
+        if not any(word in x for word in keywordFilter)]
+
+    #Create rhofit directory under results folder
+    rhoList=[x.replace("/pandda/","/ligandfit/") for x in resList]
+
+    for src,dst in zip(resList,rhoList):
+        if not os.path.exists(dst):
+            shutil.copytree(src,dst)
+    
+
+    
+    def gen_rhofit():
+    
+        nthreads=str(48)
+        
+
+        rhofitScript=list()
+        rhofitOut=""
+
+        #define env for script for fspipeline
+        rhofitOut+= """#!/bin/bash\n"""
+        rhofitOut+= """#!/bin/bash\n"""
+        rhofitOut+= """#SBATCH -t 99:55:00\n"""
+        rhofitOut+= """#SBATCH -J autoligfit\n"""
+        rhofitOut+= """#SBATCH --exclusive\n"""
+        rhofitOut+= """#SBATCH -N1\n"""
+        rhofitOut+= """#SBATCH --cpus-per-task=48\n"""
+        rhofitOut+= """#SBATCH --mem=220000\n""" 
+        rhofitOut+= """#SBATCH -o """+path+"""/fragmax/logs/autoligfit_fragmax_%j.out\n"""
+        rhofitOut+= """#SBATCH -e """+path+"""/fragmax/logs/autoligfit_fragmax_%j.err\n"""    
+        rhofitOut+= """module purge\n\n"""
+        rhofitOut+= """module load Phenix BUSTER\n\n"""
+        if os.path.exists(path+"/fragmax/scripts/rhofit.py"):
+            rhofitOut+= """python2 """+path+"""/fragmax/scripts/rhofit.py\n\n"""
+        if os.path.exists(path+"/fragmax/scripts/ligandfit.py"):
+            rhofitOut+= """python2 """+path+"""/fragmax/scripts/ligandfit.py\n\n"""
+        #rhofitOut+= """python2 """+path+"""/fragmax/scripts/ccp4maps.py\n\n"""
+        
+        srcList=glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit*")
+        dstList=[x.replace("LigandFit_run_1_","ligandfit") for x in srcList]
+            
+        for src,dst in zip(srcList,dstList):
+            rhofitOut+="mv "+src+" "+dst+"\n"
+        
+        with open(path+"/fragmax/scripts/autoligfit_fragmax.sh", "w") as outfile:
+            outfile.write(rhofitOut)
+
+        script=path+"/fragmax/scripts/autoligfit_fragmax.sh"
+        command ='echo "module purge | module load autoPROC BUSTER Phenix CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+    
+    gen_rhofit()
+
+def gen_rhofitpythonScript():
+    mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
+    pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
+    outList=[x+"rhofit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
+    cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]    
+    nthreads=str(48)
+    
+
+    rhofitScript=list()
+    rhopythonOut=""
+    
+    rhopythonOut+='import multiprocessing\n'
+    rhopythonOut+='import time\n'
+    rhopythonOut+='import subprocess\n\n\n'
+    
+    rhopythonOut+='cifList=["'+'",\n"'.join(cifList)+'"]\n\n'
+    rhopythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
+    rhopythonOut+='pdbList=["'+'",\n"'.join(pdbList)+'"]\n\n'
+    rhopythonOut+='outList=["'+'",\n"'.join(outList)+'"]\n\n'
+    
+    
+    rhopythonOut+='inpdata=list()\n'
+    rhopythonOut+='for a,b,c,d in zip(cifList,mtzList,pdbList,outList):\n'
+    rhopythonOut+='    inpdata.append([a,b,c,d])\n'
+    rhopythonOut+='\n'
+    rhopythonOut+='def rhofit_worker((cif, mtz, pdb, out)):\n'
+    rhopythonOut+='    command="rhofit -l %s -m %s -p %s -d %s" %(cif, mtz, pdb, out)\n'
+    rhopythonOut+='    print " Processs %s\tsubmitted" % cif\n'
+    rhopythonOut+='    subprocess.call(command, shell=True) \n'
+    rhopythonOut+='    \n'
+    rhopythonOut+='\n'
+    rhopythonOut+='def mp_handler():\n'
+    rhopythonOut+='    p = multiprocessing.Pool('+nthreads+')\n'
+    rhopythonOut+='    p.map(rhofit_worker, inpdata)\n'
+    rhopythonOut+='\n'
+    rhopythonOut+="""if __name__ == '__main__':\n"""
+    rhopythonOut+='    mp_handler()\n'
+    
+    with open(path+"/fragmax/scripts/rhofit.py", "w") as outfile:
+        outfile.write(rhopythonOut)
+
+
+def gen_ligandfitpythonScript():
+    
+    mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
+    pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
+    outList=[x+"ligandfit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
+    cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
+    nthreads=str(48)
+    
+
+    rhofitScript=list()
+    rhopythonOut=""
+    
+    rhopythonOut+='import multiprocessing\n'
+    rhopythonOut+='import time\n'
+    rhopythonOut+='import subprocess\n\n\n'
+    
+    rhopythonOut+='cifList=["'+'",\n"'.join(cifList)+'"]\n\n'
+    rhopythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
+    rhopythonOut+='pdbList=["'+'",\n"'.join(pdbList)+'"]\n\n'
+    rhopythonOut+='outList=["'+'",\n"'.join(outList)+'"]\n\n'
+    
+    
+    rhopythonOut+='inpdata=list()\n'
+    rhopythonOut+='for a,b,c,d in zip(cifList,mtzList,pdbList,outList):\n'
+    rhopythonOut+='    inpdata.append([a,b,c,d])\n'
+    rhopythonOut+='\n'
+    rhopythonOut+='def ligandfit_worker((cif, mtz, pdb, out)):\n'    
+    rhopythonOut+='    out="/".join(out.split("/")[:-1])\n'
+    rhopythonOut+='    command="cd %s && phenix.ligandfit data=%s model=%s ligand=%s fill=True clean_up=True" %(out,mtz, pdb, cif)\n'
+    rhopythonOut+='    print " Processs %s\tsubmitted" % cif\n'
+    rhopythonOut+='    subprocess.call(command, shell=True) \n'
+
+
+    rhopythonOut+='\n'
+    rhopythonOut+='def mp_handler():\n'
+    rhopythonOut+='    p = multiprocessing.Pool('+nthreads+')\n'
+    rhopythonOut+='    p.map(ligandfit_worker, inpdata)\n'
+    rhopythonOut+='\n'
+    rhopythonOut+="""if __name__ == '__main__':\n"""
+    rhopythonOut+='    mp_handler()\n'
+    
+    with open(path+"/fragmax/scripts/ligandfit.py", "w") as outfile:
+        outfile.write(rhopythonOut)
+        
+def project_dif_svg():
+    xmlDict=dict()
+    for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*.xml"):
+        xmlDict[x.split("/")[9]]=x
+    
+
+    for key,value in xmlDict.items():
+        paramDict=retrieveParameters(value)
+        try:
+            t = threading.Thread(target=hdf2jpg, args=(paramDict,))
+            t.start()
+            
+        except:
+            print("No data for "+key) 
+
+    t = threading.Thread(target=ligandToSVG,args=(lib))
+    t.daemon = True
+    t.start()
+        
+def merge_project():
+    srcprj="20190401"
+    dstprj="20190330"
+    srcacr="/mxn/groups/ispybstorage/pyarch/visitors/proposal/shift/raw/srcacr/"
+    dstacr="/mxn/groups/ispybstorage/pyarch/visitors/proposal/shift/raw/dstacr/"
+    ### Symlink raw folder
+
+    ### Symlink process folder
+    
+    ### Symlink snapshots
 ###############################
 
 #################################

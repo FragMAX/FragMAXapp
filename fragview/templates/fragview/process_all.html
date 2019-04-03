@@ -379,6 +379,20 @@
                             <input type='file' accept=".csv,.txt,.smi,.smiles" onchange='onChooseFile(event, onFileLoad.bind(this, "ligcontent"))' />
                         </td>
                     </tr>
+                    <th ></th>
+                        <td class=" top-options">
+                            <form id="swSelectionForrefinement" >
+                                
+                                <div class="checkbox" id="dials">
+                                <label>
+                                    <input id="ligfromname" name="ligfromname" type="checkbox" class="filled-in dt-checkboxes" value="ligfromnameValue" checked>
+                                    <span for="ligfromname">Get from sample name </span>
+                                </label>
+                                </div>                    
+                                
+                            </form>        
+                        </td>
+                    </tr>
                     <tr>
                         <th class=" top-options">Fitting process</th>
                         <td class=" top-options">
@@ -479,56 +493,57 @@ var f3 = document.getElementById("ligprocBtn");
     
     f3.onsubmit = function ligandfitproc() {
        //Ligand fit options
-        var rhofitSW        = ";rhofitSW:"+document.getElementsByName("rhofitcheckboxname")[0].checked
-        var ligfitSW        = ";ligfitSW:"+document.getElementsByName("phenixligfitcheckboxname")[0].checked
-        var ligandfile      = ";ligandfile:"+document.getElementById("ligcontent").innerHTML
-        var fitprocess      = ";fitprocess:"+document.getElementsByName("fitprocess")[0].value
-        var scanchirals     = ";scanchirals:"+document.getElementsByName("scanchirals")[0].value
-        var customligfit    = ";customligfit:"+document.getElementsByName("customligfit")[0].value
+        var rhofitSW        = ";;rhofitSW:"+document.getElementsByName("rhofitcheckboxname")[0].checked
+        var ligfitSW        = ";;ligfitSW:"+document.getElementsByName("phenixligfitcheckboxname")[0].checked
+        var ligandfile      = ";;ligandfile:"+document.getElementById("ligcontent").innerHTML
+        var fitprocess      = ";;fitprocess:"+document.getElementsByName("fitprocess")[0].value
+        var scanchirals     = ";;scanchirals:"+document.getElementsByName("scanchirals")[0].value
+        var customligfit    = ";;customligfit:"+document.getElementsByName("customligfit")[0].value
+        var ligandfromname  = ";;ligfromname:"+document.getElementsByName("ligfromname")[0].checked;
 
-        var ligfitcmd= rhofitSW+ligfitSW+ligandfile+fitprocess+scanchirals+customligfit
+        var ligfitcmd= rhofitSW+ligfitSW+ligandfile+fitprocess+scanchirals+customligfit+ligandfromname
         
         document.getElementsByName("submitligProc")[0].value = ligfitcmd
-
+        console.log(ligfitcmd)
     }
 
 var fAll = document.getElementById("allprocBtn");
 
     fAll.onsubmit = function dataprocess(){
         //Data proc options
-        var dialsSW         =";dials:"+document.getElementsByName("dialscheckboxname")[0].checked
-        var xdsxscaleSW     =";xdsxscale:"+document.getElementsByName("xdsxscalecheckboxname")[0].checked
-        var xdsappSW        =";xdsapp:"+document.getElementsByName("xdsappcheckboxname")[0].checked
-        var autoprocSW      =";autoproc:"+document.getElementsByName("autoproccheckboxname")[0].checked
-        var spacegroup      = ";spacegroup:"+document.getElementsByName("spacegroup")[0].value
-        var cellparam       = ";cellparam:"+document.getElementsByName("cellparam")[0].value
-        var friedel         = ";friedel:"+document.getElementsByName("friedel")[0].value
-        var datarange       = ";datarange:"+document.getElementsByName("datarange")[0].value
-        var rescutoff       = ";rescutoff:"+document.getElementsByName("rescutoff")[0].value
-        var cccutoff        = ";cccutoff:"+document.getElementsByName("cccutoff")[0].value
-        var isigicutoff     = ";isigicutoff:"+document.getElementsByName("isigmacutoff")[0].value
+        var dialsSW         = ";;dials:"+document.getElementsByName("dialscheckboxname")[0].checked
+        var xdsxscaleSW     = ";;xdsxscale:"+document.getElementsByName("xdsxscalecheckboxname")[0].checked
+        var xdsappSW        = ";;xdsapp:"+document.getElementsByName("xdsappcheckboxname")[0].checked
+        var autoprocSW      = ";;autoproc:"+document.getElementsByName("autoproccheckboxname")[0].checked
+        var spacegroup      = ";;spacegroup:"+document.getElementsByName("spacegroup")[0].value
+        var cellparam       = ";;cellparam:"+document.getElementsByName("cellparam")[0].value
+        var friedel         = ";;friedel:"+document.getElementsByName("friedel")[0].value
+        var datarange       = ";;datarange:"+document.getElementsByName("datarange")[0].value
+        var rescutoff       = ";;rescutoff:"+document.getElementsByName("rescutoff")[0].value
+        var cccutoff        = ";;cccutoff:"+document.getElementsByName("cccutoff")[0].value
+        var isigicutoff     = ";;isigicutoff:"+document.getElementsByName("isigmacutoff")[0].value
 
         //Refinement options
-        var dimpleSW        = ";dimpleSW:"+document.getElementsByName("dimplecheckboxname")[0].checked
-        var fspSW           = ";fspSW:"+document.getElementsByName("fspcheckboxname")[0].checked
-        var busterSW        = ";busterSW:"+document.getElementsByName("bustercheckboxname")[0].checked
-        var refinemode      = ";refinemode:"+document.getElementsByName("refMode")[0].value
-        var mrthreshold     = ";mrthreshold:"+document.getElementsByName("mrthresh")[0].value
-        var refinerescutoff = ";refinerescutoff:"+document.getElementsByName("refrescutoff")[0].value
+        var dimpleSW        = ";;dimpleSW:"+document.getElementsByName("dimplecheckboxname")[0].checked
+        var fspSW           = ";;fspSW:"+document.getElementsByName("fspcheckboxname")[0].checked
+        var busterSW        = ";;busterSW:"+document.getElementsByName("bustercheckboxname")[0].checked
+        var refinemode      = ";;refinemode:"+document.getElementsByName("refMode")[0].value
+        var mrthreshold     = ";;mrthreshold:"+document.getElementsByName("mrthresh")[0].value
+        var refinerescutoff = ";;refinerescutoff:"+document.getElementsByName("refrescutoff")[0].value
         if (document.getElementById("pdbcontent").innerHTML.includes("ATOM")) {
-            var pdbmodel    = ";pdbupload:"+document.getElementById("pdbcontent").innerHTML
+            var pdbmodel    = ";;pdbupload:"+document.getElementById("pdbcontent").innerHTML
         } else {
-            var pdbmodel    = ";pdbmodel:"+document.getElementsByName("pdbcode")[0].value
+            var pdbmodel    = ";;pdbmodel:"+document.getElementsByName("pdbcode")[0].value
         }
-        var customrefparam  = ";customrefine:"+document.getElementsByName("customrefine")[0].value
+        var customrefparam  = ";;customrefine:"+document.getElementsByName("customrefine")[0].value
 
         //Ligand fit options
-        var rhofitSW        = ";rhofitSW:"+document.getElementsByName("rhofitcheckboxname")[0].checked
-        var ligfitSW        = ";ligfitSW:"+document.getElementsByName("phenixligfitcheckboxname")[0].checked
-        var ligandfile      = ";ligandfile:"+document.getElementById("ligcontent").innerHTML
-        var fitprocess      = ";fitprocess:"+document.getElementsByName("fitprocess")[0].value
-        var scanchirals     = ";scanchirals:"+document.getElementsByName("scanchirals")[0].value
-        var customligfit    = ";customligfit:"+document.getElementsByName("customligfit")[0].value
+        var rhofitSW        = ";;rhofitSW:"+document.getElementsByName("rhofitcheckboxname")[0].checked
+        var ligfitSW        = ";;ligfitSW:"+document.getElementsByName("phenixligfitcheckboxname")[0].checked
+        var ligandfile      = ";;ligandfile:"+document.getElementById("ligcontent").innerHTML
+        var fitprocess      = ";;fitprocess:"+document.getElementsByName("fitprocess")[0].value
+        var scanchirals     = ";;scanchirals:"+document.getElementsByName("scanchirals")[0].value
+        var customligfit    = ";;customligfit:"+document.getElementsByName("customligfit")[0].value
 
         var dtproccmd= dialsSW+xdsxscaleSW+xdsappSW+autoprocSW+spacegroup+cellparam+friedel+datarange+rescutoff+cccutoff+isigicutoff
         var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel
