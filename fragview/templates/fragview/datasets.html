@@ -93,7 +93,7 @@
   <tbody>
     <tr >
     </tr>
-    {% for img,prf,res,path,snap,acr,png,run in files %}
+    {% for img,prf,res,path,snap,acr,png,run,smp,dps,rfs,lgs in files %}
     <tr>
     <td>
     {% comment %} <form action="/dataset_info">
@@ -110,25 +110,11 @@
 
     </td>
     <td><p>{{ acr }}</p></td>
-    <td><p>{{ prf }}</p></td>
+    <td><p>{{ smp }}</p></td>
     <td><p>{{ run }}</p></td>
-    <td>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
-    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
-    </td>
-    <td>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>
-    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
-    </td>
-    <td>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
-    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
-    </td>
+    {{dps| safe}}    
+    {{rfs| safe}}
+    {{lgs | safe}}
     <td><p>{{ res }}</p></td>
     <td><p>{{ img }}</p></td>
     {% comment %} <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td> {% endcomment %}
