@@ -594,9 +594,13 @@ def datasets(request):
             if acr not in "".join(csvinp.readlines()):
                 os.remove(path+"/fragmax/process/datacollectionPar.csv")
                 create_dataColParam(acr,path)   
-                get_project_status()         
+                get_project_status()     
+                if not os.path.exists(path+"/fragmax/results/"):    
+                    get_project_status_initial()
     else:
-        create_dataColParam(acr,path)            
+        create_dataColParam(acr,path)    
+        if not os.path.exists(path+"/fragmax/results/"):
+            get_project_status_initial()        
     if "resyncDataset" in resyncAction:
         shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
         create_dataColParam(acr,path)
@@ -604,6 +608,8 @@ def datasets(request):
         project_dif_svg()        
     if "resyncStatus" in resyncStatus:
         get_project_status()
+        if not os.path.exists(path+"/fragmax/results/"):
+            get_project_status_initial()
         
     
 
@@ -627,141 +633,208 @@ def datasets(request):
 
 
         ##Proc status
-        with open(path+"/fragmax/process/dpstatus.csv") as inp:
-            dp=inp.readlines()
-            dpDict=dict()
-            for line in dp:
-                key=line.split(":")[0]
-                value=":".join(line.split(":")[1:])
-                dpDict[key]=value
-        for i,j in zip(prf_list,run_list):
-            dictEntry=i+"_"+j
-            if dictEntry in dpDict:
-                da="<td>"
-                if "autoproc:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>""")
-                elif "autoproc:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> autoPROC</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>""")
+        if os.path.exists(path+"/fragmax/process/dpstatus.csv"):
+            with open(path+"/fragmax/process/dpstatus.csv") as inp:
+                dp=inp.readlines()
+                dpDict=dict()
+                for line in dp:
+                    key=line.split(":")[0]
+                    value=":".join(line.split(":")[1:])
+                    dpDict[key]=value
+            for i,j in zip(prf_list,run_list):
+                dictEntry=i+"_"+j
+                if dictEntry in dpDict:
+                    da="<td>"
+                    if "autoproc:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>""")
+                    elif "autoproc:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> autoPROC</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>""")
 
-                if "dials:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
-                elif "dials:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    if "dials:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    elif "dials:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>""")
 
-                if "xdsxscale:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
-                elif "xdsxscale:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>""")
+                    if "xdsxscale:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                    elif "xdsxscale:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>""")
 
-                if "xdsapp:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>""")
-                elif "xdsapp:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDSAPP</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>""")
-
-
-                if "fastdp:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>""")
-                elif "fastdp:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> fastdp</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>""")
+                    if "xdsapp:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>""")
+                    elif "xdsapp:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDSAPP</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>""")
 
 
-                if "EDNA_proc:full" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
-                elif "EDNA_proc:partial" in dpDict[dictEntry]:
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
-                else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p></td>""")
+                    if "fastdp:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>""")
+                    elif "fastdp:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> fastdp</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>""")
 
-                
-                
-                dpentry.append(da)
 
-            else:                
+                    if "EDNA_proc:full" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
+                    elif "EDNA_proc:partial" in dpDict[dictEntry]:
+                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
+                    else:
+                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p></td>""")
+
+                    
+                    
+                    dpentry.append(da)
+
+                else:                
+                    dpentry.append("""<td>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+                    </td>""")
+        else:
+            for i in prf_list:
                 dpentry.append("""<td>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
-                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
-                </td>""")
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+                    </td>""")
         ##Ref status
-        with open(path+"/fragmax/process/rfstatus.csv") as inp:
-            rf=inp.readlines()
-            rfDict=dict()
-            for line in rf:
-                key=line.split(":")[0]
-                value=":".join(line.split(":")[1:])
-                rfDict[key]=value
+        if os.path.exists(path+"/fragmax/process/rfstatus.csv"):
+            with open(path+"/fragmax/process/rfstatus.csv") as inp:
+                rf=inp.readlines() 
+                rfDict=dict()
+                for line in rf:
+                    key=line.split(":")[0]
+                    value=":".join(line.split(":")[1:])
+                    rfDict[key]=value
 
-        for i,j in zip(prf_list,run_list):
-            dictEntry=i+"_"+j
-            if dictEntry in rfDict:
-                re="<td>"
-                if "BUSTER:full" in rfDict[dictEntry]:
-                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
-                else:
-                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
+            for i,j in zip(prf_list,run_list):
+                dictEntry=i+"_"+j
+                if dictEntry in rfDict:
+                    re="<td>"  
+                    if "BUSTER:full" in rfDict[dictEntry]:
+                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
+                    else:
+                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
 
-                if "dimple:full" in rfDict[dictEntry]:
-                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
-                else:
-                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
-                if "fspipeline:full" in rfDict[dictEntry]:
-                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> FSpipeline</font></p></td>""")
-                else:
-                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p></td>""")
-                
-                rfentry.append(re)
+                    if "dimple:full" in rfDict[dictEntry]:
+                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
+                    else:
+                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
+                    if "fspipeline:full" in rfDict[dictEntry]:
+                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> FSpipeline</font></p></td>""")
+                    else:
+                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p></td>""")
+                    
+                    rfentry.append(re)
 
-            else:
-                rfentry.append("""<td>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
-                    </td>""")
-        ##Lig status
-        with open(path+"/fragmax/process/lgstatus.csv") as inp:
-            lg=inp.readlines()
-            lgDict=dict()
-            for line in lg:
-                key=line.split(":")[0]
-                value=":".join(line.split(":")[1:])
-                lgDict[key]=value
-        
-        for i,j in zip(prf_list,run_list):
-            dictEntry=i+"_"+j
-            if dictEntry in lgDict:
-                if "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
-                    lgentry.append("""<td>
-                            <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
-                            <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
+                else:
+                    rfentry.append("""<td>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
                         </td>""")
-                elif "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" not in lgDict[dictEntry]:
+        else:
+            for i in prf_list:
+                rfentry.append("""<td>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
+                        </td>""")
+        ##Lig status
+        if os.path.exists(path+"/fragmax/process/lgstatus.csv"):
+            with open(path+"/fragmax/process/lgstatus.csv") as inp:
+                lg=inp.readlines()
+                lgDict=dict()
+                for line in lg:
+                    key=line.split(":")[0]
+                    value=":".join(line.split(":")[1:])
+                    lgDict[key]=value
+            
+            for i,j in zip(prf_list,run_list):
+                dictEntry=i+"_"+j
+                if "Apo" not in dictEntry:
+                    if dictEntry in lgDict:
+                        lge="<td>"
+                        if "rhofit:full" in lgDict[dictEntry] :
+                            lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>'
+                            if "ligandfit:full" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            elif "ligandfit:partial" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            else:
+                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            lgentry.append(lge)
+                        elif "rhofit:partial" in lgDict[dictEntry] :
+                            lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> RhoFit</font></p>'
+                            if "ligandfit:full" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            elif "ligandfit:partial" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            else:
+                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            lgentry.append(lge)
+                        elif "rhofit:none" in lgDict[dictEntry] :
+                            lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
+                            if "ligandfit:full" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            elif "ligandfit:partial" in lgDict[dictEntry]:
+                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            else:
+                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                            lgentry.append(lge)
+                        else:
+                            lgentry.append("""<td>
+                                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
+                                </td>""")
+
+
+                #         if "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
+                #             lgentry.append("""<td>
+                #                     <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
+                #                     <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
+                #                 </td>""")
+                #         elif "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" not in lgDict[dictEntry]:
+                #             lgentry.append("""<td>
+                #                 <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
+                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
+                #             </td>""")
+                #         elif "rhofit:full" not in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
+                #             lgentry.append("""<td>
+                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                #                 <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
+                #             </td>""")
+                #     else:
+                #         lgentry.append("""<td>
+                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
+                #             </td>""")
+                else:
                     lgentry.append("""<td>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                    </td>""")
-                elif "rhofit:full" not in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
-                    lgentry.append("""<td>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
-                    </td>""")
-            else:
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
+                        </td>""")
+        else:
+            for i in prf_list:
                 lgentry.append("""<td>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                    </td>""")
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
+                        </td>""")
         results = zip(img_list,prf_list,res_list,path_list,snap_list,acr_list,png_list,run_list,smp_list,dpentry,rfentry,lgentry)
         return render_to_response('fragview/datasets.html', {'files': results})
     except:
@@ -825,7 +898,7 @@ def compare_poses(request):
     blob=a.split(";")[1]
     png=data.split(acr+"-")[-1].split("_")[0]
     rhofit=path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
-    ligfit=path+"/fragmax/results/ligandfit/"+data+"/ligandfit/ligand_fit_1.pdb"
+    ligfit=path+"/fragmax/results/ligandfit/"+data+"/LigandFit_run_1_/ligand_fit_1.pdb"
     ligcenter="[]"
     rhocenter="[]"
     if os.path.exists(ligfit):
@@ -1202,17 +1275,17 @@ def kill_HPC_job(request):
 
         </tr>""".format(i.split()[0])
 
-    proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out_sacct, err_sacct = proc_sacct.communicate()
-    sacct=""
-    for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
-        linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
-        linelist=[x.replace(" ","") for x in linelist]
-        sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
+    # proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # out_sacct, err_sacct = proc_sacct.communicate()
+    # sacct=""
+    # for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
+    #     linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
+    #     linelist=[x.replace(" ","") for x in linelist]
+    #     sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
 
     
     
-    return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': sacct})
+    return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
 def hpcstatus(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -1257,17 +1330,17 @@ def hpcstatus(request):
 
         </tr>""".format(i.split()[0])
 
-    proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out_sacct, err_sacct = proc_sacct.communicate()
-    sacct=""
-    for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
-        linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
-        linelist=[x.replace(" ","") for x in linelist]
-        sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
+    # proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # out_sacct, err_sacct = proc_sacct.communicate()
+    # sacct=""
+    # for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
+    #     linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
+    #     linelist=[x.replace(" ","") for x in linelist]
+    #     sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
 
     
 
-    return render(request,'fragview/hpcstatus.html', {'command': output, 'history': sacct})
+    return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
 
 
 #####################################################################################
@@ -1429,6 +1502,8 @@ def create_dataColParam(acr, path):
             if os.path.isdir(subpath+x+"/fragmax/process/"):
                 with open(subpath+x+"/fragmax/process/datacollectionPar.csv","w") as outp:
                     outp.write(line)
+        
+        
 
         
 def parseLigand_results():
@@ -1444,7 +1519,7 @@ def parseLigand_results():
     for x in glob.glob(path+"/fragmax/results/ligandfit/*/rhofit"):
         rhofitDict[x.split("/")[-2]]=x 
 
-    for x in glob.glob(path+"/fragmax/results/ligandfit/*/ligandfit"):
+    for x in glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit_run_1_"):
         ligfitDict[x.split("/")[-2]]=x 
 
     for key,value in procDict.items():
@@ -1458,8 +1533,8 @@ def parseLigand_results():
     ligfitScore=dict()
     for key,value in procDict.items():
         if key in ligfitDict:
-            if os.path.exists(value+"/ligandfit/LigandFit_summary.dat"):
-                with open(value+"/ligandfit/LigandFit_summary.dat","r") as inp:
+            if os.path.exists(value+"/LigandFit_run_1_/LigandFit_summary.dat"):
+                with open(value+"/LigandFit_run_1_/LigandFit_summary.dat","r") as inp:
                     a=inp.readlines()        
                 ligfitScore[key]=a[6].split()[2]
 
@@ -3414,18 +3489,18 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         script=path+"/fragmax/scripts/scale.sh"
         command ='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-    #if useFSP:
-    #    script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
-    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #    subprocess.call(command,shell=True)
-    #if useDIMPLE:
-    #    script=path+"/fragmax/scripts/run_dimple.sh"
-    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #    subprocess.call(command,shell=True)
-    #if useBUSTER:
-    #    script=path+"/fragmax/scripts/run_fsp.sh"
-    #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #    subprocess.call(command,shell=True)
+    # if useBUSTER:
+    #     script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+    #     command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #     subprocess.call(command,shell=True)
+    if useDIMPLE:
+        script=path+"/fragmax/scripts/run_dimple.sh"
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+    if useFSP:
+        script=path+"/fragmax/scripts/run_fsp.sh"
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
 def ligandToSVG():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
@@ -3489,19 +3564,19 @@ def autoLigandFit():
             rhofitOut+= """python2 """+path+"""/fragmax/scripts/ligandfit.py\n\n"""
         #rhofitOut+= """python2 """+path+"""/fragmax/scripts/ccp4maps.py\n\n"""
         
-        with open(path+"/fragmax/scripts/arrangeLigFit.py","w") as outp:
-            outp.write("import glob\n")
-            outp.write("import shutil\n")
-            outp.write("import sys\n")
+        # with open(path+"/fragmax/scripts/arrangeLigFit.py","w") as outp:
+        #     outp.write("import glob\n")
+        #     outp.write("import shutil\n")
+        #     outp.write("import sys\n")
 
-            outp.write("""path = sys.argv[1]\n""")
-            outp.write("""srcList=glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit*")\n""")
-            outp.write("""dstList=[x.replace("LigandFit_run_1_","ligandfit") for x in srcList]\n""")
+        #     outp.write("""path = sys.argv[1]\n""")
+        #     outp.write("""srcList=glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit*")\n""")
+        #     outp.write("""dstList=[x.replace("LigandFit_run_1_","ligandfit") for x in srcList]\n""")
                 
-            outp.write("""for src,dst in zip(srcList,dstList):\n""")
-            outp.write("""    shutil.move(src,dst)\n""")
+        #     outp.write("""for src,dst in zip(srcList,dstList):\n""")
+        #     outp.write("""    shutil.move(src,dst)\n""")
                 
-        rhofitOut+="python2 arrangeLigFit.py"+path+"\n"
+        # rhofitOut+="python2 arrangeLigFit.py"+path+"\n"
         
         with open(path+"/fragmax/scripts/autoligfit_fragmax.sh", "w") as outfile:
             outfile.write(rhofitOut)
@@ -3556,9 +3631,15 @@ def gen_rhofitpythonScript():
 
 def gen_ligandfitpythonScript():
     
-    mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
+    # mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
+    # pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
+    # outList=[x+"ligandfit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
+    # cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
+
+    
     pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
-    outList=[x+"ligandfit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
+    mtzList=[x.replace("/final.pdb","/final.mtz") for x in pdbList]
+    outList=[x.replace("/final.pdb","/LigandFit_Run_1_") for x in pdbList]
     cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
     nthreads=str(48)
     
@@ -3639,58 +3720,59 @@ def get_project_status():
     dp=["autoproc","dials","xdsxscale","EDNA_proc","fastdp","xdsapp"]
     rf=["BUSTER","fspipeline","dimple"]
     sampleList=[x for x in glob.glob(path+"/fragmax/results/*/") if "pandda" not in x and "ligandfit" not in x]
-    for sample in sampleList:
-        
-        
-        ### DATA PROCESSING
-        #### AUTOPROC
-        if os.path.exists(sample+"autoproc/"+sample.split("/")[-2]+"_autoproc_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]=";autoproc:full"
-        elif os.path.exists(sample+"autoproc/"+sample.split("/")[-2]+"_autoproc_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]=";autoproc:partial"
+    psampleList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")
+    for sample in psampleList:
+        if os.path.exists(sample+"/autoproc/"):
+            if os.path.exists(sample+"/autoproc/summary.html"):
+                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:partial"
         else:
             dataProcStatusDict[sample.split("/")[-2]]=";autoproc:none"
-
-        #### DIALS
-        if os.path.exists(sample+"dials/"+sample.split("/")[-2]+"_dials_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";dials:full"
-        elif os.path.exists(sample+"dials/"+sample.split("/")[-2]+"_dials_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";dials:partial"
+            
+        if os.path.exists(sample+"/dials/"):
+            if os.path.exists(sample+"/dials/xia2.html"):
+                dataProcStatusDict[sample.split("/")[-2]]+=";dials:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";dials:partial"
         else:
             dataProcStatusDict[sample.split("/")[-2]]+=";dials:none"
-
-        #### XDSXSCALE
-        if os.path.exists(sample+"xdsxscale/"+sample.split("/")[-2]+"_xdsxscale_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:full"
-        elif os.path.exists(sample+"xdsxscale/"+sample.split("/")[-2]+"_xdsxscale_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:partial"
+            
+        if os.path.exists(sample+"/xdsxscale/"):
+            if os.path.exists(sample+"/xdsxscale/xia2.html"):
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:partial"
         else:
             dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:none"
-
-        #### EDNA_PROC
-        if os.path.exists(sample+"EDNA_proc/"+sample.split("/")[-2]+"_EDNA_proc_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";EDNA_proc:full"
-        elif os.path.exists(sample+"EDNA_proc/"+sample.split("/")[-2]+"_EDNA_proc_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";EDNA_proc:partial"
+            
+        autosample="/".join(sample.split("/")[:-2]).replace("/fragmax/","/")+"/"+"xds_"+sample.split("/")[-2]+"_1/"
+        if os.path.exists(autosample+"EDNA_proc/results/"):
+            if os.path.exists(autosample+"EDNA_proc/results/ep_INTEGRATE.HKL"):
+                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:full"
+            else:
+                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:partial"
         else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";EDNA_proc:none"
+            dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:none"
 
         #### XDSAPP
-        if os.path.exists(sample+"xdsapp/"+sample.split("/")[-2]+"_xdsapp_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:full"
-        elif os.path.exists(sample+"xdsapp/"+sample.split("/")[-2]+"_xdsapp_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:partial"
+        if os.path.exists(sample+"xdsapp/"):
+            if os.path.exists(sample+"xdsapp/results_"+sample.split("/")[-2]+"_data.txt"):                
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:full"                
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:partial"
         else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";autoproc:none"
+            dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:none"
 
         #### FASTDP
-        if os.path.exists(sample+"fastdp/"+sample.split("/")[-2]+"_fastdp_merged.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:full"
-        elif os.path.exists(sample+"fastdp/"+sample.split("/")[-2]+"_fastdp_scaled.mtz"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:partial"
+        if os.path.exists(autosample+"fastdp/results/"):
+            if os.path.exists(autosample+"fastdp/results/ap_"+sample.split("/")[-2][:-1]+"run1_noanom_fast_dp.mtz.gz"):
+                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:partial"
         else:
             dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:none"
-            
+
         with open(path+"/fragmax/process/dpstatus.csv","w") as outp:
             for key,value in dataProcStatusDict.items():
                 outp.write(key+":"+value+"\n")
@@ -3698,7 +3780,8 @@ def get_project_status():
 
         ### STRUCTURE REFINEMENT
         #### DIMPLE
-    
+    for sample in sampleList:
+
         if os.path.exists(sample+"/autoproc/dimple/final.pdb"):
             dataRefStatusDict[sample.split("/")[-2]]=";autoproc_dimple:full"
         elif os.path.exists(sample+"/autoproc/dimple/") and not os.path.exists(sample+"/autoproc/dimple/final.pdb"):
@@ -3748,11 +3831,11 @@ def get_project_status():
 
 
         if os.path.exists(sample+"/autoproc/fspipeline/mtz2map.log"):
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_fspipeline:full"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_fspipeline:full"
         elif os.path.exists(sample+"/autoproc/fspipeline/") and not os.path.exists(sample+"/autoproc/fspipeline/mtz2map.log"):
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_fspipeline:partial"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_fspipeline:partial"
         else:
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_fspipeline:none"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_fspipeline:none"
 
         if os.path.exists(sample+"/dials/fspipeline/mtz2map.log"):
             dataRefStatusDict[sample.split("/")[-2]]+=";dials_fspipeline:full"
@@ -3795,11 +3878,11 @@ def get_project_status():
 
 
         if os.path.exists(sample+"/autoproc/BUSTER/final.pdb"):
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_BUSTER:full"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_BUSTER:full"
         elif os.path.exists(sample+"/autoproc/BUSTER/") and not os.path.exists(sample+"/autoproc/BUSTER/final.pdb"):
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_BUSTER:partial"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_BUSTER:partial"
         else:
-            dataRefStatusDict[sample.split("/")[-2]]=";autoproc_BUSTER:none"
+            dataRefStatusDict[sample.split("/")[-2]]+=";autoproc_BUSTER:none"
 
         if os.path.exists(sample+"/dials/BUSTER/final.pdb"):
             dataRefStatusDict[sample.split("/")[-2]]+=";dials_BUSTER:full"
@@ -3842,49 +3925,125 @@ def get_project_status():
             
 
         ### LIGAND FITTING
-        
-        for d in dp:
-            for r in rf:
-                ligset=sample.split("/")[-2]+"_"+d+"_"+r
-                #### RHOFIT
-                if os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/best.pdb"):
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:full"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:full"
-                elif os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/") and not os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/best.pdb"):
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:partial"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:partial"
-                else:
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:none"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:none"
+        if "Apo" not in sample:
+            for d in dp:
+                for r in rf:
+                    ligset=sample.split("/")[-2]+"_"+d+"_"+r
+                    #### RHOFIT
+                    if os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/best.pdb"):
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:full"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:full"
+                    elif os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/") and not os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/best.pdb"):
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:partial"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:partial"
+                    else:
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:none"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:none"
 
 
-                #### PHENIX LIGFIT
-                if os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/ligandfit/ligand_fit_1.pdb"):
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:full"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:full"
-                elif os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/") and not os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/ligandfit/ligand_fit_1.pdb"):
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:partial"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:partial"
-                else:
-                        try:
-                            dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:none"
-                        except:
-                            dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:none"
+                    #### PHENIX LIGFIT
+                    if os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/LigandFit_run_1_/ligand_fit_1.pdb"):
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:full"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:full"
+                    elif os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/rhofit/") and not os.path.exists(path+"/fragmax/results/ligandfit"+"/"+ligset+"/LigandFit_run_1_/ligand_fit_1.pdb"):
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:partial"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:partial"
+                    else:
+                            try:
+                                dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:none"
+                            except:
+                                dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:none"
+        else:
+            for d in dp:
+                for r in rf:
+                    ligset=sample.split("/")[-2]+"_"+d+"_"+r
+                    try:
+                        dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_rhofit:none"
+                    except:
+                        dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_rhofit:none"
+                    try:
+                        dataLigStatusDict[sample.split("/")[-2]]+=";"+d+"_"+r+"_ligandfit:none"
+                    except:
+                        dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:none"
+
         with open(path+"/fragmax/process/lgstatus.csv","w") as outp:
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
             
+def get_project_status_initial():
+    dataProcStatusDict=dict()
+    dp=["autoproc","dials","xdsxscale","EDNA_proc","fastdp","xdsapp"]
+    sampleList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/") 
+    for sample in sampleList:
+        
+        
+        ### DATA PROCESSING
+        #### AUTOPROC
+        if os.path.exists(sample+"autoproc/"):
+            if os.path.exists(sample+"autoproc/summary.html"):
+                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:partial"
+        else:
+            dataProcStatusDict[sample.split("/")[-2]]=";autoproc:none"
 
+        #### DIALS
+        if os.path.exists(sample+"dials/xia2.html"):
+            dataProcStatusDict[sample.split("/")[-2]]+=";dials:full"
+        elif os.path.exists(sample+"dials/xia2.error"):
+            dataProcStatusDict[sample.split("/")[-2]]+=";dials:partial"
+        else:
+            dataProcStatusDict[sample.split("/")[-2]]+=";dials:none"
+
+        #### XDSXSCALE
+        if os.path.exists(sample+"xdsxscale/xia2.html"):
+            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:full"
+        elif os.path.exists(sample+"xdsxscale/xia2.error"):
+            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:partial"
+        else:
+            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:none"
+
+        #### EDNA_PROC
+        autosample="/".join(sample.split("/")[:-2])+"/"+"xds_"+sample.split("/")[-2]+"_1/".replace("/fragmax/","/")
+        if os.path.exists(autosample+"EDNA_proc/results/"):
+            if os.path.exists(autosample+"EDNA_proc/results/ep_"+autosample.split("/")[-2]+"_noanom.mtz"):
+                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:full"
+            else:
+                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:partial"
+        else:
+            dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:none"
+
+        #### XDSAPP
+        if os.path.exists(sample+"xdsapp/"):
+            if os.path.exists(sample+"xdsapp/results_"+sample.split("/")[-2]+"_data.txt"):                
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:full"                
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:partial"
+        else:
+            dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:none"
+
+        #### FASTDP
+        if os.path.exists(autosample+"fastdp/results/"):
+            if os.path.exists(autosample+"fastdp/results/ap_"+sample.split("/")[-2][:-1]+"_run1_noanom_fast_dp.mtz.gz"):
+                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:full"
+            else:
+                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:partial"
+        else:
+            dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:none"
+            
+        with open(path+"/fragmax/process/dpstatus.csv","w") as outp:
+            for key,value in dataProcStatusDict.items():
+                outp.write(key+":"+value+"\n")
 ###############################
 
 #################################
