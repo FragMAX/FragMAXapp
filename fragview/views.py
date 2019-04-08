@@ -53,15 +53,15 @@ def project_definitions():
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
     panddaprocessed="/fragmax/results/pandda/pandda/processed_datasets/"
- 
+    fraglib="F2XEntry"
 
     
 
     
-    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,panddaprocessed
+    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,panddaprocessed,fraglib
 
 
-proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 if len(proposal)<7 or len(shift)<7 or len(acr)<2 or len(proposal_type)<5:
     acr="ProteinaseK"
@@ -94,7 +94,7 @@ def settings(request):
     return render(request, "fragview/settings.html",{"upd":status})
 
 def pipedream(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()   
 
     datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
@@ -102,10 +102,28 @@ def pipedream(request):
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
+def pipedream_results(request):
+
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()   
+
+    #resync=str(request.GET.get("resync"))
+    #if "resyncresults" in resync:
+    #    resultSummary()
+    #if not os.path.exists(path+"/fragmax/process/generalrefsum.csv"):
+    #    resultSummary()
+    #try:
+    #    with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
+    #        a=inp.readlines()
+    #    return render_to_response('fragview/results.html', {'files': a})
+    #except:
+    #    return render_to_response('fragview/results_notready.html')
+
+    return render(request, "fragview/pipedream_results.html")
+
 def submit_pipedream(request):
 
     #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     ppdCMD=str(request.GET.get("ppdform"))
     empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
@@ -423,7 +441,7 @@ def submit_pipedream(request):
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
 def load_project_summary(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     number_known_apo=len(glob.glob(path+"/raw/"+acr+"/*Apo*"))
     number_datasets=len(glob.glob(path+"/raw/"+acr+"/*"))
@@ -445,7 +463,7 @@ def load_project_summary(request):
         "exp_date":natdate})
     
 def project_summary_load(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     a=str(request.GET.get('submitProc')) 
     out="No option selected"
@@ -464,7 +482,7 @@ def project_summary_load(request):
     return render(request,'fragview/project_summary_load.html', {'option': out})
 
 def dataset_info(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     a=str(request.GET.get('proteinPrefix'))     
     prefix=a.split(";")[0]
@@ -583,7 +601,7 @@ def post_new(request):
     return render(request, 'fragview/post_edit.html', {'form': form})
 
 def datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncImages=str(request.GET.get("resyncImgButton"))
@@ -605,7 +623,8 @@ def datasets(request):
         shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
         create_dataColParam(acr,path)
     if "resyncImages" in resyncImages:
-        project_dif_svg()        
+        #project_dif_svg()        
+        pass
     if "resyncStatus" in resyncStatus:
         get_project_status()
         if not os.path.exists(path+"/fragmax/results/"):
@@ -841,7 +860,7 @@ def datasets(request):
         return render_to_response('fragview/datasets_notready.html')    
     
 def results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
@@ -856,7 +875,7 @@ def results(request):
         return render_to_response('fragview/results_notready.html')
 
 def request_page(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     a=str(request.GET.get('structure'))     
     name=a.split(";")[0].split("/modelled_structures/")[-1].split(".pdb")[0]  
@@ -865,7 +884,7 @@ def request_page(request):
     return render(request,'fragview/pandda_density.html', {'structure': a,'protname':name})
 
 def request_page_res(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     a=str(request.GET.get('structure')) 
     center=""
@@ -873,7 +892,8 @@ def request_page_res(request):
         center=[a.split(";")[3].split("],[")[0]+"]"]
     else:
         center=[a.split(";")[-1].replace("],","]")]    
-    a=zip([a.split(";")[0].split("/pandda/")[-1].split("/final")[0]],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
+    
+    a=zip(["_".join(a.split(";")[0].split("/")[-4:-1])],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
     
     return render(request,'fragview/density.html', {'structure': a})
 
@@ -892,11 +912,12 @@ def dual_ligand(request):
 ##################################
 
 def compare_poses(request):   
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
-    png=data.split(acr+"-")[-1].split("_")[0]
+    lig=data.split(acr+"-")[-1].split("_")[0]
+    ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"    
     rhofit=path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
     ligfit=path+"/fragmax/results/ligandfit/"+data+"/LigandFit_run_1_/ligand_fit_1.pdb"
     ligcenter="[]"
@@ -915,12 +936,13 @@ def compare_poses(request):
                     break
     path=path.replace("/data/visitors/","")
         
-    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':png, "path":path,"rhofitcenter":rhocenter,"ligandfitcenter":ligcenter})
+    return render(request,'fragview/dual_density.html', {'ligfit_dataset': data,'blob': blob, 'png':ligpng, "path":path,"rhofitcenter":rhocenter,"ligandfitcenter":ligcenter, "ligand":fraglib+"_"+lig})
 
 def ligfit_results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-    resyncLigFits=str(request.GET.get("resyncLigFits"))
-    if "resyncLigFits" in resyncLigFits:
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    resyncLigFits=str(request.GET.get("resyncligfit"))
+
+    if "resyncligfit" in resyncLigFits:
         parseLigand_results()
     if os.path.exists(path+"/fragmax/process/autolig.csv"):
         try:
@@ -939,7 +961,7 @@ def ligfit_results(request):
 
 
 def pandda(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     
     if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
@@ -1031,7 +1053,7 @@ def pandda(request):
         return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     biomax_static=path.replace("/data/visitors/","/static/")
     a=str(request.GET.get('dataHeader')) 
@@ -1088,7 +1110,7 @@ def procReport(request):
     return render(request,'fragview/procReport.html', {'Report': html})
 
 def dataproc_merge(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
     
@@ -1097,7 +1119,7 @@ def dataproc_merge(request):
     return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
 
 def reproc_web(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     dataproc = str(request.GET.get("submitProc"))
     outdir=dataproc.split(";")[0]
@@ -1148,10 +1170,10 @@ def refine_datasets(request):
         with open(path+"fragmax/process/userPDB.pdb","w") as pdbfile:
             pdbfile.write(userPDB)
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    t = threading.Thread(target=run_structure_solving,args=(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup))
-    t.daemon = True
-    t.start()
-    #run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
+    # t = threading.Thread(target=run_structure_solving,args=(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup))
+    # t.daemon = True
+    # t.start()
+    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
@@ -1161,22 +1183,21 @@ def ligfit_datasets(request):
     empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname=userInput.split(";;")
     useRhoFit="False"
     useLigFit="False"
+    
+
+
     if "true" in rhofitSW:
         useRhoFit="True"
     if "true" in ligfitSW:
         useLigFit="True"
-
-    if "True" in useRhoFit:
-        gen_rhofitpythonScript()
-    if "True" in useLigFit:
-        gen_ligandfitpythonScript()        
-    t1 = threading.Thread(target=autoLigandFit,args=())
+  
+    t1 = threading.Thread(target=autoLigandFit,args=(useLigFit,useRhoFit,fraglib,))
     t1.daemon = True
     t1.start()
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     allprc  = str(request.GET.get("submitallProc"))
     dtprc   = str(request.GET.get("submitdtProc"))
@@ -1246,7 +1267,7 @@ def dataproc_datasets(request):
     return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
 
 def kill_HPC_job(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     jobid_k=str(request.GET.get('jobid_kill'))     
 
@@ -1288,7 +1309,7 @@ def kill_HPC_job(request):
     return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
 def hpcstatus(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1350,7 +1371,7 @@ def hpcstatus(request):
 #####################################################################################
 
 def add_run_DP(outdir):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     fout=outdir.split("cd ")[-1].split(" #")[0]
     SW=outdir.split(" #")[-1]
@@ -1369,7 +1390,7 @@ def add_run_DP(outdir):
     return "cd "+next_run+" #"+SW
 
 def retrieveParameters(xmlfile):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     #Dictionary with parameters for dataset info template page
     
@@ -1412,7 +1433,7 @@ def retrieveParameters(xmlfile):
     return paramDict
 
 def create_dataColParam(acr, path):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
         return
@@ -1422,7 +1443,7 @@ def create_dataColParam(acr, path):
         t.daemon = True
         t.start()
 
-        xml_list=glob.glob(path+"**/process/"+acr+"/**/*/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        xml_list=glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
         img_list=list()
         prf_list=list()
         res_list=list()
@@ -1456,7 +1477,16 @@ def create_dataColParam(acr, path):
             path_list.append(xml.split("xds")[0].replace("process","raw"))
             acr_list.append(acr)
         
-        lib="F2XEntry"                   
+
+        ##
+        ##
+        ##
+        ##HARD CODED LIB
+        fraglib="F2XEntry"  
+        ##
+        ##
+        ##
+                         
         #Create fragment list png for Datasets view                         
         pngDict=dict()
         for prf in prf_list:
@@ -1464,7 +1494,10 @@ def create_dataColParam(acr, path):
                 pngDict[prf]="/static/img/apo.png"
             #elif "Apo" not in prf and "DM" not in prf and "ICC" not in prf:
             #    wellNo=prf.split(acr+"-")[-1]        
-            #    pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+lib+"/"+wellNo+"/"+wellNo+".svg"
+            #    pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
+            elif fraglib in prf:
+                wellNo=prf.split(acr+"-")[-1]        
+                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
             elif "ICC" in prf:
                 wellNo=prf.split(acr+"-")[-1]        
                 pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"ICCBS"+"/"+wellNo+"/"+wellNo+".svg"
@@ -1507,98 +1540,71 @@ def create_dataColParam(acr, path):
 
         
 def parseLigand_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
-
-    procDict=dict()
-    rhofitDict=dict()
-    ligfitDict=dict()
-    resDict=dict()
-    for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*")):
-        procDict[x.split("/")[-1]]=x 
-
-    for x in glob.glob(path+"/fragmax/results/ligandfit/*/rhofit"):
-        rhofitDict[x.split("/")[-2]]=x 
-
-    for x in glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit_run_1_"):
-        ligfitDict[x.split("/")[-2]]=x 
-
-    for key,value in procDict.items():
-        if key in rhofitDict:
-            if os.path.exists(value+"/rhofit/merged.pdb"):
-                with open(value+"/rhofit/merged.pdb","r") as inp:
-                    resDict[key]=[x.split(":")[-1].replace("\n","").replace(" ","") for x in inp.readlines() if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in x][0]
-            else:
-                resDict[key]="NaN"
-    rhofitScore=dict()
-    ligfitScore=dict()
-    for key,value in procDict.items():
-        if key in ligfitDict:
-            if os.path.exists(value+"/LigandFit_run_1_/LigandFit_summary.dat"):
-                with open(value+"/LigandFit_run_1_/LigandFit_summary.dat","r") as inp:
-                    a=inp.readlines()        
-                ligfitScore[key]=a[6].split()[2]
-
-        if key in rhofitDict:
-            if os.path.exists(value+"/rhofit/Hit_corr.log"):
-                with open(value+"/rhofit/Hit_corr.log","r") as inp:
-                    a=inp.readlines()               
-                rhofitScore[key]=a[0].split()[1]
-
-
-    ligpng=dict()
-    for key in procDict.keys():
-        w=key.split(acr+"-")[-1].split("_")[0]
-        ligpng[key]="/static/blog/fragment/JBS/"+w+"/image.png"
-
-    with open(path+"/fragmax/process/panddarefsum.csv","r") as inp:
-        a=inp.readlines()
-
-    blobsDict=dict()
-    for d in a:
-        if "id=" in d:
-            blobsDict[d.split('id="')[-1].split('_form">')[0]]=d.split("</td><td>")[-3].split("<br>")[0].replace(" ","")
-        else:
-            blobsDict[d.split("<tr><td>")[-1].split("</td><td>")[0]]=d.split("</td><td>")[-3].split("<br>")[0].replace(" ","")
-
-    sortedList=list()
-    procDictset=set(procDict)
-    resDictset=set(resDict)
-    rhofitScoreset=set(rhofitScore)
-    ligfitScoreset=set(ligfitScore)
-    ligpngset=set(ligpng)
-    blobsDictset=set(blobsDict)
-    #for key,value in procDict.items():
-    #    if key in resDict and key in rhofitScore and key in ligfitScore and key in ligpng:
-    for key in procDictset.intersection(resDictset,rhofitScoreset,ligfitScoreset,ligpngset,blobsDictset):
-
-        l='''<tr>
-        <td>
-        <form action="/dual_density/" method="get" id="%s_form" target="_blank">
-        <button class="btn" type="submit" value="%s;%s" name="ligfit_dataset" size="1">Open Dual Viewer</button>
-        </form>
-        </td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>
-        <a href=%s target="_blank">
-            <object data=%s type="image/png" height="116" width="116">          
-            </object>
-        </a>
-        </td>  
-        </tr>
-        '''.replace("","") % (key,key,blobsDict[key],key,resDict[key],rhofitScore[key],ligfitScore[key],ligpng[key],ligpng[key])
-
-
-        sortedList.append(l)
-
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     with open(path+"/fragmax/process/autolig.csv","w") as outp:
-            outp.write("".join(sortedList))                                                                     
+            
+
+        for dataset in glob.glob(path+"/fragmax/results/ligandfit/*"):
+            if os.path.exists(dataset+"/final.pdb") and "Apo" not in dataset:
+                blob=[""]
+                resolution="NaN"
+                key=dataset.split("/")[-1]
+                if "EDNA_proc" in dataset:
+                    pipeline="_".join(dataset.split("_")[-3:])
+                else:
+                    pipeline="_".join(dataset.split("_")[-2:])
+                if os.path.exists(dataset+"/rhofit/Hit_corr.log"):
+                    with open(dataset+"/rhofit/Hit_corr.log","r") as inp:
+                        rhofitscore=inp.readlines()[0].split()[1]               
+
+                if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_summary.dat"):
+                    with open(dataset+"/LigandFit_run_1_/LigandFit_summary.dat","r") as inp:
+                        ligfitscore=inp.readlines()[6].split()[2]
+
+                lig=dataset.split(acr+"-")[-1].split("_")[0]
+                ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"
+
+                with open(dataset+"/final.pdb","r") as inp:
+                    for line in inp.readlines():
+                        if "RESOLUTION RANGE HIGH " in line:
+
+                            resolution=line[-10:].replace(" ","").replace("\n","")
+
+                if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log"):
+                    with open(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log","r") as inp:
+                        for line in inp.readlines():
+                            if line.startswith(" lig_xyz"):
+                                blob=line.split("lig_xyz ")[-1].replace("\n","")
+
+
+                l='''<tr>
+                <td>
+                <form action="/dual_density/" method="get" id="%s_form" target="_blank">
+                <button class="btn" type="submit" value="%s;%s" name="ligfit_dataset" size="1">Open Dual Viewer</button>
+                </form>
+                </td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>
+                
+                
+                
+                <a href=%s target="_blank">
+
+                    <img class="ligpng" id="ligand" src=%s onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="115" >
+
+                </a>
+                </td>  
+                </tr>
+                ''' % (key,key,blob,key,resolution,rhofitscore,ligfitscore,ligpng,ligpng)
+
+                outp.write(l)                                                                 
 
 
 def panddaResultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     fix_pandda_symlinks
     tpandda = threading.Thread(target=fix_pandda_symlinks, args=())
@@ -1669,7 +1675,9 @@ def fsp_info_general(entry):
     gamma=""
     blist=""    
     usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
-        
+    #usrpdbpath= line.replace("data_file: ","")
+    with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
+        blobs_log=inp.readlines()
     with open(entry,"r") as inp:
         pdb_file=inp.readlines()
     
@@ -1685,7 +1693,13 @@ def fsp_info_general(entry):
             res=line.split(":")[-1].replace(" ","").replace("\n","")
             res=str("{0:.2f}".format(float(res)))
         if "CRYST1" in line:
-            a,b,c,alpha,beta,gamma=line.split()[1:-4]
+            #a,b,c,alpha,beta,gamma=line.split(" ")[1:-4]
+            a=line[9:15]
+            b=line[18:24]
+            c=line[27:33]
+            alpha=line[34:40]
+            beta=line[41:47]
+            gamma=line[48:54]
             a=str("{0:.2f}".format(float(a)))
             b=str("{0:.2f}".format(float(b)))
             c=str("{0:.2f}".format(float(c)))
@@ -1704,15 +1718,24 @@ def fsp_info_general(entry):
         #print(blist)
     blist="<br>".join(blist.split("<br>")[:3])
     try:
-        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final.pdb"
-        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_2mFo-DFc.ccp4"
-        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_mFo-DFc.ccp4"
-        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>""".replace("        ","").replace("\n","")%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
+    
+        with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
+            for mline in inp.readlines():
+                if "_2mFo-DFc.ccp4" in mline:
+                    pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
+                    event1  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
+                    ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
+            
+        
+        #pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
+        #event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
+        #ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><button class="btn" type="submit" value="%s"  name="structure" size="1" >Open</button></form></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>""".replace("        ","").replace("\n","")%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
     except:
         pdbout="None"
         event1="None"
         ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+        tr= """<tr><td></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
     
     return tr
 
@@ -1737,14 +1760,17 @@ def dpl_info_general(entry):
         dimple_log=inp.readlines()
     for n,line in enumerate(dimple_log):
         if "data_file: " in line:
-            usracr=line.split("/")[-1].split("_merged.pdb")[0].split("_unmerged_unscaled.mtz")[0].replace("\n","")+"_dimple"
+            usracr=line.split("/")[-3]+"_"+line.split("/")[-2]+"_dimple"
+            usracr=usracr.replace(".mtz","")   
+            usrpdbpath= line.replace("data_file: ","")
         if "# MTZ " in line:
             spg=line.split(")")[1].split("(")[0].replace(" ","")
             a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
             alpha=str("{0:.2f}".format(float(alpha)))
             beta=str("{0:.2f}".format(float(beta)))
             gamma=str("{0:.2f}".format(float(gamma)))
-        if line.startswith( "info:  8/8   R/Rfree"):
+        
+        if line.startswith("info:") and "R/Rfree" in line:
             r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
             r_free=str("{0:.2f}".format(float(r_free)))
             r_work=str("{0:.2f}".format(float(r_work)))
@@ -1753,7 +1779,8 @@ def dpl_info_general(entry):
         if line.startswith("blobs: "):
             l=""
             l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
-            blob="<br>".join(map(str,l[:3]))
+            blob="<br>".join(map(str,l[:]))
+            blob5="<br>".join(map(str,l[:5]))
         if line.startswith("#     RMS: "):
             bonds,angles=line.split()[5],line.split()[9]
         if line.startswith("info: resol. "):
@@ -1761,16 +1788,22 @@ def dpl_info_general(entry):
             res=str("{0:.2f}".format(float(res)))
     
     try:        
-        pdbout=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final.pdb"        
-        event1=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_2mFo-DFc.ccp4"
-        ccp4_nat=path.replace("/data/visitors/","")+"/fragmax/results/pandda/"+usracr+"/final_mFo-DFc.ccp4"
-        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><input type="hidden" value="%s" name="structure" size="1"/><a href="javascript:{}" onclick="document.getElementById('%s_form').submit();"></form>%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>YES</td></tr>"""%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),usracr,usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-
+        
+        pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
+        event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
+        ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+        if os.path.exists("/data/visitors/"+pdbout):
+            tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><button class="btn" type="submit" value="%s"  name="structure" size="1" >Open</button></form></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"""%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob5,sigma)
+        else:
+            tr=""
     except:    
         pdbout="None"
         event1="None"
         ccp4_nat="None"
-        tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+        if os.path.exists("/data/visitors/"+pdbout):
+            tr= """<tr><td>No structure</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
+        else:
+            tr=""
     return tr
 
 def dpl_info(entry):
@@ -1895,12 +1928,13 @@ def fsp_info(entry):
 #fsp_info("/data/visitors/biomax/20180479/20190323/fragmax/results/ProteinaseK-JBSE7_1/xdsapp/fspipeline/final_13_ProteinaseK-JBSE7_1_xdsapp_merged.pdb")
 
 def resultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
-    acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
+    #acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"**")
+    acr_list=glob.glob(path+"*/fragmax/results/"+acr+"**")
     pipeline_dict=dict()
     for pacr in acr_list:
-        pipeline_dict[pacr.split("/")[-1]]=glob.glob(pacr+"/*")
+        pipeline_dict[pacr.split("/")[-1]]=glob.glob(pacr+"/**")
 
     dimple_dict=dict()
     fspipe_dict=dict()
@@ -1914,7 +1948,7 @@ def resultSummary():
         m=list()
         for dtprc in value:        
             if os.path.isdir(dtprc+"/fspipeline"):
-                m.append(glob.glob(dtprc+"/fspipeline/final*pdb")[0])
+                m.append(glob.glob(dtprc+"/fspipeline/final**pdb")[0])
         fspipe_dict[key]=m
 
 
@@ -1946,7 +1980,7 @@ def resultSummary():
         outp.write(sortedline)
 
 def hdf2jpg(paramDict):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     #generate two diffraction JPG: 1st image, half-th dataset
     #saves in fragmax/process folder
@@ -1982,7 +2016,7 @@ def hdf2jpg(paramDict):
         t.start()
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 
     def listdir_fullpath(d):
@@ -2190,7 +2224,7 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
     runFragMAX()
 
 def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 
     def listdir_fullpath(d):
@@ -2376,7 +2410,7 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
     runFragMAX()
 
 def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 
 
@@ -2574,7 +2608,7 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
     runFragMAX()
 
 def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
 
 
@@ -2776,7 +2810,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
 ################ PANDDA #####################
 def populate_missing():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
     
 
@@ -2890,136 +2924,64 @@ def populate_missing():
     
 
 def prepare_pandda_folder():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    fsp_list =glob.glob(path+"/fragmax/results/*fspipeline*")
-    path_list=list()
-    for fsp_run in fsp_list:
-        for roots, dirs, files in os.walk(fsp_run):
-            if "mtz2map.log" in files:      
-                path_list.append(roots)
-
-    success_list=[x.split("/")[-2].split("_merged")[0] for x in path_list]
-
-
-    ##This function will take the file list from successful fspipeline run
-    ##and copy to results folder along other pipelines (dimple, pipedream)
-
-    softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
-    for file,fpath in zip(success_list,path_list):
-        outdir=path+"/fragmax/results/"
-        
-        for sw in softwares:
-            if sw in file:
-                outp=outdir+file.split("_"+sw)[0]+"/"+sw
-                copy_string="rsync --ignore-existing -raz --progress "+fpath+"/* "+outp+"/fspipeline"
-                subprocess.call(copy_string, shell=True)
-                print(copy_string)
-    pandda_dir=path+"/fragmax/results/pandda/"
-    os.makedirs(pandda_dir, exist_ok=True)
-    #Copy dimple files
-    for _file in glob.glob(path+"/fragmax/results/*/*/dimple/*final*"):
-        dataset_name=_file.split("results/")[1].split("/")
-        os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
-        if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
-            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1])
+    ##
     
-    #Copy fsp files
-    for _file in glob.glob(path+"/fragmax/results/*/*/fspipeline/*final*"):
-        dataset_name=_file.split("results/")[1].split("/")
-        os.makedirs(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2], exist_ok=True)
-        if not os.path.exists(pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/"+dataset_name[-1]):
-            shutil.copyfile(_file, pandda_dir+dataset_name[0]+"_"+dataset_name[1]+"_"+dataset_name[2]+"/final"+dataset_name[-1].split("_merged")[-1])
+    pdbList=list()
+    with open(path+"/fragmax/scripts/preparePanDDAfolder.sh","w") as outp:        
+        outp.write("#!/bin/bash")
+        outp.write("\n#!/bin/bash")
+        outp.write("\n#SBATCH -t 99:55:00")
+        outp.write("\n#SBATCH -J panFolders")
+        outp.write("\n#SBATCH --exclusive")
+        outp.write("\n#SBATCH -N1")
+        outp.write("\n#SBATCH --cpus-per-task=40")
+        outp.write("\n#SBATCH -o "+path+"/fragmax/logs/panddafolders_fragmax_%j.out")
+        outp.write("\n#SBATCH -e "+path+"/fragmax/logs/panddafolders_fragmax_%j.err")
+        outp.write("\n\n")
+
+        resultsList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/*final*.pdb")
+        for i in resultsList:
+
+            lig=i.split("/")[-4].split(acr+"-")[-1].split("_")[0]
+            srcpdb=i    
+            srcmtz=i.replace(".pdb",".mtz")
+            srcnat=i.replace(".pdb","_2mFo-DFc.ccp4")
+            srcdif=i.replace(".pdb","_mFo-DFc.ccp4")
 
 
-    mtzList=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")+glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz")
+            srccif=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".cif"
+            srclig=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".pdb"
 
-    outDirs=["/".join(x.split("/")[:-1]) for x in mtzList]
+            dstPath="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"
 
-    nthreads=str(48)
-      
-    pythonOut=""
-    
-    pythonOut+='import multiprocessing\n'
-    pythonOut+='import time\n'
-    pythonOut+='import os\n'
-    pythonOut+='import shutil\n'
-    pythonOut+='import subprocess\n\n\n'    
-    
-    pythonOut+='outDirs=["'+'",\n"'.join(outDirs)+'"]\n\n'
-    pythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
-    pythonOut+='inpdata=list()\n'
-    pythonOut+='for a,b in zip(outDirs,mtzList):\n'
-    pythonOut+='    inpdata.append([a,b])\n'
-    pythonOut+='\n'
-    pythonOut+='def fragmax_worker((di, mtz)):\n'
-    pythonOut+='    command="phenix.mtz2map %s directory=%s" %(mtz, di)\n'    
-    pythonOut+='    subprocess.call(command, shell=True) \n'  
-    pythonOut+='\n'
-    pythonOut+='def mp_handler():\n'
-    pythonOut+='    p = multiprocessing.Pool('+nthreads+')\n'
-    pythonOut+='    p.map(fragmax_worker, inpdata)\n'
-    pythonOut+='\n'
-    pythonOut+="""if __name__ == '__main__':\n"""
-    pythonOut+='    mp_handler()\n'
+            dstpdb ="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/final."+i.split("/")[-1][-3:]
+            dstmtz=dstpdb.replace(".pdb",".mtz")
+            dstnat=dstpdb.replace(".pdb","_2mFo-DFc.ccp4")
+            dstdif=dstpdb.replace(".pdb","_mFo-DFc.ccp4")
+            dstcif="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".cif"
+            dstlig="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".pdb"
 
-    
-    with open(path+"/fragmax/scripts/ccp4maps.py", "w") as outfile:
-        outfile.write(pythonOut)  
-    
-    sbathcCCP4maps=""
-    sbathcCCP4maps+="#!/bin/bash\n"
-    sbathcCCP4maps+="#!/bin/bash\n"
-    sbathcCCP4maps+="#SBATCH -t 99:55:00\n"
-    sbathcCCP4maps+="#SBATCH -J ccp4maps\n"
-    sbathcCCP4maps+="#SBATCH --exclusive\n"
-    sbathcCCP4maps+="#SBATCH -N1\n"
-    sbathcCCP4maps+="#SBATCH --cpus-per-task=48\n"
-    sbathcCCP4maps+="#SBATCH --mem=220000\n"
-    sbathcCCP4maps+="#SBATCH -o "+path+"/fragmax/logs/ccp4maps_%j.out\n"
-    sbathcCCP4maps+="#SBATCH -e "+path+"/fragmax/logs/ccp4maps_%j.err\n"
-    sbathcCCP4maps+="module purge\n"
-    sbathcCCP4maps+="\n"
-    sbathcCCP4maps+="module load CCP4 Phenix\n"
-    sbathcCCP4maps+="\n"
-    sbathcCCP4maps+="python2 "+path+"/fragmax/scripts/ccp4maps.py"  
+            os.makedirs(dstPath,exist_ok=True)
+            outp.write("\nrsync --ignore-existing "+srcpdb+" "+dstpdb+" &")
+            outp.write("\nrsync --ignore-existing "+srcmtz+" "+dstmtz+" &")
+            outp.write("\nrsync --ignore-existing "+srcnat+" "+dstnat+" &")
+            outp.write("\nrsync --ignore-existing "+srcdif+" "+dstdif+" &")
+            outp.write("\nrsync --ignore-existing "+srccif+" "+dstcif+" &")
+            outp.write("\nrsync --ignore-existing "+srclig+" "+dstlig+" &")
+            outp.write("\n\n")
 
-    with open(path+"/fragmax/scripts/ccp4maps.sh","w") as outfile:
-        outfile.write(sbathcCCP4maps)
+            
+            pdbList.append(dstpdb)
 
-
-    ##Copy fragments to pandda folders
-    panddaDatasets=glob.glob(path+"/fragmax/results/pandda/"+"*")
-    ligList=glob.glob(path+"/fragmax/process/fragment/*/*/*.cif")
-    # userPDB=glob.glob(path+"/fragmax/process/*.pdb")[0]
-    # for folder in panddaDatasets:
-    #     shutil.copyfile(userPDB,folder+"/model.pdb")
-    fragDict=dict()
-    for frag in ligList:
-        fragDict[frag.split("/")[-1][:-4]]=frag
-
-    panddaDict=dict()
-    for data in panddaDatasets:
-        panddaDict[data.split(acr+"-")[-1].split("_")[0]]=data
-        
-    for value in panddaDatasets:
-        key=value.split(acr+"-")[-1].split("_")[0]
-        if "Apo" not in key:
-            if not os.path.exists(value+"/"+key+".cif"):
-                shutil.copyfile(fragDict[key],value+"/"+key+".cif")
-            if not os.path.exists(value+"/"+key+".pdb"):
-                shutil.copyfile(fragDict[key].replace(".cif",".pdb"),value+"/"+key+".pdb")
-            if not os.path.exists(value+"/"+key+".pickle"):
-                shutil.copyfile(fragDict[key].replace(".cif",".pickle"),value+"/"+key+".pickle")
-
-
-    script=path+"/fragmax/scripts/ccp4maps.sh"
-    command ='echo "module purge | module load CCP4 Phenix DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    script=path+"/fragmax/scripts/run_CAD.sh"
+    command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
 
 
 def fix_pandda_symlinks():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     linksFolder=glob.glob(path+"/fragmax/results/pandda/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
     for i in linksFolder:
         print(i)
@@ -3032,216 +2994,155 @@ def fix_pandda_symlinks():
 #############################################
 
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
-
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
-
-    def search(myDict, lookup):
-        for key, value in myDict.items():
-            for v in value:
-                if lookup in v:
-                    return key
-
-
-    def find_hkl(search_path):
-        auto_mtz=[]
-        fragmax_mtz=[]
-        for roots, dirs, files in os.walk(search_path):
-            if "results" in roots and "lyso_back" not in roots:            
-                auto_mtz+=glob.glob(roots+"/*.mtz*")
-            if "fragmax" in roots and "lyso_back" not in roots:
-                fragmax_mtz+=glob.glob(roots+"/*.mtz")
-        auto_mtz=[x for x in auto_mtz if "_sorted" not in x and "_scaled" not in x]    
-        return auto_mtz, fragmax_mtz
-
-
-    def mtz_rearrange(mtz_dict):
-        #This function creates a dictionary with the original mtz output from 
-        #different pipelines for data processing and the output dir inside 
-        #fragmax folder.
-
-        results_dic=dict()
-        for sw in mtz_dict["autoPROC"]:
-            #if "results" in sw and "/fragmax" not in sw:
-            #    sw2=sw.split("autoPROC")[0]
-            #    sw2=sw2.split("/")[-2]
-            #    sw2=sw2.split("xds_")[1]
-            #    if sw2[-2] == "_":
-            #        sw2=sw2[:-2]
-            #    elif sw2[-3] == "_":
-            #        sw2=sw2[:-3]
-            #    sw2=path+"/fragmax/results/"+sw2+"/autoproc/"
-            #    results_dic[sw]=sw2
-            if not "results" in sw:
-                sw2=sw.split("autoproc")[0]
-                sw2=sw2.split("/")[-2]       
-                sw2=path+"/fragmax/results/"+sw2+"/autoproc/"
-                results_dic[sw]=sw2
-
-        for sw in mtz_dict["fastdp"]:
-            if "results" in sw and "/fragmax" not in sw:
-                sw2=sw.split("fastdp")[0]
-                sw2=sw2.split("/")[-2]
-                sw2=sw2.split("xds_")[1]
-                if sw2[-2] == "_":
-                    sw2=sw2[:-2]
-                elif sw2[-3] == "_":
-                    sw2=sw2[:-3]
-                sw2=path+"/fragmax/results/"+sw2+"/fastdp/"
-                results_dic[sw]=sw2
-
-        for sw in mtz_dict["EDNA"]:
-            if "results" in sw and "/fragmax" not in sw:
-                sw2=sw.split("EDNA_proc")[0]
-                sw2=sw2.split("/")[-2]
-                sw2=sw2.split("xds_")[1]        
-                if sw2[-2] == "_":
-                    sw2=sw2[:-2]
-                elif sw2[-3] == "_":
-                    sw2=sw2[:-3]
-                sw2=path+"/fragmax/results/"+sw2+"/EDNA_proc/"
-                results_dic[sw]=sw2
-
-        for sw in mtz_dict["XDSAPP"]:
-            if not "results" in sw:
-                sw2=sw.split("xdsapp")[0]
-                sw2=sw2.split("/")[-2]       
-                sw2=path+"/fragmax/results/"+sw2+"/xdsapp/"
-                results_dic[sw]=sw2
-
-        for sw in mtz_dict["DIALS"]:
-            if not "results" in sw:
-                sw2=sw.split("dials")[0]
-                sw2=sw2.split("/")[-2]      
-            
-            sw2=path+"/fragmax/results/"+sw2+"/dials/"
-            sw2.replace("//","/")
-            results_dic[sw]=sw2
-        
-        for sw in mtz_dict["XDSXSCALE"]:
-            if not "results" in sw:
-                sw2=sw.split("xdsxscale")[0]
-                sw2=sw2.split("/")[-2]      
-            
-            sw2=path+"/fragmax/results/"+sw2+"/xdsxscale/"
-            sw2.replace("//","/")
-            results_dic[sw]=sw2
-            
-        return (results_dic)
-
-
-    def gen_pointless(mtz_dict, spacegroup):
-        ##This function returns the pointless command line to scale a mtz file
-        ##it will also make a copy of the original (unmerged and unscaled) file to results folder
-        
-        ##Extra options I could add at somepoint, for reprocess
-        #echo "resolution 2.5" | aimless hklin pointless.mtz hklout aimless.mtz | tee aimless.log
-        #echo "nres 999" | truncate hklin aimless.mtz hklout merged.mtz | tee truncate.log
-        #each new input inside echo expression needs a \n to properly work with pointless
-
-        mtzin   =list(mtz_dict.keys())[0]
-        outdir  =list(mtz_dict.values())[0]
-        
-        
-        proc_sw =outdir.split("/")[-2]
-        outfile =outdir.split("/")[-3]
-        mtzout  =outdir+outfile+"_"+proc_sw+"_scaled.mtz"
-            
-        ##If no space group is defined, pointless will choose automatically one for the dataset. 
-        ##If this is not the same as the PDB file, some pipelines will crash.
-        if spacegroup:
-            pointless="""\necho "choose spacegroup """+spacegroup+"""" | pointless HKLIN """
-        else:
-            pointless="""pointless HKLIN """
-        
-        
-        if "fastdp" in proc_sw:
-            pointless+=outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz"
-        else:
-            pointless+=mtzin
-            
-            
-        pointless+=" HKLOUT "
-        pointless+=mtzout
-        pointless+=" | tee "+outdir+"pointless.log"
-        
-        if "fastdp" in proc_sw:
-            cp_original="cp -n "+mtzin+" "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz"
-            #fastdp_gz+=outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz;"
-        else:
-            cp_original="cp -n "+mtzin+" "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz"
-        
-        mkdir_full="mkdir -p "+outdir
-        
-        ##Make a copy of original mtz and create results folder
-        subprocess.call(mkdir_full, shell=True)
-        subprocess.call(cp_original, shell=True)
-        if "fastdp" in proc_sw:
-            if not os.path.exists(outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz"):
-                subprocess.call("gunzip "+outdir+outfile+"_"+proc_sw+"_unmerged_unscaled.mtz.gz",shell=True)
-
-        
-        return pointless,mtzout
-
-
-    def gen_aimless(mtz):
-        outdir  ="/".join(mtz.split("/")[:-1])+"/"
-        outfile =mtz.split("/")[-1][:-11]+"_merged.mtz"
-        mtzin = mtz
-        
-        aimless= """\necho 'START' | aimless HKLIN """
-        aimless+=mtzin
-        aimless+=" HKLOUT "
-        aimless+=outdir+outfile
-        
-        aimless+= """ | tee """+outdir+"""aimless.log """
-        
-        aimlessout=outdir+outfile
-        return aimless, aimlessout
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
         
 
-    def scale_merge_hpc(pointless_list, aimless_list):
-        
-        #Creates hpc script to scale and merge all mtz
-        #using pointless and aimless. It will also define the 
-        
-        pointOut=""
-        
-        #define env for script for dimple
-        pointOut+= """#!/bin/bash\n"""
-        pointOut+= """#!/bin/bash\n"""
-        pointOut+= """#SBATCH -t 99:55:00\n"""
-        pointOut+= """#SBATCH -J scale_merge\n"""
-        pointOut+= """#SBATCH --exclusive\n"""
-        pointOut+= """#SBATCH -N1\n"""
-        pointOut+= """#SBATCH --cpus-per-task=48\n"""
-        pointOut+= """#SBATCH --mem=220000\n""" 
-        pointOut+= """#SBATCH -o """+path+"""/fragmax/logs/scale_merge_fragmax_%j.out\n"""
-        pointOut+= """#SBATCH -e """+path+"""/fragmax/logs/scale_merge_fragmax_%j.err\n"""    
-        pointOut+= """module purge\n"""
-        pointOut+= """module load CCP4 \n\n"""
-        
-        scaleOut=pointOut.replace("scale_merge","pointless")+" & ".join(pointless_list)
-        #pointOut+="\n\n"
-        mergedOut=pointOut.replace("scale_merge","aimless")+" & ".join(aimless_list)
-        
+    def process2results(path):
+        pyfile ='import os '
+        pyfile+='\nimport glob'
+        pyfile+='\nimport subprocess'
+        pyfile+='\nimport shutil'
+        pyfile+='\nimport sys'
+        pyfile+='\n'
+        pyfile+='\npath=sys.argv[1]'
+        pyfile+='\nacr=sys.argv[2]'
+        pyfile+='\nspg=sys.argv[3]'
+        pyfile+='\n'
+        pyfile+='\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'
+        pyfile+='\nfor dataset in datasetList:    '
+        pyfile+='\n    '
+        pyfile+='\n    dataset_run=dataset.split("/")[-2]    '
+        pyfile+='\n    dataset_original=dataset'
+        pyfile+='\n    datasetfp=(dataset.replace("/fragmax/","/"))        '
+        pyfile+='\n    datasetfp="/".join(datasetfp.split("/")[:-2])+"/xds_"+datasetfp.split("/")[-2]+"_1/"'
+        pyfile+='\n    '
+        pyfile+='\n    if os.path.exists(dataset+"autoproc/staraniso_alldata.mtz"):        '
+        pyfile+='\n        shutil.copyfile(dataset+"autoproc/staraniso_alldata.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    elif os.path.exists(dataset+"autoproc/aimless_alldata-unique.mtz"):        '
+        pyfile+='\n        shutil.copyfile(dataset+"autoproc/aimless_alldata-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    elif os.path.exists(dataset+"autoproc/truncate-unique.mtz"):        '
+        pyfile+='\n        shutil.copyfile(dataset+"autoproc/truncate-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
+        pyfile+='\n  '
+        pyfile+='\n'
+        pyfile+='\n    if os.path.exists(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
+        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"):            '
+        pyfile+='\n            shutil.copyfile(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz")'
+        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"'
+        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
+        pyfile+='\n    '
+        pyfile+='\n   '
+        pyfile+='\n    '
+        pyfile+='\n    if os.path.exists(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
+        pyfile+='\n        xsdat=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"'
+        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"):'
+        pyfile+='\n            print(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz")'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
+        pyfile+='\n    '
+        pyfile+='\n    '
+        pyfile+='\n    if os.path.exists(dataset+"xdsapp/"+dataset_run+"_data_F.mtz"):'
+        pyfile+='\n        '
+        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"):'
+        pyfile+='\n            shutil.copyfile(dataset+"xdsapp/"+dataset_run+"_data_F.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz")'
+        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"'
+        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
+        pyfile+='\n    '
+        pyfile+='\n   '
+        pyfile+='\n    '
+        pyfile+='\n    if os.path.exists(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz"):'
+        pyfile+='\n        if not os.path.exists(dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"):'
+        pyfile+='\n            shutil.copyfile(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz",dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz")'
+        pyfile+='\n            a=dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"'
+        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
+        pyfile+='\n    '
+        pyfile+='\n'
+        pyfile+='\n    '
+        pyfile+='\n    if os.path.exists(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz"):        '
+        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"):'
+        pyfile+='\n            shutil.copyfile(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz",dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz")'
+        pyfile+='\n            try:'
+        pyfile+='''\n                subprocess.check_call(['gunzip', dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz"])'''
+        pyfile+='\n            except:'
+        pyfile+='\n                pass'
+        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"'
+        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+        pyfile+='\n'
+        pyfile+='\n    else:'
+        pyfile+='\n        pass'
 
-        return scaleOut,mergedOut#pointOut
         
-
-    def dimple_hpc(mtzlist, PDB):
+        
+        
+        with open(path+"/fragmax/scripts/process2results.py","w") as outp:
+            outp.write(pyfile)
         #Creates HPC script to run dimple on all mtz files provided.
         #PDB file can be provided in the header of the python script and parse to all 
         #pipelines (Dimple, pipedream, bessy)
-        
-        
+
+
         ##This line will make dimple run on unscaled unmerged files. It seems that works 
         ##better sometimes
-        mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
+        #mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
+
+
+        proc2resOut=""
+
+        #define env for script for dimple
+        proc2resOut+= """#!/bin/bash\n"""
+        proc2resOut+= """#!/bin/bash\n"""
+        proc2resOut+= """#SBATCH -t 99:55:00\n"""
+        proc2resOut+= """#SBATCH -J ScaleMerge\n"""
+        proc2resOut+= """#SBATCH --exclusive\n"""
+        proc2resOut+= """#SBATCH -N1\n"""
+        proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
+        proc2resOut+= """#SBATCH --mem=220000\n""" 
+        proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j.out\n"""
+        proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j.err\n"""    
+        proc2resOut+= """module purge\n"""
+        proc2resOut+= """module load CCP4 Phenix\n\n"""
+
+
+
+        #dimpleOut+=" & ".join(dimp)
+        proc2resOut+="\n\n"
+        proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "+path+" "+acr+" P1211"
+        with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
+            outp.write(proc2resOut)
         
-        
+    def dimple_hpc(PDB):
+        #Creates HPC script to run dimple on all mtz files provided.
+        #PDB file can be provided in the header of the python script and parse to all 
+        #pipelines (Dimple, pipedream, bessy)
+
+
+        ##This line will make dimple run on unscaled unmerged files. It seems that works 
+        ##better sometimes
+
+        outDirs=list()
+        inputData=list()
         dimpleOut=""
-        
+
         #define env for script for dimple
         dimpleOut+= """#!/bin/bash\n"""
         dimpleOut+= """#!/bin/bash\n"""
@@ -3254,61 +3155,47 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         dimpleOut+= """#SBATCH -o """+path+"""/fragmax/logs/dimple_fragmax_%j.out\n"""
         dimpleOut+= """#SBATCH -e """+path+"""/fragmax/logs/dimple_fragmax_%j.err\n"""    
         dimpleOut+= """module purge\n"""
-        dimpleOut+= """module load CCP4 \n\n"""
-        
-        ##Tries to find PDB with similar names inside init_models folder (this will be taken from ISPyB upload)
-        ##If the dataset name is weird, this will fail
-        for mtz in mtzlist:
-            mtz_acr=mtz.split("/results/")[1].split("/")[0]
-            key_for_mtz=search(proteinNames,mtz_acr[:-4])
-            if key_for_mtz is None:
-                key_for_mtz=search(proteinNames,mtz_acr[:-6])
-                if key_for_mtz is None:
-                    key_for_mtz=search(proteinNames,mtz_acr[:-8])
-                    if key_for_mtz is None:
-                        key_for_mtz=search(proteinNames,mtz_acr[:-10])
-                        if key_for_mtz is None:
-                            key_for_mtz=search(proteinNames,mtz_acr[:-12])
-                            if key_for_mtz is None:
-                                key_for_mtz=search(proteinNames,mtz_acr[:-14])
-            
-            if not PDB:
-                if os.path.isdir(path+"/fragmax/init_models/"+key_for_mtz):
-                    pdb_model=path+"/fragmax/init_models/"+key_for_mtz+"/"+os.listdir(path+"/fragmax/init_models/"+key_for_mtz)[0]
-                else:
-                    pdb_model=None
+        dimpleOut+= """module load CCP4 Phenix \n\n"""
 
-            else:
-                pdb_model=PDB
+        for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
+            mtzList=glob.glob(proc+"*mtz")
+            if mtzList:
+                inputData.append("'"+sorted(glob.glob(proc+"*mtz"))[0]+"'")
         
-            #dimple doesnt play well with many jobs sent at the same time to HPC. not sure why though
-            if pdb_model:
-                dimpleOut+="\ndimple "+mtz+" "+pdb_model+" "+"/".join(mtz.split("/")[:-1])+"/dimple &> "+mtz[:-4]+"_dimple.log"
+        with open(path+"/fragmax/scripts/run_dimple.py","w") as pyout:
+            pyout.write("import multiprocessing\n")
+            pyout.write("import time\n")
+            pyout.write("import os\n")
+            pyout.write("import shutil\n")
+            pyout.write("import subprocess\n")
+            pyout.write("outDirs=["+"',\n".join(["/".join(x.split("/")[:-1])+"/dimple" for x in inputData])+"']\n\n")
+            pyout.write("mtzList=["+",\n".join(inputData)+"]\n\n")
+            pyout.write("inpdata=list()\n")
+            pyout.write("for a,b in zip(outDirs,mtzList):\n")
+            pyout.write("    inpdata.append([a,b])\n")
+            pyout.write("def fragmax_worker((di, mtz)):\n")
+            pyout.write("    command='dimple -s %s %s %s ; cd %s ; phenix.mtz2map final.mtz' %(mtz, '"+PDB+"', di,di)\n")
+            pyout.write("    subprocess.call(command, shell=True) \n")
+            pyout.write("def mp_handler():\n")
+            pyout.write("    p = multiprocessing.Pool(48)\n")
+            pyout.write("    p.map(fragmax_worker, inpdata)\n")
+            pyout.write("if __name__ == '__main__':\n")
+            pyout.write("    mp_handler()\n")
             
-            
-            
-        #dimpleOut+=" & ".join(dimp)
+        dimpleOut+="python "+path+"/fragmax/scripts/run_dimple.py"
         dimpleOut+="\n\n"
+        with open(path+"/fragmax/scripts/run_dimple.sh","w") as outp:
+            outp.write(dimpleOut)
         
-        return dimpleOut
-        
-
-    def bessy_hpc(path, PDB):
+    def fspipeline_hpc(PDB):
         #This pipeline will run bessy fspipeline on all mtz files under the current directory
         #for now, results are not exported in a convenient way. I will have to fix this in the future
-        
-        #Create exclude list with previous successful run 
-        exc_list,exc_path=fspipeline_success(path+"/fragmax/results/")
-        if len(exc_list)==0:
-            exc_list=" "
-        else:    
-            exc_list=" ".join(exc_list)
-        
+
         
         fsp_exec_path="/data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py"
-        
+
         fspOut=""
-        
+
         #define env for script for fspipeline
         fspOut+= """#!/bin/bash\n"""
         fspOut+= """#!/bin/bash\n"""
@@ -3327,28 +3214,55 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         fspOut+=fsp_exec_path
         fspOut+=" --refine="
         fspOut+=PDB
-        fspOut+=" --exclude='unmerged unscaled scaled final "+exc_list+"'"
+        fspOut+=" --exclude='unscaled unmerged scaled final'"
         fspOut+=" --cpu=48"
-        fspOut+=" --dir="+path+"/fragmax/results/"+"fspipeline"
+        fspOut+=" --dir="+path+"/fragmax/results/"+"fspipeline\n\n"
+        fspOut+="python "+path+"/fragmax/scripts/run_fspipeline.py "+path
         
         
-        
-        return fspOut
+        with open(path+"/fragmax/scripts/run_fspipeline.sh","w") as outp:
+            outp.write(fspOut)
+        with open(path+"/fragmax/scripts/run_fspipeline.py","w") as pyOut:
+            pyOut.write("import multiprocessing\n")
+            pyOut.write("import time\n")
+            pyOut.write("import os\n")
+            pyOut.write("import shutil\n")
+            pyOut.write("import subprocess\n")
+            pyOut.write("import sys\n")
+            pyOut.write("import glob\n")
+
+            pyOut.write("path=sys.argv[1]\n")
+                
+            pyOut.write('fsp_list =glob.glob("'+path+'/fragmax/results/*fspipeline*")\n')
+            pyOut.write('path_list=list()\n')
+            pyOut.write('for fsp_run in fsp_list:\n')
+            pyOut.write('    for roots, dirs, files in os.walk(fsp_run):\n')
+            pyOut.write('        if "mtz2map.log" in files:      \n')
+            pyOut.write('            path_list.append(roots)\n')
+            pyOut.write('success_list=[x.split("/")[-2].split("_merged")[0] for x in path_list]    \n')
+            pyOut.write('softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]\n')
+            pyOut.write('for file,fpath in zip(success_list,path_list):\n')
+            pyOut.write('    outdir=path+"/fragmax/results/"\n')
+            pyOut.write('    for sw in softwares:\n')
+            pyOut.write('        if sw in file:\n')
+            pyOut.write('            outp=outdir+file.split("_"+sw)[0]+"/"+sw\n')
+            pyOut.write('            copy_string="rsync --ignore-existing -raz "+fpath+"/* "+outp+"/fspipeline"\n')
+            pyOut.write('            subprocess.call(copy_string, shell=True)\n')
 
 
     def BUSTER_hpc(path, PDB):
         #Creates HPC script to run dimple on all mtz files provided.
         #PDB file can be provided in the header of the python script and parse to all 
         #pipelines (Dimple, pipedream, bessy)
-        
-        
+
+
         ##This line will make dimple run on unscaled unmerged files. It seems that works 
         ##better sometimes
         mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
-        
-        
+
+
         busterOut=""
-        
+
         #define env for script for dimple
         busterOut+= """#!/bin/bash\n"""
         busterOut+= """#!/bin/bash\n"""
@@ -3361,149 +3275,38 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         busterOut+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\n"""
         busterOut+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\n"""    
         busterOut+= """module purge \n"""
-        busterOut+= """module load CCP4 \n\n"""
-        
-        
+        busterOut+= """module load autoPROC BUSTER Phenix \n\n"""
+
+
         #dimple doesnt play well with many jobs sent at the same time to HPC. not sure why though           
-            
-            
+
+
         busterOut+="\n\n"
-        
+
         return busterOut
 
+    dimple_hpc(userPDB)
+    fspipeline_hpc(userPDB)
+    process2results(path)
 
-    def fspipeline_success(inpath):
-        ##Take each folder with mtz2map (last file created after successful run) and
-        ##retrieve dataset name. This is usefull to set as exclude list in fsp_run
-        
-        fsp_list =glob.glob(inpath+"/*fspipeline*")
-        success_path_list=list()
-        for fsp_run in fsp_list:
-            for roots, dirs, files in os.walk(fsp_run):
-                if "mtz2map.log" in files:      
-                    success_path_list.append(roots)
-        
-        success_run=[x.split("/")[-2].split("_merged")[0] for x in success_path_list]
-        
-        return success_run,success_path_list
-                    
-                
-    # def fspipeline_rearrange(success_list,path_list):
-    #     ##This function will take the file list from successful fspipeline run
-    #     ##and copy to results folder along other pipelines (dimple, pipedream)
-    #     ##input for this function is the output of fspipeline_success()
-    #     softwares = ["autoproc","EDNA_proc","dials","fastdp","xdsapp","xdsxscale"]
-    #     for _file,fpath in zip(success_list,path_list):
-    #         pipel=""
-    #         acr_prot=""
-    #         outdir=path+"/fragmax/results/"
-    #         #print(file,fpath)
-    #         for sw in softwares:
-    #             if sw in _file:
-    #                 outp=outdir+_file.split("_"+sw)[0]+"/"+sw
-    #                 copy_string="cp -Rnf "+fpath+" "+outp+"/fspipeline"
-    #                 subprocess.call(copy_string, shell=True)
-                    
-    opt_model = userPDB
-    #spacegroup ="P43212"
-
-
-    proteinNames      = dict() 
-
-    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
-    acronyms=[x for x in acronyms if "DS_Store" not in x]
-
-    for acronym in acronyms: 
-            #creat a dict of protein names
-            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
-
-
-    # In[8]:
-
-    auto,frag = find_hkl(path)
-
-
-    ##Creating dict structure with mtz files for all pipelines
-    ##If any new pipeline is added to fragmax, this should be updated
-
-    processed_files=dict()
-    processed_files={
-        "EDNA"    :[x for x in auto+frag if "EDNA_proc" in x and "truncate" in x and "_noanom" in x],
-        "autoPROC":[x for x in auto+frag if "autoproc" in x and "truncate" in x ],
-        "fastdp"  :[x for x in auto+frag if "fastdp" in x],
-        "XDSAPP"  :[x for x in auto+frag if "xdsapp" in x and "_F.mtz" in x],
-        "DIALS"   :[x for x in auto+frag if "dials" in x and "DataFiles" in x and "free.mtz" in x],   
-        "XDSXSCALE"   :[x for x in auto+frag if "xdsxscale" in x and "DataFiles" in x and "free.mtz" in x]   
-
-    }
-    ##
-
-    results_dic = mtz_rearrange(processed_files)
-
-    i=0
-    point_list       =list()
-    aimle_list       =list()
-    scale_merge_list =list()
-
-    os.makedirs(path+"/fragmax/logs", exist_ok=True)
-
-    for key, value in results_dic.items():
-        d={key:value}   
-        
-        if i == 0:
-            print("Copying unmerged/unscaled files\n")
-        i+=1
-        if i == len(results_dic):
-            print("Files copied succesfully\n\n")    
-        
-        
-        pointless,pointlessout=gen_pointless(d,spacegroup)
-        point_list.append(pointless)
-        
-        aimless, aimlessout=gen_aimless(pointlessout)
-        aimle_list.append(aimless)
-        scale_merge_list.append(aimlessout)
-        
-    for fastdpgz in glob.glob(path+"/fragmax/results/*/*/*.gz"):
-        os.remove(fastdpgz)
-            
-    
-    scscript,mrscript =scale_merge_hpc(point_list, aimle_list)
-    dimscript =dimple_hpc(scale_merge_list, opt_model)
-    fspscript =bessy_hpc(path,opt_model)
-    with open(path+"/fragmax/scripts/scale.sh","w") as smhpc:
-        smhpc.write(scscript)
-        smhpc.write("\n\n\nsbatch "+path+"/fragmax/scripts/merge.sh")
-    with open(path+"/fragmax/scripts/merge.sh","w") as smhpc:
-        smhpc.write(mrscript)
-        smhpc.write("\n\n\nsbatch "+path+"/fragmax/scripts/run_fsp.sh & sbatch "+path+"/fragmax/scripts/run_dimple.sh")
-        
-        
-    with open(path+"/fragmax/scripts/run_dimple.sh","w") as dmhpc:
-        dmhpc.write(dimscript)
-        
-    with open(path+"/fragmax/scripts/run_fsp.sh","w") as fshpc:
-        fshpc.write(fspscript)
-    
-    if os.path.exists(path+"/fragmax/scripts/scale.sh"):
-        script=path+"/fragmax/scripts/scale.sh"
-        command ='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
+    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
     # if useBUSTER:
     #     script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
     #     command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     #     subprocess.call(command,shell=True)
-    if useDIMPLE:
-        script=path+"/fragmax/scripts/run_dimple.sh"
-        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
     if useFSP:
-        script=path+"/fragmax/scripts/run_fsp.sh"
-        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
+    if useDIMPLE:
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh "
+    
+    
+    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
+   
 
 def ligandToSVG():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     lib="F2XEntry"
     ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
@@ -3520,94 +3323,75 @@ def ligandToSVG():
                 content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
                 outw.write(content)
 
-def autoLigandFit():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+def autoLigandFit(useLigFit,useRhoFit,fraglib):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    resList=os.listdir(path+"/fragmax/results/pandda/")
-    keywordFilter=["Apo","dimple","pandda","DMSO","DS_Store","DMOS"]
-    resList = [path+"/fragmax/results/pandda/"+x for x in resList 
-        if not any(word in x for word in keywordFilter)]
+    pdbList=list()
+    with open(path+"/fragmax/scripts/prepareLigfitDataset.sh","w") as outp:        
+        outp.write("#!/bin/bash")
+        outp.write("\n#!/bin/bash")
+        outp.write("\n#SBATCH -t 99:55:00")
+        outp.write("\n#SBATCH -J ligFolders")
+        outp.write("\n#SBATCH --exclusive")
+        outp.write("\n#SBATCH -N1")
+        outp.write("\n#SBATCH --cpus-per-task=40")
+        outp.write("\n#SBATCH -o "+path+"/fragmax/logs/ligfitfolders_fragmax_%j.out")
+        outp.write("\n#SBATCH -e "+path+"/fragmax/logs/ligfitfolders_fragmax_%j.err")
 
-    #Create rhofit directory under results folder
-    rhoList=[x.replace("/pandda/","/ligandfit/") for x in resList]
+        resultsList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/*final*.pdb")
 
-    for src,dst in zip(resList,rhoList):
-        if not os.path.exists(dst):
-            shutil.copytree(src,dst)
-    
+        for i in resultsList:
 
-    
-    def gen_rhofit():
-    
-        nthreads=str(48)
+            lig=i.split("/")[-4].split(acr+"-")[-1].split("_")[0]
+            srcpdb=i    
+            srcmtz=i.replace(".pdb",".mtz")
+            srcnat=i.replace(".pdb","_2mFo-DFc.ccp4")
+            srcdif=i.replace(".pdb","_mFo-DFc.ccp4")
+
+
+            srccif=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".cif"
+            srclig=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".pdb"
+
+            dstPath="/".join(i.split("/")[:8])+"/ligandfit/"+"_".join(i.split("/")[8:11])+"/"
+
+            dstpdb ="/".join(i.split("/")[:8])+"/ligandfit/"+"_".join(i.split("/")[8:11])+"/final."+i.split("/")[-1][-3:]
+            dstmtz=dstpdb.replace(".pdb",".mtz")
+            dstnat=dstpdb.replace(".pdb","_2mFo-DFc.ccp4")
+            dstdif=dstpdb.replace(".pdb","_mFo-DFc.ccp4")
+            dstcif="/".join(i.split("/")[:8])+"/ligandfit/"+"_".join(i.split("/")[8:11])+"/"+lig+".cif"
+            dstlig="/".join(i.split("/")[:8])+"/ligandfit/"+"_".join(i.split("/")[8:11])+"/"+lig+".pdb"
+
+            os.makedirs(dstPath,exist_ok=True)
+            outp.write("\nrsync --ignore-existing "+srcpdb+" "+dstpdb+" &")
+            outp.write("\nrsync --ignore-existing "+srcmtz+" "+dstmtz+" &")
+            outp.write("\nrsync --ignore-existing "+srcnat+" "+dstnat+" &")
+            outp.write("\nrsync --ignore-existing "+srcdif+" "+dstdif+" &")
+            outp.write("\nrsync --ignore-existing "+srccif+" "+dstcif+" &")
+            outp.write("\nrsync --ignore-existing "+srclig+" "+dstlig+" &")
+
+            
+            pdbList.append(dstpdb)
         
+    mtzList=[x.replace("/final.pdb","/final.mtz") for x in pdbList]
+    outListrh=[x.replace("/final.pdb","/rhofit") for x in pdbList]
+    cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
 
-        rhofitScript=list()
-        rhofitOut=""
-
-        #define env for script for fspipeline
-        rhofitOut+= """#!/bin/bash\n"""
-        rhofitOut+= """#!/bin/bash\n"""
-        rhofitOut+= """#SBATCH -t 99:55:00\n"""
-        rhofitOut+= """#SBATCH -J autoligfit\n"""
-        rhofitOut+= """#SBATCH --exclusive\n"""
-        rhofitOut+= """#SBATCH -N1\n"""
-        rhofitOut+= """#SBATCH --cpus-per-task=48\n"""
-        rhofitOut+= """#SBATCH --mem=220000\n""" 
-        rhofitOut+= """#SBATCH -o """+path+"""/fragmax/logs/autoligfit_fragmax_%j.out\n"""
-        rhofitOut+= """#SBATCH -e """+path+"""/fragmax/logs/autoligfit_fragmax_%j.err\n"""    
-        rhofitOut+= """module purge\n\n"""
-        rhofitOut+= """module load Phenix BUSTER\n\n"""
-        if os.path.exists(path+"/fragmax/scripts/rhofit.py"):
-            rhofitOut+= """python2 """+path+"""/fragmax/scripts/rhofit.py\n\n"""
-        if os.path.exists(path+"/fragmax/scripts/ligandfit.py"):
-            rhofitOut+= """python2 """+path+"""/fragmax/scripts/ligandfit.py\n\n"""
-        #rhofitOut+= """python2 """+path+"""/fragmax/scripts/ccp4maps.py\n\n"""
-        
-        # with open(path+"/fragmax/scripts/arrangeLigFit.py","w") as outp:
-        #     outp.write("import glob\n")
-        #     outp.write("import shutil\n")
-        #     outp.write("import sys\n")
-
-        #     outp.write("""path = sys.argv[1]\n""")
-        #     outp.write("""srcList=glob.glob(path+"/fragmax/results/ligandfit/*/LigandFit*")\n""")
-        #     outp.write("""dstList=[x.replace("LigandFit_run_1_","ligandfit") for x in srcList]\n""")
-                
-        #     outp.write("""for src,dst in zip(srcList,dstList):\n""")
-        #     outp.write("""    shutil.move(src,dst)\n""")
-                
-        # rhofitOut+="python2 arrangeLigFit.py"+path+"\n"
-        
-        with open(path+"/fragmax/scripts/autoligfit_fragmax.sh", "w") as outfile:
-            outfile.write(rhofitOut)
-
-        script=path+"/fragmax/scripts/autoligfit_fragmax.sh"
-        command ='echo "module purge | module load autoPROC BUSTER Phenix CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
-    
-    gen_rhofit()
-
-def gen_rhofitpythonScript():
-    mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
-    pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
-    outList=[x+"rhofit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
-    cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]    
     nthreads=str(48)
-    
+
 
     rhofitScript=list()
     rhopythonOut=""
-    
+
     rhopythonOut+='import multiprocessing\n'
     rhopythonOut+='import time\n'
     rhopythonOut+='import subprocess\n\n\n'
-    
+
     rhopythonOut+='cifList=["'+'",\n"'.join(cifList)+'"]\n\n'
     rhopythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
     rhopythonOut+='pdbList=["'+'",\n"'.join(pdbList)+'"]\n\n'
-    rhopythonOut+='outList=["'+'",\n"'.join(outList)+'"]\n\n'
-    
-    
+    rhopythonOut+='outList=["'+'",\n"'.join(outListrh)+'"]\n\n'
+
+
     rhopythonOut+='inpdata=list()\n'
     rhopythonOut+='for a,b,c,d in zip(cifList,mtzList,pdbList,outList):\n'
     rhopythonOut+='    inpdata.append([a,b,c,d])\n'
@@ -3624,39 +3408,45 @@ def gen_rhofitpythonScript():
     rhopythonOut+='\n'
     rhopythonOut+="""if __name__ == '__main__':\n"""
     rhopythonOut+='    mp_handler()\n'
-    
-    with open(path+"/fragmax/scripts/rhofit.py", "w") as outfile:
-        outfile.write(rhopythonOut)
+
+    if "True" in useRhoFit:
+        with open(path+"/fragmax/scripts/rhofit.py", "w") as outfile:
+            outfile.write(rhopythonOut)
+        with open(path+"/fragmax/scripts/run_rhofit.sh","w") as outp:        
+            outp.write("#!/bin/bash")
+            outp.write("\n#!/bin/bash")
+            outp.write("\n#SBATCH -t 99:55:00")
+            outp.write("\n#SBATCH -J rhofit")
+            outp.write("\n#SBATCH --exclusive")
+            outp.write("\n#SBATCH -N1")
+            outp.write("\n#SBATCH --cpus-per-task=40")
+            outp.write("\n#SBATCH -o "+path+"/fragmax/logs/rhofit_fragmax_%j.out")
+            outp.write("\n#SBATCH -e "+path+"/fragmax/logs/rhofit_fragmax_%j.err")
+            outp.write("\nmodule purge")
+            outp.write("\nmodule load autoPROC BUSTER Phenix")
+            outp.write("\npython "+path+"/fragmax/scripts/rhofit.py")
 
 
-def gen_ligandfitpythonScript():
-    
-    # mtzList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.mtz"))
-    # pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
-    # outList=[x+"ligandfit" for x in natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/"))]
-    # cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
-
-    
-    pdbList=natsort.natsorted(glob.glob(path+"/fragmax/results/ligandfit/*/final.pdb"))
-    mtzList=[x.replace("/final.pdb","/final.mtz") for x in pdbList]
-    outList=[x.replace("/final.pdb","/LigandFit_Run_1_") for x in pdbList]
+        
+        
+    outListlf=[x.replace("/final.pdb","/LigandFit_Run_1_") for x in pdbList]
     cifList=[x.replace("final.mtz",x.split(acr+"-")[-1].split("_")[0]+".cif") for x in mtzList]
     nthreads=str(48)
-    
+
 
     rhofitScript=list()
     rhopythonOut=""
-    
+
     rhopythonOut+='import multiprocessing\n'
     rhopythonOut+='import time\n'
     rhopythonOut+='import subprocess\n\n\n'
-    
+
     rhopythonOut+='cifList=["'+'",\n"'.join(cifList)+'"]\n\n'
     rhopythonOut+='mtzList=["'+'",\n"'.join(mtzList)+'"]\n\n'
     rhopythonOut+='pdbList=["'+'",\n"'.join(pdbList)+'"]\n\n'
-    rhopythonOut+='outList=["'+'",\n"'.join(outList)+'"]\n\n'
-    
-    
+    rhopythonOut+='outList=["'+'",\n"'.join(outListlf)+'"]\n\n'
+
+
     rhopythonOut+='inpdata=list()\n'
     rhopythonOut+='for a,b,c,d in zip(cifList,mtzList,pdbList,outList):\n'
     rhopythonOut+='    inpdata.append([a,b,c,d])\n'
@@ -3675,11 +3465,39 @@ def gen_ligandfitpythonScript():
     rhopythonOut+='\n'
     rhopythonOut+="""if __name__ == '__main__':\n"""
     rhopythonOut+='    mp_handler()\n'
+    if "True" in useLigFit:
+        with open(path+"/fragmax/scripts/ligandfit.py", "w") as outfile:
+            outfile.write(rhopythonOut)
+        with open(path+"/fragmax/scripts/run_ligfit.sh","w") as outp:        
+            outp.write("#!/bin/bash")
+            outp.write("\n#!/bin/bash")
+            outp.write("\n#SBATCH -t 99:55:00")
+            outp.write("\n#SBATCH -J phenixligfit")
+            outp.write("\n#SBATCH --exclusive")
+            outp.write("\n#SBATCH -N1")
+            outp.write("\n#SBATCH --cpus-per-task=40")
+            outp.write("\n#SBATCH -o "+path+"/fragmax/logs/rhofit_fragmax_%j.out")
+            outp.write("\n#SBATCH -e "+path+"/fragmax/logs/rhofit_fragmax_%j.err")
+            outp.write("\nmodule purge")
+            outp.write("\nmodule load autoPROC BUSTER Phenix")
+            outp.write("\npython "+path+"/fragmax/scripts/ligandfit.py")
+
+
+    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/prepareLigfitDataset.sh)  "
+
+    if "True" in useRhoFit:
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_rhofit.sh "
+    if "True" in useLigFit:
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_ligfit.sh "
     
-    with open(path+"/fragmax/scripts/ligandfit.py", "w") as outfile:
-        outfile.write(rhopythonOut)
+    
+    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
+   
         
 def project_dif_svg():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
     xmlDict=dict()
     for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*.xml"):
         xmlDict[x.split("/")[9]]=x
@@ -3712,7 +3530,7 @@ def merge_project():
 
 
 def get_project_status():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     dataProcStatusDict=dict()
     dataRefStatusDict=dict()

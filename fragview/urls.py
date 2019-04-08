@@ -34,6 +34,10 @@ urlpatterns = [
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('process_all/', views.process_all, name='process_all'),
     path('pipedream/', views.pipedream, name='pipedream'),
+    path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
+
+    path('pipedream_results_notready/', views.pipedream_results, name='pipedream_results'),
+
 
     path('submit_pipedream/', views.submit_pipedream, name='submit_pipedream'),
     path('reproc_web/', views.reproc_web, name='reproc_web'),
@@ -45,5 +49,6 @@ urlpatterns = [
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
     path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
     path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
+
 
 ]

@@ -9,12 +9,14 @@
   <meta name="theme-color" content="#333333">
   <style>
    body { font-family: sans-serif; }
-   canvas { display: block; }
+   canvas { 
+     display: flex; 
+     }
    #viewer {
      position: absolute;
-     left: 100px;
+     left: 250px;
      top: 100px;
-     width: calc(100% - 100px);
+     width: calc(100% - 250px);
      height: calc(100% - 100px);
    }
    
@@ -24,7 +26,7 @@
      color: #eee;
      background-color: rgba(0,0,0,0.7);
      position: absolute;
-     left: 200px;
+     left: 250px;
      top: 50%;
      transform: translateY(-50%);
      cursor: default;
@@ -63,6 +65,7 @@
     </div>
     </div>
 
+    
     <div id="viewer"></div>
 
     <footer id="help"></footer>

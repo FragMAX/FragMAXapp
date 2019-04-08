@@ -30,7 +30,7 @@
     background-color: #e2e2e2;
   }
 
-  tr td:nth-child(n+2) {
+  tr td:nth-child(n) {
     text-align: center;
   }
   
@@ -65,6 +65,7 @@
  <table  id="resultsTable">
    <thead>
   <tr>
+   <th>Open Structure</th>
    <th>Data set</th>
    <th>Space group</th>
    <th>Res. [&Aring;]</th>
@@ -80,7 +81,6 @@
     <th>&gamma;</th>
    <th>Unmodelled blobs</th>
    <th>&sigma;</th>
-   <th>Success</th>
   </tr>
  </thead>
   <tbody>
@@ -122,7 +122,7 @@ function searchDatasetName() {
         table = document.getElementById("resultsTable");
         tr = table.getElementsByTagName("tr");
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0];
+            td = tr[i].getElementsByTagName("td")[1];
             if (td) {
             txtValue = td.textContent || td.innerText;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {

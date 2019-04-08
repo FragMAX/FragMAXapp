@@ -152,6 +152,7 @@
                                 <th class="top-options">Software</th>
                                 <td class=" top-options">
                                     <form id="swSelectionFordataproc" >
+                                        <br>
                                         <div>
                                         <div class="checkbox" id="dials">
                                         <label>
@@ -255,6 +256,7 @@
                             <td class=" top-options">
                                 
                                 <form id="swSelectionForrefinement" >
+                                        <br>
                                         <div>
                                         <div class="checkbox" id="dials">
                                         <label>
@@ -293,6 +295,35 @@
                     <input type='file' accept=".pdb" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' />
                 </td>
             </tr>
+            <tr>
+                    <th class=" top-options">Water placement</th>
+                    <td class=" top-options">
+                        <form id="swSelectionForrefinement" >
+                                <br>
+                                <div>                                
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
+                                    <span for="arpwarpcheckboxinput">use ARP/wARP </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
+                                    <span for="cootwatercheckboxinput">use Coot </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
+                                    <span for="phenixwatercheckboxinput">use Phenix </span>
+                                </label>
+                                </div>
+                                </div>                     
+                        </form>
+                    </td>
+                </tr>
+            <tr>
             <tr>
                     <th class=" top-options">Space group</th>
                     <td class=" top-options">
@@ -357,6 +388,7 @@
                         <th class=" top-options">Software</th>
                         <td class=" top-options">                            
                             <form id="swSelectionForrefinement" >
+                                <br>
                                 <div>
                                     <div class="checkbox" id="rhofit">
                                     <label>

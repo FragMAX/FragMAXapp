@@ -1,0 +1,136 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}Norrsken - Pipedream Results{% endblock %}
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+    height: 50px;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+  td{
+        height: 100px;
+        
+
+  }
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n) {
+    text-align: center;
+  }
+  
+  th {
+      cursor: pointer;
+  }
+  .container {
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+  }
+
+</style>
+ <div>
+    <h4>Results - Structure refinement </h4> 
+    <div style="display:flex;">
+      <form action="/results/" method="get" id="syncButton"  >
+        <button class="btn" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
+      </form>  
+      </div>
+  </div>       
+
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchDataset" onkeyup="searchDatasetName()"  title="Type in a dataset name">
+        <label for="searchDataset">Search for Dataset..</label>
+        
+    </div>
+
+
+
+ <table  id="resultsTable">
+   <thead>
+  <tr>
+   <th>Open Structure</th>
+   <th>Pipedream summary</th>
+   <th>Space group</th>
+   <th>Res. [&Aring;]</th>
+   <th>R<sub>work</sub> [%]</th>
+   <th>R<sub>free</sub> [%]</th>   
+   <th>RhoFit Score</th>
+   <th>a</th>
+   <th>b</th>
+   <th>c</th>
+   <th>&alpha;</th>
+   <th>&beta;</th>
+   <th>&gamma;</th>
+   <th>Ligand</th>
+  </tr>
+ </thead>
+  <tbody>
+    <tr>
+    
+    </tr>
+    {% for line in files %}
+
+    {{line |safe}}
+
+    {% endfor %}    
+                   
+  </tbody>
+  </table>
+
+
+  </tbody>
+
+</table>
+<script>
+const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+// do the work...
+document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+    const table = th.closest('table');
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => table.appendChild(tr) );
+})));
+
+function searchDatasetName() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchDataset");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("resultsTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1];
+            if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+            }       
+        }
+        }
+</script>
+{% endblock %}
+
