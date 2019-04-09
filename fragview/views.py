@@ -1016,6 +1016,41 @@ def pandda(request):
             t.daemon = True
             t.start()
         if "run" in runpanddabtn:
+            with open(path+"/fragmax/scripts/checkPanDDA.py","w") as outp:    
+                outp.write('''\nimport os ''')
+                outp.write('''\nimport glob''')
+                outp.write('''\nimport sys''')
+                outp.write('''\nimport subprocess ''')
+                outp.write('''\n''')
+                outp.write('''\npath=sys.argv[1]''')
+                outp.write('''\n''')
+                outp.write('''\nlastlog=sorted(glob.glob(path+"/fragmax/results/pandda/pandda/logs/*.log"))[-1]''')
+                outp.write('''\n''')
+                outp.write('''\nwith open(lastlog,"r") as logfile:''')
+                outp.write('''\n    log=logfile.readlines()''')
+                outp.write('''\n''')
+                outp.write('''\nbadDataset=list()''')
+                outp.write('''\nfor line in log:''')
+                outp.write('''\n    if "Structure factor column"  in line:''')
+                outp.write('''\n        badDataset.append(line.split(" has ")[0].split("in dataset ")[-1])''')
+                outp.write('''\nif len(badDataset)>1:''')
+                outp.write('''\n    script=path+"/fragmax/scripts/panddaRUN.sh"''')
+                outp.write('''\n    with open(script, "r") as inp:''')
+                outp.write('''\n        panddarun=inp.readlines()''')
+                outp.write('''\n''')
+                outp.write('''\n    with open(script, "w") as outp:''')
+                outp.write('''\n        for line in panddarun:''')
+                outp.write('''\n            if "pandda.analyse" in line:''')
+                outp.write('''\n                current_ignored=line.split('ignore_datasets="')[-1].split('"')[0]+","''')
+                outp.write("""\n                line=line.split("ignore_datasets")[0].replace("\\n","")+' ignore_datasets="'+current_ignored+",".join(badDataset)+'"\\n'""")
+                outp.write('''\n                panndaline=line''')
+                outp.write('''\n                outp.write(line)''')
+                outp.write('''\n            else:''')
+                outp.write('''\n                outp.write(line)''')
+                outp.write('''\n    ''')
+                outp.write('''\n    ''')
+                outp.write('''\n    command =panndaline''')
+                outp.write('''\n    subprocess.call(command,shell=True)''')
 
             actionbtn="runpandda"
             panddaRUNscript=""
@@ -1032,7 +1067,7 @@ def pandda(request):
             panddaRUNscript+='module purge\n'
             panddaRUNscript+='module load CCP4 PyMOL\n\n'
             panddaRUNscript+='cd '+path+'/fragmax/results/pandda/\n'
-            panddaRUNscript+='pandda.analyse data_dirs="'+path+'/fragmax/results/pandda/*" cpus=48  input.max_new_datasets=1000  \n'
+            panddaRUNscript+='pandda.analyse data_dirs="'+path+'/fragmax/results/pandda/*" cpus=24  input.max_new_datasets=10000  \n'
             panddaRUNscript+='python '+path+'/fragmax/scripts/checkPanDDA.py '+path
 
             if not os.path.exists(path+"/fragmax/scripts/panddaRUN.sh"):
@@ -1122,30 +1157,128 @@ def reproc_web(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     dataproc = str(request.GET.get("submitProc"))
-    outdir=dataproc.split(";")[0]
-    data=dataproc.split(";")[1]
-    SW=outdir.split(" #")[-1]
-    outdir=add_run_DP(outdir)
-    if "autoPROC" in SW:
-        data=data+" -d "+outdir.split("cd ")[-1].split(" #")[0]
-    if "XDSAPP" in SW:
-        data=data.replace("xdsapp --cmd","xdsapp --cmd "+" --dir "+outdir.split("cd ")[-1].split(" #")[0])
+    strcrefine=str(request.GET.get("submitRefine"))
     
-    base_script="""#!/bin/bash\n#!/bin/bash\n#SBATCH -t 99:55:00\n#SBATCH -J FragWeb\n#SBATCH --exclusive\n#SBATCH -N1\n#SBATCH --cpus-per-task=48\n#SBATCH --mem=220000\n#SBATCH -o /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.out\n#SBATCH -e /data/visitors/biomax/20180489/20190127/fragmax/logs/manual_proc_WebApp_%j.err\nmodule purge\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER\n\n{0}\n\n{1}\n""".format(outdir, data)
+    if "runProc" in dataproc :       
+        runProc,procSW, spg, CellPar, Friedel, DRange, numImgs, ResCutoff, CCCutoff, Isigma, custom, imgdir, dataset = dataproc.split(";")
+    
+        with open(path+"/fragmax/scripts/man_dataproc.sh","w") as outp:
+            outputdir=imgdir.replace("/raw/","/fragmax/process/")+dataset
+            outp.write('#!/bin/bash')
+            outp.write('\n#!/bin/bash')
+            outp.write('\n#SBATCH -t 99:55:00')
+            outp.write('\n#SBATCH -J manProc')
+            outp.write('\n#SBATCH --exclusive')
+            outp.write('\n#SBATCH -N1')
+            outp.write('\n#SBATCH --cpus-per-task=40')            
+            outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.out')
+            outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.err')
+            outp.write('\n\nmodule purge')
+            outp.write('\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER')
 
-    with open("/data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh","w") as inp:
-        inp.write(base_script)
 
-    command ='echo "module purge | module load CCP4 XDSAPP | sbatch /data/visitors/biomax/20180489/20190127/fragmax/scripts/reprocess_webapp.sh " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(command,shell=True)
+            if "xdsapp" in procSW:
+                if Friedel=="":
+                    Friedel="True"
+                
+                if DRange=="":
+                    DRange="1\\ "+numImgs
+                elif "-" in DRange:
+                    DRange=DRange.replace("-","\\ ")
+                if spg!="" and CellPar!="":
+                    spg=' --spacegroup="'+spg+" "+" ".join(CellPar.split(","))+'"'
+                else:
+                    spg=""
+                if ResCutoff!="":
+                    ResCutoff=" --res="+ResCutoff
+                dataprocCommand = "xdsapp --cmd --dir "+outputdir+"/xdsapp -j 8 -c 6 -i "+imgdir+dataset+"_master.h5 --fried="+Friedel+spg+ResCutoff+" --range="+DRange+" "+custom
+                outp.write('\n'+"cd "+outputdir+"/xdsapp")
+                outp.write('\n'+dataprocCommand) 
+            if "autoproc" in procSW:
+                if Friedel=="" or "true" in Friedel:
+                    Friedel=" -ANO "
+                else:
+                    Friedel=" -noANO "
+                if DRange=="":
+                    DRange="1\\ "+numImgs
+                elif "-" in DRange:
+                    DRange=DRange.replace("-","\\ ")
+                if spg!="":
+                    spg=' symm="'+spg+'" '
+                if CellPar!="":
+                    CellPar=' cell="'+CellPar+'" '                
+            
+                dataprocCommand = 'process -h5 '+imgdir+dataset+'_master.h5 -d'+outputdir+'/autoproc '+Friedel+spg+CellPar+'autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0 -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
+                outp.write('\n'+"cd "+outputdir+"/autoproc")
+                outp.write('\n'+dataprocCommand) 
 
-    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    output=""
-    for i in out.decode("UTF-8").split("\n")[1:-1]:
-        output+="<tr><td>"+"</td><td>".join(i.split())+"</td></tr>"
-    base_script=base_script.replace("\n","<br>")
-    return render(request,'fragview/reproc_web.html', {'command': base_script})
+            
+            if "dials" in procSW or "xdsxscale" in procSW:
+                if "xdsxscale" in procSW:
+                    pipeline="3dii"
+                else:
+                    pipeline=procSW
+                if DRange=="":
+                    DRange="1:"+numImgs
+                elif "-" in DRange:                    
+                    DRange=DRange.replace("-",":")
+                if spg!="":
+                    spg=' space_group="'+spg+'"'
+                if CellPar!="":
+                    CellPar=' unit_cell="'+CellPar+'"'
+                
+                dataprocCommand = 'xia2 goniometer.axes=0,1,0 pipeline='+pipeline+' failover=true '+spg+' '+CellPar+' nproc=48  image='+imgdir+dataset+'_master.h5:'+DRange+' multiprocessing.mode=serial  multiprocessing.njob=1  multiprocessing.nproc=auto'+" "+custom
+                outp.write('\n'+"cd "+outputdir+"/"+procSW)
+                outp.write('\n'+dataprocCommand) 
+
+
+            command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_dataproc.sh " | ssh -F ~/.ssh/ clu0-fe-1'
+            #subprocess.call(command,shell=True)
+            return render(request,'fragview/reproc_web.html', {'command': dataprocCommand})
+    if "runRefine" in strcrefine:
+        refineCommand=strcrefine
+        runRefine,procSW,refineSW,refineMode,spg,ResCutoff,mrthresh,pdbmodel,custom,imgdir,dataset=strcrefine.split(";")
+        if procSW=="" or refineSW=="":
+            return render(request,'fragview/reproc_web.html', {'command': "Please select data processing software AND refine software for this step"})    
+        else:
+            with open(path+"/fragmax/scripts/man_refine.sh","w") as outp:
+                processdir=imgdir.replace("/raw/","/fragmax/process/")+dataset
+                dpresdir=path+"/fragmax/results/"+dataset+"/"+procSW
+                dprespathmer=dpresdir+"/"+dataset+"_"+procSW+"_merged.mtz"
+                dprespathsca=dpresdir+"/"+dataset+"_"+procSW+"_scaled.mtz"
+                outp.write('#!/bin/bash')
+                outp.write('\n#!/bin/bash')
+                outp.write('\n#SBATCH -t 99:55:00')
+                outp.write('\n#SBATCH -J manRefine')
+                outp.write('\n#SBATCH --exclusive')
+                outp.write('\n#SBATCH -N1')
+                outp.write('\n#SBATCH --cpus-per-task=40')            
+                outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j.out')
+                outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j.err')
+                outp.write('\n\nmodule purge')
+                outp.write('\nmodule load CCP4 Phenix BUSTER')
+                
+                if "dimple" in refineSW:
+                    refineCommand="cd "+dpresdir
+                    if os.path.exists(dprespathmer):
+                        refineCommand+="dimple "+dprespathmer+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                    elif os.path.exists(dprespathsca):
+                        refineCommand+="dimple "+dprespathsca+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                    else:
+                        return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
+                if "fspipeline" in refineSW:
+                    refineCommand="cd "+dpresdir
+                    --exclude='unscaled unmerged scaled final autoproc dials xdsxscale fastdp EDNA_proc truncate EPApo- nowater pipedream  EPF2XEntry-H EPF2XEntry-A EPF2XEntry-B EPF2XEntry-C EPF2XEntry-D EPF2XEntry-E EPF2XEntry-F' --cpu=48 --dir=/data/visitors/biomax/20180479/20190330/fragmax/results/fspipeline
+
+                    if os.path.exists(dprespathmer):
+                        refineCommand+="python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged scaled final' --cpu=40"
+                    elif os.path.exists(dprespathsca):
+                        refineCommand+="python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged merged final' --cpu=40"
+                    else:
+                        return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
+        
+            return render(request,'fragview/reproc_web.html', {'command': refineCommand})
+    return render(request,'fragview/reproc_web.html', {'command': "No valid method selected"})
 
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
@@ -1896,7 +2029,12 @@ def fsp_info(entry):
             res=line.split(":")[-1].replace(" ","").replace("\n","")
             res=str("{0:.2f}".format(float(res)))
         if "CRYST1" in line:
-            a,b,c,alpha,beta,gamma=line.split()[1:-4]
+            a=line[9:15]
+            b=line[18:24]
+            c=line[27:33]
+            alpha=line[34:40]
+            beta=line[41:47]
+            gamma=line[48:54]
             a=str("{0:.2f}".format(float(a)))
             b=str("{0:.2f}".format(float(b)))
             c=str("{0:.2f}".format(float(c)))
@@ -3483,15 +3621,16 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib):
             outp.write("\npython "+path+"/fragmax/scripts/ligandfit.py")
 
 
-    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/prepareLigfitDataset.sh)  "
-
+    
+    argsfit="none"
     if "True" in useRhoFit:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_rhofit.sh "
+        argsfit="rhofit"
     if "True" in useLigFit:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_ligfit.sh "
+        argsfit+="phenixlig"
     
     
-    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    command ='echo "python /data/visitors/biomax/20180479/20190330/fragmax/scripts/run_queueFIT.py '+argsfit+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
    
         
