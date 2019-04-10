@@ -16,8 +16,12 @@ urlpatterns = [
     path('results_notready/', views.results, name='results_notready'),
 
     path('density/', views.request_page_res, name='density'),
+    path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
+
     path('pandda_density/', views.request_page, name='pandda_density'),
     path('pandda/', views.pandda, name='pandda'),
+    path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
+
     path('pandda_notready/', views.pandda, name='pandda_notready'),
 
     path('ugly/', views.ugly, name='ugly'),

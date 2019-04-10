@@ -18,6 +18,7 @@ import threading
 import pypdb
 import ast
 import sys 
+import xmltodict
 from subprocess import Popen, PIPE
 
 
@@ -106,18 +107,58 @@ def pipedream_results(request):
 
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()   
 
-    #resync=str(request.GET.get("resync"))
-    #if "resyncresults" in resync:
-    #    resultSummary()
-    #if not os.path.exists(path+"/fragmax/process/generalrefsum.csv"):
-    #    resultSummary()
-    #try:
-    #    with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
-    #        a=inp.readlines()
-    #    return render_to_response('fragview/results.html', {'files': a})
-    #except:
-    #    return render_to_response('fragview/results_notready.html')
+    resync=str(request.GET.get("resync"))
+    if "resyncresults" in resync:
+        get_pipedream_results()
+    if not os.path.exists(path+"/fragmax/process/pipedream.csv"):
+            get_pipedream_results()
+    try:
+        datasetlist=list()
+        summarylist=list()
+        fragmentlist=list()
+        fragliblist=list()
+        spacegrouplist=list()
+        resolutionlist=list()
+        rworklist=list()
+        rfreelist=list()
+        rhofitscorelist=list()
+        alist=list()
+        blist=list()
+        clist=list()
+        alphalist=list()
+        betalist=list()
+        gammalist=list()
+        ligsvglist=list()
+        rhofitfolderlist=list()
+        ccp4diflistW=list()
+        ccp4natlist=list()
 
+        with open(path+"/fragmax/process/pipedream.csv","r") as inp:
+            for a in inp.readlines():            
+                dataset=a.split(";")[0]
+                datasetlist.append(a.split(";")[0])
+                summarylist.append(a.split(";")[1])
+                fragmentlist.append(a.split(";")[2])
+                fragliblist.append(a.split(";")[3])
+                spacegrouplist.append(a.split(";")[4])
+                resolutionlist.append(a.split(";")[5])
+                rworklist.append(a.split(";")[6])
+                rfreelist.append(a.split(";")[7])
+                rhofitscorelist.append(a.split(";")[8])
+                alist.append(a.split(";")[9])
+                blist.append(a.split(";")[10])
+                clist.append(a.split(";")[11])
+                alphalist.append(a.split(";")[12])
+                betalist.append(a.split(";")[13])
+                gammalist.append(a.split(";")[14])
+                ligsvglist.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+a.split(";")[3]+"/"+a.split(";")[2]+"/"+a.split(";")[2]+".svg")
+                rhofitfolderlist.append(path.replace("/data/visitors/","/static/")+"/fragmax/results/pipedream/"+acr+"/"+dataset.split("_")[0]+"/"+dataset+"/rhofit-"+a.split(";")[2])
+            
+        resultList=zip(datasetlist,summarylist,fragmentlist,fragliblist,spacegrouplist,resolutionlist,rworklist,rfreelist,rhofitscorelist,alist,blist,clist,alphalist,betalist,gammalist,ligsvglist,rhofitfolderlist)
+        return render_to_response('fragview/pipedream_results.html', {'files': resultList})
+    except:
+        #return render_to_response('fragview/index.html')
+        pass
     return render(request, "fragview/pipedream_results.html")
 
 def submit_pipedream(request):
@@ -897,6 +938,31 @@ def request_page_res(request):
     
     return render(request,'fragview/density.html', {'structure': a})
 
+def load_pipedream_density(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    a=str(request.GET.get('structure')) 
+    center=""
+    
+    name,pdb,nat,dif,frag,center=a.split(";")
+    with open(frag.replace("/static/","/data/visitors/"),"r") as inp:
+         for line in inp.readlines():
+                if line.startswith("HETATM"):
+                    center="["+",".join(line[32:54].split())+"]"
+                    break
+    prevst,nextst=["prev","next"]
+    
+    return render(request,'fragview/pipedream_density.html', {
+        "name":name,
+        "pdb":pdb,
+        "nat":nat,
+        "dif":dif,
+        "frag":frag,
+        "prevst":prevst,
+        "nextst":nextst,
+        "center":center
+    })
+
 def ugly(request):
     return render(request,'fragview/ugly.html')
 
@@ -948,7 +1014,7 @@ def ligfit_results(request):
         try:
             with open(path+"/fragmax/process/autolig.csv","r") as outp:
                 a="".join(outp.readlines())
-            
+                
             return render(request,'fragview/ligfit_results.html', {'resTable': a})
         except:
             return render(request,'fragview/ligfit_results_notready.html')
@@ -960,51 +1026,31 @@ def ligfit_results(request):
 ###################################
 
 
+def pandda_inspect(request):    
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    
+    if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html"):
+        with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+            a="".join(inp.readlines())
+            #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+            
+            return render(request,'fragview/pandda_inspect.html', {'Report': a})
+        
+    
+
 def pandda(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     
     if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
-        if not os.path.exists(path+"/fragmax/process/panddarefsum.csv"):
-            panddaResultSummary()
-            parseLigand_results()
-        try:
-            with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
-                a="".join(inp.readlines())
-            
-                
-            with open(path+"/fragmax/process/panddarefsum.csv","r") as inp:
-                body="".join(inp.readlines())
-            thead_ini=a.index("<thead>")+8
-            thead_end=a.index("</thead>") 
-            tbody_ini=a.index("<tbody>")+8
-            tbody_end=a.index("</tbody>")     
-            a=a.replace(a[thead_ini:tbody_end],"""<tr>
-                <th>Data set</th>
-                <th>Space group</th>
-                <th>Res. [Å]</th>
-                <th>R<sub>work</sub> [%]</th>
-                <th>R<sub>free</sub> [%]</th>
-                <th>RMS bonds [Å]</th>
-                <th>RMS angles [°]</th>
-                <th>a</th>
-                <th>b</th>
-                <th>c</th>
-                <th>α</th>
-                <th>β</th>
-                <th>γ</th>
-                <th>Unmodelled blobs</th>
-                <th>σ</th>
-                <th>Event</th>
-                </tr>
-                </thead>
-                <tbody><tr></tr>"""+body)
-            a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+        with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
+            a="".join(inp.readlines())
+            #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+
             
             return render(request,'fragview/pandda.html', {'Report': a})
-        except:
-            actionbtn=str(request.GET.get("runpanddafolderform"))
-            return render(request,'fragview/pandda_notready.html',{"panddafolder":actionbtn})
+        
     else:
         folderbtn=str(request.GET.get("runpanddafolderform"))
         runpanddabtn=str(request.GET.get("runpanddaform"))
@@ -1117,14 +1163,12 @@ def procReport(request):
     if a.startswith("xdsapp"):
         a=a.replace("xdsapp","")
         a=path+"/fragmax/process/"+acr+"/"+a+"/"+a+"_1/xdsapp/results_"+a+"_1_data.txt"
-        #a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/xdsxscale/xia2.html"
         if os.path.exists(a):
             with open(a,"r") as inp:
                 html="<br>".join(inp.readlines())
         else:
             html='<h5 style="padding-left:260px;" >XDSAPP report for this dataset is not available</h5>'
-        #html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
-        #html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+
         html='''<style>  .card {  margin: 40px 0 0 50px !important; }</style><div class="card" ><div class="card-content"><div class="card-title">XDSAPP Processing report</div><br>'''+html+'</div></div>'
 
     if a.startswith("autoPROC"):
@@ -1233,9 +1277,9 @@ def reproc_web(request):
 
 
             command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_dataproc.sh " | ssh -F ~/.ssh/ clu0-fe-1'
-            #subprocess.call(command,shell=True)
+            subprocess.call(command,shell=True)
             return render(request,'fragview/reproc_web.html', {'command': dataprocCommand})
-    if "runRefine" in strcrefine:
+    if "runRefine" in strcrefine: 
         refineCommand=strcrefine
         runRefine,procSW,refineSW,refineMode,spg,ResCutoff,mrthresh,pdbmodel,custom,imgdir,dataset=strcrefine.split(";")
         if procSW=="" or refineSW=="":
@@ -1246,7 +1290,7 @@ def reproc_web(request):
                 dpresdir=path+"/fragmax/results/"+dataset+"/"+procSW
                 dprespathmer=dpresdir+"/"+dataset+"_"+procSW+"_merged.mtz"
                 dprespathsca=dpresdir+"/"+dataset+"_"+procSW+"_scaled.mtz"
-                outp.write('#!/bin/bash')
+                outp.write('#!/bin/bash') 
                 outp.write('\n#!/bin/bash')
                 outp.write('\n#SBATCH -t 99:55:00')
                 outp.write('\n#SBATCH -J manRefine')
@@ -1268,8 +1312,6 @@ def reproc_web(request):
                         return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
                 if "fspipeline" in refineSW:
                     refineCommand="cd "+dpresdir
-                    --exclude='unscaled unmerged scaled final autoproc dials xdsxscale fastdp EDNA_proc truncate EPApo- nowater pipedream  EPF2XEntry-H EPF2XEntry-A EPF2XEntry-B EPF2XEntry-C EPF2XEntry-D EPF2XEntry-E EPF2XEntry-F' --cpu=48 --dir=/data/visitors/biomax/20180479/20190330/fragmax/results/fspipeline
-
                     if os.path.exists(dprespathmer):
                         refineCommand+="python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged scaled final' --cpu=40"
                     elif os.path.exists(dprespathsca):
@@ -1576,7 +1618,7 @@ def create_dataColParam(acr, path):
         t.daemon = True
         t.start()
 
-        xml_list=glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn*/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        xml_list=glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
         img_list=list()
         prf_list=list()
         res_list=list()
@@ -1674,8 +1716,7 @@ def create_dataColParam(acr, path):
         
 def parseLigand_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-    with open(path+"/fragmax/process/autolig.csv","w") as outp:
-            
+    with open(path+"/fragmax/process/autolig.csv","w") as outp:            
 
         for dataset in glob.glob(path+"/fragmax/results/ligandfit/*"):
             if os.path.exists(dataset+"/final.pdb") and "Apo" not in dataset:
@@ -1695,7 +1736,7 @@ def parseLigand_results():
                         ligfitscore=inp.readlines()[6].split()[2]
 
                 lig=dataset.split(acr+"-")[-1].split("_")[0]
-                ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"
+                ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/*"+fraglib+"*/"+lig+"/"+lig+".svg"
 
                 with open(dataset+"/final.pdb","r") as inp:
                     for line in inp.readlines():
@@ -3440,6 +3481,18 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     
     command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
+
+
+    argsfit="none"
+    if useFSP:
+        argsfit="fspipeline"
+    if useDIMPLE:
+        argsfit+="dimple"
+    
+    
+    #command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    command ='echo "python /data/visitors/biomax/20180479/20190330/fragmax/scripts/run_queueREF.py '+argsfit+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
    
 
 def ligandToSVG():
@@ -3936,8 +3989,39 @@ def get_project_status():
         with open(path+"/fragmax/process/lgstatus.csv","w") as outp:
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
-            
+def get_pipedream_results():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    with open(path+"/fragmax/process/pipedream.csv","w") as outp:
+        for dataset in glob.glob(path+"/fragmax/results/pipedream/"+acr+"/*/*/"):
+            if "ref-" not in dataset:
+                if os.path.exists(dataset+"summary.xml"):
+                    summary=dataset+"summary.xml"
+                    with open(summary) as fd:
+                        try:
+                            doc = xmltodict.parse(fd.read())
+                            sample     =summary.replace("/data/visitors/","/static/").split("/")[-2]
+                            a          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["a"])))
+                            b          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["b"])))
+                            c          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["c"])))
+                            alpha      =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["alpha"])))
+                            beta       =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["beta"])))
+                            gamma      =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["gamma"])))
+                            symm       =doc["GPhL-pipedream"]["refdata"]["symm"]
+                            resolution =doc["GPhL-pipedream"]["inputdata"]["table1"]['shellstats'][0]['reshigh']
+                            rwork      =str("{0:.2f}".format(100*float(doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"])))
+                            rfree      =str("{0:.2f}".format(100*float(doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["Rfree"])))
+                            fragment   =doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["@id"]
+                            rhofitscore=doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"]["correlationcoefficient"]
+                            param      =sample+";"+summary.replace("/data/visitors/","/static/").replace(".xml",".out")+";"+fragment+";"+fraglib+";"+symm+";"+resolution+";"+rwork+";"+rfree+";"+rhofitscore+";"+a+";"+b+";"+c+";"+alpha+";"+beta+";"+gamma
+
+                            outp.write(param+"\n")
+                        except:
+                            pass
+
 def get_project_status_initial():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
     dataProcStatusDict=dict()
     dp=["autoproc","dials","xdsxscale","EDNA_proc","fastdp","xdsapp"]
     sampleList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/") 

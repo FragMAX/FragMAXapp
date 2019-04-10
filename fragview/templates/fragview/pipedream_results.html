@@ -47,7 +47,7 @@
  <div>
     <h4>Results - Structure refinement </h4> 
     <div style="display:flex;">
-      <form action="/results/" method="get" id="syncButton"  >
+      <form action="/pipedream_results/" method="get" id="syncButton"  >
         <button class="btn" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
       </form>  
       </div>
@@ -66,6 +66,7 @@
    <thead>
   <tr>
    <th>Open Structure</th>
+   <th>Dataset</th>
    <th>Pipedream summary</th>
    <th>Space group</th>
    <th>Res. [&Aring;]</th>
@@ -85,9 +86,37 @@
     <tr>
     
     </tr>
-    {% for line in files %}
+    {% for dataset,summary,fragment,fraglib,spacegroup,resolution,rwork,rfree,rhofitscore,a,b,c,alpha,beta,gamma,ligsvg,rhofitfolder in files %}
 
-    {{line |safe}}
+    <tr>
+      <td>
+      <form action="/pipedream_density/" method="get" id="pipedream_form" target="_blank">
+      <button class="btn" type="submit" value="{{dataset}};{{rhofitfolder}}/merged-hydrogenated.pdb;{{rhofitfolder}}/refine_2mFo-DFc.ccp4;{{rhofitfolder}}/refine_mFo-DFc.ccp4;{{rhofitfolder}}/best.pdb;[10,10,10]," name="structure" size="1">Open</button>
+      </form>
+      
+      </td>
+      <td>{{dataset}}</td>
+      <td><a href="{{summary}}">Summary</a></td>
+      <td>{{spacegroup}}</td>
+      <td>{{resolution}}</td>
+      <td>{{rwork}}</td>
+      <td>{{rfree}}</td>  
+      <td>{{rhofitscore}}</td>
+      <td>{{a}}</td>
+      <td>{{b}}</td>
+      <td>{{c}}</td>
+      <td>{{alpha}}</td>
+      <td>{{beta}}</td>
+      <td>{{gamma}}</td>
+      <td><a href={{ligsvg}} target="_blank">
+        <img class="ligpng" id="ligand" src={{ligsvg}} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="116" >
+      </a></td>
+
+      
+    </tr>
+
+
+
 
     {% endfor %}    
                    

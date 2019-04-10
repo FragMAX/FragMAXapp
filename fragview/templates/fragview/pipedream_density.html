@@ -1,0 +1,96 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - Density viewer{% endblock %}
+{% block content %}
+
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+   body { font-family: sans-serif; }
+   canvas { 
+     display: flex; 
+     }
+   #viewer {
+     position: absolute;
+     left: 250px;
+     top: 100px;
+     width: calc(100% - 250px);
+     height: calc(100% - 100px);
+   }
+   
+   #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 250px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
+   }
+   a { color: #59C; }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+</head>
+<body style="background-color: white">
+    <h5>Showing results for: {{name}} </h5>
+    <div style="display:flex;">
+    <div ><input class="btn " type="button" value="Previous structure" onclick="return previousblob()" ></input> </div>
+    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next structure" onclick="return nextblob()" ></input> </div>
+    <div style="padding-left:20px !important; padding-top:7px !important">
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div>
+    </div>
+
+    
+    <div id="viewer"></div>
+
+    <footer id="help"></footer>
+    <div id="inset"></div>
+
+    
+</body>
+<script>
+      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      
+
+
+      V.load_pdb_and_ccp4_maps("{{pdb}}",
+                               "{{nat}}",
+                               "{{dif}}", function () { 
+                                V.recenter({{center}}, null, 25);                               
+
+      });
+      V.load_pdb("{{frag}}");
+
+    
+
+
+   
+  </script>
+</html>
+
+
+{% endblock %}
