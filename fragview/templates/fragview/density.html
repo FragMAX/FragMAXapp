@@ -14,9 +14,9 @@
      }
    #viewer {
      position: absolute;
-     left: 250px;
+     left: 550px;
      top: 100px;
-     width: calc(100% - 250px);
+     width: calc(100% - 550px);
      height: calc(100% - 100px);
    }
    
@@ -34,6 +34,18 @@
      border-radius: 5px;
      z-index: 9;
      white-space: pre-line;
+   }
+   #left-controlpanel {
+     font-size: 16px;
+     background-color: rgba(0,0,0,0.1);
+     position: absolute;
+     left: 265px;
+     top: 100px;     
+     width: 270px;
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
    }
    #hud u { padding: 0 8px; text-decoration: none;
             border: solid; border-width: 1px 0; }
@@ -55,11 +67,66 @@
 
 </head>
 <body style="background-color: white">
+
   {% for name,pdb,nat,dif,xyzlist,center in structure %}
     <h5>Showing results for: {{name }} </h5>
+    
+    
+    
+    <div id="left-controlpanel" >
+      
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Blob navigation</h6>
+        </div>
+        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
+        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
+      </div>
+      <div>
+        <table>
+          
+          <tr>
+            <th>Resolution
+            </th>
+            <td>1.1
+            </td>
+          </tr>
+          <tr>
+            <th>Rwork
+            </th>
+            <td>0.17
+            </td>
+          </tr>
+          <tr>
+            <th>Rfree
+            </th>
+            <td>0.19
+            </td>
+          </tr>
+          <tr>
+            <th>ISa
+            </th>
+            <td>17
+            </td>
+          </tr>
+          <tr>
+            <th>Spacegroup
+            </th>
+            <td>P1211
+            </td>
+          </tr>
+
+        </table>
+      </div>
+
+      <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
+    </div>
+
+
+
     <div style="display:flex;">
-    <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
-    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div>
+    {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
+    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
     <div style="padding-left:20px !important; padding-top:7px !important">
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>

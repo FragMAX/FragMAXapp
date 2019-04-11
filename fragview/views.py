@@ -537,7 +537,10 @@ def dataset_info(request):
     energy=format(float(datainfo["wavelength"])*13.6307922,".2f")
     totalExposure=str(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]))
     edgeResolution=str(float(datainfo["resolution"])*0.75625)
-    ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
+    #ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
+    ligpng="/static/img/nolig.png"
+    if "Apo" not in prefix.split("-"):
+        ligpng=prefix.split("-")[-1]
 
     fragConc="100 mM"
     solventConc="15%"
@@ -615,7 +618,8 @@ def dataset_info(request):
         "energy":energy,
         "totalExposure":totalExposure,
         "edgeResolution":edgeResolution,
-        "acr":prefix.split("-")[0]
+        "acr":prefix.split("-")[0],
+        "fraglib":fraglib
         })
   
 def post_list(request):
@@ -933,10 +937,17 @@ def request_page_res(request):
         center=[a.split(";")[3].split("],[")[0]+"]"]
     else:
         center=[a.split(";")[-1].replace("],","]")]    
-    
+    ligsvg="/static/img/nolig.png"
+    if "Apo" not in a.split(";")[0]:
+        ligsvg=a.split(";")[0].split("-")[-1].split("_")[0]
     a=zip(["_".join(a.split(";")[0].split("/")[-4:-1])],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
     
-    return render(request,'fragview/density.html', {'structure': a})
+    return render(request,'fragview/density.html', {'structure': a,"proposal":proposal,"shift":shift,"fraglib":fraglib,"ligand":ligsvg})
+
+
+
+
+
 
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1218,7 +1229,7 @@ def reproc_web(request):
             outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.out')
             outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.err')
             outp.write('\n\nmodule purge')
-            outp.write('\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER')
+            outp.write('\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER XDS')
 
 
             if "xdsapp" in procSW:
@@ -1276,9 +1287,9 @@ def reproc_web(request):
                 outp.write('\n'+dataprocCommand) 
 
 
-            command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_dataproc.sh " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-            return render(request,'fragview/reproc_web.html', {'command': dataprocCommand})
+        command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_dataproc.sh " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+        return render(request,'fragview/reproc_web.html', {'command': dataprocCommand})
     if "runRefine" in strcrefine: 
         refineCommand=strcrefine
         runRefine,procSW,refineSW,refineMode,spg,ResCutoff,mrthresh,pdbmodel,custom,imgdir,dataset=strcrefine.split(";")
@@ -1303,22 +1314,29 @@ def reproc_web(request):
                 outp.write('\nmodule load CCP4 Phenix BUSTER')
                 
                 if "dimple" in refineSW:
-                    refineCommand="cd "+dpresdir
+                    refineCommand="\n\ncd "+dpresdir
                     if os.path.exists(dprespathmer):
-                        refineCommand+="dimple "+dprespathmer+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                        refineCommand+="\ndimple "+dprespathmer+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                        outp.write(refineCommand)
                     elif os.path.exists(dprespathsca):
-                        refineCommand+="dimple "+dprespathsca+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                        refineCommand+="\ndimple "+dprespathsca+" "+pdbmodel+" "+dpresdir+"/dimple/"
+                        outp.write(refineCommand)
                     else:
                         return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
                 if "fspipeline" in refineSW:
-                    refineCommand="cd "+dpresdir
+                    refineCommand="\n\ncd "+dpresdir
                     if os.path.exists(dprespathmer):
-                        refineCommand+="python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged scaled final' --cpu=40"
+                        refineCommand+="\npython /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged scaled final' --cpu=40"
+                        outp.write(refineCommand)
+
                     elif os.path.exists(dprespathsca):
-                        refineCommand+="python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged merged final' --cpu=40"
+                        refineCommand+="\npython /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine="+pdbmodel+" --exclude='unscaled unmerged merged final' --cpu=40"
+                        outp.write(refineCommand)
+
                     else:
                         return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
-        
+            command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_refine.sh " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
             return render(request,'fragview/reproc_web.html', {'command': refineCommand})
     return render(request,'fragview/reproc_web.html', {'command': "No valid method selected"})
 
@@ -3997,7 +4015,7 @@ def get_pipedream_results():
             if "ref-" not in dataset:
                 if os.path.exists(dataset+"summary.xml"):
                     summary=dataset+"summary.xml"
-                    with open(summary) as fd:
+                    with open(summary) as fd: 
                         try:
                             doc = xmltodict.parse(fd.read())
                             sample     =summary.replace("/data/visitors/","/static/").split("/")[-2]
