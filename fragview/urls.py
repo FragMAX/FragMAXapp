@@ -23,6 +23,7 @@ urlpatterns = [
     path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
 
     path('pandda_notready/', views.pandda, name='pandda_notready'),
+    path('pandda_running/', views.pandda, name='pandda_running'),
 
     path('ugly/', views.ugly, name='ugly'),
     path('dual_ligand/', views.dual_ligand, name='dual_ligand'),

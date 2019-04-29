@@ -14,6 +14,7 @@ import subprocess
 import h5py
 import itertools
 from time import sleep
+import time
 import threading
 import pypdb
 import ast
@@ -668,8 +669,37 @@ def datasets(request):
         shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
         create_dataColParam(acr,path)
     if "resyncImages" in resyncImages:
-        #project_dif_svg()        
-        pass
+        with open(path+"/fragmax/scripts/hdf2jpg.sh","w") as outp:
+            outp.write('#!/bin/bash')
+            outp.write('\n#!/bin/bash')
+            outp.write('\n#SBATCH -t 99:55:00')
+            outp.write('\n#SBATCH -J hdf2jpg')
+            outp.write('\n#SBATCH -N1')
+            outp.write('\n#SBATCH --cpus-per-task=40')    
+            outp.write('\n#SBATCH -o '+path+'/fragmax/logs/hdf2jpg_%j.out')
+            outp.write('\n#SBATCH -e '+path+'/fragmax/logs/hdf2jpg_%j.err')
+            outp.write('\nmodule purge')
+            outp.write('\nmodule load CCP4')
+
+            for xml in natsort.natsorted(glob.glob(path+"/fragmax/process/"+acr+"/*/*.xml")):
+                if not os.path.exists(xml.replace(".xml","_1.jpg")):
+                    print(xml,"\n")
+                    with open(xml) as fd:
+                        doc = xmltodict.parse(fd.read())
+                    dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+                    h5master=dtc["imageDirectory"]+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]+"_master.h5"
+                    name=xml.replace(".xml","")
+                    imglist=[str(1),str(int(dtc["numberOfImages"])/2)]
+                    for imgnb in imglist:
+                        outp.write("\n/mxn/groups/biomax/wmxsoft/eiger2cbf/eiger2cbf "+h5master+" "+imgnb+" "+name+"_"+imgnb+".cbf")
+                        outp.write("\ndiff2jpeg "+name+"_"+imgnb+".cbf")
+                        outp.write("\nrm "+name+"_"+imgnb+".cbf")
+                        outp.write("\nmv "+dtc["imageDirectory"]+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]+"_"+imgnb+".jpg "+path+"/fragmax/process/"+acr+"/"+dtc["imagePrefix"]+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]+"_"+imgnb+".jpg\n")
+
+
+        command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/hdf2jpg.sh " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+        #pass
     if "resyncStatus" in resyncStatus:
         get_project_status()
         if not os.path.exists(path+"/fragmax/results/"):
@@ -679,230 +709,208 @@ def datasets(request):
 
     with open(path+"/fragmax/process/datacollectionPar.csv","r") as inp:
         a=inp.readlines()
-    try:
-        acr_list=a[1].split(",")
-        smp_list=[x.split(acr+"-")[-1] for x in a[2].split(",")]
-        prf_list=a[2].split(",")
-        res_list=a[3].split(",")
-        img_list=a[4].split(",")
-        path_list=a[5].split(",")
-        snap_list=a[6].split(",")
-        png_list=a[7].split(",")
-        run_list=a[8].split(",")
-        dpentry=list()
-        rfentry=list()
-        lgentry=list()
+
+    acr_list =a[1].replace("\n","").split(",")
+    smp_list =[x.replace("\n","").split(acr+"-")[-1] for x in a[2].split(",")]
+    prf_list =a[2].replace("\n","").split(",")
+    res_list =a[3].replace("\n","").split(",")
+    img_list =a[4].replace("\n","").split(",")
+    path_list=a[5].replace("\n","").split(",")
+    snap_list=a[6].replace("\n","").split(",")
+    png_list =a[7].replace("\n","").split(",")
+    run_list =a[8].replace("\n","").split(",")
+    dpentry=list()
+    rfentry=list()
+    lgentry=list()
 
 
 
 
-        ##Proc status
-        if os.path.exists(path+"/fragmax/process/dpstatus.csv"):
-            with open(path+"/fragmax/process/dpstatus.csv") as inp:
-                dp=inp.readlines()
-                dpDict=dict()
-                for line in dp:
-                    key=line.split(":")[0]
-                    value=":".join(line.split(":")[1:])
-                    dpDict[key]=value
-            for i,j in zip(prf_list,run_list):
-                dictEntry=i+"_"+j
-                if dictEntry in dpDict:
-                    da="<td>"
-                    if "autoproc:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>""")
-                    elif "autoproc:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> autoPROC</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>""")
+    ##Proc status
+    if os.path.exists(path+"/fragmax/process/dpstatus.csv"):
+        with open(path+"/fragmax/process/dpstatus.csv") as inp:
+            dp=inp.readlines()
+            dpDict=dict()
+            for line in dp:
+                key=line.split(":")[0]
+                value=":".join(line.split(":")[1:])
+                dpDict[key]=value
+        for i,j in zip(prf_list,run_list):
+            dictEntry=i+"_"+j
+            if dictEntry in dpDict:
+                da="<td>"
+                if "autoproc:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>""")
+                elif "autoproc:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> autoPROC</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>""")
 
-                    if "dials:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
-                    elif "dials:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>""")
+                if "dials:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                elif "dials:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>""")
 
-                    if "xdsxscale:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
-                    elif "xdsxscale:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>""")
+                if "xdsxscale:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                elif "xdsxscale:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>""")
 
-                    if "xdsapp:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>""")
-                    elif "xdsapp:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDSAPP</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>""")
-
-
-                    if "fastdp:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>""")
-                    elif "fastdp:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> fastdp</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>""")
+                if "xdsapp:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>""")
+                elif "xdsapp:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDSAPP</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>""")
 
 
-                    if "EDNA_proc:full" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
-                    elif "EDNA_proc:partial" in dpDict[dictEntry]:
-                        da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
-                    else:
-                        da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p></td>""")
+                if "fastdp:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>""")
+                elif "fastdp:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> fastdp</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>""")
 
-                    
-                    
-                    dpentry.append(da)
 
-                else:                
-                    dpentry.append("""<td>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
-                    </td>""")
-        else:
-            for i in prf_list:
+                if "EDNA_proc:full" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
+                elif "EDNA_proc:partial" in dpDict[dictEntry]:
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
+                else:
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p></td>""")
+
+                
+                
+                dpentry.append(da)
+
+            else:                
                 dpentry.append("""<td>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
-                        <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
-                    </td>""")
-        ##Ref status
-        if os.path.exists(path+"/fragmax/process/rfstatus.csv"):
-            with open(path+"/fragmax/process/rfstatus.csv") as inp:
-                rf=inp.readlines() 
-                rfDict=dict()
-                for line in rf:
-                    key=line.split(":")[0]
-                    value=":".join(line.split(":")[1:])
-                    rfDict[key]=value
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+                </td>""")
+    else:
+        for i in prf_list:
+            dpentry.append("""<td>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+                </td>""")
+    ##Ref status
+    if os.path.exists(path+"/fragmax/process/rfstatus.csv"):
+        with open(path+"/fragmax/process/rfstatus.csv") as inp:
+            rf=inp.readlines() 
+            rfDict=dict()
+            for line in rf:
+                key=line.split(":")[0]
+                value=":".join(line.split(":")[1:])
+                rfDict[key]=value
 
-            for i,j in zip(prf_list,run_list):
-                dictEntry=i+"_"+j
-                if dictEntry in rfDict:
-                    re="<td>"  
-                    if "BUSTER:full" in rfDict[dictEntry]:
-                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
-                    else:
-                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
-
-                    if "dimple:full" in rfDict[dictEntry]:
-                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
-                    else:
-                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
-                    if "fspipeline:full" in rfDict[dictEntry]:
-                        re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> FSpipeline</font></p></td>""")
-                    else:
-                        re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p></td>""")
-                    
-                    rfentry.append(re)
-
+        for i,j in zip(prf_list,run_list):
+            dictEntry=i+"_"+j
+            if dictEntry in rfDict:
+                re="<td>"  
+                if "BUSTER:full" in rfDict[dictEntry]:
+                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
                 else:
-                    rfentry.append("""<td>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
-                        </td>""")
-        else:
-            for i in prf_list:
+                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
+
+                if "dimple:full" in rfDict[dictEntry]:
+                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
+                else:
+                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
+                if "fspipeline:full" in rfDict[dictEntry]:
+                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> FSpipeline</font></p></td>""")
+                else:
+                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p></td>""")
+                
+                rfentry.append(re)
+
+            else:
                 rfentry.append("""<td>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
-                        </td>""")
-        ##Lig status
-        if os.path.exists(path+"/fragmax/process/lgstatus.csv"):
-            with open(path+"/fragmax/process/lgstatus.csv") as inp:
-                lg=inp.readlines()
-                lgDict=dict()
-                for line in lg:
-                    key=line.split(":")[0]
-                    value=":".join(line.split(":")[1:])
-                    lgDict[key]=value
-            
-            for i,j in zip(prf_list,run_list):
-                dictEntry=i+"_"+j
-                if "Apo" not in dictEntry:
-                    if dictEntry in lgDict:
-                        lge="<td>"
-                        if "rhofit:full" in lgDict[dictEntry] :
-                            lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>'
-                            if "ligandfit:full" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            elif "ligandfit:partial" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            else:
-                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            lgentry.append(lge)
-                        elif "rhofit:partial" in lgDict[dictEntry] :
-                            lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> RhoFit</font></p>'
-                            if "ligandfit:full" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            elif "ligandfit:partial" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            else:
-                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            lgentry.append(lge)
-                        elif "rhofit:none" in lgDict[dictEntry] :
-                            lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
-                            if "ligandfit:full" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            elif "ligandfit:partial" in lgDict[dictEntry]:
-                                lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            else:
-                                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
-                            lgentry.append(lge)
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
+                    </td>""")
+    else:
+        for i in prf_list:
+            rfentry.append("""<td>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
+                    </td>""")
+    ##Lig status
+    if os.path.exists(path+"/fragmax/process/lgstatus.csv"):
+        with open(path+"/fragmax/process/lgstatus.csv") as inp:
+            lg=inp.readlines()
+            lgDict=dict()
+            for line in lg:
+                key=line.split(":")[0]
+                value=":".join(line.split(":")[1:])
+                lgDict[key]=value
+        
+        for i,j in zip(prf_list,run_list):
+            dictEntry=i+"_"+j
+            if "Apo" not in dictEntry:
+                if dictEntry in lgDict:
+                    lge="<td>"
+                    if "rhofit:full" in lgDict[dictEntry] :
+                        lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>'
+                        if "ligandfit:full" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        elif "ligandfit:partial" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
                         else:
-                            lgentry.append("""<td>
-                                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                                </td>""")
-
-
-                #         if "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
-                #             lgentry.append("""<td>
-                #                     <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
-                #                     <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
-                #                 </td>""")
-                #         elif "rhofit:full" in lgDict[dictEntry] and "ligandfit:full" not in lgDict[dictEntry]:
-                #             lgentry.append("""<td>
-                #                 <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p>
-                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                #             </td>""")
-                #         elif "rhofit:full" not in lgDict[dictEntry] and "ligandfit:full" in lgDict[dictEntry]:
-                #             lgentry.append("""<td>
-                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                #                 <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p>    
-                #             </td>""")
-                #     else:
-                #         lgentry.append("""<td>
-                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                #                 <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                #             </td>""")
+                            lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        lgentry.append(lge)
+                    elif "rhofit:partial" in lgDict[dictEntry] :
+                        lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> RhoFit</font></p>'
+                        if "ligandfit:full" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        elif "ligandfit:partial" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        else:
+                            lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        lgentry.append(lge)
+                    elif "rhofit:none" in lgDict[dictEntry] :
+                        lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
+                        if "ligandfit:full" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        elif "ligandfit:partial" in lgDict[dictEntry]:
+                            lge+='<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        else:
+                            lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        lgentry.append(lge)
+                    else:
+                        lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
+                        lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        lgentry.append(lge)     
                 else:
-                    lgentry.append("""<td>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                        </td>""")
-        else:
-            for i in prf_list:
-                lgentry.append("""<td>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
-                            <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>    
-                        </td>""")
-        results = zip(img_list,prf_list,res_list,path_list,snap_list,acr_list,png_list,run_list,smp_list,dpentry,rfentry,lgentry)
-        return render_to_response('fragview/datasets.html', {'files': results})
-    except:
-        return render_to_response('fragview/datasets_notready.html')    
+                        lge="<td>"
+                        lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
+                        lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                        lgentry.append(lge)        
+                                
+            else:
+                lge="<td>"
+                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>'
+                lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
+                lgentry.append(lge)
+    
+    results = zip(img_list,prf_list,res_list,path_list,snap_list,acr_list,png_list,run_list,smp_list,dpentry,rfentry,lgentry)
+    return render_to_response('fragview/datasets.html', {'files': results})
+    # except:
+    #     return render_to_response('fragview/datasets_notready.html')    
     
 def results(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1047,8 +1055,9 @@ def pandda_inspect(request):
             #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
             
             return render(request,'fragview/pandda_inspect.html', {'Report': a})
-        
-    
+    else:
+        a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
+        return render(request,'fragview/pandda_inspect.html', {'Report': a})
 
 def pandda(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1142,7 +1151,12 @@ def pandda(request):
             t.daemon = True
             t.start()
             #populate_missing()
-        return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
+        if os.path.exists(path+"/fragmax/results/pandda/pandda/pandda.running"):
+            modTimesinceEpoc = os.path.getmtime(path+"/fragmax/results/pandda/pandda/pandda.running") 
+            modificationTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(modTimesinceEpoc))
+            return render(request,'fragview/pandda_running.html',{"panddafolder": "PanDDA start time : "+modificationTime})    
+        else:
+            return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1247,6 +1261,7 @@ def reproc_web(request):
                 if ResCutoff!="":
                     ResCutoff=" --res="+ResCutoff
                 dataprocCommand = "xdsapp --cmd --dir "+outputdir+"/xdsapp -j 8 -c 6 -i "+imgdir+dataset+"_master.h5 --fried="+Friedel+spg+ResCutoff+" --range="+DRange+" "+custom
+                os.makedirs(outputdir+"/xdsapp",exist_ok=True)
                 outp.write('\n'+"cd "+outputdir+"/xdsapp")
                 outp.write('\n'+dataprocCommand) 
             if "autoproc" in procSW:
@@ -1263,8 +1278,11 @@ def reproc_web(request):
                 if CellPar!="":
                     CellPar=' cell="'+CellPar+'" '                
             
-                dataprocCommand = 'process -h5 '+imgdir+dataset+'_master.h5 -d'+outputdir+'/autoproc '+Friedel+spg+CellPar+'autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0 -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
-                outp.write('\n'+"cd "+outputdir+"/autoproc")
+                dataprocCommand = 'process -h5 '+imgdir+dataset+'_master.h5 -d '+outputdir+'/autoproc '+Friedel+spg+CellPar+'autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0 -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
+                os.makedirs(outputdir,exist_ok=True)
+                if os.path.exists(outputdir+"/autoproc"):
+                    shutil.move(outputdir+"/autoproc",outputdir+"/autoproc_last")
+                outp.write('\n'+"cd "+outputdir)
                 outp.write('\n'+dataprocCommand) 
 
             
@@ -1636,7 +1654,6 @@ def create_dataColParam(acr, path):
         t.daemon = True
         t.start()
 
-        xml_list=glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
         img_list=list()
         prf_list=list()
         res_list=list()
@@ -1645,89 +1662,55 @@ def create_dataColParam(acr, path):
         acr_list=list()
         png_list=list()
         run_list=list()
+        os.makedirs(path+"/fragmax/process/",exist_ok=True)
 
-        for xml in natsort.natsorted(xml_list):
-            with open(xml) as inp:
-                    a=inp.readlines()
+        for xml in natsort.natsorted(glob.glob(path+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+            outdirxml=xml.replace("/process/","/fragmax/process/").split("fastdp")[0].replace("xds_","")[:-3]
+            if not os.path.exists(outdirxml+".xml"):
+                os.makedirs("/".join(outdirxml.split("/")[:-1]),exist_ok=True)
+                shutil.copyfile(xml,outdirxml+".xml")
 
-            for i in a:
-                if "numberOfImages" in i:
-                    img_list.append(i.split(">")[1].split("<")[0])
-                if "resolution" in i:
-                    res_list.append("%.2f" % float(i.split(">")[1].split("<")[0])) 
-                #if "xtalSnapshotFullPath1" in i:        
-                #    snap_list.append(i.split(">")[1].split("<")[0])     
-                if "dataCollectionNumber" in i:
-                    run_number=i.split(">")[1].split("<")[0]
-                    run_list.append(i.split(">")[1].split("<")[0])
-                if "imagePrefix" in i:
-                    prf=i.split(">")[1].split("<")[0]
-                    prf_list.append(prf) 
-            #snap_list.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/"+acr+"/"+prf+"/"+prf+"_snapshot.jpg")
-            snap_list.append("/static/pyarch/visitors/"+proposal+"/"+shift+"/raw/"+acr+"/"+prf+"/"+prf+"_"+run_number+"_1.snapshot.jpeg")
-            os.makedirs(path+"/fragmax/process/"+acr+"/"+prf+"/",exist_ok=True)
-            shutil.copyfile(xml,path+"/fragmax/process/"+acr+"/"+prf+"/"+prf+"_1.xml")
-            path_list.append(xml.split("xds")[0].replace("process","raw"))
-            acr_list.append(acr)
-        
-
-        ##
-        ##
-        ##
-        ##HARD CODED LIB
-        fraglib="F2XEntry"  
-        ##
-        ##
-        ##
-                         
-        #Create fragment list png for Datasets view                         
-        pngDict=dict()
-        for prf in prf_list:
-            if "Apo" in prf:
-                pngDict[prf]="/static/img/apo.png"
-            #elif "Apo" not in prf and "DM" not in prf and "ICC" not in prf:
-            #    wellNo=prf.split(acr+"-")[-1]        
-            #    pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
-            elif fraglib in prf:
-                wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
-            elif "ICC" in prf:
-                wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"ICCBS"+"/"+wellNo+"/"+wellNo+".svg"
-            elif "F2XEntry" in prf:
-                wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"F2XEntry"+"/"+wellNo+"/"+wellNo+".svg"
-            elif "JBS" in prf:
-                wellNo=prf.split(acr+"-")[-1]        
-                pngDict[prf]=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+"JBS"+"/"+wellNo+"/"+wellNo+".svg"
+            with open(xml) as fd:
+                doc = xmltodict.parse(fd.read())
             
+            img_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["numberOfImages"])
+            res_list.append("%.2f" % float(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["resolution"]))
+            run_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"])
+            prf_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"])
+            snap_list.append("/static/pyarch/visitors/"+proposal+"/"+shift+"/raw/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"]+"_1.snapshot.jpeg")
+            os.makedirs(path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/",exist_ok=True)
+            # if not os.path.exists(path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_1.xml"):
+            #     shutil.copyfile(xml,path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_1.xml")
+
+            path_list.append(xml.split("xds_")[0].replace("process","raw"))
+            acr_list.append(acr)
+
+            if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
+                png_list.append("/static/img/apo.png")
+            elif fraglib in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
+                wellNo=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"].split("-")[-1]
+                png_list.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg")
             else:
-                pngDict[prf]="/static/img/nolig.png"
-
-        png_list=[pngDict[x] for x in prf_list]
+                png_list.append("noPNG")
         
-        line="sep=,"
-        line+="\n"
-        line+=",".join(acr_list)
-        line+="\n"
-        line+=",".join(prf_list)
-        line+="\n"
-        line+=",".join(res_list)
-        line+="\n"
-        line+=",".join(img_list)
-        line+="\n"
-        line+=",".join(path_list)
-        line+="\n"
-        line+=",".join(snap_list)
-        line+="\n"
-        line+=",".join(png_list)
-        line+="\n"
-
-        line+=",".join(run_list)
-        for x in os.listdir(subpath):
-            if os.path.isdir(subpath+x+"/fragmax/process/"):
-                with open(subpath+x+"/fragmax/process/datacollectionPar.csv","w") as outp:
-                    outp.write(line)
+    with open(path+"/fragmax/process/datacollectionPar.csv","w") as outp:            
+        outp.write("sep=,")
+        outp.write("\n")
+        outp.write(",".join(acr_list))
+        outp.write("\n")
+        outp.write(",".join(prf_list))
+        outp.write("\n")
+        outp.write(",".join(res_list))
+        outp.write("\n")
+        outp.write(",".join(img_list))
+        outp.write("\n")
+        outp.write(",".join(path_list))
+        outp.write("\n")
+        outp.write(",".join(snap_list))
+        outp.write("\n")
+        outp.write(",".join(png_list))
+        outp.write("\n")
+        outp.write(",".join(run_list))
         
         
 
@@ -2176,832 +2159,194 @@ def resultSummary():
     with open(path+"/fragmax/process/generalrefsum.csv","w") as outp:
         outp.write(sortedline)
 
-def hdf2jpg(paramDict):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    #generate two diffraction JPG: 1st image, half-th dataset
-    #saves in fragmax/process folder
-    
-    imgdir,frames,prefix=paramDict["imageDirectory"],paramDict["numberOfImages"],paramDict["imagePrefix"]
-    if imgdir[-1]!="/":
-        imgdir+="/"
-    
-    h5master=glob.glob(imgdir+"*master.h5")[0]
-    imglist=[str(1),str(int(frames)/2)]
-    print("Converting to JPG")
-    def convert(imgnb):
-       name=h5master.split("_master")[0]
-
-       converto2cbf="eiger2cbf "+h5master+" "+imgnb+" "+name+"_"+imgnb+".cbf"
-       subprocess.call(converto2cbf, shell=True)
-
-
-
-       convert2jpeg="diff2jpeg "+name+"_"+imgnb+".cbf"
-       subprocess.call(convert2jpeg, shell=True)
-
-
-       clean_up="rm "+name+"_"+imgnb+".cbf"
-       subprocess.call(clean_up, shell=True)
-       
-       mvtofragmax="mv "+imgdir+"*.jpg "+path+"/fragmax/process/"+acr+"/"+prefix+"/"
-       subprocess.call(mvtofragmax, shell=True)
-
-
-    for i in imglist:        
-        t = threading.Thread(target=convert, args=(i,))
-        t.start()
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
+    nodes=5
+
+    header= """#!/bin/bash\n"""
+    header+= """#!/bin/bash\n"""
+    header+= """#SBATCH -t 99:55:00\n"""
+    header+= """#SBATCH -J XDSAPP\n"""
+    header+= """#SBATCH --exclusive\n"""
+    header+= """#SBATCH -N1\n"""
+    header+= """#SBATCH --cpus-per-task=48\n"""
+    header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsapp_fragmax_%j.out\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsapp_fragmax_%j.err\n"""    
+    header+= """module purge\n\n"""
+    header+= """module load CCP4 XDSAPP\n\n"""
+
+    scriptList=list()
+
+
+    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+        with open(xml) as fd:
+            doc = xmltodict.parse(fd.read())
+        dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        nImg=dtc["numberOfImages"]
+        
+        script="cd "+outdir+"/xdsapp\n"
+        script+='xdsapp --cmd --dir='+outdir+'/xdsapp -j 8 -c 6 -i '+h5master+'  --fried=True --range=1\ '+nImg+' \n\n'
+        scriptList.append(script)
+        os.makedirs(outdir,exist_ok=True)
+
+    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
+    for num,chunk in enumerate(chunkScripts):
+        time.sleep(1)
+        with open(path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh", "w") as outfile:
+            outfile.write(chunk)
+                
+        script=path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh"
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
 
 
-    # In[5]:
-
-
-    ##Start up definitions
-
-
-
-    proteinNames      = dict() 
-    proteinNames_path = dict()
-    datasets          = dict()
-    scriptList        = list()
-
-    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
-
-    acronyms=[x for x in acronyms if "DS_Store" not in x]
-
-
-    for acronym in acronyms: 
-            #creat a dict of protein names
-            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
-            #create a dict of protein names with full path to the dir
-            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) 
-
-    for collectedProteins in proteinNames_path.values():
-            for proteinName in collectedProteins:
-                    #create a dict of keys:proteinNames, values:master files - 
-                    datasets[proteinName] = glob.glob(proteinName+"/*master.h5") 
-
-
-    # In[6]:
-
-
-
-    def images_collected(h5image):
-        f=h5py.File(h5image,"r")
-        return int(f.get("entry/sample/goniometer/omega_range_total").value/f.get("entry/sample/goniometer/omega_increment").value)
-
-
-    # In[7]:
-
-
-    def split(a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-
-    # In[8]:
-
-
-    def createScript(ind, outd, fromImage, toImage,dataName):
-            if "/Volumes/offline-visitors" in dataName:
-                dataName =dataName.replace("/Volumes/offline-","/data/")
-                ind      =ind.replace     ("/Volumes/offline-","/data/")
-                outd     =outd.replace    ("/Volumes/offline-","/data/")
-
-            fromImage=str(fromImage)
-            toImage=str(toImage)
-            #create empty string to start the script
-            content=""
-            content="\n"
-            content="\n"
-
-            xdsappcontent   = content
-
-
-
-            # XDSAPP definitions 
-            xdsappcontent+="cd "+outd+"/xdsapp"
-            xdsappcontent+="\n"
-            xdsappcontent+='xdsapp --cmd --dir='+outd+'/xdsapp -j 8 -c 6 -i '+ind+'  --fried='+friedel+' --range='+fromImage+'\ '+toImage+' '
-            xdsappcontent+="\n"                    
-
-            return xdsappcontent
-
-
-
-    # In[9]:
-
-
-    def create_headers():
-        #init variables
-        xdsappOut    = ""    
-
-        #define env for script for XDSAPP
-        xdsappOut+= """#!/bin/bash\n"""
-        xdsappOut+= """#!/bin/bash\n"""
-        xdsappOut+= """#SBATCH -t 99:55:00\n"""
-        xdsappOut+= """#SBATCH -J XDSAPP\n"""
-        xdsappOut+= """#SBATCH --exclusive\n"""
-        xdsappOut+= """#SBATCH -N1\n"""
-        xdsappOut+= """#SBATCH --cpus-per-task=48\n"""
-        xdsappOut+= """#SBATCH --mem=220000\n""" 
-        xdsappOut+= """#SBATCH -o """+path+"""/fragmax/logs/xdsapp_fragmax_%j.out\n"""
-        xdsappOut+= """#SBATCH -e """+path+"""/fragmax/logs/xdsapp_fragmax_%j.err\n"""    
-        xdsappOut+= """module purge\n\n"""
-        xdsappOut+= """module load CCP4 XDSAPP\n\n"""
-
-
-        return xdsappOut
-
-
-
-
-
-    # In[10]:
-
-
-    def prepareFolder(proteinDict=proteinNames): 
-
-            os.makedirs(path+"/fragmax/process", exist_ok=True)
-            os.makedirs(path+"/fragmax/scripts", exist_ok=True)
-            os.makedirs(path+"/fragmax/logs"   , exist_ok=True)
-
-
-    # In[11]:
-
-
-    def processHDF5(userAcronym=None, userProtein=None):
-            collectedImages=dict()
-
-            if userAcronym and userProtein:
-                if userAcronym in acronyms:
-                    for acronym in userAcronym: 
-                        try:
-                            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) #creat a dict of protein names
-                            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) #create a dict of protein names with full path to the dir
-
-                            for collectedProteins in proteinNames_path.values():
-                                    for proteinName in collectedProteins:
-                                            if userProtein==proteinName:
-                                                datasets[proteinName] = glob.glob(proteinName+"/*master.h5") #create a dict of keys:proteinNames, values:master files - 
-
-
-                            for key,value in datasets.items():     
-                                    for i in value:
-                                            n = images_collected(i)
-                                            if n>4:
-                                                    collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-                        except:
-                            print("No dataset with the given name was found. Please check the list of datasets with the provided acronym:")
-                            for i in os.listdir(path+"/raw/"+userAcronym):
-                                print(i)
-                            break
-                else:
-                    print("Acronym given is not valid. Please check the list of acronyms available")
-                    print("for you proposal and date\n")
-                    for i in acronyms:
-                        print(i)
-
-
-            else:
-                for key,value in datasets.items():     
-                        for i in value:
-                                n = images_collected(i)
-                                if n>4:
-                                        collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-
-            return collectedImages
-
-    def runFragMAX(path=path):
-        # FragMAX running script
-        prepareFolder() # create folder system for reprocessing files
-        nodes=3 #nodes per pipeline
-
-
-        images = processHDF5()
-
-        xdsappHeader=create_headers()
-
-        scriptList=list()
-
-        for masterFile, totalFrames in images.items():    
-            #output dir for each protein separate
-            outdir=masterFile.split("raw")[0]+"fragmax/process"+masterFile.split("raw")[1].split("_master.h5")[0]        
-            os.makedirs(outdir+"/xdsapp",exist_ok=True)
-
-            #get the real number of data existing in the directory
-            dataN=outdir+"/"+outdir.split("/")[-1]
-
-            #Create scripts for HPC for each dataset, with custom dataframe number and outdirs
-            xdsappOut=createScript(masterFile,outdir, 1, totalFrames,dataN)    
-            scriptList.append(xdsappOut)
-
-        #Create partial HPC scripts to submmit to several nodes at same time
-        #nodes=3
-        chunkScripts=[xdsappHeader+"".join(x) for x in list(split(scriptList,nodes) )]
-
-
-        for num,chunk in enumerate(chunkScripts):
-            with open(path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-            
-            script=path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh"
-            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-
-
-    runFragMAX()
 
 def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    
+    nodes=5
+
+    header= """#!/bin/bash\n"""
+    header+= """#!/bin/bash\n"""
+    header+= """#SBATCH -t 99:55:00\n"""
+    header+= """#SBATCH -J autoPROC\n"""
+    header+= """#SBATCH --exclusive\n"""
+    header+= """#SBATCH -N1\n"""
+    header+= """#SBATCH --cpus-per-task=48\n"""
+    header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/autoproc_fragmax_%j.out\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/autoproc_fragmax_%j.err\n"""    
+    header+= """module purge\n\n"""
+    header+= """module load CCP4 autoPROC\n\n"""
+
+    scriptList=list()
 
 
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
+    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+        with open(xml) as fd:
+            doc = xmltodict.parse(fd.read())
+        dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        nImg=dtc["numberOfImages"]
+        os.makedirs(outdir,exist_ok=True)
+        script="cd "+outdir+"\n"
+        script+='''process -h5 '''+h5master+''' -noANO autoPROC_XdsKeyword_LIB=\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE=1\ '''+nImg+''' autoPROC_XdsKeyword_SPOT_RANGE=1\ '''+nImg+''' -d '''+outdir+'''/autoproc\n\n'''
+        scriptList.append(script)
 
+    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
 
-    ##Start up definitions
+    for num,chunk in enumerate(chunkScripts):
+        time.sleep(1)
+        with open(path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh", "w") as outfile:
+            outfile.write(chunk)
+        script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
+        command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
-    proteinNames      = dict() 
-    proteinNames_path = dict()
-    datasets          = dict()
-    scriptList        = list()
-
-    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
-
-    acronyms=[x for x in acronyms if "DS_Store" not in x]
-
-
-    for acronym in acronyms: 
-            #creat a dict of protein names
-            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
-            #create a dict of protein names with full path to the dir
-            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) 
-
-    for collectedProteins in proteinNames_path.values():
-            for proteinName in collectedProteins:
-                    #create a dict of keys:proteinNames, values:master files - 
-                    datasets[proteinName] = glob.glob(proteinName+"/*master.h5") 
-
-
-
-    def images_collected(h5image):
-        f=h5py.File(h5image,"r")
-        return int(f.get("entry/sample/goniometer/omega_range_total").value/f.get("entry/sample/goniometer/omega_increment").value)
-
-
-    def split(a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-
-
-    def createScript(ind, outd, fromImage, toImage,dataName):
-            if "/Volumes/offline-visitors" in dataName:
-                dataName =dataName.replace("/Volumes/offline-","/data/")
-                ind      =ind.replace     ("/Volumes/offline-","/data/")
-                outd     =outd.replace    ("/Volumes/offline-","/data/")
-
-            fromImage=str(fromImage)
-            toImage=str(toImage)
-            #create empty string to start the script
-            content=""
-            content="\n"
-            content="\n"
-
-            autoproccontent = content
-
-
-
-            # autoPROC definitions             
-            autoproccontent+="\n"
-            autoproccontent+='''process -h5 '''+ind+''' -noANO autoPROC_XdsKeyword_LIB=\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='''+fromImage+'''\ '''+toImage+''' autoPROC_XdsKeyword_SPOT_RANGE='''+fromImage+'''\ '''+toImage+''' -d '''+outd+'''/autoproc'''
-            autoproccontent+="\n"                    
-
-            
-            
-            
-            return autoproccontent
-
-
-
-    def create_headers():
-        #init variables
-        autoprocOut    = ""    
-
-        #define env for script for autoPROC
-        autoprocOut+= """#!/bin/bash\n"""
-        autoprocOut+= """#!/bin/bash\n"""
-        autoprocOut+= """#SBATCH -t 99:55:00\n"""
-        autoprocOut+= """#SBATCH -J autoPRC\n"""
-        autoprocOut+= """#SBATCH --exclusive\n"""
-        autoprocOut+= """#SBATCH -N1\n"""
-        autoprocOut+= """#SBATCH --cpus-per-task=48\n"""
-        autoprocOut+= """#SBATCH --mem=220000\n""" 
-        autoprocOut+= """#SBATCH -o """+path+"""/fragmax/logs/autoproc_fragmax_%j.out\n"""
-        autoprocOut+= """#SBATCH -e """+path+"""/fragmax/logs/autoproc_fragmax_%j.err\n"""    
-        autoprocOut+= """module purge\n\n"""
-        autoprocOut+= """module load CCP4 autoPROC\n\n"""
-
-
-        return autoprocOut
-
-
-
-    def prepareFolder(proteinDict=proteinNames): 
-
-            os.makedirs(path+"/fragmax/process", exist_ok=True)
-            os.makedirs(path+"/fragmax/scripts", exist_ok=True)
-            os.makedirs(path+"/fragmax/logs"   , exist_ok=True)
-
-
-
-    def processHDF5(userAcronym=None, userProtein=None):
-            collectedImages=dict()
-
-            if userAcronym and userProtein:
-                if userAcronym in acronyms:
-                    for acronym in userAcronym: 
-                        try:
-                            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) #creat a dict of protein names
-                            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) #create a dict of protein names with full path to the dir
-
-                            for collectedProteins in proteinNames_path.values():
-                                    for proteinName in collectedProteins:
-                                            if userProtein==proteinName:
-                                                datasets[proteinName] = glob.glob(proteinName+"/*master.h5") #create a dict of keys:proteinNames, values:master files - 
-
-
-                            for key,value in datasets.items():     
-                                    for i in value:
-                                            n = images_collected(i)
-                                            if n>4:
-                                                    collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-                        except:
-                            print("No dataset with the given name was found. Please check the list of datasets with the provided acronym:")
-                            for i in os.listdir(path+"/raw/"+userAcronym):
-                                print(i)
-                            break
-                else:
-                    print("Acronym given is not valid. Please check the list of acronyms available")
-                    print("for you proposal and date\n")
-                    for i in acronyms:
-                        print(i)
-
-
-            else:
-                for key,value in datasets.items():     
-                        for i in value:
-                                n = images_collected(i)
-                                if n>4:
-                                        collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-
-            return collectedImages
-
-
-    # In[12]:
-
-
-    def runFragMAX(path=path):
-        # FragMAX running script
-        prepareFolder() # create folder system for reprocessing files
-        nodes=3 #nodes per pipeline
-
-        images = processHDF5()
-
-        autoPROCHeader=create_headers()
-
-        scriptList=list()
-
-        for masterFile, totalFrames in images.items():    
-            #output dir for each protein separate
-            outdir=masterFile.split("raw")[0]+"fragmax/process"+masterFile.split("raw")[1].split("_master.h5")[0]        
-            os.makedirs(outdir,exist_ok=True)
-
-            #get the real number of data existing in the directory
-            dataN=outdir+"/"+outdir.split("/")[-1]
-
-            #Create scripts for HPC for each dataset, with custom dataframe number and outdirs
-            autoprocOut=createScript(masterFile,outdir, 1, totalFrames,dataN)    
-            scriptList.append(autoprocOut)
-
-        #Create partial HPC scripts to submmit to several nodes at same time
-        nodes=3
-        chunkScripts=[autoPROCHeader+"".join(x) for x in list(split(scriptList,nodes) )]
-
-        for num,chunk in enumerate(chunkScripts):
-            with open(path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-            script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
-            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-    runFragMAX()
 
 def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
+    nodes=5
+
+    header= """#!/bin/bash\n"""
+    header+= """#!/bin/bash\n"""
+    header+= """#SBATCH -t 99:55:00\n"""
+    header+= """#SBATCH -J xdsxscale\n"""
+    header+= """#SBATCH --exclusive\n"""
+    header+= """#SBATCH -N1\n"""
+    header+= """#SBATCH --cpus-per-task=48\n"""
+    header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.out\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.err\n"""    
+    header+= """module purge\n\n"""
+    header+= """module load CCP4 XDS\n\n"""
+
+    scriptList=list()
+
+    
+
+    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+        with open(xml) as fd:
+            doc = xmltodict.parse(fd.read())
+        dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        nImg=dtc["numberOfImages"]
+        os.makedirs(outdir,exist_ok=True)
+        os.makedirs(outdir+"/xdsxscale",exist_ok=True)
+
+        
+        script="cd "+outdir+"/xdsxscale \n"
+        script+="xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=48 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        scriptList.append(script)
+
+    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
+
+
+    for num,chunk in enumerate(chunkScripts):
+        time.sleep(1)
+        with open(path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh", "w") as outfile:
+            outfile.write(chunk)
+        script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
-
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
-
-
-    ##Start up definitions
-
-
-
-    proteinNames      = dict() 
-    proteinNames_path = dict()
-    datasets          = dict()
-    scriptList        = list()
-
-    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
-
-    acronyms=[x for x in acronyms if "DS_Store" not in x]
-
-
-    for acronym in acronyms: 
-            #creat a dict of protein names
-            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
-            #create a dict of protein names with full path to the dir
-            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) 
-
-    for collectedProteins in proteinNames_path.values():
-            for proteinName in collectedProteins:
-                    #create a dict of keys:proteinNames, values:master files - 
-                    datasets[proteinName] = glob.glob(proteinName+"/*master.h5") 
-
-
-
-
-
-    def images_collected(h5image):
-        f=h5py.File(h5image,"r")
-        return int(f.get("entry/sample/goniometer/omega_range_total").value/f.get("entry/sample/goniometer/omega_increment").value)
-
-
-
-
-    def split(a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-
-
-
-    def createScript(ind, outd, fromImage, toImage,dataName):
-            if "/Volumes/offline-visitors" in dataName:
-                dataName =dataName.replace("/Volumes/offline-","/data/")
-                ind      =ind.replace     ("/Volumes/offline-","/data/")
-                outd     =outd.replace    ("/Volumes/offline-","/data/")
-
-            fromImage=str(fromImage)
-            toImage=str(toImage)
-            #create empty string to start the script
-            content=""
-            content="\n"
-            content="\n"
-
-            dialscontent   = content
-
-
-
-            #DIALS definitions
-
-
-            dialscontent+="cd "+outd+"/xdsxscale "
-            dialscontent+="\n"
-            dialscontent+="xia2 goniometer.axes=0,1,0  "                
-            dialscontent+="    pipeline=3dii failover=true  nproc=48"                
-            dialscontent+="    image="+ind+":"+fromImage+":"+toImage+"  "                
-            dialscontent+="    multiprocessing.mode=serial  "                
-            dialscontent+="    multiprocessing.njob=1  "                
-            dialscontent+='    multiprocessing.nproc=auto'                
-            dialscontent+="\n"
-
-            return dialscontent
-
-
-
-
-
-    def create_headers():
-        #init variables
-        dialsOut    = ""    
-
-        #define env for script for DIALS
-        dialsOut+= """#!/bin/bash\n"""
-        dialsOut+= """#!/bin/bash\n"""
-        dialsOut+= """#SBATCH -t 99:55:00\n"""
-        dialsOut+= """#SBATCH -J XDSXSCALE\n"""
-        dialsOut+= """#SBATCH --exclusive\n"""
-        dialsOut+= """#SBATCH -N1\n"""
-        dialsOut+= """#SBATCH --cpus-per-task=48\n"""
-        dialsOut+= """#SBATCH --mem=220000\n""" 
-        dialsOut+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.out\n"""
-        dialsOut+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.err\n"""    
-        dialsOut+= """module purge\n\n"""
-        dialsOut+= """module load CCP4 DIALS/1.12.3-PReSTO\n\n"""
-
-        return dialsOut
-
-
-    def prepareFolder(proteinDict=proteinNames): 
-
-            os.makedirs(path+"/fragmax/process", exist_ok=True)
-            os.makedirs(path+"/fragmax/scripts", exist_ok=True)
-            os.makedirs(path+"/fragmax/logs"   , exist_ok=True)
-
-
-    def processHDF5(userAcronym=None, userProtein=None):
-            collectedImages=dict()
-
-            if userAcronym and userProtein:
-                if userAcronym in acronyms:
-                    for acronym in userAcronym: 
-                        try:
-                            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) #creat a dict of protein names
-                            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) #create a dict of protein names with full path to the dir
-
-                            for collectedProteins in proteinNames_path.values():
-                                    for proteinName in collectedProteins:
-                                            if userProtein==proteinName:
-                                                datasets[proteinName] = glob.glob(proteinName+"/*master.h5") #create a dict of keys:proteinNames, values:master files - 
-
-
-                            for key,value in datasets.items():     
-                                    for i in value:
-                                            n = images_collected(i)
-                                            if n>4:
-                                                    collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-                        except:
-                            print("No dataset with the given name was found. Please check the list of datasets with the provided acronym:")
-                            for i in os.listdir(path+"/raw/"+userAcronym):
-                                print(i)
-                            break
-                else:
-                    print("Acronym given is not valid. Please check the list of acronyms available")
-                    print("for you proposal and date\n")
-                    for i in acronyms:
-                        print(i)
-
-
-            else:
-                for key,value in datasets.items():     
-                        for i in value:
-                                n = images_collected(i)
-                                if n>4:
-                                        collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-
-            return collectedImages
-
-
-
-
-    def runFragMAX(useDIALS=True, path=path):
-        # FragMAX running script
-        prepareFolder() # create folder system for reprocessing files
-        nodes=3 #nodes per pipeline
-
-        images = processHDF5()
-
-        dialsOut=create_headers()
-
-        scriptList=list()
-
-        for masterFile, totalFrames in images.items():    
-            #output dir for each protein separate
-            outdir=masterFile.split("raw")[0]+"fragmax/process"+masterFile.split("raw")[1].split("_master.h5")[0]        
-            os.makedirs(outdir+"/xdsxscale",exist_ok=True)
-
-            #get the real number of data existing in the directory
-            dataN=outdir+"/"+outdir.split("/")[-1]
-
-            #Create scripts for HPC for each dataset, with custom dataframe number and outdirs
-            dialsScript=createScript(masterFile,outdir, 1, totalFrames,dataN)    
-            scriptList.append(dialsScript)
-
-        #Create partial HPC scripts to submmit to several nodes at same time
-        nodes=3
-        chunkScripts=[dialsOut+"".join(x) for x in list(split(scriptList,nodes) )]
-
-
-        for num,chunk in enumerate(chunkScripts):
-            with open(path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-            script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
-            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-    runFragMAX()
 
 def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-
-
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
-
-
-    ##Start up definitions
-
-
-
-    proteinNames      = dict() 
-    proteinNames_path = dict()
-    datasets          = dict()
-    scriptList        = list()
-
-    acronyms=os.listdir(path+"/raw/") #list acronym for collected data
-
-    acronyms=[x for x in acronyms if "DS_Store" not in x]
-
-
-    for acronym in acronyms: 
-            #creat a dict of protein names
-            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) 
-            #create a dict of protein names with full path to the dir
-            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) 
-
-    for collectedProteins in proteinNames_path.values():
-            for proteinName in collectedProteins:
-                    #create a dict of keys:proteinNames, values:master files - 
-                    datasets[proteinName] = glob.glob(proteinName+"/*master.h5") 
-
-
-
-
-
-    def images_collected(h5image):
-        f=h5py.File(h5image,"r")
-        return int(f.get("entry/sample/goniometer/omega_range_total").value/f.get("entry/sample/goniometer/omega_increment").value)
-
-
-
-
-    def split(a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-
-
-
-    def createScript(ind, outd, fromImage, toImage,dataName):
-            if "/Volumes/offline-visitors" in dataName:
-                dataName =dataName.replace("/Volumes/offline-","/data/")
-                ind      =ind.replace     ("/Volumes/offline-","/data/")
-                outd     =outd.replace    ("/Volumes/offline-","/data/")
-
-            fromImage=str(fromImage)
-            toImage=str(toImage)
-            #create empty string to start the script
-            content=""
-            content="\n"
-            content="\n"
-
-            dialscontent   = content
-
-
-
-            #DIALS definitions
-
-
-            dialscontent+="cd "+outd+"/dials "
-            dialscontent+="\n"
-            dialscontent+="xia2 goniometer.axes=0,1,0  "                
-            dialscontent+="    pipeline=dials failover=true  nproc=48"                
-            dialscontent+="    image="+ind+":"+fromImage+":"+toImage+"  "                
-            dialscontent+="    multiprocessing.mode=serial  "                
-            dialscontent+="    multiprocessing.njob=1  "                
-            dialscontent+='    multiprocessing.nproc=auto'                
-            dialscontent+="\n"
-
-            return dialscontent
-
-
-
-
-
-    def create_headers():
-        #init variables
-        dialsOut    = ""    
-
-        #define env for script for DIALS
-        dialsOut+= """#!/bin/bash\n"""
-        dialsOut+= """#!/bin/bash\n"""
-        dialsOut+= """#SBATCH -t 99:55:00\n"""
-        dialsOut+= """#SBATCH -J DIALS\n"""
-        dialsOut+= """#SBATCH --exclusive\n"""
-        dialsOut+= """#SBATCH -N1\n"""
-        dialsOut+= """#SBATCH --cpus-per-task=48\n"""
-        dialsOut+= """#SBATCH --mem=220000\n""" 
-        dialsOut+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j.out\n"""
-        dialsOut+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j.err\n"""    
-        dialsOut+= """module purge\n\n"""
-        dialsOut+= """module load CCP4 DIALS/1.12.3-PReSTO\n\n"""
-
-        return dialsOut
-
-
-    def prepareFolder(proteinDict=proteinNames): 
-
-            os.makedirs(path+"/fragmax/process", exist_ok=True)
-            os.makedirs(path+"/fragmax/scripts", exist_ok=True)
-            os.makedirs(path+"/fragmax/logs"   , exist_ok=True)
-
-
-    def processHDF5(userAcronym=None, userProtein=None):
-            collectedImages=dict()
-
-            if userAcronym and userProtein:
-                if userAcronym in acronyms:
-                    for acronym in userAcronym: 
-                        try:
-                            proteinNames[acronym]=os.listdir(path+"/raw/"+acronym) #creat a dict of protein names
-                            proteinNames_path[acronym]=listdir_fullpath(path+"/raw/"+acronym) #create a dict of protein names with full path to the dir
-
-                            for collectedProteins in proteinNames_path.values():
-                                    for proteinName in collectedProteins:
-                                            if userProtein==proteinName:
-                                                datasets[proteinName] = glob.glob(proteinName+"/*master.h5") #create a dict of keys:proteinNames, values:master files - 
-
-
-                            for key,value in datasets.items():     
-                                    for i in value:
-                                            n = images_collected(i)
-                                            if n>4:
-                                                    collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-                        except:
-                            print("No dataset with the given name was found. Please check the list of datasets with the provided acronym:")
-                            for i in os.listdir(path+"/raw/"+userAcronym):
-                                print(i)
-                            break
-                else:
-                    print("Acronym given is not valid. Please check the list of acronyms available")
-                    print("for you proposal and date\n")
-                    for i in acronyms:
-                        print(i)
-
-
-            else:
-                for key,value in datasets.items():     
-                        for i in value:
-                                n = images_collected(i)
-                                if n>4:
-                                        collectedImages[i]=n #store in a dict how many images were collected. Maybe not optimal way
-
-            return collectedImages
-
-
-
-
-    def runFragMAX(useDIALS=True, path=path):
-        # FragMAX running script
-        prepareFolder() # create folder system for reprocessing files
-        nodes=3 #nodes per pipeline
-
-        images = processHDF5()
-
-        dialsOut=create_headers()
-
-        scriptList=list()
-
-        for masterFile, totalFrames in images.items():    
-            #output dir for each protein separate
-            outdir=masterFile.split("raw")[0]+"fragmax/process"+masterFile.split("raw")[1].split("_master.h5")[0]        
-            os.makedirs(outdir+"/dials",exist_ok=True)
-
-            #get the real number of data existing in the directory
-            dataN=outdir+"/"+outdir.split("/")[-1]
-
-            #Create scripts for HPC for each dataset, with custom dataframe number and outdirs
-            dialsScript=createScript(masterFile,outdir, 1, totalFrames,dataN)    
-            scriptList.append(dialsScript)
-
-        #Create partial HPC scripts to submmit to several nodes at same time
-        nodes=3
-        chunkScripts=[dialsOut+"".join(x) for x in list(split(scriptList,nodes) )]
-
-
-        for num,chunk in enumerate(chunkScripts):
-            with open(path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-            
-            script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
-            command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-    runFragMAX()
+    nodes=5
+
+    header= """#!/bin/bash\n"""
+    header+= """#!/bin/bash\n"""
+    header+= """#SBATCH -t 99:55:00\n"""
+    header+= """#SBATCH -J DIALS\n"""
+    header+= """#SBATCH --exclusive\n"""
+    header+= """#SBATCH -N1\n"""
+    header+= """#SBATCH --cpus-per-task=48\n"""
+    header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j.out\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j.err\n"""    
+    header+= """module purge\n\n"""
+    header+= """module load CCP4 XDS DIALS\n\n"""
+
+    scriptList=list()
+
+    
+
+    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+        with open(xml) as fd:
+            doc = xmltodict.parse(fd.read())
+        dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        nImg=dtc["numberOfImages"]
+        os.makedirs(outdir,exist_ok=True)
+        os.makedirs(outdir+"/dials",exist_ok=True)
+
+        
+        script="cd "+outdir+"/dials \n"
+        script+="xia2 goniometer.axes=0,1,0 pipeline=dials failover=true  nproc=48 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        scriptList.append(script)
+
+    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
+
+
+    for num,chunk in enumerate(chunkScripts):
+        time.sleep(1)
+        with open(path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh", "w") as outfile:
+            outfile.write(chunk)
+        script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
 
 
 
@@ -3190,143 +2535,152 @@ def fix_pandda_symlinks():
         shutil.copyfile(pdb,i)
 #############################################
 
+def process2results():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    pyfile ='import os '
+    pyfile+='\nimport glob'
+    pyfile+='\nimport subprocess'
+    pyfile+='\nimport shutil'
+    pyfile+='\nimport sys'
+    pyfile+='\n'
+    pyfile+='\npath=sys.argv[1]'
+    pyfile+='\nacr=sys.argv[2]'
+    pyfile+='\nspg=sys.argv[3]'
+    pyfile+='\n'
+    pyfile+='\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'
+    pyfile+='\nfor dataset in datasetList:    '
+    pyfile+='\n    '
+    pyfile+='\n    dataset_run=dataset.split("/")[-2]    '
+    pyfile+='\n    dataset_original=dataset'
+    pyfile+='\n    datasetfp=(dataset.replace("/fragmax/","/"))        '
+    pyfile+='\n    datasetfp="/".join(datasetfp.split("/")[:-2])+"/xds_"+datasetfp.split("/")[-2]+"_1/"'
+    pyfile+='\n    '
+    pyfile+='\n    if os.path.exists(dataset+"autoproc/staraniso_alldata.mtz"):        '
+    pyfile+='\n        shutil.copyfile(dataset+"autoproc/staraniso_alldata.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+    pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+    pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    elif os.path.exists(dataset+"autoproc/aimless_alldata-unique.mtz"):        '
+    pyfile+='\n        shutil.copyfile(dataset+"autoproc/aimless_alldata-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+    pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+    pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    elif os.path.exists(dataset+"autoproc/truncate-unique.mtz"):        '
+    pyfile+='\n        shutil.copyfile(dataset+"autoproc/truncate-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
+    pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
+    pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+    pyfile+='\n  '
+    pyfile+='\n'
+    pyfile+='\n    if os.path.exists(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
+    pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"):            '
+    pyfile+='\n            shutil.copyfile(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz")'
+    pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"'
+    pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+    pyfile+='\n    '
+    pyfile+='\n   '
+    pyfile+='\n    '
+    pyfile+='\n    if os.path.exists(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
+    pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"):            '
+    pyfile+='\n            shutil.copyfile(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz")'
+    pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"'
+    pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+    pyfile+='\n    '
+    pyfile+='\n    '
+    pyfile+='\n    if os.path.exists(dataset+"xdsapp/"+dataset_run+"_data_F.mtz"):'
+    pyfile+='\n        '
+    pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"):'
+    pyfile+='\n            shutil.copyfile(dataset+"xdsapp/"+dataset_run+"_data_F.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz")'
+    pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"'
+    pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+    pyfile+='\n    '
+    pyfile+='\n   '
+    pyfile+='\n    '
+    pyfile+='\n    if os.path.exists(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz"):'
+    pyfile+='\n        if not os.path.exists(dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"):'
+    pyfile+='\n            shutil.copyfile(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz",dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz")'
+    pyfile+='\n            a=dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"'
+    pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+    pyfile+='\n    '
+    pyfile+='\n'
+    pyfile+='\n    '
+    pyfile+='\n    if os.path.exists(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz"):        '
+    pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"):'
+    pyfile+='\n            shutil.copyfile(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz",dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz")'
+    pyfile+='\n            try:'
+    pyfile+='''\n                subprocess.check_call(['gunzip', dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz"])'''
+    pyfile+='\n            except:'
+    pyfile+='\n                pass'
+    pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"'
+    pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
+    pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
+    pyfile+='\n'
+    pyfile+='\n    else:'
+    pyfile+='\n        pass'
+
+    
+    
+    
+    with open(path+"/fragmax/scripts/process2results.py","w") as outp:
+        outp.write(pyfile)
+
+
+            
+    #Creates HPC script to run dimple on all mtz files provided.
+    #PDB file can be provided in the header of the python script and parse to all 
+    #pipelines (Dimple, pipedream, bessy)
+
+
+    ##This line will make dimple run on unscaled unmerged files. It seems that works 
+    ##better sometimes
+    #mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
+
+
+    proc2resOut=""
+
+    #define env for script for dimple
+    proc2resOut+= """#!/bin/bash\n"""
+    proc2resOut+= """#!/bin/bash\n"""
+    proc2resOut+= """#SBATCH -t 99:55:00\n"""
+    proc2resOut+= """#SBATCH -J ScaleMerge\n"""
+    proc2resOut+= """#SBATCH --exclusive\n"""
+    proc2resOut+= """#SBATCH -N1\n"""
+    proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
+    proc2resOut+= """#SBATCH --mem=220000\n""" 
+    proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j.out\n"""
+    proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j.err\n"""    
+    proc2resOut+= """module purge\n"""
+    proc2resOut+= """module load CCP4 Phenix\n\n"""
+
+
+
+    #dimpleOut+=" & ".join(dimp)
+    proc2resOut+="\n\n"
+    proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "+path+" "+acr+" P1211"
+    with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
+        outp.write(proc2resOut)
+    
+
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-        
-
-    def process2results(path):
-        pyfile ='import os '
-        pyfile+='\nimport glob'
-        pyfile+='\nimport subprocess'
-        pyfile+='\nimport shutil'
-        pyfile+='\nimport sys'
-        pyfile+='\n'
-        pyfile+='\npath=sys.argv[1]'
-        pyfile+='\nacr=sys.argv[2]'
-        pyfile+='\nspg=sys.argv[3]'
-        pyfile+='\n'
-        pyfile+='\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'
-        pyfile+='\nfor dataset in datasetList:    '
-        pyfile+='\n    '
-        pyfile+='\n    dataset_run=dataset.split("/")[-2]    '
-        pyfile+='\n    dataset_original=dataset'
-        pyfile+='\n    datasetfp=(dataset.replace("/fragmax/","/"))        '
-        pyfile+='\n    datasetfp="/".join(datasetfp.split("/")[:-2])+"/xds_"+datasetfp.split("/")[-2]+"_1/"'
-        pyfile+='\n    '
-        pyfile+='\n    if os.path.exists(dataset+"autoproc/staraniso_alldata.mtz"):        '
-        pyfile+='\n        shutil.copyfile(dataset+"autoproc/staraniso_alldata.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
-        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
-        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    elif os.path.exists(dataset+"autoproc/aimless_alldata-unique.mtz"):        '
-        pyfile+='\n        shutil.copyfile(dataset+"autoproc/aimless_alldata-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
-        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
-        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    elif os.path.exists(dataset+"autoproc/truncate-unique.mtz"):        '
-        pyfile+='\n        shutil.copyfile(dataset+"autoproc/truncate-unique.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz")'
-        pyfile+='\n        a=dataset.split("process/")[0]+"results/"+dataset_run+"/autoproc/"+dataset_run+"_autoproc_merged.mtz"'
-        pyfile+='''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-        pyfile+='\n  '
-        pyfile+='\n'
-        pyfile+='\n    if os.path.exists(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
-        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"):            '
-        pyfile+='\n            shutil.copyfile(dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz")'
-        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/dials/"+dataset_run+"_dials_merged.mtz"'
-        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-        pyfile+='\n    '
-        pyfile+='\n   '
-        pyfile+='\n    '
-        pyfile+='\n    if os.path.exists(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"):'
-        pyfile+='\n        xsdat=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"'
-        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz"):'
-        pyfile+='\n            print(dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsxscale/"+dataset_run+"_xdsxscale_merged.mtz")'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-        pyfile+='\n    '
-        pyfile+='\n    '
-        pyfile+='\n    if os.path.exists(dataset+"xdsapp/"+dataset_run+"_data_F.mtz"):'
-        pyfile+='\n        '
-        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"):'
-        pyfile+='\n            shutil.copyfile(dataset+"xdsapp/"+dataset_run+"_data_F.mtz",dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz")'
-        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/xdsapp/"+dataset_run+"_xdsapp_merged.mtz"'
-        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-        pyfile+='\n    '
-        pyfile+='\n   '
-        pyfile+='\n    '
-        pyfile+='\n    if os.path.exists(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz"):'
-        pyfile+='\n        if not os.path.exists(dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"):'
-        pyfile+='\n            shutil.copyfile(dataset+"EDNA_proc/results/ep_"+dataset_run+"_noanom_aimless.mtz",dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz")'
-        pyfile+='\n            a=dataset_original.split("process/")[0]+"results/"+dataset_run+"/EDNA_proc/"+dataset_run+"_EDNA_proc_merged.mtz"'
-        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-        pyfile+='\n    '
-        pyfile+='\n'
-        pyfile+='\n    '
-        pyfile+='\n    if os.path.exists(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz"):        '
-        pyfile+='\n        if not os.path.exists(dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"):'
-        pyfile+='\n            shutil.copyfile(datasetfp+"fastdp/results/ap_"+dataset_run[:-1]+"run1_noanom_fast_dp.mtz.gz",dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz")'
-        pyfile+='\n            try:'
-        pyfile+='''\n                subprocess.check_call(['gunzip', dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz.gz"])'''
-        pyfile+='\n            except:'
-        pyfile+='\n                pass'
-        pyfile+='\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"'
-        pyfile+='''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-        pyfile+='\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'
-        pyfile+='\n'
-        pyfile+='\n    else:'
-        pyfile+='\n        pass'
-
-        
-        
-        
-        with open(path+"/fragmax/scripts/process2results.py","w") as outp:
-            outp.write(pyfile)
-        #Creates HPC script to run dimple on all mtz files provided.
-        #PDB file can be provided in the header of the python script and parse to all 
-        #pipelines (Dimple, pipedream, bessy)
+    process2results() 
 
 
-        ##This line will make dimple run on unscaled unmerged files. It seems that works 
-        ##better sometimes
-        #mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
-
-
-        proc2resOut=""
-
-        #define env for script for dimple
-        proc2resOut+= """#!/bin/bash\n"""
-        proc2resOut+= """#!/bin/bash\n"""
-        proc2resOut+= """#SBATCH -t 99:55:00\n"""
-        proc2resOut+= """#SBATCH -J ScaleMerge\n"""
-        proc2resOut+= """#SBATCH --exclusive\n"""
-        proc2resOut+= """#SBATCH -N1\n"""
-        proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
-        proc2resOut+= """#SBATCH --mem=220000\n""" 
-        proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j.out\n"""
-        proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j.err\n"""    
-        proc2resOut+= """module purge\n"""
-        proc2resOut+= """module load CCP4 Phenix\n\n"""
-
-
-
-        #dimpleOut+=" & ".join(dimp)
-        proc2resOut+="\n\n"
-        proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "+path+" "+acr+" P1211"
-        with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
-            outp.write(proc2resOut)
-        
     def dimple_hpc(PDB):
         #Creates HPC script to run dimple on all mtz files provided.
         #PDB file can be provided in the header of the python script and parse to all 
@@ -3722,7 +3076,7 @@ def project_dif_svg():
         except:
             print("No data for "+key) 
 
-    t = threading.Thread(target=ligandToSVG,args=(lib))
+    t = threading.Thread(target=ligandToSVG,args=())
     t.daemon = True
     t.start()
         
@@ -4036,6 +3390,11 @@ def get_pipedream_results():
                             outp.write(param+"\n")
                         except:
                             pass
+
+def scrsplit(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+
 
 def get_project_status_initial():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()

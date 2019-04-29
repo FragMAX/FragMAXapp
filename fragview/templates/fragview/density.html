@@ -26,7 +26,7 @@
      color: #eee;
      background-color: rgba(0,0,0,0.7);
      position: absolute;
-     left: 250px;
+     left: 550px;
      top: 50%;
      transform: translateY(-50%);
      cursor: default;
@@ -82,44 +82,73 @@
         <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
         <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
       </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Structure navigation</h6>
+        </div>
+        <input class="btn " type="button" value="Previous"  ></input> 
+        <input  class="btn" type="button" value="Next" ></input> 
+      </div>
       <div>
         <table>
           
           <tr>
             <th>Resolution
             </th>
-            <td>1.1
+            <td>Å
             </td>
           </tr>
           <tr>
             <th>Rwork
             </th>
-            <td>0.17
+            <td>%
             </td>
           </tr>
           <tr>
             <th>Rfree
             </th>
-            <td>0.19
+            <td>%
             </td>
           </tr>
           <tr>
             <th>ISa
             </th>
-            <td>17
+            <td>value
             </td>
           </tr>
           <tr>
             <th>Spacegroup
             </th>
-            <td>P1211
+            <td>SPG
             </td>
           </tr>
 
         </table>
       </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Compare</h6>
+        </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Load Dimple "  ></input> </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Load BUSTER "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Load PanDDA "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Run RhoFit/LigFit "  ></input> </div>
+      </div>
 
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Others</h6>
+        </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Best "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Reject "  ></input> </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Ligand density visible "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Re run refine "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Proc/Ref parameters "  ></input> </div>
+      </div>
+      <div style="padding-top:30px">    
+          <h6>Dataset ligand</h6>     
       <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
+      </div>
     </div>
 
 
