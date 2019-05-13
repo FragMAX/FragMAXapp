@@ -1,7 +1,7 @@
 
 {% extends 'fragview/base.html' %}
 
-{% block title %}Norrsken - PanDDA inspect{% endblock %}
+{% block title %}Norrsken - PanDDA results{% endblock %}
 
 
 {% block content %}
@@ -53,7 +53,7 @@
   a:hover {
     text-decoration: none !important;
   }
-.selectbox{
+  .selectbox{
     width: 250px;
     display:inline-block;
     margin-left: 165px;
@@ -66,13 +66,13 @@
     }
 
 </style>
-<select class="selectbox " name="dropdownDataset" onchange="GetSelectedTextValue(this)">
+<select class="selectbox input-sm" name="dropdownDataset" onchange="GetSelectedTextValue(this)">
   <option disabled selected value> -- select an option -- </option>
   {% for method in proc_methods %}
   <option value='{{method}}'>{{method}}</option>    
   {% endfor %} 
 </select>
-<form class="selectbutton" action="/pandda_inspect/" method="get" id="opentest" name="opentest" size="1" >
+<form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" >
   <button class="btn-small selectbutton " type="submit" onsubmit="return select_pandda()" value="panddaSelect" name="methods" size="1">Load</button>
 </form>
 {{Report |safe}}

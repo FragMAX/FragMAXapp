@@ -5,8 +5,12 @@ from . import views
 urlpatterns = [
     #path('', views.post_list, name='post_list'),
     path('', views.index, name='index'),
+
+
     path('post/<int:pk>/', views.post_detail, name='post_detail'),
     path('post/new/', views.post_new, name='post_new'),
+
+    path('testpage/', views.testfunc, name='pandda_analyse'),
     path('datasets/', views.datasets, name='datasets'),
     path('datasets_notready/', views.datasets, name='datasets_notready'),
 
@@ -18,8 +22,10 @@ urlpatterns = [
     path('density/', views.request_page_res, name='density'),
     path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
 
-    path('pandda_density/', views.request_page, name='pandda_density'),
+    path('pandda_density/', views.pandda_density, name='pandda_density'),
     path('pandda/', views.pandda, name='pandda'),
+    path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
+
     path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
 
     path('pandda_notready/', views.pandda, name='pandda_notready'),

@@ -2,7 +2,6 @@
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - PanDDA maps viewer{% endblock %}
-
 {% block content %}
 
 <head>
@@ -10,13 +9,15 @@
   <meta name="theme-color" content="#333333">
   <style>
    body { font-family: sans-serif; }
-   canvas { display: block; }
+   canvas { 
+     display: flex; 
+     }
    #viewer {
      position: absolute;
-     left: 50px;
-     top: 60px;
-     width: calc(100% - 49.9px);
-     height: calc(100% - 59.9px);
+     left: 550px;
+     top: 100px;
+     width: calc(100% - 550px);
+     height: calc(100% - 100px);
    }
    
    #help {
@@ -25,7 +26,7 @@
      color: #eee;
      background-color: rgba(0,0,0,0.7);
      position: absolute;
-     left: 200px;
+     left: 550px;
      top: 50%;
      transform: translateY(-50%);
      cursor: default;
@@ -34,6 +35,21 @@
      z-index: 9;
      white-space: pre-line;
    }
+   #left-controlpanel {
+     font-size: 16px;
+     background-color: rgba(0,0,0,0.1);
+     position: absolute;
+     left: 265px;
+     top: 100px;     
+     width: 270px;
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+   }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
    #inset {
      width: 200px;
      height: 200px;
@@ -51,18 +67,107 @@
 
 </head>
 <body style="background-color: white">
-{% for pdb,nat,dif,center in structure %}
-<h5>Pandda event map for: {{protname}} </h5>
-  <div id="viewer"></div>
-  <footer id="help"></footer>
-  <div id="inset"></div>
-  <script>
-    V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});   
-    V.load_pdb("/static/{{pdb}}",null, function(){
-         V.recenter({{center}}, null, 1);
-    });
-    V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
-    {% endfor %}   
+
+  
+    <h5>Showing results for: {{dataset }}</h5>
+    
+    
+    
+    <div id="left-controlpanel" >
+      
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Blob navigation</h6>
+        </div>
+        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
+        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
+      </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Structure navigation</h6>
+        </div>
+        <input class="btn " type="button" value="Previous"  ></input> 
+        <input  class="btn" type="button" value="Next" ></input> 
+      </div>
+      <div>
+        <table>
+          
+          <tr>
+            <th>Resolution
+            </th>
+            <td>Å
+            </td>
+          </tr>
+          <tr>
+            <th>Rwork
+            </th>
+            <td>%
+            </td>
+          </tr>
+          <tr>
+            <th>Rfree
+            </th>
+            <td>%
+            </td>
+          </tr>
+          <tr>
+            <th>ISa
+            </th>
+            <td>value
+            </td>
+          </tr>
+          <tr>
+            <th>Spacegroup
+            </th>
+            <td>SPG
+            </td>
+          </tr>
+
+        </table>
+      </div>
+      
+
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Others</h6>
+        </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Best "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Reject "  ></input> </div>
+        <div style="padding-top:10px"><input class="btn " type="button" value="Ligand density visible "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Re run refine "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Proc/Ref parameters "  ></input> </div>
+      </div>
+      <div style="padding-top:30px !important;">    
+          <div>
+            <h6>Dataset ligand</h6>
+          </div>
+      <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
+      </div>
+    </div>
+
+
+
+    <div style="display:flex;">
+    {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
+    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
+    <div style="padding-left:20px !important; padding-top:7px !important">
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div>
+    </div>
+
+    
+    <div id="viewer"></div>
+
+    <footer id="help"></footer>
+    <div id="inset"></div>
+
+    <script>
+      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      
+      V.load_pdb("/static/{{pdb}}",null, function(){
+          V.recenter({{center}}, null, 25);
+      });
+      V.load_ccp4_maps("/static/{{2fofc}}","/static/{{fofc}}");
 
   </script>
 </body>

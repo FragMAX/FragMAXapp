@@ -1,0 +1,75 @@
+
+{% extends 'fragview/base.html' %}
+{% block title %}Test page{% endblock %}
+
+{% block content %}
+
+
+
+<style>
+
+  .container {
+    padding-left: 200px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+  }
+    .btn-right {
+            float:right !important;
+  }
+</style>
+<h4>Test page</h4>
+
+
+
+<div class="card">
+        <div class="card-content">
+            
+
+            <h4>User input variables:</h4>
+            {{method}}
+
+            <table id="main-table" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th class="text-nowrap">Open</th>
+              <th class="text-nowrap">Dataset</th>
+              <th class="text-nowrap">Viewed</th>
+              <th class="text-nowrap">Interesting</th>
+              <th class="text-nowrap">Lig. Placed</th>
+              <th class="text-nowrap">Event</th>
+              <th class="text-nowrap">Site</th>
+              <th class="text-nowrap">1 - BDC</th>
+              <th class="text-nowrap">Z-Peak</th>
+              <th class="text-nowrap">Map Res.</th>
+              <th class="text-nowrap">Map Unc.</th>
+              <th class="text-nowrap">Confidence</th>
+              <th class="text-nowrap">Comment</th>
+              <th class="text-nowrap"></th>
+              </tr>
+          </thead>
+          <tbody>
+            <tr class=info>
+              <td>
+              <form action="/pandda_density/" method="get" id="pandda_form" target="_blank">
+                <button class="btn" type="submit" value="EPF2XEntry-A07b_1_dials_dimple" name="structure" size="1">Open</button>
+              </form>
+              </td>
+              <th class="text-nowrap" scope="row">EPF2XEntry-A07b_1_dials_dimple</th>
+              <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>
+              <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>
+              <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 0.23</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 13.89</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1.07</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 0.194</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> Low</td>
+              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> None</td>
+              <td><span class="label label-info"></span></td></tr>
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

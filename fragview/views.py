@@ -100,7 +100,7 @@ def pipedream(request):
 
     datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
-    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList]
+    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i]
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
@@ -532,7 +532,7 @@ def dataset_info(request):
     run=a.split(";")[2]
 
     images=str(int(images)/2)
-    xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_1.xml"
+    xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
     datainfo=retrieveParameters(xmlfile)    
 
     energy=format(float(datainfo["wavelength"])*13.6307922,".2f")
@@ -927,14 +927,27 @@ def results(request):
     except:
         return render_to_response('fragview/results_notready.html')
 
-def request_page(request):
+def pandda_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    a=str(request.GET.get('structure'))     
-    name=a.split(";")[0].split("/modelled_structures/")[-1].split(".pdb")[0]  
-    a=zip([a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]])  
+    dataset=str(request.GET.get('structure'))     
+    method="_".join(dataset.split("_")[-2:])
+    ligand=dataset.split("-")[-1].split("_")[0]
+
+    modelledDir='/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
+    pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
+    #pdb='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'+"fitted-v0001.pdb"
+    with open(pdb,"r") as inp:
+        for line in inp.readlines():
+            if "HETATM" in line and "XXX" in line:
+                center="["+",".join(line.split()[5:8])+"]"
+                
+            
+    pdb=pdb.replace("/data/visitors/","")
+    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
+    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
     
-    return render(request,'fragview/pandda_density.html', {'structure': a,'protname':name})
+    return render(request,'fragview/pandda_density.html', {"shift":shift,"proposal": proposal,"dataset":dataset,"pdb":pdb,"2fofc":map2,"fofc":map1,"fraglib":fraglib,"ligand":ligand,"center":center})
 
 def request_page_res(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1047,116 +1060,173 @@ def ligfit_results(request):
 
 def pandda_inspect(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda")]
 
-    
-    if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html"):
-        with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
-            a="".join(inp.readlines())
-            #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
-            
-            return render(request,'fragview/pandda_inspect.html', {'Report': a})
+
+    method=request.GET.get("methods")
+    if method is None or "panddaSelect" in method:
+        if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html"):
+            with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+                html=""
+                for line in inp.readlines():
+                    if '<th class="text-nowrap" scope="row">' in line:
+                        ds=line.split('row">')[-1].split('</th')[0]
+                        html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form>'
+                        html+=line
+                    else:
+                        html+=line
+                
+                #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+                html="".join(html)
+                html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
+
+                
+                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html})
+        else:
+            a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
+            return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
     else:
-        a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
-        return render(request,'fragview/pandda_inspect.html', {'Report': a})
+        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html"):
+            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+                html=""
+                for line in inp.readlines():
+                    if '<th class="text-nowrap" scope="row">' in line:
+                        ds=line.split('row">')[-1].split('</th')[0]
+                        html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form>'
+                        html+=line
+                    else:
+                        html+=line
+                
+                #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+                html="".join(html)
+                html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
 
-def pandda(request):    
+                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+method)})
+        else:
+            a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
+            return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
+def pandda(request):
+    return render(request, "fragview/pandda.html")
+
+
+
+def testfunc(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
+    return render(request, "fragview/testpage.html")    
     
-    if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
-        with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
-            a="".join(inp.readlines())
-            #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
+    
 
-            
-            return render(request,'fragview/pandda.html', {'Report': a})
-        
+
+def pandda_analyse(request):    
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda")]
+
+
+    method=request.GET.get("methods")
+    if method is None or "panddaSelect" in method:
+        if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
+            with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
+                a="".join(inp.readlines())
+                
+                return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a})
+        else:    
+            return render(request,'fragview/pandda.html', {'Report': "Results not available"})
+
     else:
-        folderbtn=str(request.GET.get("runpanddafolderform"))
-        runpanddabtn=str(request.GET.get("runpanddaform"))
-        populateMissing=str(request.GET.get("missingreflform"))
-        actionbtn="No Action"
-        if "run" in folderbtn:
-            actionbtn="makefolders"
-            t = threading.Thread(target=prepare_pandda_folder,args=())
-            t.daemon = True
-            t.start()
-        if "run" in runpanddabtn:
-            with open(path+"/fragmax/scripts/checkPanDDA.py","w") as outp:    
-                outp.write('''\nimport os ''')
-                outp.write('''\nimport glob''')
-                outp.write('''\nimport sys''')
-                outp.write('''\nimport subprocess ''')
-                outp.write('''\n''')
-                outp.write('''\npath=sys.argv[1]''')
-                outp.write('''\n''')
-                outp.write('''\nlastlog=sorted(glob.glob(path+"/fragmax/results/pandda/pandda/logs/*.log"))[-1]''')
-                outp.write('''\n''')
-                outp.write('''\nwith open(lastlog,"r") as logfile:''')
-                outp.write('''\n    log=logfile.readlines()''')
-                outp.write('''\n''')
-                outp.write('''\nbadDataset=list()''')
-                outp.write('''\nfor line in log:''')
-                outp.write('''\n    if "Structure factor column"  in line:''')
-                outp.write('''\n        badDataset.append(line.split(" has ")[0].split("in dataset ")[-1])''')
-                outp.write('''\nif len(badDataset)>1:''')
-                outp.write('''\n    script=path+"/fragmax/scripts/panddaRUN.sh"''')
-                outp.write('''\n    with open(script, "r") as inp:''')
-                outp.write('''\n        panddarun=inp.readlines()''')
-                outp.write('''\n''')
-                outp.write('''\n    with open(script, "w") as outp:''')
-                outp.write('''\n        for line in panddarun:''')
-                outp.write('''\n            if "pandda.analyse" in line:''')
-                outp.write('''\n                current_ignored=line.split('ignore_datasets="')[-1].split('"')[0]+","''')
-                outp.write("""\n                line=line.split("ignore_datasets")[0].replace("\\n","")+' ignore_datasets="'+current_ignored+",".join(badDataset)+'"\\n'""")
-                outp.write('''\n                panndaline=line''')
-                outp.write('''\n                outp.write(line)''')
-                outp.write('''\n            else:''')
-                outp.write('''\n                outp.write(line)''')
-                outp.write('''\n    ''')
-                outp.write('''\n    ''')
-                outp.write('''\n    command =panndaline''')
-                outp.write('''\n    subprocess.call(command,shell=True)''')
+        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
+            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
+                a="".join(inp.readlines())
 
-            actionbtn="runpandda"
-            panddaRUNscript=""
-            panddaRUNscript+='#!/bin/bash\n'
-            panddaRUNscript+='#!/bin/bash\n'
-            panddaRUNscript+='#SBATCH -t 99:55:00\n'
-            panddaRUNscript+='#SBATCH -J PanDDA\n'
-            panddaRUNscript+='#SBATCH --exclusive\n'
-            panddaRUNscript+='#SBATCH -N1\n'
-            panddaRUNscript+='#SBATCH --cpus-per-task=48\n'
-            panddaRUNscript+='#SBATCH --mem=220000\n'
-            panddaRUNscript+='#SBATCH -o '+path+'/fragmax/logs/panddarun_%j.out\n'
-            panddaRUNscript+='#SBATCH -e '+path+'/fragmax/logs/panddarun_%j.err\n'
-            panddaRUNscript+='module purge\n'
-            panddaRUNscript+='module load CCP4 PyMOL\n\n'
-            panddaRUNscript+='cd '+path+'/fragmax/results/pandda/\n'
-            panddaRUNscript+='pandda.analyse data_dirs="'+path+'/fragmax/results/pandda/*" cpus=24  input.max_new_datasets=10000  \n'
-            panddaRUNscript+='python '+path+'/fragmax/scripts/checkPanDDA.py '+path
-
-            if not os.path.exists(path+"/fragmax/scripts/panddaRUN.sh"):
-                with open(path+"/fragmax/scripts/panddaRUN.sh","w") as outp:
-                    outp.write(panddaRUNscript)
-
-            script=path+"/fragmax/scripts/panddaRUN.sh"
-            command ='echo "module purge | module load CCP4 PyMOL | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-
-        if "run" in populateMissing:
-            actionbtn="population missing reflections"
-            t = threading.Thread(target=populate_missing,args=())
-            t.daemon = True
-            t.start()
-            #populate_missing()
-        if os.path.exists(path+"/fragmax/results/pandda/pandda/pandda.running"):
-            modTimesinceEpoc = os.path.getmtime(path+"/fragmax/results/pandda/pandda/pandda.running") 
-            modificationTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(modTimesinceEpoc))
-            return render(request,'fragview/pandda_running.html',{"panddafolder": "PanDDA start time : "+modificationTime})    
+            return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
-            return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
+            return render(request,'fragview/pandda.html', {'Report': "Results not available"})    
+    # else:
+    #     folderbtn=str(request.GET.get("runpanddafolderform"))
+    #     runpanddabtn=str(request.GET.get("runpanddaform"))
+    #     populateMissing=str(request.GET.get("missingreflform"))
+    #     actionbtn="No Action"
+    #     if "run" in folderbtn:
+    #         actionbtn="makefolders"
+    #         t = threading.Thread(target=prepare_pandda_folder,args=())
+    #         t.daemon = True
+    #         t.start()
+    #     if "run" in runpanddabtn:
+    #         with open(path+"/fragmax/scripts/checkPanDDA.py","w") as outp:    
+    #             outp.write('''\nimport os ''')
+    #             outp.write('''\nimport glob''')
+    #             outp.write('''\nimport sys''')
+    #             outp.write('''\nimport subprocess ''')
+    #             outp.write('''\n''')
+    #             outp.write('''\npath=sys.argv[1]''')
+    #             outp.write('''\n''')
+    #             outp.write('''\nlastlog=sorted(glob.glob(path+"/fragmax/results/pandda/pandda/logs/*.log"))[-1]''')
+    #             outp.write('''\n''')
+    #             outp.write('''\nwith open(lastlog,"r") as logfile:''')
+    #             outp.write('''\n    log=logfile.readlines()''')
+    #             outp.write('''\n''')
+    #             outp.write('''\nbadDataset=list()''')
+    #             outp.write('''\nfor line in log:''')
+    #             outp.write('''\n    if "Structure factor column"  in line:''')
+    #             outp.write('''\n        badDataset.append(line.split(" has ")[0].split("in dataset ")[-1])''')
+    #             outp.write('''\nif len(badDataset)>1:''')
+    #             outp.write('''\n    script=path+"/fragmax/scripts/panddaRUN.sh"''')
+    #             outp.write('''\n    with open(script, "r") as inp:''')
+    #             outp.write('''\n        panddarun=inp.readlines()''')
+    #             outp.write('''\n''')
+    #             outp.write('''\n    with open(script, "w") as outp:''')
+    #             outp.write('''\n        for line in panddarun:''')
+    #             outp.write('''\n            if "pandda.analyse" in line:''')
+    #             outp.write('''\n                current_ignored=line.split('ignore_datasets="')[-1].split('"')[0]+","''')
+    #             outp.write("""\n                line=line.split("ignore_datasets")[0].replace("\\n","")+' ignore_datasets="'+current_ignored+",".join(badDataset)+'"\\n'""")
+    #             outp.write('''\n                panndaline=line''')
+    #             outp.write('''\n                outp.write(line)''')
+    #             outp.write('''\n            else:''')
+    #             outp.write('''\n                outp.write(line)''')
+    #             outp.write('''\n    ''')
+    #             outp.write('''\n    ''')
+    #             outp.write('''\n    command =panndaline''')
+    #             outp.write('''\n    subprocess.call(command,shell=True)''')
+
+    #         actionbtn="runpandda"
+    #         panddaRUNscript=""
+    #         panddaRUNscript+='#!/bin/bash\n'
+    #         panddaRUNscript+='#!/bin/bash\n'
+    #         panddaRUNscript+='#SBATCH -t 99:55:00\n'
+    #         panddaRUNscript+='#SBATCH -J PanDDA\n'
+    #         panddaRUNscript+='#SBATCH --exclusive\n'
+    #         panddaRUNscript+='#SBATCH -N1\n'
+    #         panddaRUNscript+='#SBATCH --cpus-per-task=48\n'
+    #         panddaRUNscript+='#SBATCH --mem=220000\n'
+    #         panddaRUNscript+='#SBATCH -o '+path+'/fragmax/logs/panddarun_%j.out\n'
+    #         panddaRUNscript+='#SBATCH -e '+path+'/fragmax/logs/panddarun_%j.err\n'
+    #         panddaRUNscript+='module purge\n'
+    #         panddaRUNscript+='module load CCP4 PyMOL\n\n'
+    #         panddaRUNscript+='cd '+path+'/fragmax/results/pandda/\n'
+    #         panddaRUNscript+='pandda.analyse data_dirs="'+path+'/fragmax/results/pandda/*" cpus=24  input.max_new_datasets=10000  \n'
+    #         panddaRUNscript+='python '+path+'/fragmax/scripts/checkPanDDA.py '+path
+
+    #         if not os.path.exists(path+"/fragmax/scripts/panddaRUN.sh"):
+    #             with open(path+"/fragmax/scripts/panddaRUN.sh","w") as outp:
+    #                 outp.write(panddaRUNscript)
+
+    #         script=path+"/fragmax/scripts/panddaRUN.sh"
+    #         command ='echo "module purge | module load CCP4 PyMOL | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #         subprocess.call(command,shell=True)
+
+
+    #     if "run" in populateMissing:
+    #         actionbtn="population missing reflections"
+    #         t = threading.Thread(target=populate_missing,args=())
+    #         t.daemon = True
+    #         t.start()
+    #         #populate_missing()
+    #     if os.path.exists(path+"/fragmax/results/pandda/pandda/pandda.running"):
+    #         modTimesinceEpoc = os.path.getmtime(path+"/fragmax/results/pandda/pandda/pandda.running") 
+    #         modificationTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(modTimesinceEpoc))
+    #         return render(request,'fragview/pandda_running.html',{"panddafolder": "PanDDA start time : "+modificationTime})    
+    #     else:
+    #         return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
 
 def procReport(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -2163,7 +2233,7 @@ def resultSummary():
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    nodes=5
+    nodes=25
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""

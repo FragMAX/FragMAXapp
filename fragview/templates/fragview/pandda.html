@@ -1,77 +1,526 @@
-
 {% extends 'fragview/base.html' %}
 
-{% block title %}Norrsken - PanDDA results{% endblock %}
-
+{% load static %}
+{% block title %}Norrsken - PanDDA{% endblock %}
 
 {% block content %}
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 <style>
-  table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
+    td, th {
+        padding: 5px 5px;
+        display: table-cell;
+        text-align: left;
+        vertical-align: middle;
+        border-radius: 2px;
+        font-size: 12px;
+        font-size: 0.85vw;
+    }
+    .top-options {
+        font-size: 15px !important;
+    }
+    .content {
+        margin: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .card-content-left{
+        padding: 24px 24px 38px 24px !important;
+    }
+    .card-content-right{
+        padding: 24px 24px 28px 24px !important;
+    }
+    .card_options {
+        padding-left: 310px  !important;
+
+        max-width: calc(100% - 50px)  !important;
+        {% comment %} min-width: 1600px; {% endcomment %}
+    }
+    .flexdiv {
+        display: flex;
+        padding-left: 300px;
+        max-width: calc(100% - 50px)  !important;
+
+        {% comment %} max-width: 2455px !important; {% endcomment %}
+    }
+    .flexdiv_options {
+        display: flex;
+        padding-left: 40px;
+    }
+    .flex-left {
+        max-width:750px; 
+        width: 33%
+    }
+    .flex-right {
+        margin-left:10px;    
+        max-width:750px; 
+        width: 33%
+    }    
+    .flex-center {
+        margin-left:10px; 
+        max-width:750px;     
+        width: 33%
+    }
+
+    .flexdiv_snapshot {
+        display: flex;
+    }
+
+
+    .selectbox {
+        display: flex !important; 
+    }
+    .datasetbox{
+        max-width: 350px;
+        margin-left: 16px;
+    }
+    .optionstable {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .tableSoak {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100% !important;
 
     }
-    th {
-      text-align: center;
-      height: 50px;
-    }
-    td{
-      height: 100px;
-    }
-    td, th {
-      border: 1px solid #f0f0f0;
-      padding: 15px !important;
+    .tableInfo {
+        width: 100% !important;
     }
     
-    tr:nth-child(even) {
-      background-color: #e2e2e2;
+    .bottom-right    {
+        right: 30;
+        bottom: 20;
+        position: absolute;        
     }
-
-    tr td:nth-child(n+2) {
-      text-align: center !important;
+    .btn-right {
+        float:right !important;
     }
-    tr th:nth-child(n+2) {
-      text-align: center !important;
+    .maxivorange {
+        background-color: #fea901;
     }
-    {% comment %} th {
-        cursor: pointer;
-    } {% endcomment %}
-
-  .container {
-      max-width: 100% !important;
-      margin: 0 50px 50px 150px !important;
-      width: calc(100% - 200px) !important;
-  }
-  .col-md-8 {
-  width: 100% !important;
-  }
-  label {
-    font-size: 1.2rem !important;
+    .custompar {
+        background-color: #f0f0f0;
     }
-  a:hover {
-    text-decoration: none !important;
-  }
-
+    .ligpng {
+        height: 95px;
+    }
+    .card-title {
+        display:inline-flex !important;
+    }
 </style>
 
-{{Report |safe}}
+
+
+<div >
+    <h5 style="padding-left:310px;" > PanDDA </h5>
+    
+</div>
+
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="img01">
+    <div id="caption"></div>
+</div>
+
+<div class="card_options">
+    <div class="flexdiv_options card ">
+        <div class="flex-left">
+            <div>
+                <div class="card-content card-content-left">
+                    <div class="card-title">Dataset selection</div>
+                    <table class="optionstable" > 
+                        <col width="8%">
+                        <col width="17%">
+                        <tbody>
+                        
+                <tr>
+                    <th class=" top-options">Processing</th>
+                    <td class=" top-options">
+                        <div class="col s12 required inline" id="processing_method">
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp">
+                                <span class="item-label" for="xdsapp_radio">XDSAPP</span>
+                            </label></div>
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="autoproc_radio" name="proc_type" type="radio" value="autoproc">
+                                <span class="item-label" for="autoproc_radio">autoPROC</span>
+                            </label></div>
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="dials_radio" name="proc_type" type="radio" value="dials">
+                                <span class="item-label" for="dials_radio">XIA2/DIALS</span>
+                            </label></div>
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="xdsxscale">
+                                <span class="item-label" for="xdsxscale_radio">XIA2/XDS</span>
+                            </label></div>
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="edna_proc">
+                                <span class="item-label" for="edna_proc_radio">EDNA_proc</span>
+                            </label></div>
+                            <div class="radio" id="dataproc_type"><label>
+                                <input class="with-gap" id="fastdp_radio" name="proc_type" type="radio" value="fastdp">
+                                <span class="item-label" for="fastdp_radio">fastdp</span>
+                            </label></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class=" top-options">Refinement</th>
+                    <td class=" top-options">
+                        <div class="col s12 required inline" id="refinement_method">
+                            <div class="radio" id="dataref_type"><label>
+                                <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
+                                <span class="item-label" for="dimple_radio">Dimple</span>
+                            </label></div>
+                            <div class="radio" id="dataref_type"><label>
+                                <input class="with-gap" id="fspipeline_radio" name="ref_type" type="radio" value="fspipeline">
+                                <span class="item-label" for="fspipeline_radio">FSpipeline</span>
+                            </label></div>
+                            <div class="radio" id="dataref_type"><label>
+                                <input class="with-gap" id="buster_radio" name="ref_type" type="radio" value="buster">
+                                <span class="item-label" for="buster_radio">BUSTER</span>
+                            </label></div>
+                        </div> 
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Complete results<sup>1</sup></th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="compdatasets">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th class=" top-options">Ground state build</th>
+                    <td class=" top-options">
+                    <form id="groundstate" >
+                            <div class="checkbox" id="groundStateModel">
+                            <label>
+                                <input id="apoGS" name="apoGS" type="checkbox" class="filled-in dt-checkboxes" value="apoGS">
+                                <span for="apoGS">Use known Apo</span>
+                            </label>
+                            </div>
+                            <div class="checkbox" id="dmsoGScheck" >
+                            <label>
+                                <input id="dmsoGS" name="dmsoGS" type="checkbox" class="filled-in dt-checkboxes" value="dmsoGS">
+                                <span for="dmsoGS">Use DMSO datasets</span>
+                            </label>
+                            </div>
+                            
+                            <div class="checkbox" id="cryoGScheck">
+                            <label>
+                                <input id="cryoGS" name="cryoGS" type="checkbox" class="filled-in dt-checkboxes" value="cryoGS">
+                                <span for="cryoGS">Use cryo datasets</span>
+                            </label>
+                            </div>
+                    </form> 
+                    </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>
+                {% comment %} <tr>
+                    <th></th>
+                    <td style="padding-top:20px">
+                         <form action="/reproc_web/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
+                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
+                        </form>
+
+
+                    </td>
+                </tr> {% endcomment %}
+
+                </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex-center">
+        <div>
+
+            <div class="card-content card-content-left">
+                <div class="card-title">PanDDA analyse options</div>
+                <table class="optionstable">
+                    <col width="8%">
+                    <col width="17%">
+                    <tbody>
+            
+            <tr>
+                <th class=" top-options">Fill missing reflections with CAD</th>
+                <td class=" top-options">
+                   <select class="selectbox" name="use_CAD">
+                        <option disabled selected value> -- select an option -- </option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </td>
+            </tr>   
+            <tr>
+                <th class=" top-options">Refine populated MTZ</th>
+                <td class=" top-options">
+                   <select class="selectbox" name="refine_popMTZ">
+                        <option disabled selected value> -- select an option -- </option>
+                        <option value="phenixRefine">Phenix.Refine</option>
+                        <option value="refmac">Refmac</option>
+                        <option value="no">No</option>
+                    </select>
+                </td>
+            </tr>  
+              
+            <tr>
+                <th class=" top-options">Options</th>
+                <td class=" top-options">
+                    <form id="groundstate" >
+                            <div class="checkbox" id="ignoreErrcheck">
+                            <label>
+                                <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr">
+                                <span for="ignoreErr">Ignore dataset problems</span>
+                            </label>
+                            </div>
+                            <div class="checkbox" id="keepupcheck" >
+                            <label>
+                                <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup">
+                                <span for="keepup">Continue last analysis</span>
+                            </label>
+                            </div>
+                            
+                            <div class="checkbox" id="fixsymcheck">
+                            <label>
+                                <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                <span for="fixsym">Fix symlink issues</span>
+                            </label>
+                            </div>
+                    </form> 
+                </td>
+            </tr>
+            
+            <tr class="custompar">
+                <th class=" top-options">Custom parameters</th>
+                <td class=" top-options"><input class="selectbox" name="custombuster" placeholder="default: None"></input> </td>
+            </tr>
+            {% comment %} <tr>
+                <th></th>
+                <td style="padding-top:20px">
+                    <input type="button" class="btn btn-right" value="Run refinement"> </input>
+                </td>
+            </tr> {% endcomment %}
+            </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="flex-right">
+    <div>
+        <div class="card-content card-content-right">
+            <div class="card-title">Giant PanDDA</div>
+            <table class="optionstable">
+                <col width="8%">
+                <col width="17%">
+                <tbody>
+        
+        
+        <tr>
+            <th class=" top-options">Fit ligand in all sites</th>
+            <td class=" top-options"><input class="selectbox" name="allclusters" placeholder="default: False"></input></td>
+        <tr>
+        
+        <tr>
+            <th class=" top-options">Post refine to solution</th>
+            <td class=" top-options">
+                <select class="selectbox" name="postrefine">                    
+                    <option selected value>No</option>             
+                    <option value="postquick">Quick</option>
+                    <option value="poststandard">Standard</option>
+                    <option value="postthorough">Thorough</option>
+                </select>
+            </td>
+        <tr>
+        
+        <tr class="custompar">
+            <th class=" top-options">Custom parameters</th>
+            <td class=" top-options"><input class="selectbox" name="customrhofit" placeholder="default: None"></input> </td>
+        </tr>
+        {% comment %} <tr>
+            <th></th>
+            <td style="padding-top:20px">
+
+                <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
+            </td>
+        </tr> {% endcomment %}
+
+        </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+
+<div class="bottom-right">
+    {% comment %} <form action="/submit_pandda/" method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1" >
+        <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pipedream()" value="pipedreamInput" name="ppdform" size="1">Run PanDDA</button>
+    </form> {% endcomment %}
+    <form  method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1" >
+        <button class="btn-large maxivorange" type="submit" onsubmit="" value="pipedreamInput" name="ppdform" size="1">Run PanDDA</button>
+    </form>
+</div>
+</div>
+<h6>More information can be found at: <a href="https://pandda.bitbucket.io/manual.html" target="_blank">PanDDA Manual</a></h6>
+<h7><sup>1</sup>This option will take datasets from other pipeline combinations to fill the missing results, e.g. No processing with autoproc_dimple is available for the dataset X. The webapp will try to find results for dataset X from xdsapp_dimple, dials_fspipeline or other.</h7> 
+<p hidden id="pdbcontent"></p>
+<p hidden id="mtzcontent"></p>
+</div>
+
 
 <script>
-{% comment %} const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
-const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
-    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+function onFileLoad(elementId, event) {
+    document.getElementById(elementId).innerText = event.target.result;
+}
 
-// do the work...
-document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-    const table = th.closest('table');
-    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-        .forEach(tr => table.appendChild(tr) );
-}))); {% endcomment %}
+function onChooseFile(event, onLoadFileHandler) {
+    if (typeof window.FileReader !== 'function')
+        throw ("The file API isn't supported on this browser.");
+    let input = event.target;
+    if (!input)
+        throw ("The browser does not properly implement the event object");
+    if (!input.files)
+        throw ("This browser does not support the `files` property of the file input.");
+    if (!input.files[0])
+        return undefined;
+    let file = input.files[0];
+    let fr = new FileReader();
+    fr.onload = onLoadFileHandler;
+    fr.readAsText(file);
+}
 
+var f = document.getElementById("sendpipedreamBtn");
+    
+    f.onsubmit = function submit_pipedream(){
+
+    var datasetSelect=document.getElementsByName("dropdownDataset")[0].value
+    if (datasetSelect != "alldatasets"){
+        var outdir=datasetSelect.replace("/raw/","/fragmax/process/pipedream/")
+        outdir = outdir.replace("_master.h5","")
+    }
+
+    //autoPROC parameters
+    var ap_spacegroup       = document.getElementsByName("spacegroup")[0].value;
+    var ap_cellparam        = document.getElementsByName("cellparameters")[0].value;
+    var ap_staraniso        = document.getElementsByName("staraniso")[0].value;
+    var ap_xbeamcent        = document.getElementsByName("xbeampos")[0].value;
+    var ap_ybeamcent        = document.getElementsByName("ybeampos")[0].value;
+    var ap_datarange        = document.getElementsByName("datarange")[0].value;
+    var ap_rescutoff        = document.getElementsByName("rescutoff")[0].value;
+    var ap_highreslim       = document.getElementsByName("rmin")[0].value;
+    var ap_maxrpim          = document.getElementsByName("rpim")[0].value;
+    var ap_mincomplet       = document.getElementsByName("completeness")[0].value;
+    var ap_cchalfcut        = document.getElementsByName("cccutoff")[0].value;
+    var ap_isigicut         = document.getElementsByName("isigmacutoff")[0].value;
+    var ap_custompar        = document.getElementsByName("customdataproc")[0].value;
+
+
+    //BUSTER parameters
+    var b_userPDBfile       = document.getElementById("pdbcontent").innerHTML
+    var b_userPDBcode       = document.getElementsByName("PDBID_code")[0].value;
+    var b_userMTZfile       = document.getElementById("mtzcontent").innerHTML;
+    var b_refinemode        = document.getElementsByName("refMode")[0].value;
+    var b_MRthreshold       = document.getElementsByName("mrthresh")[0].value;
+    var b_chainsgroup       = document.getElementsByName("chains")[0].value;
+    var b_bruteforcetf      = document.getElementsByName("btf")[0].value;
+    var b_reslimits         = document.getElementsByName("resolutionlimits")[0].value;
+    var b_angularrf         = document.getElementsByName("bigrotrange")[0].value;
+    var b_sideaiderefit     = document.getElementsByName("remediateckbx")[0].checked;
+    var b_sideaiderebuild   = document.getElementsByName("sidechainbuildckbx")[0].checked;
+    var b_pepflip           = document.getElementsByName("runpepflipckbx")[0].checked;
+    var b_custompar         = document.getElementsByName("custombuster")[0].value;
+
+    //RhoFit parameters
+
+    var rho_ligandsmiles    = document.getElementsByName("ligsmiles")[0].value;
+    var rho_ligandcode      = document.getElementsByName("ligscreencode")[0].value;
+    var rho_ligandfromname  = document.getElementsByName("ligfromname")[0].checked;
+    var rho_copiestosearch  = document.getElementsByName("numberofcopies")[0].value;
+    var rho_keepH           = document.getElementsByName("keepH")[0].value;
+    var rho_allclusters     = document.getElementsByName("allclusters")[0].value;
+    var rho_xclusters       = document.getElementsByName("xclusters")[0].value;
+    var rho_postrefine      = document.getElementsByName("postrefine")[0].value;
+    var rho_occuprefine     = document.getElementsByName("nooccref")[0].value;
+    var rho_fittingproc     = document.getElementsByName("fitprocess")[0].value;
+    var rho_scanchirals     = document.getElementsByName("scanchirals")[0].value;
+    var rho_custompar       = document.getElementsByName("customrhofit")[0].value;
+
+
+    //processed
+    var rho_ligand ="still not here" //define the ligand from one of the options
+    var pdbinp="3ks3" //get path or file content from user
+    var beamcentre = '"'+ap_xbeamcent+' '+ap_ybeamcent+'"'
+
+
+    //pipedream command line generator
+    var pipedream_cmd= ""
+        
+    pipedream_cmd+=";;input_data:"+datasetSelect
+    pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup       
+    pipedream_cmd+=";;ap_cellparam:"+ap_cellparam      
+    pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
+    pipedream_cmd+=";;ap_xbeamcent:"+ap_xbeamcent
+    pipedream_cmd+=";;ap_ybeamcent:"+ap_ybeamcent
+    pipedream_cmd+=";;ap_datarange:"+ap_datarange
+    pipedream_cmd+=";;ap_rescutoff:"+ap_rescutoff
+    pipedream_cmd+=";;ap_highreslim:"+ap_highreslim
+    pipedream_cmd+=";;ap_maxrpim:"+ap_maxrpim
+    pipedream_cmd+=";;ap_mincomplet:"+ap_mincomplet
+    pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
+    pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
+    pipedream_cmd+=";;ap_custompar:"+ap_custompar
+    pipedream_cmd+=";;b_userPDBfile:"+"b_userPDBfile"
+    pipedream_cmd+=";;b_userPDBcode:"+b_userPDBcode
+    pipedream_cmd+=";;b_userMTZfile:"+"b_userMTZfile"
+    pipedream_cmd+=";;b_refinemode:"+b_refinemode
+    pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
+    pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
+    pipedream_cmd+=";;b_bruteforcetf:"+b_bruteforcetf
+    pipedream_cmd+=";;b_reslimits:"+b_reslimits
+    pipedream_cmd+=";;b_angularrf:"+b_angularrf
+    pipedream_cmd+=";;b_sideaiderefit:"+b_sideaiderefit
+    pipedream_cmd+=";;b_sideaiderebuild:"+b_sideaiderebuild
+    pipedream_cmd+=";;b_pepflip:"+b_pepflip
+    pipedream_cmd+=";;b_custompar:"+b_custompar
+    pipedream_cmd+=";;rho_ligandsmiles:"+rho_ligandsmiles
+    pipedream_cmd+=";;rho_ligandcode:"+rho_ligandcode
+    pipedream_cmd+=";;rho_ligandfromname:"+rho_ligandfromname
+    pipedream_cmd+=";;rho_copiestosearch:"+rho_copiestosearch
+    pipedream_cmd+=";;rho_keepH:"+rho_keepH
+    pipedream_cmd+=";;rho_allclusters:"+rho_allclusters
+    pipedream_cmd+=";;rho_xclusters:"+rho_xclusters
+    pipedream_cmd+=";;rho_postrefine:"+rho_postrefine
+    pipedream_cmd+=";;rho_occuprefine:"+rho_occuprefine
+    pipedream_cmd+=";;rho_fittingproc:"+rho_fittingproc
+    pipedream_cmd+=";;rho_scanchirals:"+rho_scanchirals
+    pipedream_cmd+=";;rho_custompar:"+rho_custompar
+    pipedream_cmd+=';;extras:-nthreads -1  -v '
+
+
+    document.getElementsByName("ppdform")[0].value = pipedream_cmd
+
+}
+    
 </script>
 {% endblock %}
