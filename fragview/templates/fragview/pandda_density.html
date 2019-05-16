@@ -69,57 +69,47 @@
 <body style="background-color: white">
 
   
-    <h5>Showing results for: {{dataset }}</h5>
+    <h5>Showing results for: {{dataset }} {{method}}</h5>
     
     
     
     <div id="left-controlpanel" >
       
-      <div style="padding-left:30px !important;">
-        <div>
-          <h6>Blob navigation</h6>
-        </div>
-        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
-        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
-      </div>
+      
       <div style="padding-left:30px !important;">
         <div>
           <h6>Structure navigation</h6>
         </div>
-        <input class="btn " type="button" value="Previous"  ></input> 
-        <input  class="btn" type="button" value="Next" ></input> 
+        <div style="display:flex">
+        <form action="/pandda_density/" method="get" id="pandda_form"><button class="btn" type="submit" value="{{method}};{{dataset}};prev" name="structure" size="1">Previous</button></form>        
+        <form action="/pandda_density/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next</button></form>
+        </div>
       </div>
-      <div>
+      <div style="padding-top:30px !important">
         <table>
           
           <tr>
             <th>Resolution
             </th>
-            <td>Å
+            <td>{{resolution}}Å
             </td>
           </tr>
           <tr>
             <th>Rwork
             </th>
-            <td>%
+            <td>{{rwork}}
             </td>
           </tr>
           <tr>
             <th>Rfree
             </th>
-            <td>%
+            <td>{{rfree}}
             </td>
-          </tr>
-          <tr>
-            <th>ISa
-            </th>
-            <td>value
-            </td>
-          </tr>
+          </tr>          
           <tr>
             <th>Spacegroup
             </th>
-            <td>SPG
+            <td>{{spg}}
             </td>
           </tr>
 
@@ -128,16 +118,73 @@
       
 
       <div style="padding-left:30px !important;">
-        <div>
-          <h6>Others</h6>
+        
+        <div style="padding-bottom:30px !important; padding-top:30px !important">
+        <div style="padding-bottom:10px !important;">
+          <h6>Site navigation</h6>
+          <h8> <font size="2.5">Current site: X<font></h8>
         </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Best "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Reject "  ></input> </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Ligand density visible "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Re run refine "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Proc/Ref parameters "  ></input> </div>
+        <input class="btn " type="button" value="Previous"  ></input> 
+        <input  class="btn" type="button" value="Next" ></input> 
       </div>
-      <div style="padding-top:30px !important;">    
+        
+        <div style="padding-top:10px"><input class="btn " type="button" value="Next modelled "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Load average map "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Load input mtz "  ></input> </div>
+        <div style="padding-top:10px"><input  class="btn" type="button" value="Load unfitted model "  ></input> </div>
+      </div>
+
+      <div style="padding-left:30px !important; padding-top:30px !important;">
+        <div class="col s12 required inline" id="event_marker">
+          <div class="radio" id="event_mark"><label>
+              <input class="with-gap" id="interesting_radio" name="ref_type" type="radio" value="interesting" checked="checked">
+              <span class="item-label" for="interesting_radio">Event interesting</span>
+          </label></div>
+          
+          <div class="radio" id="event_mark"><label>
+              <input class="with-gap" id="notinteresting_radio" name="ref_type" type="radio" value="notinteresting">
+              <span class="item-label" for="notinteresting_radio">Event not interesting</span>
+          </label></div>
+          
+        </div> 
+      </div> 
+
+      <div style="padding-left:30px !important; padding-top:60px !important;">
+        <div class="col s12 required inline" id="ligand_modelled">
+          <div class="radio" id="ligand_placed"><label>
+              <input class="with-gap" id="lig_radio" name="lig_placed" type="radio" value="placed" checked="checked">
+              <span class="item-label" for="lig_radio">Ligand placed</span>
+          </label></div>
+          
+          <div class="radio" id="ligand_placed"><label>
+              <input class="with-gap" id="nolig_radio" name="lig_placed" type="radio" value="notplaced">
+              <span class="item-label" for="nolig_radio">No ligand placed</span>
+          </label></div>
+          
+        </div> 
+      </div> 
+
+
+      <div style="padding-left:30px !important;padding-top:60px !important;">
+        <div class="col s12 required inline" id="model_confidence">
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high" checked="checked">
+              <span class="item-label" for="high_conf_radio">High confidence</span>
+          </label></div>
+          
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
+              <span class="item-label" for="medium_conf_radio">Medium confidence</span>
+          </label></div>
+          
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+              <span class="item-label" for="low_conf_radio">Low confidence</span>
+          </label></div>
+        </div> 
+      </div> 
+
+      <div style="padding-left:30px !important; padding-top:90px !important;">    
           <div>
             <h6>Dataset ligand</h6>
           </div>

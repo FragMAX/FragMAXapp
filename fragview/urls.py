@@ -31,6 +31,9 @@ urlpatterns = [
     path('pandda_notready/', views.pandda, name='pandda_notready'),
     path('pandda_running/', views.pandda, name='pandda_running'),
 
+    path('submit_pandda/', views.submit_pandda, name='submit_pandda'),
+
+
     path('ugly/', views.ugly, name='ugly'),
     path('dual_ligand/', views.dual_ligand, name='dual_ligand'),
     path('dual_ligand_notready/', views.dual_ligand, name='dual_ligand_notready'),

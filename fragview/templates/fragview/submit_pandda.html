@@ -1,0 +1,67 @@
+
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - Manual data processing{% endblock %}
+
+{% block content %}
+
+
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+    height: 60px;
+    text-align: center;
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+
+  th {
+      cursor: pointer;
+  }
+  .container {
+    padding-left: 200px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+  }
+    .btn-right {
+            float:right !important;
+  }
+</style>
+<h4>MAX IV HPC Status</h4>
+
+
+
+<div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">HPC Status for user: guslim
+            </div>
+            <br>
+            <p>You will be redirected to HPC status page in 3 seconds automatically. If not, <a href="http://w-guslim-cc-0:8080/hpcstatus/"> click here</a></p>
+            <br>
+           
+
+            <h4>User input variables:</h4>
+
+            {{command | safe}}  
+            </table>
+        </div>
+    </div>
+ <script>
+      </script> 
+
+{% endblock %}

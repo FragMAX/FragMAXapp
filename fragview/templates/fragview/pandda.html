@@ -142,7 +142,7 @@
                     <td class=" top-options">
                         <div class="col s12 required inline" id="processing_method">
                             <div class="radio" id="dataproc_type"><label>
-                                <input class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp">
+                                <input class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp" checked="checked">
                                 <span class="item-label" for="xdsapp_radio">XDSAPP</span>
                             </label></div>
                             <div class="radio" id="dataproc_type"><label>
@@ -174,7 +174,7 @@
                     <td class=" top-options">
                         <div class="col s12 required inline" id="refinement_method">
                             <div class="radio" id="dataref_type"><label>
-                                <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
+                                <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple" checked="checked">
                                 <span class="item-label" for="dimple_radio">Dimple</span>
                             </label></div>
                             <div class="radio" id="dataref_type"><label>
@@ -192,7 +192,7 @@
                     <th class=" top-options">Complete results<sup>1</sup></th>
                     <td class=" top-options">
                         <select class="selectbox" name="compdatasets">
-                            <option disabled selected value> -- select an option -- </option>
+                            <option disabled selected value="true"> -- select an option -- </option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                         </select>
@@ -229,16 +229,7 @@
                     <th class=" top-options">Custom parameters</th>
                     <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
                 </tr>
-                {% comment %} <tr>
-                    <th></th>
-                    <td style="padding-top:20px">
-                         <form action="/reproc_web/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
-                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
-                        </form>
-
-
-                    </td>
-                </tr> {% endcomment %}
+                
 
                 </tbody>
 
@@ -373,154 +364,48 @@
 </div>
 
 <div class="bottom-right">
-    {% comment %} <form action="/submit_pandda/" method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1" >
-        <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pipedream()" value="pipedreamInput" name="ppdform" size="1">Run PanDDA</button>
-    </form> {% endcomment %}
-    <form  method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1" >
-        <button class="btn-large maxivorange" type="submit" onsubmit="" value="pipedreamInput" name="ppdform" size="1">Run PanDDA</button>
-    </form>
+     <form action="/submit_pandda/" method="get" id="sendpandda" name="sendpandda" size="1" >
+        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="pipedreamInput" name="panddaform" size="1">Run PanDDA</button>
+    </form> 
+    
+
 </div>
 </div>
 <h6>More information can be found at: <a href="https://pandda.bitbucket.io/manual.html" target="_blank">PanDDA Manual</a></h6>
 <h7><sup>1</sup>This option will take datasets from other pipeline combinations to fill the missing results, e.g. No processing with autoproc_dimple is available for the dataset X. The webapp will try to find results for dataset X from xdsapp_dimple, dials_fspipeline or other.</h7> 
-<p hidden id="pdbcontent"></p>
-<p hidden id="mtzcontent"></p>
+
 </div>
 
 
 <script>
 
-function onFileLoad(elementId, event) {
-    document.getElementById(elementId).innerText = event.target.result;
-}
 
-function onChooseFile(event, onLoadFileHandler) {
-    if (typeof window.FileReader !== 'function')
-        throw ("The file API isn't supported on this browser.");
-    let input = event.target;
-    if (!input)
-        throw ("The browser does not properly implement the event object");
-    if (!input.files)
-        throw ("This browser does not support the `files` property of the file input.");
-    if (!input.files[0])
-        return undefined;
-    let file = input.files[0];
-    let fr = new FileReader();
-    fr.onload = onLoadFileHandler;
-    fr.readAsText(file);
-}
-
-var f = document.getElementById("sendpipedreamBtn");
     
-    f.onsubmit = function submit_pipedream(){
+function panddasetup(){
+    var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
+    var ref_type  = document.querySelector('input[name="ref_type"]:checked').value;
+    
+    var complete  = document.getElementsByName("compdatasets")[0].value;
+    
+    var out = proc_type+";"+ref_type+";"+complete 
+    console.log(out);
 
-    var datasetSelect=document.getElementsByName("dropdownDataset")[0].value
-    if (datasetSelect != "alldatasets"){
-        var outdir=datasetSelect.replace("/raw/","/fragmax/process/pipedream/")
-        outdir = outdir.replace("_master.h5","")
-    }
+}
+var f = document.getElementById("sendpandda");
+    
+    f.onsubmit = function panddasetup(){
 
-    //autoPROC parameters
-    var ap_spacegroup       = document.getElementsByName("spacegroup")[0].value;
-    var ap_cellparam        = document.getElementsByName("cellparameters")[0].value;
-    var ap_staraniso        = document.getElementsByName("staraniso")[0].value;
-    var ap_xbeamcent        = document.getElementsByName("xbeampos")[0].value;
-    var ap_ybeamcent        = document.getElementsByName("ybeampos")[0].value;
-    var ap_datarange        = document.getElementsByName("datarange")[0].value;
-    var ap_rescutoff        = document.getElementsByName("rescutoff")[0].value;
-    var ap_highreslim       = document.getElementsByName("rmin")[0].value;
-    var ap_maxrpim          = document.getElementsByName("rpim")[0].value;
-    var ap_mincomplet       = document.getElementsByName("completeness")[0].value;
-    var ap_cchalfcut        = document.getElementsByName("cccutoff")[0].value;
-    var ap_isigicut         = document.getElementsByName("isigmacutoff")[0].value;
-    var ap_custompar        = document.getElementsByName("customdataproc")[0].value;
-
-
-    //BUSTER parameters
-    var b_userPDBfile       = document.getElementById("pdbcontent").innerHTML
-    var b_userPDBcode       = document.getElementsByName("PDBID_code")[0].value;
-    var b_userMTZfile       = document.getElementById("mtzcontent").innerHTML;
-    var b_refinemode        = document.getElementsByName("refMode")[0].value;
-    var b_MRthreshold       = document.getElementsByName("mrthresh")[0].value;
-    var b_chainsgroup       = document.getElementsByName("chains")[0].value;
-    var b_bruteforcetf      = document.getElementsByName("btf")[0].value;
-    var b_reslimits         = document.getElementsByName("resolutionlimits")[0].value;
-    var b_angularrf         = document.getElementsByName("bigrotrange")[0].value;
-    var b_sideaiderefit     = document.getElementsByName("remediateckbx")[0].checked;
-    var b_sideaiderebuild   = document.getElementsByName("sidechainbuildckbx")[0].checked;
-    var b_pepflip           = document.getElementsByName("runpepflipckbx")[0].checked;
-    var b_custompar         = document.getElementsByName("custombuster")[0].value;
-
-    //RhoFit parameters
-
-    var rho_ligandsmiles    = document.getElementsByName("ligsmiles")[0].value;
-    var rho_ligandcode      = document.getElementsByName("ligscreencode")[0].value;
-    var rho_ligandfromname  = document.getElementsByName("ligfromname")[0].checked;
-    var rho_copiestosearch  = document.getElementsByName("numberofcopies")[0].value;
-    var rho_keepH           = document.getElementsByName("keepH")[0].value;
-    var rho_allclusters     = document.getElementsByName("allclusters")[0].value;
-    var rho_xclusters       = document.getElementsByName("xclusters")[0].value;
-    var rho_postrefine      = document.getElementsByName("postrefine")[0].value;
-    var rho_occuprefine     = document.getElementsByName("nooccref")[0].value;
-    var rho_fittingproc     = document.getElementsByName("fitprocess")[0].value;
-    var rho_scanchirals     = document.getElementsByName("scanchirals")[0].value;
-    var rho_custompar       = document.getElementsByName("customrhofit")[0].value;
-
-
-    //processed
-    var rho_ligand ="still not here" //define the ligand from one of the options
-    var pdbinp="3ks3" //get path or file content from user
-    var beamcentre = '"'+ap_xbeamcent+' '+ap_ybeamcent+'"'
-
-
-    //pipedream command line generator
-    var pipedream_cmd= ""
+        var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
+        var ref_type  = document.querySelector('input[name="ref_type"]:checked').value;
         
-    pipedream_cmd+=";;input_data:"+datasetSelect
-    pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup       
-    pipedream_cmd+=";;ap_cellparam:"+ap_cellparam      
-    pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
-    pipedream_cmd+=";;ap_xbeamcent:"+ap_xbeamcent
-    pipedream_cmd+=";;ap_ybeamcent:"+ap_ybeamcent
-    pipedream_cmd+=";;ap_datarange:"+ap_datarange
-    pipedream_cmd+=";;ap_rescutoff:"+ap_rescutoff
-    pipedream_cmd+=";;ap_highreslim:"+ap_highreslim
-    pipedream_cmd+=";;ap_maxrpim:"+ap_maxrpim
-    pipedream_cmd+=";;ap_mincomplet:"+ap_mincomplet
-    pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
-    pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
-    pipedream_cmd+=";;ap_custompar:"+ap_custompar
-    pipedream_cmd+=";;b_userPDBfile:"+"b_userPDBfile"
-    pipedream_cmd+=";;b_userPDBcode:"+b_userPDBcode
-    pipedream_cmd+=";;b_userMTZfile:"+"b_userMTZfile"
-    pipedream_cmd+=";;b_refinemode:"+b_refinemode
-    pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
-    pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
-    pipedream_cmd+=";;b_bruteforcetf:"+b_bruteforcetf
-    pipedream_cmd+=";;b_reslimits:"+b_reslimits
-    pipedream_cmd+=";;b_angularrf:"+b_angularrf
-    pipedream_cmd+=";;b_sideaiderefit:"+b_sideaiderefit
-    pipedream_cmd+=";;b_sideaiderebuild:"+b_sideaiderebuild
-    pipedream_cmd+=";;b_pepflip:"+b_pepflip
-    pipedream_cmd+=";;b_custompar:"+b_custompar
-    pipedream_cmd+=";;rho_ligandsmiles:"+rho_ligandsmiles
-    pipedream_cmd+=";;rho_ligandcode:"+rho_ligandcode
-    pipedream_cmd+=";;rho_ligandfromname:"+rho_ligandfromname
-    pipedream_cmd+=";;rho_copiestosearch:"+rho_copiestosearch
-    pipedream_cmd+=";;rho_keepH:"+rho_keepH
-    pipedream_cmd+=";;rho_allclusters:"+rho_allclusters
-    pipedream_cmd+=";;rho_xclusters:"+rho_xclusters
-    pipedream_cmd+=";;rho_postrefine:"+rho_postrefine
-    pipedream_cmd+=";;rho_occuprefine:"+rho_occuprefine
-    pipedream_cmd+=";;rho_fittingproc:"+rho_fittingproc
-    pipedream_cmd+=";;rho_scanchirals:"+rho_scanchirals
-    pipedream_cmd+=";;rho_custompar:"+rho_custompar
-    pipedream_cmd+=';;extras:-nthreads -1  -v '
+        var complete  = document.getElementsByName("compdatasets")[0].value;
+        
+        var out = proc_type+";"+ref_type+";"+complete 
 
 
-    document.getElementsByName("ppdform")[0].value = pipedream_cmd
+        document.getElementsByName("panddaform")[0].value = out
 
 }
-    
+
 </script>
 {% endblock %}

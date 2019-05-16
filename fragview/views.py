@@ -21,7 +21,7 @@ import ast
 import sys 
 import xmltodict
 from subprocess import Popen, PIPE
-
+import datetime
 
 
 
@@ -930,24 +930,74 @@ def results(request):
 def pandda_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    dataset=str(request.GET.get('structure'))     
-    method="_".join(dataset.split("_")[-2:])
-    ligand=dataset.split("-")[-1].split("_")[0]
+    panddaInput=str(request.GET.get('structure'))     
+    
 
+    method,dataset,nav=panddaInput.split(";")
+    
+    mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
+    indices = [i for i, s in enumerate(mdl) if dataset in s][0]
+    
+    if "prev" in nav:  
+            
+        try:
+            dataset=mdl[indices-1]
+        except IndexError:
+            dataset=mdl[-1]
+
+    if "next" in nav:
+        try:
+            dataset=mdl[indices+1]
+        except IndexError:
+            dataset=mdl[0]
+
+
+
+    ligand=dataset.split("-")[-1].split("_")[0]
     modelledDir='/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
     pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
     #pdb='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'+"fitted-v0001.pdb"
+    center="[0,0,0]"
+    rwork=""
+    rfree=""
+    resolution=""
+    spg=""
     with open(pdb,"r") as inp:
         for line in inp.readlines():
             if "HETATM" in line and "XXX" in line:
-                center="["+",".join(line.split()[5:8])+"]"
+                center="["+",".join(line.split()[5:8])+"]"            
+            if "REMARK" in line and "R VALUE            (WORKING SET) :" in line:
+                rwork=line.split()[-1]
+            if "REMARK" in line and "FREE R VALUE                     :" in line:
+                rfree=line.split()[-1]
+            if "REMARK" in line and "RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                resolution=line.split()[-1]
+            if "CRYST1" in line:
+                spg="".join(line.split()[7:])
+            
                 
             
     pdb=pdb.replace("/data/visitors/","")
     map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
     map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
     
-    return render(request,'fragview/pandda_density.html', {"shift":shift,"proposal": proposal,"dataset":dataset,"pdb":pdb,"2fofc":map2,"fofc":map1,"fraglib":fraglib,"ligand":ligand,"center":center})
+    return render(request,'fragview/pandda_density.html', {
+        "dataset":dataset,
+        "method":method,
+        "rwork":rwork,
+        "rfree":rfree,
+        "resolution":resolution,
+        "spg":spg,
+        "shift":shift,
+        "proposal": proposal,
+        "dataset":dataset,
+        "pdb":pdb,
+        "2fofc":map2,
+        "fofc":map1,
+        "fraglib":fraglib,
+        "ligand":ligand,
+        "center":center
+        })
 
 def request_page_res(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1005,10 +1055,6 @@ def dual_ligand(request):
     except:
         return render(request,'fragview/dual_ligand_notready.html', {'Report': a})
 
-##################################
-####### COMPARE TWO LIGANDS ######
-##################################
-
 def compare_poses(request):   
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
@@ -1053,25 +1099,31 @@ def ligfit_results(request):
     else:
         return render(request,'fragview/ligfit_results_notready.html')
 
-###################################
-##########Load external HTML#######
-###################################
-
-
 def pandda_inspect(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-    proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda")]
-
-
+    proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/html_summaries/*inspect.html")]
+    newest=datetime.datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
+    newestpath=""
+    newestmethod=""
+    for methods in proc_methods:
+        if len(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))>0:
+            last=sorted(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))[-1]
+            if os.path.exists(last+"/html_summaries/pandda_inspect.html"):
+                time = datetime.datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
+                if time>newest:
+                    newest=time
+                    newestpath=last
+                    newestmethod=methods
+    
     method=request.GET.get("methods")
     if method is None or "panddaSelect" in method:
-        if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html"):
-            with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+        if os.path.exists(newestpath+"/html_summaries/pandda_inspect.html"):
+            with open(newestpath+"/html_summaries/pandda_inspect.html","r") as inp:
                 html=""
                 for line in inp.readlines():
                     if '<th class="text-nowrap" scope="row">' in line:
-                        ds=line.split('row">')[-1].split('</th')[0]
-                        html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form>'
+                        ds=newestmethod+";"+line.split('row">')[-1].split('</th')[0]
+                        html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+';stay" name="structure" size="1">Open</button></form>'
                         html+=line
                     else:
                         html+=line
@@ -1081,7 +1133,7 @@ def pandda_inspect(request):
                 html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
 
                 
-                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html})
+                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+newestmethod) })
         else:
             a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
             return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
@@ -1091,7 +1143,7 @@ def pandda_inspect(request):
                 html=""
                 for line in inp.readlines():
                     if '<th class="text-nowrap" scope="row">' in line:
-                        ds=line.split('row">')[-1].split('</th')[0]
+                        ds=method+";"+line.split('row">')[-1].split('</th')[0]
                         html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form>'
                         html+=line
                     else:
@@ -1105,33 +1157,212 @@ def pandda_inspect(request):
         else:
             a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
             return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
+
+
+    
+   
+   
+
+
+
+
+
+    if method is None or "panddaSelect" in method:
+        if os.path.exists(newestpath+"/html_summaries/pandda_inspect.html"):
+            with open(newestpath+"/html_summaries/pandda_inspect.html","r") as inp:
+                a="".join(inp.readlines())
+                
+                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+newestmethod)})
+        else:
+            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
+            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
+    else:
+        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html"):
+            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+                a="".join(inp.readlines())
+
+            return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+method)})
+        else:
+            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
+            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
 def pandda(request):
     return render(request, "fragview/pandda.html")
-
-
 
 def testfunc(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     return render(request, "fragview/testpage.html")    
     
-    
+def submit_pandda(request):
 
+    #Function definitions
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    panddaCMD=str(request.GET.get("panddaform"))
+    proc,ref,complete=panddaCMD.split(";")
+    method=proc+"_"+ref
+    with open(path+"/fragmax/scripts/panddaRUN_"+method+".py","w") as outp:
+        outp.write('import os \n')
+        outp.write('import glob\n')
+        outp.write('import sys\n')
+        outp.write('import subprocess \n')
+        outp.write('import shutil\n')
+        outp.write('\n')
+        outp.write('\n')
+        outp.write('path=sys.argv[1]\n')
+        outp.write('method=sys.argv[2]\n')
+        outp.write('acr=sys.argv[3]\n')
+        outp.write('fraglib=sys.argv[4]\n')
+        outp.write('\n')
+        outp.write('def prepare_pandda_files(method):\n')
+        outp.write('    proc,ref=method.split("_")\n')
+        outp.write('    missing=list()\n')
+        outp.write('    optionsDict=dict()\n')
+        outp.write('    copypdb=dict()\n')
+        outp.write('    copymtz=dict()\n')
+        outp.write('    copylig=dict()\n')
+        outp.write('    copycif=dict()\n')
+        outp.write('\n')
+        outp.write('    datasets=sorted([x.split("/")[-2] for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5") if "ref-" not in x])\n')
+        outp.write('    refresults=sorted([x for x in glob.glob(path+"/fragmax/results/*/*/*/final*.pdb" ) if "/pandda/" not in x])\n')
+        outp.write('    #refined=sorted([x.split("/")[8] for x in refresults if acr in x])\n')
+        outp.write('    selected=sorted([x for x in refresults if proc in x and ref in x and acr in x])\n')
+        outp.write('\n')
+        outp.write('\n')
+        outp.write('    for i in datasets:\n')
+        outp.write('        for j in selected:\n')
+        outp.write('            if i in j:\n')
+        outp.write('                missing.append(i)\n')
+        outp.write('\n')
+        outp.write('    missing=list(set(datasets)-set(missing))\n')
+        outp.write('\n')
+        outp.write('\n')
+        outp.write('    for i in missing:\n')
+        outp.write('        options=list()\n')
+        outp.write('        for j in refresults:\n')
+        outp.write('            if i in j:\n')
+        outp.write('                options.append(j)\n')
+        outp.write('        if len(options)>0:\n')
+        outp.write('            optionsDict[i]=options\n')
+        outp.write('\n')
+        outp.write('    for key,value in optionsDict.items():  \n')
+        outp.write('        for opt in value:             \n')
+        outp.write('            if "xdsapp" in opt or "dials" in opt or "autoproc" in opt:\n')
+        outp.write('                selected.append(opt)\n')
+        outp.write('                break            \n')
+        outp.write('\n')
+        outp.write('    for i in selected:\n')
+        outp.write('        a=i.split(acr)[0]+"pandda/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n')
+        outp.write('        copypdb[i]=a\n')
+        outp.write('        copymtz[i.replace(".pdb",".mtz")]=a.replace(".pdb",".mtz")\n')
+        outp.write('        b=i.split(acr+"-")[1].split("_")[0]\n')
+        outp.write('        if "Apo" not in b:\n')
+        outp.write('            copylig[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".pdb"]="/".join(a.split("/")[:-1])+"/"+b+".pdb"\n')
+        outp.write('            copycif[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".cif"]="/".join(a.split("/")[:-1])+"/"+b+".cif"\n')
+        outp.write('\n')
+        outp.write('    for src,dst in copypdb.items():\n')
+        outp.write('        if not os.path.exists(dst):\n')
+        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
+        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
+        outp.write('            \n')
+        outp.write('            shutil.copyfile(src,dst)\n')
+        outp.write('\n')
+        outp.write('    for src,dst in copymtz.items():\n')
+        outp.write('        if not os.path.exists(dst):\n')
+        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
+        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
+        outp.write('            shutil.copyfile(src,dst)\n')
+        outp.write('\n')
+        outp.write('    for src,dst in copylig.items():\n')
+        outp.write('        if not os.path.exists(dst):\n')
+        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
+        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
+        outp.write('            shutil.copyfile(src,dst)\n')
+        outp.write('    for src,dst in copycif.items():\n')
+        outp.write('        if not os.path.exists(dst):\n')
+        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
+        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
+        outp.write('            shutil.copyfile(src,dst)\n')
+        outp.write('\n')
+        outp.write('def after_check(method):\n')
+        outp.write('    os.chdir(path+"/fragmax/results/pandda/"+method)\n')
+        outp.write('''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+method+"/*' cpus=32"\n''')
+        outp.write('    subprocess.call(command, shell=True)\n')
+        outp.write('\n')
+        outp.write('\n')
+        outp.write('    if len(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))>0:\n')
+        outp.write('        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))[-1]\n')
+        outp.write('\n')
+        outp.write('        with open(lastlog,"r") as logfile:\n')
+        outp.write('            log=logfile.readlines()\n')
+        outp.write('\n')
+        outp.write('        badDataset=dict()\n')
+        outp.write('        for line in log:\n')
+        outp.write('            if "Structure factor column"  in line:\n')
+        outp.write('                bd=line.split(" has ")[0].split("in dataset ")[-1]        \n')
+        outp.write('                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n')
+        outp.write('                badDataset[bd]=bdpath\n')
+        outp.write('            if "Failed to align dataset" in line:\n')
+        outp.write('                bd=line.split("Failed to align dataset ")[1].rstrip()\n')
+        outp.write('                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n')
+        outp.write('                badDataset[bd]=bdpath\n')
+        outp.write('        for k,v in badDataset.items():\n')
+        outp.write('            if len(v)>0:\n')
+        outp.write('                if os.path.exists(v[0]):\n')
+        outp.write('                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n')
+        outp.write('                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n')
+        outp.write('                        shutil.move(v[0], path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n')
+        outp.write('                after_check(method)\n')
+        outp.write('                \n')
+        outp.write('prepare_pandda_files(method)\n')
+        outp.write('after_check(method)\n')
+    
+    with open(path+"/fragmax/scripts/panddaRUN_"+method+".sh","w") as outp:
+            outp.write('#!/bin/bash\n')
+            outp.write('#!/bin/bash\n')
+            outp.write('#SBATCH -t 99:55:00\n')
+            outp.write('#SBATCH -J PanDDA\n')
+            outp.write('#SBATCH --exclusive\n')
+            outp.write('#SBATCH -N1\n')
+            outp.write('#SBATCH --cpus-per-task=48\n')
+            outp.write('#SBATCH --mem=220000\n')
+            outp.write('#SBATCH -o /data/visitors/biomax/20180479/20190330/fragmax/logs/panddarun_%j.out\n')
+            outp.write('#SBATCH -e /data/visitors/biomax/20180479/20190330/fragmax/logs/panddarun_%j.err\n')
+            outp.write('module purge\n')
+            outp.write('module load CCP4 PyMOL\n')
+            outp.write('\n')
+            outp.write('python /data/visitors/biomax/20180479/20190330/fragmax/scripts/panddaRUN_'+method+'.py '+path+' '+method+' '+acr+' '+fraglib+'\n')
+
+    return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
 
 def pandda_analyse(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda")]
 
-
+    newest=datetime.datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
+    newestpath=""
+    newestmethod=""
+    for methods in proc_methods:
+        if len(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))>0:
+            last=sorted(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))[-1]
+            if os.path.exists(last+"/html_summaries/pandda_analyse.html"):
+                time = datetime.datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
+                if time>newest:
+                    newest=time
+                    newestpath=last
+                    newestmethod=methods
+    
     method=request.GET.get("methods")
     if method is None or "panddaSelect" in method:
-        if os.path.exists(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(path+"/fragmax/results/pandda/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
+        if os.path.exists(newestpath+"/html_summaries/pandda_analyse.html"):
+            with open(newestpath+"/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
                 
-                return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a})
-        else:    
-            return render(request,'fragview/pandda.html', {'Report': "Results not available"})
+                return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+newestmethod)})
+        else:
+            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
+            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
     else:
         if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
@@ -1140,7 +1371,9 @@ def pandda_analyse(request):
 
             return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
-            return render(request,'fragview/pandda.html', {'Report': "Results not available"})    
+            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
+            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
     # else:
     #     folderbtn=str(request.GET.get("runpanddafolderform"))
     #     runpanddabtn=str(request.GET.get("runpanddaform"))
@@ -1451,9 +1684,6 @@ def refine_datasets(request):
         with open(path+"fragmax/process/userPDB.pdb","w") as pdbfile:
             pdbfile.write(userPDB)
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    # t = threading.Thread(target=run_structure_solving,args=(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup))
-    # t.daemon = True
-    # t.start()
     run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
     outinfo = "<br>".join(userInput.split(";;"))
 
@@ -1644,13 +1874,6 @@ def hpcstatus(request):
 
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
 
-
-#####################################################################################
-#####################################################################################
-########################## REGULAR PYTHON FUNCTIONS #################################
-#####################################################################################
-#####################################################################################
-
 def add_run_DP(outdir):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
@@ -1782,9 +2005,6 @@ def create_dataColParam(acr, path):
         outp.write("\n")
         outp.write(",".join(run_list))
         
-        
-
-        
 def parseLigand_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     with open(path+"/fragmax/process/autolig.csv","w") as outp:            
@@ -1846,7 +2066,6 @@ def parseLigand_results():
                 ''' % (key,key,blob,key,resolution,rhofitscore,ligfitscore,ligpng,ligpng)
 
                 outp.write(l)                                                                 
-
 
 def panddaResultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -2175,7 +2394,6 @@ def fsp_info(entry):
         tr= """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
     
     return tr
-#fsp_info("/data/visitors/biomax/20180479/20190323/fragmax/results/ProteinaseK-JBSE7_1/xdsapp/fspipeline/final_13_ProteinaseK-JBSE7_1_xdsapp_merged.pdb")
 
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -2274,9 +2492,6 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-
-
-
 def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
@@ -2319,7 +2534,6 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
         script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-
 
 def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -2368,7 +2582,6 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-
 
 def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -3431,6 +3644,7 @@ def get_project_status():
         with open(path+"/fragmax/process/lgstatus.csv","w") as outp:
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
+
 def get_pipedream_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
