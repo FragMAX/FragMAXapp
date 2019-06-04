@@ -22,6 +22,7 @@ import sys
 import xmltodict
 from subprocess import Popen, PIPE
 import datetime
+from collections import Counter
 
 
 
@@ -79,6 +80,9 @@ if len(proposal)<7 or len(shift)<7 or len(acr)<2 or len(proposal_type)<5:
 
 def index(request):
     return render(request, "fragview/index.html")
+
+def error_page(request):
+    return render(request, "fragview/error.html")
 
 def process_all(request):
     return render(request, "fragview/process_all.html",{"acronym":acr})
@@ -927,78 +931,6 @@ def results(request):
     except:
         return render_to_response('fragview/results_notready.html')
 
-def pandda_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    panddaInput=str(request.GET.get('structure'))     
-    
-
-    method,dataset,nav=panddaInput.split(";")
-    
-    mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
-    indices = [i for i, s in enumerate(mdl) if dataset in s][0]
-    
-    if "prev" in nav:  
-            
-        try:
-            dataset=mdl[indices-1]
-        except IndexError:
-            dataset=mdl[-1]
-
-    if "next" in nav:
-        try:
-            dataset=mdl[indices+1]
-        except IndexError:
-            dataset=mdl[0]
-
-
-
-    ligand=dataset.split("-")[-1].split("_")[0]
-    modelledDir='/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
-    pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
-    #pdb='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'+"fitted-v0001.pdb"
-    center="[0,0,0]"
-    rwork=""
-    rfree=""
-    resolution=""
-    spg=""
-    with open(pdb,"r") as inp:
-        for line in inp.readlines():
-            if "HETATM" in line and "XXX" in line:
-                center="["+",".join(line.split()[5:8])+"]"            
-            if "REMARK" in line and "R VALUE            (WORKING SET) :" in line:
-                rwork=line.split()[-1]
-            if "REMARK" in line and "FREE R VALUE                     :" in line:
-                rfree=line.split()[-1]
-            if "REMARK" in line and "RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-                resolution=line.split()[-1]
-            if "CRYST1" in line:
-                spg="".join(line.split()[7:])
-            
-                
-            
-    pdb=pdb.replace("/data/visitors/","")
-    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
-    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
-    
-    return render(request,'fragview/pandda_density.html', {
-        "dataset":dataset,
-        "method":method,
-        "rwork":rwork,
-        "rfree":rfree,
-        "resolution":resolution,
-        "spg":spg,
-        "shift":shift,
-        "proposal": proposal,
-        "dataset":dataset,
-        "pdb":pdb,
-        "2fofc":map2,
-        "fofc":map1,
-        "fraglib":fraglib,
-        "ligand":ligand,
-        "center":center
-        })
-
 def request_page_res(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
@@ -1016,10 +948,11 @@ def request_page_res(request):
     return render(request,'fragview/density.html', {'structure': a,"proposal":proposal,"shift":shift,"fraglib":fraglib,"ligand":ligsvg})
 
 
+def testfunc(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-
-
-
+    return render(request, "fragview/testpage.html")    
+    
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
@@ -1099,30 +1032,533 @@ def ligfit_results(request):
     else:
         return render(request,'fragview/ligfit_results_notready.html')
 
+
+################ PANDDA #####################
+
+def pandda_density(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    panddaInput=str(request.GET.get('structure'))     
+    
+    if len(panddaInput.split(";"))==5:
+        method,dataset,event,site,nav=panddaInput.split(";")
+    if len(panddaInput.split(";"))==3:
+        method,dataset,nav=panddaInput.split(";")
+    
+    mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
+    if len(mdl)!=0:
+        indices = [i for i, s in enumerate(mdl) if dataset in s][0]
+        
+        if "prev" in nav:  
+                
+            try:
+                dataset=mdl[indices-1]
+            except IndexError:
+                dataset=mdl[-1]
+
+        if "next" in nav:
+            try:
+                dataset=mdl[indices+1]
+            except IndexError:
+                dataset=mdl[0]
+
+
+
+        ligand=dataset.split("-")[-1].split("_")[0]
+        modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
+        pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
+        
+        center="[0,0,0]"
+        rwork=""
+        rfree=""
+        resolution=""
+        spg=""
+
+        with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
+            inspect_events=inp.readlines()
+        for i in inspect_events:
+            if dataset in i:
+                k=i.split(",")
+                break
+        headers=inspect_events[0].split(",")
+        bdc=k[2]    
+        center="["+k[12]+","+k[13]+","+k[14]+"]"
+        resolution=k[18]
+        rfree=k[20]
+        rwork=k[21]
+        spg=k[35]
+        analysed=k[headers.index("analysed")]
+        interesting=k[headers.index("Interesting")]
+        ligplaced=k[headers.index("Ligand Placed")]
+        ligconfid=k[headers.index("Ligand Confidence")]
+        comment=k[headers.index("Comment")]     
+
+        if len(panddaInput.split(";"))==3:
+            event=k[1]
+            site=k[11]
+            
+        if "true" in ligplaced.lower():
+            ligplaced="lig_radio"
+        else:
+            ligplaced="nolig_radio"
+        
+        if "true" in interesting.lower():
+            interesting="interesting_radio"
+        else:
+            interesting="notinteresting_radio"
+
+        if "high" in ligconfid.lower():
+            ligconfid="high_conf_radio"
+        elif "medium" in ligconfid.lower():
+            ligconfid="medium_conf_radio"
+        else:
+            ligconfid="low_conf_radio"
+        
+
+        pdb=pdb.replace("/data/visitors/","")
+        map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
+        map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+        summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+"/html/"+dataset+".html")
+        return render(request,'fragview/pandda_density.html', {
+            "siten":site,
+            "event":event,
+            "dataset":dataset,
+            "method":method,
+            "rwork":rwork,
+            "rfree":rfree,
+            "resolution":resolution,
+            "spg":spg,
+            "shift":shift,
+            "proposal": proposal,
+            "dataset":dataset,
+            "pdb":pdb,
+            "2fofc":map2,
+            "fofc":map1,
+            "fraglib":fraglib,
+            "ligand":ligand,
+            "center":center,
+            "analysed":analysed,
+            "interesting":interesting,
+            "ligplaced":ligplaced,
+            "ligconfid":ligconfid,
+            "comment":comment,
+            "bdc":bdc,
+            "summary":summarypath
+
+            })
+    else:
+        return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
+
+def pandda_densityC(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    panddaInput=str(request.GET.get('structure'))     
+    
+    if len(panddaInput.split(";"))==5:
+        method,dataset,event,site,nav=panddaInput.split(";")
+    if len(panddaInput.split(";"))==3:
+        method,dataset,nav=panddaInput.split(";")
+    
+
+
+    allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents(["fastdp"])
+          
+
+
+
+
+    #mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
+    dsList=list()
+    for k,v in sorted(eventDict.items()):
+        for k1,v1 in v.items():
+            dsList.append([k,k1,v1[0][:-2]])
+
+            
+    for n,i in enumerate(dsList):        
+        if i[0]+i[2][-1]==dataset[:-2]:        
+            break
+            
+    if "prev" in nav:
+             
+        n=n-1
+        if n==-1:
+            n=len(dsList)-1
+        dataset,site_idx,method=dsList[n]
+        dataset=dataset+method[-1]+"_1"
+        method=method[:-2]
+
+    if "next" in nav:
+        n=n+1
+        if n==len(dsList):
+            n=0
+        
+        dataset,site_idx,method=dsList[n]
+        dataset=dataset+method[-1]+"_1"
+        method=method[:-2]
+
+    if "stay" in nav:
+        site_idx=dsList[[x[0] for x in dsList].index(dataset[:-3])][1]
+
+
+    ligand=dataset.split("-")[-1].split("_")[0]
+    modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
+    pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
+    
+    center="[0,0,0]"
+    rwork=""
+    rfree=""
+    resolution=""
+    spg=""
+
+    with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
+        inspect_events=inp.readlines()
+    for i in inspect_events:
+        if dataset in i:
+            if i.split(",")[11]==site_idx:
+                k=i.split(",")
+            
+    headers=inspect_events[0].split(",")
+    bdc=k[2]    
+    center="["+k[12]+","+k[13]+","+k[14]+"]"
+    resolution=k[18]
+    rfree=k[20]
+    rwork=k[21]
+    spg=k[35]
+    analysed=k[headers.index("analysed")]
+    interesting=k[headers.index("Interesting")]
+    ligplaced=k[headers.index("Ligand Placed")]
+    ligconfid=k[headers.index("Ligand Confidence")]
+    comment=k[headers.index("Comment")]     
+
+    if len(panddaInput.split(";"))==3:
+        event=k[1]
+        site=k[11]
+        
+    if "true" in ligplaced.lower():
+        ligplaced="lig_radio"
+    else:
+        ligplaced="nolig_radio"
+    
+    if "true" in interesting.lower():
+        interesting="interesting_radio"
+    else:
+        interesting="notinteresting_radio"
+
+    if "high" in ligconfid.lower():
+        ligconfid="high_conf_radio"
+    elif "medium" in ligconfid.lower():
+        ligconfid="medium_conf_radio"
+    else:
+        ligconfid="low_conf_radio"
+        
+    pdb=pdb.replace("/data/visitors/","")
+    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
+    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+    summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+"/html/"+dataset+".html")
+    return render(request,'fragview/pandda_densityC.html', {
+        "siten":site,
+        "event":event,
+        "dataset":dataset,
+        "method":method,
+        "rwork":rwork,
+        "rfree":rfree,
+        "resolution":resolution,
+        "spg":spg,
+        "shift":shift,
+        "proposal": proposal,
+        "dataset":dataset,
+        "pdb":pdb,
+        "2fofc":map2,
+        "fofc":map1,
+        "fraglib":fraglib,
+        "ligand":ligand,
+        "center":center,
+        "analysed":analysed,
+        "interesting":interesting,
+        "ligplaced":ligplaced,
+        "ligconfid":ligconfid,
+        "comment":comment,
+        "bdc":bdc,
+        "summary":summarypath
+
+        })
+    #else:
+    #    return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
+
 def pandda_inspect(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/html_summaries/*inspect.html")]
-    newest=datetime.datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
+
+    newest=0
     newestpath=""
     newestmethod=""
-    for methods in proc_methods:
-        if len(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))>0:
-            last=sorted(glob.glob(path+"/fragmax/results/pandda/"+methods+"/pandda/analyses-*"))[-1]
-            if os.path.exists(last+"/html_summaries/pandda_inspect.html"):
-                time = datetime.datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
-                if time>newest:
-                    newest=time
-                    newestpath=last
-                    newestmethod=methods
+    filters=[ "autoproc_dimple","autoproc_fspipeline","xdsapp_fspipeline"]
+    flat_filters=set([j for sub in [x.split("_") for x in filters] for j in sub])
+    xdsapp      =(1 if "xdsapp" in flat_filters else 0)
+    autoproc    =(1 if "autoproc" in flat_filters else 0)
+    dials       =(1 if "dials" in flat_filters else 0)
+    edna        =(1 if "edna" in flat_filters else 0)
+    fastdp      =(1 if "fastdp" in flat_filters else 0)
+    xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
+    dimple      =(1 if "dimple" in flat_filters else 0)
+    fspipeline  =(1 if "fspipeline" in flat_filters else 0)
+    buster      =(1 if "buster" in flat_filters else 0)
+
     
     method=request.GET.get("methods")
-    if method is None or "panddaSelect" in method:
-        if os.path.exists(newestpath+"/html_summaries/pandda_inspect.html"):
-            with open(newestpath+"/html_summaries/pandda_inspect.html","r") as inp:
+    if method is None or "panddaSelect" in method or ";" in method:
+        
+        eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
+        if len(eventscsv)!=0:
+            if method is not None and ";" in method:
+                filters=list()
+                AP,DI,FD,ED,XD,XA,BU,DP,FS=method.split(";")
+                filters.append("autoproc"  )  if AP=="true" else ""
+                filters.append("dials"     )  if DI=="true" else ""
+                filters.append("fastdp"    )  if FD=="true" else ""
+                filters.append("EDNA_proc" )  if ED=="true" else ""
+                filters.append("xdsapp"    )  if XA=="true" else ""
+                filters.append("xdsxscale" )  if XD=="true" else ""
+                filters.append("dimple"    )  if DP=="true" else ""
+                filters.append("fspipeline") if FS=="true" else ""
+                filters.append("buster"    )  if BU=="true" else ""
+            allEventDict,eventDict,low_conf, medium_conf, high_conf =panddaEvents(filters)
+
+                    
+            sitesL=list() 
+            for k,v in eventDict.items():
+                sitesL+=[k1 for k1,v1 in v.items()]               
+                
+
+            siteN=Counter(sitesL)
+            ligEvents=sum(siteN.values())
+            siteP=dict()
+            for k,v in natsort.natsorted(siteN.items()):
+                siteP[k]=100*v/ligEvents
+                        
+                        
+            totalEvents=high_conf+medium_conf+low_conf
+                        
+            uniqueEvents=str(len(allEventDict.items()))
+
+
+
+            html =''
+            #HTML Head
+            html+='    <!DOCTYPE html>\n'
+            html+='    <html lang="en">\n'
+            html+='      <head>\n'
+            html+='        <meta charset="utf-8">\n'
+            html+='        <meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            html+='\n'
+            html+='        <!-- Bootstrap+Tables -->\n'
+            html+='        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n'
+            html+='        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css">\n'
+            html+='\n'
+            html+="        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->\n"
+            html+='        <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>\n'
+            html+='        <!-- Include all compiled plugins (below), or include individual files as needed -->\n'
+            html+='        <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>\n'
+            html+='        <script src="https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>\n'
+            html+='\n'
+            html+='        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->\n'
+            html+="        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->\n"
+            html+='        <!--[if lt IE 9]>\n'
+            html+='          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>\n'
+            html+='          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>\n'
+            html+='        <![endif]-->\n'
+            html+='\n'
+            html+='\n'
+            html+='        <script type="text/javascript" class="init">\n'
+            html+='    $(document).ready(function() {\n'
+            html+="        $('#main-table').DataTable();\n"
+            html+='    } );\n'
+            html+='        </script>   \n'
+            html+='    <title>PANDDA Inspect Summary</title>\n'
+            html+='</head>\n'
+            html+='<body>\n'
+            html+='    <div class="container">\n'
+            html+='      <h1>Consensus of PANDDA Inspect Summaries</h1>\n'
+            html+='      <h2>Summary of Inspection of Datasets</h2>\n'
+            html+='      \n'
+            
+            # Styles CSS
+            html+='<style>\n'   
+            html+='    .container {\n'
+            html+='        max-width: 100% !important;\n'
+            html+='        margin: 0 50px 50px 150px !important;\n'
+            html+='        width: calc(100% - 200px) !important;\n'
+            html+='    }\n'
+            html+='    .col-md-8 {\n'
+            html+='    width: 100% !important;\n'
+            html+='    }\n'   
+            html+='    </style>\n'
+            
+            
+            #Fitting process plot (necessary?)
+            html+='      <div class="row">\n'
+            html+='        <div class="col-xs-12">\n'
+            html+='          <p>Fitting Progress</p>\n'
+            html+='          <div class="progress">\n'
+            html+='            <div class="progress-bar progress-bar-success" style="width:100%">\n'
+            html+='              <span class="sr-only">Fitted - '+str(ligEvents)+' Events</span>\n'
+            html+='              <strong>Fitted - '+str(ligEvents)+' Events (100%)</strong>\n'
+            html+='            </div>\n'
+            html+='            <div class="progress-bar progress-bar-warning" style="width:0.0%">\n'
+            html+='              <span class="sr-only">Unviewed - 0 Events</span>\n'
+            html+='              <strong>Unviewed - 0 Events (0%)</strong>\n'
+            html+='            </div>\n'
+            html+='            <div class="progress-bar progress-bar-danger" style="width:0.0%">\n'
+            html+='              <span class="sr-only">No Ligand Fitted - 10 Events</span>\n'
+            html+='              <strong>No Ligand Fitted - 10 Events (16%)</strong>\n'
+            html+='            </div>\n'
+            html+='            </div>\n'
+            html+='        </div>\n'
+            
+            
+            #Site distribution plot
+            html+='        <div class="col-xs-12">\n'
+            html+='          <p>Identified Ligands by Site</p>\n'
+            html+='          <div class="progress">\n'
+            colour="progress-bar-info"
+            for k,v1 in siteP.items():
+                
+                v=siteN[k]
+                html+='            <div class="progress-bar '+colour+'" style="width:'+str(siteP[k])+'%">\n'
+                html+='              <span class="sr-only">S'+k+': '+str(v)+' hits</span>\n'
+                html+='              <strong>S'+k+': '+str(v)+' hits ('+str(int(siteP[k]))+'%)</strong>\n'
+                html+='            </div>\n'
+                if colour=="progress-bar-info":
+                    colour="progress-bar-default"
+                else:
+                    colour="progress-bar-info"
+            
+            
+            
+            #Inspections facts
+            
+            html+='            </div>\n'
+            html+='        </div>\n'
+            html+='        </div>\n'
+            html+='      \n'
+            html+='      \n'
+            html+='      <div class="row">\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert"><strong>Datasets w. ligands: '+str(ligEvents)+' (of #dataset collected)</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert"><strong>Sites w. ligands: '+str(len(siteP))+' (of 10)</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-info" role="alert"><strong>Unique fragments: '+uniqueEvents+'</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-info" role="alert"><strong>Total number of events: '+str(totalEvents)+'</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-success" role="alert"><strong>High confidence hits:   '+str(high_conf)+'</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-warning" role="alert"><strong>Medium confidence hits: '+str(medium_conf)+'</strong></div></div>\n'
+            html+='        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-danger" role="alert"><strong>Low confidence hits:    '+str(low_conf)+'</strong></div></div>\n'
+            html+='        </div>\n'
+            html+='      \n'
+            html+='      \n'
+            html+='      <div class="row">\n'
+            html+='        </div>\n'
+            html+='<hr>\n'
+            
+            
+            
+            #Table header
+            html+='<div class="table-responsive">\n'
+            html+='<table id="main-table" class="table table-bordered table-striped" data-page-length="50">\n'
+            html+='    <thead>\n'
+            html+='    <tr>\n'
+            html+='        <th class="text-nowrap"></th>\n'
+
+            html+='        <th class="text-nowrap">Dataset</th>\n'
+            html+='        <th class="text-nowrap">Method</th>\n'
+            #html+='        <th class="text-nowrap">Interesting</th>\n'
+            #html+='        <th class="text-nowrap">Lig. Placed</th>\n'
+            html+='        <th class="text-nowrap">Event</th>\n'
+            html+='        <th class="text-nowrap">Site</th>\n'
+            html+='        <th class="text-nowrap">1 - BDC</th>\n'
+            html+='        <th class="text-nowrap">Z-Peak</th>\n'
+            html+='        <th class="text-nowrap">Map Res.</th>\n'
+            html+='        <th class="text-nowrap">Map Unc.</th>\n'
+            html+='        <th class="text-nowrap">Confidence</th>\n'
+            html+='        <th class="text-nowrap">Comment</th>\n'
+            html+='        <th class="text-nowrap"></th>\n'
+            html+='        </tr>\n'
+            html+='    </thead>\n'
+            
+            
+            
+            #Table body
+            html+='<tbody>\n'
+            
+            for k,v in natsort.natsorted(eventDict.items()):
+                for k1,v1 in v.items():
+                    #print(k,k1,v1[0][:-2])
+                
+                    ds=v1[0][:-4]+";"+k+v1[0][-3:]
+                    #datasetDetails(dataset,site_idx,method)
+                    detailsDict=datasetDetails(k,k1,v1[0][:-4])
+                    
+                    if detailsDict['viewed']=="False\n" or detailsDict['ligplaced']=="False" or detailsDict['interesting']=="False":
+                        html+='        <tr class=info>\n'
+                    else:
+                        html+='        <tr class=success>\n'
+                    html+='          <th class="text-nowrap" scope="row" style="text-align: center;"><form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+';stay" name="structure" size="1">Open</button></form></th>\n'
+                    
+                    html+='          <th class="text-nowrap" scope="row">'+k+v1[0][-3:]+'</th>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>'+v1[0][:-4]+'</td>\n'
+                                        
+                    #if detailsDict['interesting']=="True":
+                    #    html+='          <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>\n'
+                    #else:
+                    #    html+='          <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>\n'
+                    #
+                    #if detailsDict['ligplaced']=="True":
+                    #    html+='          <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>\n'
+                    #else:
+                    #    html+='          <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>\n'
+                        
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict['event_idx']+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["site_idx"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["bdc"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["z_peak"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["map_res"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["map_unc"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["ligconfid"]+'</td>\n'
+                    html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["comment"]+'</td>\n'
+                    html+='          <td><span class="label label-success">Hit</span></td></tr>\n'
+            html+='\n'
+            html+='</tbody>\n'
+            html+='</table>\n'
+            html+='</div>\n'
+            html+='\n'
+            html+='</body>\n'
+            html+='</html>\n'
+            
+            return render(request,'fragview/pandda_inspect.html', {
+            'proc_methods':proc_methods, 
+            'Report': html,
+            'xdsapp':xdsapp,
+            'autoproc':autoproc,
+            'dials':dials,
+            'edna':edna,
+            'fastdp':fastdp,
+            'xdsxscale':xdsxscale,
+            'dimple':dimple,
+            'fspipeline':fspipeline,
+            'buster':buster
+            })
+
+
+
+    else:
+        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html"):
+            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
+                inspectfile=inp.readlines()
                 html=""
-                for line in inp.readlines():
+                for n,line in enumerate(inspectfile):
                     if '<th class="text-nowrap" scope="row">' in line:
-                        ds=newestmethod+";"+line.split('row">')[-1].split('</th')[0]
+                        
+                        event= inspectfile[n+4].split("/span>")[-1].split("</td>")[0].replace(" ","")
+                        site = inspectfile[n+5].split("/span>")[-1].split("</td>")[0].replace(" ","")
+                        ds=method+";"+line.split('row">')[-1].split('</th')[0]+";"+event+";"+site
+                        
                         html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+';stay" name="structure" size="1">Open</button></form>'
                         html+=line
                     else:
@@ -1131,32 +1567,37 @@ def pandda_inspect(request):
                 #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
                 html="".join(html)
                 html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
-
-                
-                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+newestmethod) })
+                flat_filters=method.split("_")
+                xdsapp      =(1 if "xdsapp" in flat_filters else 0)
+                autoproc    =(1 if "autoproc" in flat_filters else 0)
+                dials       =(1 if "dials" in flat_filters else 0)
+                edna        =(1 if "edna" in flat_filters else 0)
+                fastdp      =(1 if "fastdp" in flat_filters else 0)
+                xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
+                dimple      =(1 if "dimple" in flat_filters else 0)
+                fspipeline  =(1 if "fspipeline" in flat_filters else 0)
+                buster      =(1 if "buster" in flat_filters else 0)
+                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+method),'xdsapp':xdsapp,
+                'autoproc':autoproc,
+                'dials':dials,
+                'edna':edna,
+                'fastdp':fastdp,
+                'xdsxscale':xdsxscale,
+                'dimple':dimple,
+                'fspipeline':fspipeline,
+                'buster':buster})
         else:
             a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
-            return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
-    else:
-        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html"):
-            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
-                html=""
-                for line in inp.readlines():
-                    if '<th class="text-nowrap" scope="row">' in line:
-                        ds=method+";"+line.split('row">')[-1].split('</th')[0]
-                        html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form>'
-                        html+=line
-                    else:
-                        html+=line
-                
-                #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
-                html="".join(html)
-                html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
-
-                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': html.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+method)})
-        else:
-            a="<div style='padding-left:300px;'> <h5>PanDDA inspect not available yet</h5></div>"
-            return render(request,'fragview/pandda.html', {'proc_methods':proc_methods})
+            return render(request,'fragview/pandda.html', {'proc_methods':proc_methods,
+            'xdsapp':0,
+            'autoproc':0,
+            'dials':0,
+            'edna':0,
+            'fastdp':0,
+            'xdsxscale':0,
+            'dimple':0,
+            'fspipeline':0,
+            'buster':0})
 
 
     
@@ -1164,159 +1605,160 @@ def pandda_inspect(request):
    
 
 
-
-
-
-    if method is None or "panddaSelect" in method:
-        if os.path.exists(newestpath+"/html_summaries/pandda_inspect.html"):
-            with open(newestpath+"/html_summaries/pandda_inspect.html","r") as inp:
-                a="".join(inp.readlines())
-                
-                return render(request,'fragview/pandda_inspect.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+newestmethod)})
-        else:
-            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
-            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
-
-    else:
-        if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html"):
-            with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_inspect.html","r") as inp:
-                a="".join(inp.readlines())
-
-            return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Inspect Summary","PANDDA Inspect Summary for "+method)})
-        else:
-            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
-            return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 def pandda(request):
     return render(request, "fragview/pandda.html")
 
-def testfunc(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    return render(request, "fragview/testpage.html")    
-    
 def submit_pandda(request):
 
     #Function definitions
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
     panddaCMD=str(request.GET.get("panddaform"))
-    proc,ref,complete=panddaCMD.split(";")
+    proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
+    
     method=proc+"_"+ref
-    with open(path+"/fragmax/scripts/panddaRUN_"+method+".py","w") as outp:
-        outp.write('import os \n')
-        outp.write('import glob\n')
-        outp.write('import sys\n')
-        outp.write('import subprocess \n')
-        outp.write('import shutil\n')
-        outp.write('\n')
-        outp.write('\n')
-        outp.write('path=sys.argv[1]\n')
-        outp.write('method=sys.argv[2]\n')
-        outp.write('acr=sys.argv[3]\n')
-        outp.write('fraglib=sys.argv[4]\n')
-        outp.write('\n')
-        outp.write('def prepare_pandda_files(method):\n')
-        outp.write('    proc,ref=method.split("_")\n')
-        outp.write('    missing=list()\n')
-        outp.write('    optionsDict=dict()\n')
-        outp.write('    copypdb=dict()\n')
-        outp.write('    copymtz=dict()\n')
-        outp.write('    copylig=dict()\n')
-        outp.write('    copycif=dict()\n')
-        outp.write('\n')
-        outp.write('    datasets=sorted([x.split("/")[-2] for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5") if "ref-" not in x])\n')
-        outp.write('    refresults=sorted([x for x in glob.glob(path+"/fragmax/results/*/*/*/final*.pdb" ) if "/pandda/" not in x])\n')
-        outp.write('    #refined=sorted([x.split("/")[8] for x in refresults if acr in x])\n')
-        outp.write('    selected=sorted([x for x in refresults if proc in x and ref in x and acr in x])\n')
-        outp.write('\n')
-        outp.write('\n')
-        outp.write('    for i in datasets:\n')
-        outp.write('        for j in selected:\n')
-        outp.write('            if i in j:\n')
-        outp.write('                missing.append(i)\n')
-        outp.write('\n')
-        outp.write('    missing=list(set(datasets)-set(missing))\n')
-        outp.write('\n')
-        outp.write('\n')
-        outp.write('    for i in missing:\n')
-        outp.write('        options=list()\n')
-        outp.write('        for j in refresults:\n')
-        outp.write('            if i in j:\n')
-        outp.write('                options.append(j)\n')
-        outp.write('        if len(options)>0:\n')
-        outp.write('            optionsDict[i]=options\n')
-        outp.write('\n')
-        outp.write('    for key,value in optionsDict.items():  \n')
-        outp.write('        for opt in value:             \n')
-        outp.write('            if "xdsapp" in opt or "dials" in opt or "autoproc" in opt:\n')
-        outp.write('                selected.append(opt)\n')
-        outp.write('                break            \n')
-        outp.write('\n')
-        outp.write('    for i in selected:\n')
-        outp.write('        a=i.split(acr)[0]+"pandda/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n')
-        outp.write('        copypdb[i]=a\n')
-        outp.write('        copymtz[i.replace(".pdb",".mtz")]=a.replace(".pdb",".mtz")\n')
-        outp.write('        b=i.split(acr+"-")[1].split("_")[0]\n')
-        outp.write('        if "Apo" not in b:\n')
-        outp.write('            copylig[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".pdb"]="/".join(a.split("/")[:-1])+"/"+b+".pdb"\n')
-        outp.write('            copycif[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".cif"]="/".join(a.split("/")[:-1])+"/"+b+".cif"\n')
-        outp.write('\n')
-        outp.write('    for src,dst in copypdb.items():\n')
-        outp.write('        if not os.path.exists(dst):\n')
-        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
-        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
-        outp.write('            \n')
-        outp.write('            shutil.copyfile(src,dst)\n')
-        outp.write('\n')
-        outp.write('    for src,dst in copymtz.items():\n')
-        outp.write('        if not os.path.exists(dst):\n')
-        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
-        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
-        outp.write('            shutil.copyfile(src,dst)\n')
-        outp.write('\n')
-        outp.write('    for src,dst in copylig.items():\n')
-        outp.write('        if not os.path.exists(dst):\n')
-        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
-        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
-        outp.write('            shutil.copyfile(src,dst)\n')
-        outp.write('    for src,dst in copycif.items():\n')
-        outp.write('        if not os.path.exists(dst):\n')
-        outp.write('            if not os.path.exists("/".join(dst.split("/")[:-1])):\n')
-        outp.write('                os.makedirs("/".join(dst.split("/")[:-1]))\n')
-        outp.write('            shutil.copyfile(src,dst)\n')
-        outp.write('\n')
-        outp.write('def after_check(method):\n')
-        outp.write('    os.chdir(path+"/fragmax/results/pandda/"+method)\n')
-        outp.write('''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+method+"/*' cpus=32"\n''')
-        outp.write('    subprocess.call(command, shell=True)\n')
-        outp.write('\n')
-        outp.write('\n')
-        outp.write('    if len(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))>0:\n')
-        outp.write('        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))[-1]\n')
-        outp.write('\n')
-        outp.write('        with open(lastlog,"r") as logfile:\n')
-        outp.write('            log=logfile.readlines()\n')
-        outp.write('\n')
-        outp.write('        badDataset=dict()\n')
-        outp.write('        for line in log:\n')
-        outp.write('            if "Structure factor column"  in line:\n')
-        outp.write('                bd=line.split(" has ")[0].split("in dataset ")[-1]        \n')
-        outp.write('                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n')
-        outp.write('                badDataset[bd]=bdpath\n')
-        outp.write('            if "Failed to align dataset" in line:\n')
-        outp.write('                bd=line.split("Failed to align dataset ")[1].rstrip()\n')
-        outp.write('                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n')
-        outp.write('                badDataset[bd]=bdpath\n')
-        outp.write('        for k,v in badDataset.items():\n')
-        outp.write('            if len(v)>0:\n')
-        outp.write('                if os.path.exists(v[0]):\n')
-        outp.write('                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n')
-        outp.write('                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n')
-        outp.write('                        shutil.move(v[0], path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n')
-        outp.write('                after_check(method)\n')
-        outp.write('                \n')
-        outp.write('prepare_pandda_files(method)\n')
-        outp.write('after_check(method)\n')
+    with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
+        outp.write('''import os \n'''
+        '''import glob\n'''
+        '''import sys\n'''
+        '''import subprocess \n'''
+        '''import shutil\n'''
+        '''import multiprocessing \n'''
+        '''path=sys.argv[1]\n'''
+        '''method=sys.argv[2]\n'''
+        '''acr=sys.argv[3]\n'''
+        '''fraglib=sys.argv[4]\n'''
+        '''if not os.path.exists(path+"/fragmax/results/pandda/"+method):\n'''    
+        '''    os.makedirs(path+"/fragmax/results/pandda/"+method)\n'''    
+        '''def prepare_pandda_files(method):\n'''        
+        '''    proc,ref=method.split("_")\n'''
+        '''    missing=list()\n'''
+        '''    optionsDict=dict()\n'''
+        '''    copypdb=dict()\n'''
+        '''    copymtz=dict()\n'''
+        '''    copylig=dict()\n'''
+        '''    copycif=dict()\n'''
+        '''    datasets=sorted([x.split("/")[-2] for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5") if "ref-" not in x])\n'''
+        '''    refresults=sorted([x for x in glob.glob(path+"/fragmax/results/*/*/*/final*.pdb" ) if "/pandda/" not in x])\n'''
+        '''    selected=sorted([x for x in refresults if proc in x and ref in x and acr in x])\n'''
+        '''    for i in datasets:\n'''
+        '''        for j in selected:\n'''
+        '''            if i in j:\n'''
+        '''                missing.append(i)\n'''
+        '''    missing=list(set(datasets)-set(missing))\n'''
+        '''    for i in missing:\n'''
+        '''        options=list()\n'''
+        '''        for j in refresults:\n'''
+        '''            if i in j:\n'''
+        '''                options.append(j)\n'''
+        '''        if len(options)>0:\n'''
+        '''            optionsDict[i]=options\n'''
+        '''    for key,value in optionsDict.items():  \n'''
+        '''        for opt in value:             \n'''
+        '''            if "xdsapp" in opt or "dials" in opt or "autoproc" in opt:\n'''
+        '''                selected.append(opt)\n'''
+        '''                break            \n'''
+        '''    for i in selected:\n'''
+        '''        a=i.split(acr)[0]+"pandda/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n'''
+        '''        copypdb[i]=a\n'''
+        '''        copymtz[i.replace(".pdb",".mtz")]=a.replace(".pdb",".mtz")\n'''
+        '''        b=i.split(acr+"-")[1].split("_")[0]\n'''
+        '''        if "Apo" not in b:\n'''
+        '''            copylig[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".pdb"]="/".join(a.split("/")[:-1])+"/"+b+".pdb"\n'''
+        '''            copycif[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".cif"]="/".join(a.split("/")[:-1])+"/"+b+".cif"\n'''
+        '''    for src,dst in copypdb.items():\n'''
+        '''        if not os.path.exists(dst):\n'''
+        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
+        '''                os.makedirs("/".join(dst.split("/")[:-1]))            \n'''
+        '''            shutil.copyfile(src,dst)\n'''
+        '''    for src,dst in copymtz.items():\n'''
+        '''        if not os.path.exists(dst):\n'''
+        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
+        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
+        '''            shutil.copyfile(src,dst)\n'''
+        '''    for src,dst in copylig.items():\n'''
+        '''        if not os.path.exists(dst):\n'''
+        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
+        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
+        '''            shutil.copyfile(src,dst)\n'''
+        '''    for src,dst in copycif.items():\n'''
+        '''        if not os.path.exists(dst):\n'''
+        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
+        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
+        '''            shutil.copyfile(src,dst)\n'''
+        '''def pandda_run(method):\n'''
+        '''    os.chdir(path+"/fragmax/results/pandda/"+method)\n'''
+        '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+method+"/*' cpus=32"\n'''
+        '''    subprocess.call(command, shell=True)\n'''
+        '''    if len(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))>0:\n'''
+        '''        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/logs/*.log"))[-1]\n'''
+        '''        with open(lastlog,"r") as logfile:\n'''
+        '''            log=logfile.readlines()\n'''
+        '''        badDataset=dict()\n'''
+        '''        for line in log:\n'''
+        '''            if "Structure factor column"  in line:\n'''
+        '''                bd=line.split(" has ")[0].split("in dataset ")[-1]        \n'''
+        '''                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n'''
+        '''                badDataset[bd]=bdpath\n'''
+        '''            if "Failed to align dataset" in line:\n'''
+        '''                bd=line.split("Failed to align dataset ")[1].rstrip()\n'''
+        '''                bdpath=glob.glob(path+"/fragmax/results/pandda/"+method+"/"+bd+"*")\n'''
+        '''                badDataset[bd]=bdpath\n'''
+        '''        for k,v in badDataset.items():\n'''
+        '''            if len(v)>0:\n'''
+        '''                if os.path.exists(v[0]):\n'''
+        '''                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n'''
+        '''                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n'''
+        '''                        shutil.move(v[0], path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n'''
+        '''                pandda_run(method)\n'''
+        '''def fix_symlinks(method):\n'''
+        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")\n'''
+        '''    for i in linksFolder:        \n'''
+        '''        folder="/".join(i.split("/")[:-1])+"/"\n'''
+        '''        pdbs=os.listdir(folder)\n'''
+        '''        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        \n'''
+        '''        shutil.move(i,i+".bak")\n'''
+        '''        shutil.copyfile(pdb,i)\n'''
+        '''def CAD_worker(mtzfile):\n'''
+        '''    stdout = subprocess.Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=subprocess.PIPE).stdout\n'''
+        '''    output = stdout.read().decode("utf-8")\n'''
+        '''    for line in output.split("\\n"):\n'''
+        '''        if "Resolution range" in line:\n'''
+        '''            highres=line.split()[-1]\n'''
+        '''    if "free" in "".join(output).lower():\n'''
+        '''        for line in output.split("\\n"):\n'''
+        '''            if "free" in line.lower():\n'''
+        '''                freeRflag=line.split()[0]\n'''
+        '''    else:  \n'''
+        '''        freeRflag="R-free-flags"        \n'''
+        '''    outmtz=mtzfile.split("final.mtz")[0]+"final.mtz"    \n'''
+        '''    os.chdir(mtzfile.replace("/results/","/process/").replace("final.mtz",""))       \n'''
+        '''    subprocess.call("uniqueify -f "+freeRflag+" "+mtzfile+" "+mtzfile.replace("/results/","/process/"),shell=True)\n'''
+        '''    cadCommand="""cad hklin1 """+mtzfile+ """ hklout """ +outmtz+ """ <<eof\n'''
+        ''' monitor BRIEF\n'''
+        ''' labin file 1 - \n'''
+        '''  ALL"\n'''
+        ''' resolution file 1 999.0 """+ highres+"""\n'''
+        '''eof"""\n'''
+        '''    subprocess.call(cadCommand,shell=True)\n'''
+        '''    subprocess.call("phenix.maps "+mtzfile.replace(".mtz",".pdb")+" "+mtzfile,shell=True    )\n'''
+        '''    subprocess.call("mv -f "+mtzfile.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+mtzfile.replace(".mtz",".ccp4"),shell=True)\n'''
+        '''    subprocess.call("mv -f "+mtzfile.replace("final.mtz","final_map_coeffs.mtz"    )+" "+mtzfile,shell=True)\n'''
+        '''    return mtzfile, highres, freeRflag\n'''
+        '''def run_CAD():    \n'''
+        '''    dataPaths=glob.glob(path+"/fragmax/results/pandda/"+method+"/*/final.mtz")\n'''
+        '''    for key in dataPaths:\n'''
+        '''        if not os.path.exists(key.replace("/results/","/process/").replace("final.mtz","")):\n'''
+        '''            os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""))            \n'''
+        '''    nproc=multiprocessing.cpu_count()\n'''
+        '''    multiprocessing.Pool(nproc).map(CAD_worker, dataPaths)    \n'''
+        '''prepare_pandda_files(method)\n'''
+        '''run_CAD()\n'''
+        '''pandda_run(method)\n'''
+        '''fix_symlinks(method)\n'''
+        )
+
     
     with open(path+"/fragmax/scripts/panddaRUN_"+method+".sh","w") as outp:
             outp.write('#!/bin/bash\n')
@@ -1330,10 +1772,14 @@ def submit_pandda(request):
             outp.write('#SBATCH -o /data/visitors/biomax/20180479/20190330/fragmax/logs/panddarun_%j.out\n')
             outp.write('#SBATCH -e /data/visitors/biomax/20180479/20190330/fragmax/logs/panddarun_%j.err\n')
             outp.write('module purge\n')
-            outp.write('module load CCP4 PyMOL\n')
+            outp.write('module load PReSTO\n')
             outp.write('\n')
-            outp.write('python /data/visitors/biomax/20180479/20190330/fragmax/scripts/panddaRUN_'+method+'.py '+path+' '+method+' '+acr+' '+fraglib+'\n')
-
+            outp.write('python /data/visitors/biomax/20180479/20190330/fragmax/scripts/pandda_worker.py '+path+' '+method+' '+acr+' '+fraglib+'\n')
+    
+    script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
+    command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
+    
     return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
 
 def pandda_analyse(request):    
@@ -1460,6 +1906,327 @@ def pandda_analyse(request):
     #         return render(request,'fragview/pandda_running.html',{"panddafolder": "PanDDA start time : "+modificationTime})    
     #     else:
     #         return render(request,'fragview/pandda_notready.html',{"panddafolder": actionbtn})
+
+'''
+def panddaResultSummary():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    fix_pandda_symlinks
+    tpandda = threading.Thread(target=fix_pandda_symlinks, args=())
+    tpandda.start()
+
+    acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
+    pipeline_dict=dict()
+    for acr in acr_list:
+        pipeline_dict[acr.split("/")[-1]]=glob.glob(acr+"/*")
+
+    dimple_dict=dict()
+    fspipe_dict=dict()
+
+    for key,value in pipeline_dict.items():
+        l=list()
+        for dtprc in value:        
+            if os.path.exists(dtprc+"/dimple/dimple.log"):
+                l.append(dtprc+"/dimple/dimple.log")
+        dimple_dict[key]=l
+        m=list()
+        for dtprc in value:        
+            if os.path.isdir(dtprc+"/fspipeline"):
+                m.append(glob.glob(dtprc+"/fspipeline/final*pdb")[0])
+        fspipe_dict[key]=m
+
+
+    fspline=""
+    dimpleline=""
+    sortedline=""
+
+    sortedacr=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" not in x and "DM" not in x]
+    sortedacr+=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" in x or "DM" in x]
+
+
+
+    for key,value in natsort.natsorted(fspipe_dict.items()):
+        for f in value:
+            fspline+=fsp_info(f)+"\n"
+
+    for key,value in natsort.natsorted(dimple_dict.items()):
+        for f in value:
+            dimpleline+=dpl_info(f)+"\n"
+
+    dl=fspline.split("\n")+dimpleline.split("\n")            
+    for i in sortedacr:
+        for j in dl:
+            if i in j:
+                sortedline+=j+"\n"            
+
+    with open(path+"/fragmax/process/panddarefsum.csv","w") as outp:
+        outp.write(sortedline)
+
+def populate_missing():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
+    
+
+    def getRes(mtzfile):
+        stdout = Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=PIPE).stdout
+        output = stdout.read().decode("utf-8")
+        for line in output.split("\n"):
+            if "Resolution range" in line:
+                lowres, highres=line.split()[-2],line.split()[-1]
+        if "free" in "".join(output).lower():
+            for line in output.split("\n"):
+                if "free" in line.lower():
+                    freeRflag=line.split()[0]
+        else:  
+            freeRflag="R-free-flags"
+            
+        return lowres, highres, freeRflag
+    def splitsc(a, n):
+        k, m = divmod(len(a), n)
+        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+
+    def buildResDict(dataPaths):
+        resdict=dict()
+        Rflagdict=dict()
+        for data in dataPaths:
+            l,h,Rflag =getRes(data)
+            resdict[data] = h
+            Rflagdict[data] = Rflag
+        return resdict,Rflagdict
+    
+    def fixData(key,value,rflag):
+        #shutil.copyfile(key,key+".bak")
+        outmtz=key.split("final.mtz")[0]+"final.mtz"
+        
+        #Start and move to data folder
+        command=""
+        command+="\n\ncd "+key.replace("/results/","/process/").replace("final.mtz","")       
+        command+="\n\n"
+        
+        #Uniqueify dataset 
+
+        command+="uniqueify -f "+rflag+" "+key+" "+key.replace("/results/","/process/")
+        command+="\n\n"
+        
+        #CAD
+        
+        command+="cad hklin1 "+key+ " hklout " +outmtz+ " <<eof\n"
+        command+=" monitor BRIEF\n"
+        command+=" labin file 1 - \n"
+        command+="  ALL\n"
+        command+=" resolution file 1 999.0 "+ value+"\n"
+        command+="eof\n\n"    
+        
+        #Phenix maps
+        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n\n"    
+        
+
+        #Move results back to original folder
+        command+="mv -f "+key.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+key.replace(".mtz",".ccp4")+"\n"
+        command+="mv -f "+key.replace("final.mtz","final_map_coeffs.mtz"    )+" "+key+"\n\n"
+        
+        return command
+
+    def rerunRefine(key,value):
+        command=""
+        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n"    
+        return command
+
+
+    def makeScript():    
+        #init variables
+        resdict,Rflagdict=buildResDict(dataissuePaths)
+        
+        panddaOut    = ""    
+    
+        #define env for script for XDSAPP
+        panddaOut+= """#!/bin/bash\n"""
+        panddaOut+= """#!/bin/bash\n"""
+        panddaOut+= """#SBATCH -t 99:55:00\n"""
+        panddaOut+= """#SBATCH -J PanddaFix\n"""
+        panddaOut+= """#SBATCH --exclusive\n"""
+        panddaOut+= """#SBATCH -N1\n"""
+        panddaOut+= """#SBATCH --cpus-per-task=48\n"""
+        panddaOut+= """#SBATCH --mem=220000\n""" 
+        panddaOut+= """#SBATCH -o """+path+"""/fragmax/logs/pandda_repopReflections_%j.out\n"""
+        panddaOut+= """#SBATCH -e """+path+"""/fragmax/logs/pandda_repopReflections_%j.err\n"""    
+        panddaOut+= """module load CCP4 Phenix PyMOL/2.1.0-PReSTO\n\n"""
+        
+        cmdList=list()
+        for key, value in resdict.items():
+            cmdList.append("\n"+fixData(key,value,Rflagdict[key]))
+        
+        nodes=5
+        chunkScripts=[panddaOut+"".join(x) for x in list(splitsc(cmdList,nodes) )]
+        
+        
+        for num,chunk in enumerate(chunkScripts):
+            with open(path+"/fragmax/scripts/panddafix_part"+str(num)+".sh", "w") as outfile:
+                outfile.write(chunk)
+
+            script=path+"/fragmax/scripts/panddafix_part"+str(num)+".sh"
+            command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
+    
+    #Run populate missing reflection in all dataset
+
+    for key in dataissuePaths:
+        os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""), exist_ok=True)
+    #
+    makeScript()
+    
+def prepare_pandda_folder():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    ##
+    
+    pdbList=list()
+    with open(path+"/fragmax/scripts/preparePanDDAfolder.sh","w") as outp:        
+        outp.write("#!/bin/bash")
+        outp.write("\n#!/bin/bash")
+        outp.write("\n#SBATCH -t 99:55:00")
+        outp.write("\n#SBATCH -J panFolders")
+        outp.write("\n#SBATCH --exclusive")
+        outp.write("\n#SBATCH -N1")
+        outp.write("\n#SBATCH --cpus-per-task=40")
+        outp.write("\n#SBATCH -o "+path+"/fragmax/logs/panddafolders_fragmax_%j.out")
+        outp.write("\n#SBATCH -e "+path+"/fragmax/logs/panddafolders_fragmax_%j.err")
+        outp.write("\n\n")
+
+        resultsList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/*final*.pdb")
+        for i in resultsList:
+
+            lig=i.split("/")[-4].split(acr+"-")[-1].split("_")[0]
+            srcpdb=i    
+            srcmtz=i.replace(".pdb",".mtz")
+            srcnat=i.replace(".pdb","_2mFo-DFc.ccp4")
+            srcdif=i.replace(".pdb","_mFo-DFc.ccp4")
+
+
+            srccif=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".cif"
+            srclig=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".pdb"
+
+            dstPath="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"
+
+            dstpdb ="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/final."+i.split("/")[-1][-3:]
+            dstmtz=dstpdb.replace(".pdb",".mtz")
+            dstnat=dstpdb.replace(".pdb","_2mFo-DFc.ccp4")
+            dstdif=dstpdb.replace(".pdb","_mFo-DFc.ccp4")
+            dstcif="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".cif"
+            dstlig="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".pdb"
+
+            os.makedirs(dstPath,exist_ok=True)
+            outp.write("\nrsync --ignore-existing "+srcpdb+" "+dstpdb+" &")
+            outp.write("\nrsync --ignore-existing "+srcmtz+" "+dstmtz+" &")
+            outp.write("\nrsync --ignore-existing "+srcnat+" "+dstnat+" &")
+            outp.write("\nrsync --ignore-existing "+srcdif+" "+dstdif+" &")
+            outp.write("\nrsync --ignore-existing "+srccif+" "+dstcif+" &")
+            outp.write("\nrsync --ignore-existing "+srclig+" "+dstlig+" &")
+            outp.write("\n\n")
+
+            
+            pdbList.append(dstpdb)
+
+    script=path+"/fragmax/scripts/run_CAD.sh"
+    command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
+'''
+
+def datasetDetails(dataset,site_idx,method):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+
+    detailsDict=dict()
+    with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
+        a=inp.readlines()
+    
+    for i in a:
+        if dataset in i:
+            if i.split(",")[11]==site_idx:
+                k=i.split(",")
+
+    headers=a[0].split(",")
+    detailsDict['event_idx']=k[1]
+    detailsDict['bdc']=k[2]    
+    detailsDict['site_idx']=k[11]
+    detailsDict['center']="["+k[12]+","+k[13]+","+k[14]+"]"
+    detailsDict['z_peak']=k[16]
+    detailsDict['resolution']=k[18]
+    detailsDict['rfree']=k[20]
+    detailsDict['rwork']=k[21]
+    detailsDict['spg']=k[35]
+    detailsDict['map_res']=k[headers.index("analysed_resolution")]
+    detailsDict['map_unc']=k[headers.index("map_uncertainty")]
+    detailsDict['analysed']=k[headers.index("analysed")]
+    detailsDict['interesting']=k[headers.index("Interesting")]
+    detailsDict['ligplaced']=k[headers.index("Ligand Placed")]
+    detailsDict['ligconfid']=k[headers.index("Ligand Confidence")]
+    detailsDict['comment']=k[headers.index("Comment")]     
+    detailsDict['viewed']=k[headers.index("Viewed\n")]  
+    return detailsDict
+
+def panddaEvents(filters):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    
+    eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
+    eventscsv=[x for x in eventscsv if  any(xs in x for xs in filters)]
+    eventDict=dict()
+    allEventDict=dict()
+    high_conf=0
+    medium_conf=0
+    low_conf=0
+
+    for eventcsv in eventscsv:
+        method=eventcsv.split("/")[9]
+        with open(eventcsv,"r") as inp:
+            a=inp.readlines()
+        a=[x.split(",") for x in a]
+        headers=a[0]
+        for line in a:
+            
+            if line[headers.index("Ligand Placed")]=="True":                
+                dtag=line[0][:-3]
+                site_idx=line[11]
+                bdc=line[2]
+                intersting=line[headers.index("Ligand Confidence")]
+                if intersting=="High":
+                    high_conf+=1
+                if intersting=="Medium":
+                    medium_conf+=1
+                if intersting=="Low":
+                    low_conf+=1
+                    
+                if dtag not in eventDict:
+                    
+                    eventDict[dtag]={site_idx:{method+"_"+line[0][-3:]:bdc}}
+                    allEventDict[dtag]={site_idx:{method+"_"+line[0][-3:]:bdc}}
+                else: 
+
+                    if site_idx not in eventDict[dtag]:
+                        eventDict[dtag].update({site_idx:{method+"_"+line[0][-3:]:bdc}})
+                        allEventDict[dtag].update({site_idx:{method+"_"+line[0][-3]:bdc}})
+                    else:
+                        eventDict[dtag][site_idx].update({method+"_"+line[0][-3:]:bdc})
+                        allEventDict[dtag][site_idx].update({method+"_"+line[0][-3:]:bdc})
+
+
+    for k,v in eventDict.items():
+        for k1,v1 in v.items():
+            v[k1]=sorted(v1.items(), key=lambda t:t[1])[0]
+    return allEventDict, eventDict, low_conf, medium_conf, high_conf
+
+def fix_pandda_symlinks():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    linksFolder=glob.glob(path+"/fragmax/results/pandda/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    for i in linksFolder:
+        print(i)
+        folder="/".join(i.split("/")[:-1])+"/"
+        pdbs=os.listdir(folder)
+        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
+        print(pdb)
+        shutil.move(i,i+".bak")
+        shutil.copyfile(pdb,i)
+#############################################
+
 
 def procReport(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -2067,60 +2834,6 @@ def parseLigand_results():
 
                 outp.write(l)                                                                 
 
-def panddaResultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    fix_pandda_symlinks
-    tpandda = threading.Thread(target=fix_pandda_symlinks, args=())
-    tpandda.start()
-
-    acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"*")
-    pipeline_dict=dict()
-    for acr in acr_list:
-        pipeline_dict[acr.split("/")[-1]]=glob.glob(acr+"/*")
-
-    dimple_dict=dict()
-    fspipe_dict=dict()
-
-    for key,value in pipeline_dict.items():
-        l=list()
-        for dtprc in value:        
-            if os.path.exists(dtprc+"/dimple/dimple.log"):
-                l.append(dtprc+"/dimple/dimple.log")
-        dimple_dict[key]=l
-        m=list()
-        for dtprc in value:        
-            if os.path.isdir(dtprc+"/fspipeline"):
-                m.append(glob.glob(dtprc+"/fspipeline/final*pdb")[0])
-        fspipe_dict[key]=m
-
-
-    fspline=""
-    dimpleline=""
-    sortedline=""
-
-    sortedacr=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" not in x and "DM" not in x]
-    sortedacr+=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" in x or "DM" in x]
-
-
-
-    for key,value in natsort.natsorted(fspipe_dict.items()):
-        for f in value:
-            fspline+=fsp_info(f)+"\n"
-
-    for key,value in natsort.natsorted(dimple_dict.items()):
-        for f in value:
-            dimpleline+=dpl_info(f)+"\n"
-
-    dl=fspline.split("\n")+dimpleline.split("\n")            
-    for i in sortedacr:
-        for j in dl:
-            if i in j:
-                sortedline+=j+"\n"            
-
-    with open(path+"/fragmax/process/panddarefsum.csv","w") as outp:
-        outp.write(sortedline)
-
 def fsp_info_general(entry):
     usracr=""
     spg=""
@@ -2633,190 +3346,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
 
 
-################ PANDDA #####################
-def populate_missing():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-    dataissuePaths=glob.glob(path+"/fragmax/results/pandda/*/final.mtz")
-    
 
-    def getRes(mtzfile):
-        stdout = Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=PIPE).stdout
-        output = stdout.read().decode("utf-8")
-        for line in output.split("\n"):
-            if "Resolution range" in line:
-                lowres, highres=line.split()[-2],line.split()[-1]
-        if "free" in "".join(output).lower():
-            for line in output.split("\n"):
-                if "free" in line.lower():
-                    freeRflag=line.split()[0]
-        else:  
-            freeRflag="R-free-flags"
-            
-        return lowres, highres, freeRflag
-    def splitsc(a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-    def buildResDict(dataPaths):
-        resdict=dict()
-        Rflagdict=dict()
-        for data in dataPaths:
-            l,h,Rflag =getRes(data)
-            resdict[data] = h
-            Rflagdict[data] = Rflag
-        return resdict,Rflagdict
-    
-    def fixData(key,value,rflag):
-        #shutil.copyfile(key,key+".bak")
-        outmtz=key.split("final.mtz")[0]+"final.mtz"
-        
-        #Start and move to data folder
-        command=""
-        command+="\n\ncd "+key.replace("/results/","/process/").replace("final.mtz","")       
-        command+="\n\n"
-        
-        #Uniqueify dataset 
-
-        command+="uniqueify -f "+rflag+" "+key+" "+key.replace("/results/","/process/")
-        command+="\n\n"
-        
-        #CAD
-        
-        command+="cad hklin1 "+key+ " hklout " +outmtz+ " <<eof\n"
-        command+=" monitor BRIEF\n"
-        command+=" labin file 1 - \n"
-        command+="  ALL\n"
-        command+=" resolution file 1 999.0 "+ value+"\n"
-        command+="eof\n\n"    
-        
-        #Phenix maps
-        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n\n"    
-        
-
-        #Move results back to original folder
-        command+="mv -f "+key.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+key.replace(".mtz",".ccp4")+"\n"
-        command+="mv -f "+key.replace("final.mtz","final_map_coeffs.mtz"    )+" "+key+"\n\n"
-        
-        return command
-
-    def rerunRefine(key,value):
-        command=""
-        command+="phenix.maps "+key.replace(".mtz",".pdb")+" "+key+"\n"    
-        return command
-
-
-    def makeScript():    
-        #init variables
-        resdict,Rflagdict=buildResDict(dataissuePaths)
-        
-        panddaOut    = ""    
-    
-        #define env for script for XDSAPP
-        panddaOut+= """#!/bin/bash\n"""
-        panddaOut+= """#!/bin/bash\n"""
-        panddaOut+= """#SBATCH -t 99:55:00\n"""
-        panddaOut+= """#SBATCH -J PanddaFix\n"""
-        panddaOut+= """#SBATCH --exclusive\n"""
-        panddaOut+= """#SBATCH -N1\n"""
-        panddaOut+= """#SBATCH --cpus-per-task=48\n"""
-        panddaOut+= """#SBATCH --mem=220000\n""" 
-        panddaOut+= """#SBATCH -o """+path+"""/fragmax/logs/pandda_repopReflections_%j.out\n"""
-        panddaOut+= """#SBATCH -e """+path+"""/fragmax/logs/pandda_repopReflections_%j.err\n"""    
-        panddaOut+= """module load CCP4 Phenix PyMOL/2.1.0-PReSTO\n\n"""
-        
-        cmdList=list()
-        for key, value in resdict.items():
-            cmdList.append("\n"+fixData(key,value,Rflagdict[key]))
-        
-        nodes=5
-        chunkScripts=[panddaOut+"".join(x) for x in list(splitsc(cmdList,nodes) )]
-        
-        
-        for num,chunk in enumerate(chunkScripts):
-            with open(path+"/fragmax/scripts/panddafix_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-
-            script=path+"/fragmax/scripts/panddafix_part"+str(num)+".sh"
-            command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-    
-    #Run populate missing reflection in all dataset
-
-    for key in dataissuePaths:
-        os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""), exist_ok=True)
-    #
-    makeScript()
-    
-
-def prepare_pandda_folder():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    ##
-    
-    pdbList=list()
-    with open(path+"/fragmax/scripts/preparePanDDAfolder.sh","w") as outp:        
-        outp.write("#!/bin/bash")
-        outp.write("\n#!/bin/bash")
-        outp.write("\n#SBATCH -t 99:55:00")
-        outp.write("\n#SBATCH -J panFolders")
-        outp.write("\n#SBATCH --exclusive")
-        outp.write("\n#SBATCH -N1")
-        outp.write("\n#SBATCH --cpus-per-task=40")
-        outp.write("\n#SBATCH -o "+path+"/fragmax/logs/panddafolders_fragmax_%j.out")
-        outp.write("\n#SBATCH -e "+path+"/fragmax/logs/panddafolders_fragmax_%j.err")
-        outp.write("\n\n")
-
-        resultsList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/*final*.pdb")
-        for i in resultsList:
-
-            lig=i.split("/")[-4].split(acr+"-")[-1].split("_")[0]
-            srcpdb=i    
-            srcmtz=i.replace(".pdb",".mtz")
-            srcnat=i.replace(".pdb","_2mFo-DFc.ccp4")
-            srcdif=i.replace(".pdb","_mFo-DFc.ccp4")
-
-
-            srccif=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".cif"
-            srclig=path+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".pdb"
-
-            dstPath="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"
-
-            dstpdb ="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/final."+i.split("/")[-1][-3:]
-            dstmtz=dstpdb.replace(".pdb",".mtz")
-            dstnat=dstpdb.replace(".pdb","_2mFo-DFc.ccp4")
-            dstdif=dstpdb.replace(".pdb","_mFo-DFc.ccp4")
-            dstcif="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".cif"
-            dstlig="/".join(i.split("/")[:8])+"/pandda/"+"_".join(i.split("/")[8:11])+"/"+lig+".pdb"
-
-            os.makedirs(dstPath,exist_ok=True)
-            outp.write("\nrsync --ignore-existing "+srcpdb+" "+dstpdb+" &")
-            outp.write("\nrsync --ignore-existing "+srcmtz+" "+dstmtz+" &")
-            outp.write("\nrsync --ignore-existing "+srcnat+" "+dstnat+" &")
-            outp.write("\nrsync --ignore-existing "+srcdif+" "+dstdif+" &")
-            outp.write("\nrsync --ignore-existing "+srccif+" "+dstcif+" &")
-            outp.write("\nrsync --ignore-existing "+srclig+" "+dstlig+" &")
-            outp.write("\n\n")
-
-            
-            pdbList.append(dstpdb)
-
-    script=path+"/fragmax/scripts/run_CAD.sh"
-    command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(command,shell=True)
-
-
-def fix_pandda_symlinks():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-    linksFolder=glob.glob(path+"/fragmax/results/pandda/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
-    for i in linksFolder:
-        print(i)
-        folder="/".join(i.split("/")[:-1])+"/"
-        pdbs=os.listdir(folder)
-        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
-        print(pdb)
-        shutil.move(i,i+".bak")
-        shutil.copyfile(pdb,i)
-#############################################
 
 def process2results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -3678,7 +4208,6 @@ def get_pipedream_results():
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
 
 def get_project_status_initial():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()

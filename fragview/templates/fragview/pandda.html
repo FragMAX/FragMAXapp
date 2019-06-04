@@ -119,13 +119,6 @@
 </div>
 
 
-<!-- The Modal -->
-<div id="myModal" class="modal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="img01">
-    <div id="caption"></div>
-</div>
-
 <div class="card_options">
     <div class="flexdiv_options card ">
         <div class="flex-left">
@@ -157,10 +150,10 @@
                                 <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="xdsxscale">
                                 <span class="item-label" for="xdsxscale_radio">XIA2/XDS</span>
                             </label></div>
-                            <div class="radio" id="dataproc_type"><label>
+                            {% comment %} <div class="radio" id="dataproc_type"><label>
                                 <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="edna_proc">
                                 <span class="item-label" for="edna_proc_radio">EDNA_proc</span>
-                            </label></div>
+                            </label></div> {% endcomment %}
                             <div class="radio" id="dataproc_type"><label>
                                 <input class="with-gap" id="fastdp_radio" name="proc_type" type="radio" value="fastdp">
                                 <span class="item-label" for="fastdp_radio">fastdp</span>
@@ -252,8 +245,8 @@
             <tr>
                 <th class=" top-options">Fill missing reflections with CAD</th>
                 <td class=" top-options">
-                   <select class="selectbox" name="use_CAD">
-                        <option disabled selected value> -- select an option -- </option>
+                   <select class="selectbox" id="use_CAD" name="use_CAD">
+                        <option disabled selected value="yes"> -- select an option -- </option>
                         <option value="yes">Yes</option>
                         <option value="no">No</option>
                     </select>
@@ -262,8 +255,8 @@
             <tr>
                 <th class=" top-options">Refine populated MTZ</th>
                 <td class=" top-options">
-                   <select class="selectbox" name="refine_popMTZ">
-                        <option disabled selected value> -- select an option -- </option>
+                   <select class="selectbox" id="refine_popMTZ" name="refine_popMTZ">
+                        <option disabled selected value="no"> -- select an option -- </option>
                         <option value="phenixRefine">Phenix.Refine</option>
                         <option value="refmac">Refmac</option>
                         <option value="no">No</option>
@@ -274,7 +267,7 @@
             <tr>
                 <th class=" top-options">Options</th>
                 <td class=" top-options">
-                    <form id="groundstate" >
+                    <form id="preprocessOptions" >
                             <div class="checkbox" id="ignoreErrcheck">
                             <label>
                                 <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr">
@@ -291,7 +284,7 @@
                             <div class="checkbox" id="fixsymcheck">
                             <label>
                                 <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                <span for="fixsym">Fix symlink issues</span>
+                                <span for="fixsym">Ignore symlink issues</span>
                             </label>
                             </div>
                     </form> 
@@ -302,12 +295,7 @@
                 <th class=" top-options">Custom parameters</th>
                 <td class=" top-options"><input class="selectbox" name="custombuster" placeholder="default: None"></input> </td>
             </tr>
-            {% comment %} <tr>
-                <th></th>
-                <td style="padding-top:20px">
-                    <input type="button" class="btn btn-right" value="Run refinement"> </input>
-                </td>
-            </tr> {% endcomment %}
+            
             </tbody>
 
             </table>
@@ -348,13 +336,7 @@
             <th class=" top-options">Custom parameters</th>
             <td class=" top-options"><input class="selectbox" name="customrhofit" placeholder="default: None"></input> </td>
         </tr>
-        {% comment %} <tr>
-            <th></th>
-            <td style="padding-top:20px">
-
-                <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
-            </td>
-        </tr> {% endcomment %}
+        
 
         </tbody>
         </table>
@@ -379,18 +361,6 @@
 
 <script>
 
-
-    
-function panddasetup(){
-    var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
-    var ref_type  = document.querySelector('input[name="ref_type"]:checked').value;
-    
-    var complete  = document.getElementsByName("compdatasets")[0].value;
-    
-    var out = proc_type+";"+ref_type+";"+complete 
-    console.log(out);
-
-}
 var f = document.getElementById("sendpandda");
     
     f.onsubmit = function panddasetup(){
@@ -399,10 +369,19 @@ var f = document.getElementById("sendpandda");
         var ref_type  = document.querySelector('input[name="ref_type"]:checked').value;
         
         var complete  = document.getElementsByName("compdatasets")[0].value;
+
+        var use_apo  = document.getElementById("apoGS").checked
+        var use_dmso = document.getElementById("dmsoGS").checked
+        var use_cryo = document.getElementById("cryoGS").checked
         
-        var out = proc_type+";"+ref_type+";"+complete 
-
-
+        var use_CAD  = document.getElementById("use_CAD").value 
+        var ref_CAD  = document.getElementById("refine_popMTZ").value 
+        
+        var ign_errordts = document.getElementById("ignoreErr").checked
+        var keepup_last  = document.getElementById("keepup").checked
+        var ign_symlink  = document.getElementById("fixsym").checked        
+        
+        var out = proc_type+";"+ref_type+";"+complete+";"+use_apo+";"+use_dmso+";"+use_cryo+";"+use_CAD+";"+ref_CAD+";"+ign_errordts+";"+keepup_last+";"+ign_symlink
         document.getElementsByName("panddaform")[0].value = out
 
 }

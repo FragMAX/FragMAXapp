@@ -9,6 +9,8 @@ urlpatterns = [
 
     path('post/<int:pk>/', views.post_detail, name='post_detail'),
     path('post/new/', views.post_new, name='post_new'),
+    path('error/', views.error_page, name="error page"),
+
 
     path('testpage/', views.testfunc, name='pandda_analyse'),
     path('datasets/', views.datasets, name='datasets'),
@@ -23,6 +25,7 @@ urlpatterns = [
     path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
 
     path('pandda_density/', views.pandda_density, name='pandda_density'),
+    path('pandda_densityC/', views.pandda_densityC, name='pandda_densityC'),
     path('pandda/', views.pandda, name='pandda'),
     path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
 
