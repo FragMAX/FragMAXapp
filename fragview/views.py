@@ -1156,12 +1156,14 @@ def pandda_densityC(request):
     
     if len(panddaInput.split(";"))==5:
         method,dataset,event,site,nav=panddaInput.split(";")
+    if len(panddaInput.split(";"))==4:
+        method,dataset,site,nav=panddaInput.split(";")
     if len(panddaInput.split(";"))==3:
         method,dataset,nav=panddaInput.split(";")
     
 
 
-    allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents(["fastdp"])
+    allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents([])
           
 
 
@@ -1197,8 +1199,8 @@ def pandda_densityC(request):
         method=method[:-2]
 
     if "stay" in nav:
-        site_idx=dsList[[x[0] for x in dsList].index(dataset[:-3])][1]
-
+        #site_idx=dsList[[x[0] for x in dsList].index(dataset[:-3])][1]
+        site_idx=site 
 
     ligand=dataset.split("-")[-1].split("_")[0]
     modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
@@ -1292,23 +1294,62 @@ def pandda_inspect(request):
     newest=0
     newestpath=""
     newestmethod=""
-    filters=[ "autoproc_dimple","autoproc_fspipeline","xdsapp_fspipeline"]
-    flat_filters=set([j for sub in [x.split("_") for x in filters] for j in sub])
-    xdsapp      =(1 if "xdsapp" in flat_filters else 0)
-    autoproc    =(1 if "autoproc" in flat_filters else 0)
-    dials       =(1 if "dials" in flat_filters else 0)
-    edna        =(1 if "edna" in flat_filters else 0)
-    fastdp      =(1 if "fastdp" in flat_filters else 0)
-    xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
-    dimple      =(1 if "dimple" in flat_filters else 0)
-    fspipeline  =(1 if "fspipeline" in flat_filters else 0)
-    buster      =(1 if "buster" in flat_filters else 0)
+    filters=[]
+    eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
+    filterform=request.GET.get("filterForm")
+    if not filterform is None:
+        if ";" in filterform:
+            AP,DI,FD,ED,XD,XA,BU,DP,FS=filterform.split(";")
+            xdsapp      =(1 if "true" in XA else 0)
+            autoproc    =(1 if "true" in AP else 0)
+            dials       =(1 if "true" in DI else 0)
+            edna        =(1 if "true" in ED else 0)
+            fastdp      =(1 if "true" in FD else 0)
+            xdsxscale   =(1 if "true" in XD else 0)
+            dimple      =(1 if "true" in DP else 0)
+            fspipeline  =(1 if "true" in FS else 0)
+            buster      =(1 if "true" in BU else 0)
+            filters=list()
+            filters.append("autoproc"  )  if AP=="true" else ""
+            filters.append("dials"     )  if DI=="true" else ""
+            filters.append("fastdp"    )  if FD=="true" else ""
+            filters.append("EDNA_proc" )  if ED=="true" else ""
+            filters.append("xdsapp"    )  if XA=="true" else ""
+            filters.append("xdsxscale" )  if XD=="true" else ""
+            filters.append("dimple"    )  if DP=="true" else ""
+            filters.append("fspipeline")  if FS=="true" else ""
+            filters.append("buster"    )  if BU=="true" else ""
+        else:    
+            flat_filters=set([j for sub in [x.split("/")[9].split("_") for x in eventscsv] for j in sub])
+            xdsapp      =(1 if "xdsapp" in flat_filters else 0)
+            autoproc    =(1 if "autoproc" in flat_filters else 0)
+            dials       =(1 if "dials" in flat_filters else 0)
+            edna        =(1 if "edna" in flat_filters else 0)
+            fastdp      =(1 if "fastdp" in flat_filters else 0)
+            xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
+            dimple      =(1 if "dimple" in flat_filters else 0)
+            fspipeline  =(1 if "fspipeline" in flat_filters else 0)
+            buster      =(1 if "buster" in flat_filters else 0)
+            
+    else:    
+        flat_filters=set([j for sub in [x.split("/")[9].split("_") for x in eventscsv] for j in sub])
+        xdsapp      =(1 if "xdsapp" in flat_filters else 0)
+        autoproc    =(1 if "autoproc" in flat_filters else 0)
+        dials       =(1 if "dials" in flat_filters else 0)
+        edna        =(1 if "edna" in flat_filters else 0)
+        fastdp      =(1 if "fastdp" in flat_filters else 0)
+        xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
+        dimple      =(1 if "dimple" in flat_filters else 0)
+        fspipeline  =(1 if "fspipeline" in flat_filters else 0)
+        buster      =(1 if "buster" in flat_filters else 0)
+       
+
 
     
     method=request.GET.get("methods")
     if method is None or "panddaSelect" in method or ";" in method:
         
-        eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
+        
         if len(eventscsv)!=0:
             if method is not None and ";" in method:
                 filters=list()
@@ -1320,9 +1361,19 @@ def pandda_inspect(request):
                 filters.append("xdsapp"    )  if XA=="true" else ""
                 filters.append("xdsxscale" )  if XD=="true" else ""
                 filters.append("dimple"    )  if DP=="true" else ""
-                filters.append("fspipeline") if FS=="true" else ""
+                filters.append("fspipeline")  if FS=="true" else ""
                 filters.append("buster"    )  if BU=="true" else ""
             allEventDict,eventDict,low_conf, medium_conf, high_conf =panddaEvents(filters)
+            # flat_filters=set([j for sub in [x.split("_") for x in filters] for j in sub])
+            # xdsapp      =(1 if "xdsapp" in flat_filters else 0)
+            # autoproc    =(1 if "autoproc" in flat_filters else 0)
+            # dials       =(1 if "dials" in flat_filters else 0)
+            # edna        =(1 if "edna" in flat_filters else 0)
+            # fastdp      =(1 if "fastdp" in flat_filters else 0)
+            # xdsxscale   =(1 if "xdsxscale" in flat_filters else 0)
+            # dimple      =(1 if "dimple" in flat_filters else 0)
+            # fspipeline  =(1 if "fspipeline" in flat_filters else 0)
+            # buster      =(1 if "buster" in flat_filters else 0)
 
                     
             sitesL=list() 
@@ -1378,7 +1429,7 @@ def pandda_inspect(request):
             html+='</head>\n'
             html+='<body>\n'
             html+='    <div class="container">\n'
-            html+='      <h1>Consensus of PANDDA Inspect Summaries</h1>\n'
+            html+='      <h1>Consensus of PANDDA Inspect Summaries '+"_".join(filters)+'</h1>\n'
             html+='      <h2>Summary of Inspection of Datasets</h2>\n'
             html+='      \n'
             
@@ -1490,10 +1541,10 @@ def pandda_inspect(request):
             for k,v in natsort.natsorted(eventDict.items()):
                 for k1,v1 in v.items():
                     #print(k,k1,v1[0][:-2])
-                
-                    ds=v1[0][:-4]+";"+k+v1[0][-3:]
-                    #datasetDetails(dataset,site_idx,method)
                     detailsDict=datasetDetails(k,k1,v1[0][:-4])
+                    ds=v1[0][:-4]+";"+k+v1[0][-3:]+";"+detailsDict['event_idx']+";"+k1
+                    #datasetDetails(dataset,site_idx,method)
+                    
                     
                     if detailsDict['viewed']=="False\n" or detailsDict['ligplaced']=="False" or detailsDict['interesting']=="False":
                         html+='        <tr class=info>\n'
@@ -1542,7 +1593,7 @@ def pandda_inspect(request):
             'xdsxscale':xdsxscale,
             'dimple':dimple,
             'fspipeline':fspipeline,
-            'buster':buster
+            'buster':buster,
             })
 
 
@@ -2168,7 +2219,8 @@ def panddaEvents(filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
-    eventscsv=[x for x in eventscsv if  any(xs in x for xs in filters)]
+    if len(filters)!=0:
+        eventscsv=[x for x in eventscsv if  any(xs in x for xs in filters)]
     eventDict=dict()
     allEventDict=dict()
     high_conf=0
