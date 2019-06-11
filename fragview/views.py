@@ -935,6 +935,31 @@ def request_page_res(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
     a=str(request.GET.get('structure')) 
+    if "fspipeline" in a:
+        fsplog=[x for x in sorted(glob.glob("/data/visitors/"+a.split(";")[0].split("/final_")[0]+"/*/")) if "coot" not in x][-1]+"current_refine_001.log"
+        with open(fsplog,"r") as inp:
+
+            for line in inp.readlines():
+                if "Space group:" in line:
+                    spg=line.split("Space group: ")[-1].split(" (No")[0]
+                if "Resolution range:" in line:
+                    resolution=str(round(float(line.split()[-1]),2))
+                if "Final R-work" in line:
+                    rfree=str(round(100*float(line.split(",")[-1].split()[-1]),2))
+                    rwork=str(round(100*float(line.split(",")[0].split()[-1]),2))
+    if "dimple" in a:
+        dmplog="/data/visitors/"+a.split(";")[0].split("/final.pdb")[0]+"/dimple.log"
+        with open(dmplog,"r") as inp:
+            for line in inp.readlines():
+                if "R/Rfree" in line:
+                    rwork,rfree=line.split()[-1].split("/")
+                    rwork=str(round(100*float(rwork),2))
+                    rfree=str(round(100*float(rfree),2))
+                if "resol:" in line:
+                    resolution=str(round(float(line.split()[-1]),2))
+                if "# MTZ" in line:
+                    spg=" ".join(line.split()[3:7])
+
     center=""
     if "],[" in a.split(";")[3]:
         center=[a.split(";")[3].split("],[")[0]+"]"]
@@ -945,7 +970,18 @@ def request_page_res(request):
         ligsvg=a.split(";")[0].split("-")[-1].split("_")[0]
     a=zip(["_".join(a.split(";")[0].split("/")[-4:-1])],[a.split(";")[0]],[a.split(";")[1]],[a.split(";")[2]],[a.split(";")[3]],center )    
     
-    return render(request,'fragview/density.html', {'structure': a,"proposal":proposal,"shift":shift,"fraglib":fraglib,"ligand":ligsvg})
+
+
+    return render(request,'fragview/density.html', {
+        'structure': a,
+        "proposal":proposal,
+        "shift":shift,
+        "fraglib":fraglib,
+        "ligand":ligsvg,
+        "rwork":rwork,
+        "rfree":rfree,
+        "resolution":resolution,
+        "spg":spg})
 
 
 def testfunc(request):
@@ -1401,25 +1437,13 @@ def pandda_inspect(request):
             html+='      <head>\n'
             html+='        <meta charset="utf-8">\n'
             html+='        <meta name="viewport" content="width=device-width, initial-scale=1">\n'
-            html+='\n'
-            html+='        <!-- Bootstrap+Tables -->\n'
             html+='        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n'
             html+='        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css">\n'
-            html+='\n'
-            html+="        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->\n"
             html+='        <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>\n'
-            html+='        <!-- Include all compiled plugins (below), or include individual files as needed -->\n'
             html+='        <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>\n'
             html+='        <script src="https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>\n'
-            html+='\n'
-            html+='        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->\n'
-            html+="        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->\n"
-            html+='        <!--[if lt IE 9]>\n'
             html+='          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>\n'
             html+='          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>\n'
-            html+='        <![endif]-->\n'
-            html+='\n'
-            html+='\n'
             html+='        <script type="text/javascript" class="init">\n'
             html+='    $(document).ready(function() {\n'
             html+="        $('#main-table').DataTable();\n"

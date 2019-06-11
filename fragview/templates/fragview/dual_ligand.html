@@ -7,35 +7,25 @@
 <style>
   
 
-   body {  background-color: #888; font-family: sans-serif; }
-   canvas { display: block; }
-   #viewer1, #viewer2 { position:absolute; top:0; width:calc((100% - 200px)/2); height:100%; }
-   #viewer1 { left: 200px; }
-   #viewer2 { right: 0; }
-   #hud {
-     font-size: 14px;
-     color: #ddd;
-     background-color: rgba(0,0,0,0.6);
-     text-align: center;
+   body { font-family: sans-serif; }
+   canvas { 
+     display: flex; 
+     }
+   #viewer {
      position: absolute;
-     top: 10px;
-     left: 50%;
-     transform: translateX(-50%);
-     padding: 2px 8px;
-     border-radius: 5px;
-     z-index: 9;
-     white-space: pre-line;
+     left: 550px;
+     top: 100px;
+     width: calc(100% - 550px);
+     height: calc(100% - 100px);
    }
-   #hud u { padding: 0 8px; text-decoration: none;
-            border: solid; border-width: 1px 0; }
-   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   
    #help {
      display: none;
      font-size: 16px;
      color: #eee;
      background-color: rgba(0,0,0,0.7);
      position: absolute;
-     left: 200px;
+     left: 550px;
      top: 50%;
      transform: translateY(-50%);
      cursor: default;
@@ -44,13 +34,32 @@
      z-index: 9;
      white-space: pre-line;
    }
-   img {
-     cursor: pointer;
+   #left-controlpanel {
+     font-size: 16px;
+     background-color: rgba(0,0,0,0.1);
+     position: absolute;
+     left: 265px;
+     top: 100px;     
+     width: 270px;
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+   }
+   #hud u { padding: 0 8px; text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
    }
    a { color: #59C; }
-   #viewer1 b, #viewer2 b { color: #fff; background-color: rgba(0,0,0,0.6); }
-   #viewer1 b { position: absolute; bottom: 30px; left: 30px; }
-   #viewer2 b { position: absolute; bottom: 30px; right: 30px; }
 </style>
 <h3>Results viewer</h3>
   <meta charset="utf-8">
@@ -63,30 +72,109 @@
 
 </head>
 <body>
-  <div id="viewer1"><b>RhoFit</b></div>
-  <div id="viewer2"><b>LigandFit</b></div>
+  <div id="viewer"><b>RhoFit</b></div>
+  
   <header id="hud">Automated ligand fit comparison. Press H for help.</header>
   <footer id="help"></footer>
   <script>
-    V1 = new UM.Viewer({viewer: "viewer1", focusable: true});
+  
 
-    V1.load_pdb_and_ccp4_maps("/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/rhofit/merged.pdb",
-                              "/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/final_2mFo-DFc_filled.ccp4",
-                              "/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/final_mFo-DFc.ccp4", function () {
-                                    V1.recenter([-4.16,3.54,15.00], null, 100)
+    V1 = new UM.Viewer({viewer: "viewer", focusable: true});
 
-
-    });
-    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1});
-    V2.load_pdb_and_ccp4_maps("/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/LigandFit_run_1_/EDITED_final.pdb",
-                              "/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/final_2mFo-DFc_filled.ccp4",
-                              "/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/final_mFo-DFc.ccp4", function () {  
+    V1.load_pdb_and_ccp4_maps("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/final.pdb",
+                              "/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/final_2mFo-DFc.ccp4",
+                              "/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/final_mFo-DFc.ccp4", function () {
+                              
 
     });
-    V2.load_pdb("/static/biomax/20180489/20190127/fragmax/results/rhofit/hCAII-B3_1_xdsapp_fsp/LigandFit_run_1_/ligand_fit_1_1.pdb");
 
-    V1.renderer.domElement.focus();
-    V1.change_zoom_by_factor(3.5)  
+
+
+    
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/LigandFit_run_1_/ligand_fit_1.pdb");
+
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/rhofit/best.pdb");
+
+    
+    
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/LigandFit_run_1_/ligand_fit_1.pdb");
+
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/rhofit/best.pdb");
+
+    
+      
+    
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/LigandFit_run_1_/ligand_fit_1.pdb");
+
+    V1.load_pdb("/static/biomax/20180479/20190330/fragmax/results/ligandfit/EPF2XEntry-E01b_1_xdsapp_fspipeline/rhofit/best.pdb");
+
+    
+      
+      
+
+    function movetorhofitblob(){
+      V1.recenter([26.933,6.874,84.310], null, 25);  
+
+      updateview()
+      
+
+    }
+    function movetoligfitblob(){
+      V1.recenter([48.626,6.522,37.027], null, 25);   
+      updateview()
+    }
+
+    function hiderhofit(){
+      V1.model_bags[0].visible=false; V1.redraw_all()
+      movetorhofitblob()
+    }
+
+    function hideligfit(){
+      V1.model_bags[1].visible=false; V1.redraw_all()
+      movetoligfitblob()
+    }
+
+
+    function showrhofit(){
+      V1.model_bags[0].visible=true; V1.redraw_all()
+      movetorhofitblob()
+    }
+
+    function showligfit(){
+      V1.model_bags[1].visible=true; V1.redraw_all()
+      movetoligfitblob()
+    }
+
+    function showprotein(){
+      V1.model_bags[V1.model_bags.length-1].visible=true; 
+      V1.redraw_all();
+      updateview();
+    }
+
+    function hideprotein(){
+      V1.model_bags[V1.model_bags.length-1].visible=false; 
+      V1.redraw_all();
+      updateview();
+    }
+
+    function updateview(){
+      var keyboardEvent = document.createEvent("KeyboardEvent");
+      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+      keyboardEvent[initMethod](
+                        "keydown", // event type : keydown, keyup, keypress
+                          true, // bubbles
+                          true, // cancelable
+                          window, // viewArg: should be window
+                          false, // ctrlKeyArg
+                          false, // altKeyArg
+                          false, // shiftKeyArg
+                          false, // metaKeyArg
+                          82, // keyCodeArg : unsigned long the virtual key code, else 0
+                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+      );
+      document.dispatchEvent(keyboardEvent);
+    }
+  
   </script>
 </body>
 

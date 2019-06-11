@@ -74,11 +74,26 @@
     
     
     <div id="left-controlpanel" >
-      
       <div style="padding-left:30px !important;">
         <div>
           <h6>Blob navigation</h6>
         </div>
+      </div>
+      {% comment %} <div class="col s12 required inline" style="padding-bottom:5px !important;" id="model_confidence">
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high" >
+              <span class="item-label" for="high_conf_radio">Dmpl</span>
+          </label><label>
+              <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
+              <span class="item-label" for="medium_conf_radio">FSP</span>
+          </label><label>
+              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+              <span class="item-label" for="low_conf_radio">BSTR</span>
+          </label></div>
+        </div>  {% endcomment %}
+
+      <div style="padding-left:30px !important;">
+        
         <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
         <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
       </div>
@@ -89,41 +104,50 @@
         <input class="btn " type="button" value="Previous"  ></input> 
         <input  class="btn" type="button" value="Next" ></input> 
       </div>
-      <div>
+      <div style="padding-top:20px">
         <table>
           
           <tr>
             <th>Resolution
             </th>
-            <td>Å
+            <td>{{resolution}} Å
             </td>
           </tr>
           <tr>
             <th>Rwork
             </th>
-            <td>%
+            <td>{{rwork}} %
             </td>
           </tr>
           <tr>
             <th>Rfree
             </th>
-            <td>%
+            <td>{{rfree}} %
             </td>
           </tr>
-          <tr>
-            <th>ISa
-            </th>
-            <td>value
-            </td>
-          </tr>
+          
           <tr>
             <th>Spacegroup
             </th>
-            <td>SPG
+            <td>{{spg}}
             </td>
           </tr>
 
         </table>
+      </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>RhoFit</h6>
+        </div>
+        <input class="btn " type="button" value="Show"  ></input> 
+        <input class="btn" type="button" value="Hide" ></input> 
+      </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>LigFit</h6>
+        </div>
+        <input class="btn " type="button" value="Show"  ></input> 
+        <input class="btn" type="button" value="Hide" ></input> 
       </div>
       {% comment %} <div style="padding-left:30px !important;">
         <div>
