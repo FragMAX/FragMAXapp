@@ -68,7 +68,7 @@
 </head>
 <body style="background-color: white">
 
-  {% for name,pdb,nat,dif,xyzlist,center in structure %}
+  
     <h5>Showing results for: {{name }} </h5>
     
     
@@ -125,7 +125,18 @@
             <td>{{rfree}} %
             </td>
           </tr>
-          
+          <tr>
+            <th>RhoFit score
+            </th>
+            <td>{{rscore}} 
+            </td>
+          </tr>
+          <tr>
+            <th>LigFit score
+            </th>
+            <td>{{lscore}} 
+            </td>
+          </tr>
           <tr>
             <th>Spacegroup
             </th>
@@ -139,36 +150,36 @@
         <div>
           <h6>RhoFit</h6>
         </div>
-        <input class="btn " type="button" value="Show"  ></input> 
-        <input class="btn" type="button" value="Hide" ></input> 
+        <input class="btn " type="button" value="Show"  onclick="showrhofit();"></input> 
+        <input class="btn" type="button" value="Hide"   onclick="hiderhofit();"></input> 
+        <div style="display: inline-block;vertical-align: middle;">
+          <label >
+            <input class="with-gap" id="rhofit_radio" name="rhofit_radio" type="radio" checked>
+            <span class="item-label" for="rhofit_radio"></span>
+          </label>
+        </div>
       </div>
+      
+
+          
       <div style="padding-left:30px !important;">
         <div>
           <h6>LigFit</h6>
         </div>
-        <input class="btn " type="button" value="Show"  ></input> 
-        <input class="btn" type="button" value="Hide" ></input> 
-      </div>
-      {% comment %} <div style="padding-left:30px !important;">
-        <div>
-          <h6>Compare</h6>
+        <input class="btn " type="button" value="Show" onclick="showligfit();"></input> 
+        <input class="btn" type="button" value="Hide"  onclick="hideligfit();"></input> 
+        <div style="display: inline-block;vertical-align: middle;">
+          <label >
+            <input class="with-gap" id="ligfit_radio" name="lifgit:radio" type="radio" checked>
+            <span class="item-label" for="ligfit_radio"></span>
+          </label>
         </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Load Dimple "  ></input> </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Load BUSTER "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Load PanDDA "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Run RhoFit/LigFit "  ></input> </div>
       </div>
-
-      <div style="padding-left:30px !important;">
-        <div>
-          <h6>Others</h6>
-        </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Best "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Reject "  ></input> </div>
-        <div style="padding-top:10px"><input class="btn " type="button" value="Ligand density visible "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Re run refine "  ></input> </div>
-        <div style="padding-top:10px"><input  class="btn" type="button" value="Proc/Ref parameters "  ></input> </div>
-      </div> {% endcomment %}
+      <div style="padding-top: 30px;padding-left:30px !important;">
+        <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
+          <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
+        </form>
+      </div>
       <div style="padding-top:30px">    
           <h6>Dataset ligand</h6>     
       <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
@@ -198,9 +209,12 @@
       });
       V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
 
+
+      V.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ligfit_dataset}}/LigandFit_run_1_/ligand_fit_1.pdb");
+      V.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ligfit_dataset}}/rhofit/best.pdb");
+
       var blobs = [{{xyzlist}}];
     
-    {% endfor %}   
 
     var index = 0;
     var numblobs= blobs.length;
@@ -221,6 +235,63 @@
     function movetoblob(b){
       V.recenter(b, null, 25);    
       updateview()
+    }
+
+
+
+    var proteinModel=V.model_bags[2]    
+    var ligfitModel =V.model_bags[1]    
+    var rhofitModel =V.model_bags[0]
+
+
+    function test(){
+      alert(rhofitModel)
+    }
+
+    function hiderhofit(){
+      V.model_bags[0].visible=false; 
+      V.redraw_all()
+      updateview();
+      document.getElementById("rhofit_radio").checked=0
+
+    }
+
+    function hideligfit(){
+      V.model_bags[1]  .visible=false; 
+      V.redraw_all()
+      updateview();
+      document.getElementById("ligfit_radio").checked=0
+
+    }
+
+
+    function showrhofit(){
+      V.model_bags[0].visible=true; 
+      V.redraw_all()
+      V.recenter({{rhofitcenter}},null,25)
+      updateview();
+      document.getElementById("rhofit_radio").checked=1
+    }
+
+    function showligfit(){
+      V.model_bags[1]  .visible=true; 
+      V.redraw_all()
+      V.recenter({{ligandfitcenter}},null,25)
+      updateview();
+      document.getElementById("ligfit_radio").checked=1
+
+    }
+
+    function showprotein(){
+      V.model_bags[2].visible=true; 
+      V.redraw_all();
+      updateview();
+    }
+
+    function hideprotein(){
+      V.model_bags[2].visible=false; 
+      V.redraw_all();
+      updateview();
     }
 
     function updateview(){

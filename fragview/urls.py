@@ -21,7 +21,7 @@ urlpatterns = [
     path('results/', views.results, name='results'),
     path('results_notready/', views.results, name='results_notready'),
 
-    path('density/', views.request_page_res, name='density'),
+    path('density/', views.results_density, name='density'),
     path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
 
     path('pandda_density/', views.pandda_density, name='pandda_density'),
