@@ -1,75 +1,161 @@
 
+
 {% extends 'fragview/base.html' %}
-{% block title %}Test page{% endblock %}
 
+{% block title %}Norrsken - Results{% endblock %}
 {% block content %}
-
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 <style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
 
+  }
+  th {
+    text-align: center;
+    height: 50px;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+  td{
+        height: 100px;
+        
+
+  }
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n) {
+    text-align: center;
+  }
+  
+  th {
+      cursor: pointer;
+  }
   .container {
-    padding-left: 200px;
-    max-width: 1280 !important;
-    width: calc(100% - 75px) !important;
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
   }
-    .btn-right {
-            float:right !important;
-  }
+
 </style>
-<h4>Test page</h4>
+ <div>
+    <h4>Results - Structure refinement </h4> 
+    <div style="display:flex;">
+      <form action="/results/" method="get" id="syncButton"  >
+        <button class="btn" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
+      </form>  
+      </div>
+  </div>       
 
-
-
-<div class="card">
-        <div class="card-content">
-            
-
-            <h4>User input variables:</h4>
-            {{method}}
-
-            <table id="main-table" class="table table-bordered table-striped">
-          <thead>
-            <tr>
-              <th class="text-nowrap">Open</th>
-              <th class="text-nowrap">Dataset</th>
-              <th class="text-nowrap">Viewed</th>
-              <th class="text-nowrap">Interesting</th>
-              <th class="text-nowrap">Lig. Placed</th>
-              <th class="text-nowrap">Event</th>
-              <th class="text-nowrap">Site</th>
-              <th class="text-nowrap">1 - BDC</th>
-              <th class="text-nowrap">Z-Peak</th>
-              <th class="text-nowrap">Map Res.</th>
-              <th class="text-nowrap">Map Unc.</th>
-              <th class="text-nowrap">Confidence</th>
-              <th class="text-nowrap">Comment</th>
-              <th class="text-nowrap"></th>
-              </tr>
-          </thead>
-          <tbody>
-            <tr class=info>
-              <td>
-              <form action="/pandda_density/" method="get" id="pandda_form" target="_blank">
-                <button class="btn" type="submit" value="EPF2XEntry-A07b_1_dials_dimple" name="structure" size="1">Open</button>
-              </form>
-              </td>
-              <th class="text-nowrap" scope="row">EPF2XEntry-A07b_1_dials_dimple</th>
-              <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>
-              <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>
-              <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 0.23</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 13.89</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 1.07</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> 0.194</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> Low</td>
-              <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> None</td>
-              <td><span class="label label-info"></span></td></tr>
-            </tbody>
-            </table>
-        </div>
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchDataset" onkeyup="searchDatasetName()"  title="Type in a dataset name">
+        <label for="searchDataset">Search for Dataset..</label>
+        
     </div>
 
+
+
+ <table  id="resultsTable">
+   <thead>
+  <tr>
+   <th>View Structure</th>
+   <th>Data set</th>
+   <th>Space group</th>
+   <th>Res. [&Aring;]</th>
+   <th>R<sub>work</sub> [%]</th>
+   <th>R<sub>free</sub> [%]</th>
+   <th>RMS bonds [&Aring;]</th>
+   <th>RMS angles [&deg;]</th>
+   <th>a</th>
+   <th>b</th>
+   <th>c</th>
+   <th>&alpha;</th>
+   <th>&beta;</th>
+   <th>&gamma;</th>
+   <th>RhoFit</th>
+   <th>LigFit</th>
+  </tr>
+ </thead>
+  <tbody>
+    <tr>    
+    </tr>
+    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
+
+    <tr>    
+      <td>
+          <form action="/density/" method="get" target="_blank">
+          <button class="btn" type="submit" 
+          value="{{usracr}}" 
+          name="structure" >Open</button>
+          </form>
+      </td>
+      <td>{{usracr}}</td>
+      <td>{{spg}}</td>
+      <td>{{resolution}}</td>
+      <td>{{r_work}}</td>
+      <td>{{r_free}}</td>
+      <td>{{bonds}}</td>
+      <td>{{angles}}</td>
+      <td>{{a}}</td>
+      <td>{{b}}</td>
+      <td>{{c}}</td>
+      <td>{{alpha}}</td>
+      <td>{{beta}}</td>
+      <td>{{gamma}}</td>
+      <td>{{rhofitscore}}</td>
+      <td>{{ligfitscore}}</td>
+      
+    </tr>
+    {% endfor %}                   
+              
+  </tbody>
+  </table>
+
+
+  </tbody>
+
+</table>
+<script>
+const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+// do the work...
+document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+    const table = th.closest('table');
+    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => table.appendChild(tr) );
+})));
+
+function searchDatasetName() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchDataset");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("resultsTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1];
+            if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+            }       
+        }
+        }
+</script>
 {% endblock %}
+

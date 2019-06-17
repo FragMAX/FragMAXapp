@@ -10,6 +10,7 @@ import random
 import natsort
 import shutil
 import pyfastcopy
+import csv
 import subprocess
 import h5py
 import itertools
@@ -516,8 +517,8 @@ def project_summary_load(request):
     if "colParam" in a:
         create_dataColParam(acr,path)
         out="Data collection parameters synced"
-    elif "panddaResults" in a:
-        panddaResultSummary()
+    # elif "panddaResults" in a:
+    #     panddaResultSummary()
         out="PanDDA result summary synced"
     elif "procRef" in a:
         resultSummary()    
@@ -922,125 +923,118 @@ def results(request):
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
         resultSummary()
-    if not os.path.exists(path+"/fragmax/process/generalrefsum.csv"):
+    if not os.path.exists(path+"/fragmax/process/results.csv"):
         resultSummary()
     try:
-        with open(path+"/fragmax/process/generalrefsum.csv","r") as inp:
-            a=inp.readlines()
-        return render_to_response('fragview/results.html', {'files': a})
+        with open(path+"/fragmax/process/results.csv","r") as readFile:
+            reader = csv.reader(readFile)
+            lines = list(reader)[1:]
+        return render(request, "fragview/results.html",{"csvfile":lines})    
     except:
         return render_to_response('fragview/results_notready.html')
 
 def results_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    a=str(request.GET.get('structure')) 
-    if "fspipeline" in a:
-        fsplog=[x for x in sorted(glob.glob("/data/visitors/"+a.split(";")[0].split("/final_")[0]+"/*/")) if "coot" not in x][-1]+"current_refine_001.log"
-        with open(fsplog,"r") as inp:
-
-            for line in inp.readlines():
-                if "Space group:" in line:
-                    spg=line.split("Space group: ")[-1].split(" (No")[0]
-                if "Resolution range:" in line:
-                    resolution=str(round(float(line.split()[-1]),2))
-                if "Final R-work" in line:
-                    rfree=str(round(100*float(line.split(",")[-1].split()[-1]),2))
-                    rwork=str(round(100*float(line.split(",")[0].split()[-1]),2))
-    if "dimple" in a:
-        dmplog="/data/visitors/"+a.split(";")[0].split("/final.pdb")[0]+"/dimple.log"
-        with open(dmplog,"r") as inp:
-            for line in inp.readlines():
-                if "R/Rfree" in line:
-                    rwork,rfree=line.split()[-1].split("/")
-                    rwork=str(round(100*float(rwork),2))
-                    rfree=str(round(100*float(rfree),2))
-                if "resol:" in line:
-                    resolution=str(round(float(line.split()[-1]),2))
-                if "# MTZ" in line:
-                    spg=" ".join(line.split()[3:7])
-
-    center=""
-    if "],[" in a.split(";")[3]:
-        center=a.split(";")[3].split("],[")[0]+"]"
-    else:
-        center=a.split(";")[-1].replace("],","]")    
-    ligsvg="/static/img/nolig.png"
-    if "Apo" not in a.split(";")[0]:
-        ligsvg=a.split(";")[0].split("-")[-1].split("_")[0]
+    value=str(request.GET.get('structure'))     
+    with open(path+"/fragmax/process/results.csv","r") as readFile:
+        reader = csv.reader(readFile)
+        lines = list(reader)[1:]
+    result_info=list(filter(lambda x:x[0]==value,lines))[0]
+    usracr,pdbout,nat_map,dif_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
     
-    dataset="_".join(a.split(";")[0].split("/")[-4:-1])
-    pdb=a.split(";")[0]
-    nat=a.split(";")[1]
-    dif=a.split(";")[2]
-    xyzlist=a.split(";")[3]
-    rscore=""
-    lscore=""
-    with open(path+"/fragmax/process/autolig.csv","r") as inp:
-        csv=inp.readlines()
-    for n,line in enumerate(csv):
-        if dataset in line and "<td>" in line:               
-            rscore=split_b(csv[n+2],"<td>","</td>")
-            lscore=split_b(csv[n+3],"<td>","</td>")
-
-        if dataset in line and "<button" in line:
-            ligdataset=split_b(line,'value="'," name=")
-
     
-    data=ligdataset.split(";")[0]
-    blob=ligdataset.split(";")[1]
-    lig=data.split(acr+"-")[-1].split("_")[0]
-    ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"    
-    rhofit=path+"/fragmax/results/ligandfit/"+data+"/rhofit/best.pdb"
-    ligfit=sorted(glob.glob(path+"/fragmax/results/ligandfit/"+data+"/*/ligand_fit_1.pdb"))[-1]
-    ligcenter="[]"
-    rhocenter="[]"
-    if os.path.exists(ligfit):
-        with open(ligfit,"r") as ligfitfile:
-            for line in ligfitfile.readlines():
-                if line.startswith("HETATM"):
-                    ligcenter="["+",".join(line[32:54].split())+"]"
-                    break
-    if os.path.exists(rhofit):                    
-        with open(rhofit,"r") as rhofitfile:
-            for line in rhofitfile.readlines():
-                if line.startswith("HETATM"):
-                    rhocenter="["+",".join(line[32:54].split())+"]"
-                    break
-    rpath=path.replace("/data/visitors/","")
+    if "apo" not in usracr.lower():
+        ligbox="block"
+
+        lig=usracr.split(acr+"-")[-1].split("_")[0]
+        ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"    
+        try:
+            rhofit=path+"/fragmax/results/ligandfit/"+usracr+"/rhofit/best.pdb"
+        except:
+            rhofit=""
+        try:
+            ligfit=sorted(glob.glob(path+"/fragmax/results/ligandfit/"+usracr+"/*/ligand_fit_1.pdb"))[-1]
+        except:
+            ligfit=""
         
+        if os.path.exists(ligfit):
+            with open(ligfit,"r") as ligfitfile:
+                for line in ligfitfile.readlines():
+                    if line.startswith("HETATM"):
+                        ligcenter="["+",".join(line[32:54].split())+"]"
+                        break
+        if os.path.exists(rhofit):                    
+            with open(rhofit,"r") as rhofitfile:
+                for line in rhofitfile.readlines():
+                    if line.startswith("HETATM"):
+                        rhocenter="["+",".join(line[32:54].split())+"]"
+                        break
+    else:
+        rhofitscore="-"
+        ligfitscore="-"
+        ligcenter="[]"
+        rhocenter="[]"
+        ligsvg="/static/img/apo.png"
+        ligbox="none"
     
+    try:
+        currentpos=[n for n,line in enumerate(lines) if usracr in line[0]][0]
+        if currentpos==len(lines)-1:
+            prevstr=lines[currentpos-1][0]
+            nextstr=lines[0][0]
+        elif currentpos==0:
+            prevstr=lines[-1][0]
+            nextstr=lines[currentpos+1][0]
 
+        else:
+            prevstr=lines[currentpos-1][0]
+            nextstr=lines[currentpos+1][0]
+
+    except:
+        currentpos=0
+        prevstr=usracr
+        nextstr=usracr
+
+
+    ##fix paths
+    rpath=path.replace("/data/visitors/","")
+    pdbout=pdbout.replace("/data/visitors/","/static/")
+    center=blist.split("],[")[0]+"]".replace(" ","")
+    center=center.replace("]]","]")
+    blist=blist.replace("]]","]")
+    
     return render(request,'fragview/density.html', {
-        "name":dataset,
-        "pdb":pdb,
-        "nat":nat,
-        "dif":dif,
-        "xyzlist":xyzlist,
+        "name":usracr,
+        "pdb":pdbout,
+        "nat":nat_map,
+        "dif":dif_map,
+        "xyzlist":blist,
         "center":center,
-        "proposal":proposal,
-        "shift":shift,
-        "fraglib":fraglib,
         "ligand":ligsvg,
-        "rscore":rscore,
-        "lscore":lscore,
-        "rwork":rwork,
-        "rfree":rfree,
+        "rscore":rhofitscore,
+        "lscore":ligfitscore,
+        "rwork":r_work,
+        "rfree":r_free,
         "resolution":resolution,
         "spg":spg,
-        'ligfit_dataset': data,
-        'blob': blob, 
-        'png':ligpng, 
+        'ligfit_dataset': usracr,
+        'blob': ligblob, 
         "path":rpath,
         "rhofitcenter":rhocenter,
-        "ligandfitcenter":ligcenter, 
+        "ligfitcenter":ligcenter, 
+        "ligbox":ligbox,
+        "prevstr":prevstr,
+        "nextstr":nextstr,
         })
 
 
 def testfunc(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-
-    return render(request, "fragview/testpage.html")    
+    with open(path+"/fragmax/process/results.csv","r") as readFile:
+        reader = csv.reader(readFile)
+        lines = list(reader)[1:]
+    return render(request, "fragview/testpage.html",{"test":"something","csvfile":lines})    
     
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
@@ -1243,12 +1237,11 @@ def pandda_densityC(request):
 
     panddaInput=str(request.GET.get('structure'))     
     
-    if len(panddaInput.split(";"))==5:
-        method,dataset,event,site,nav=panddaInput.split(";")
     if len(panddaInput.split(";"))==4:
         method,dataset,site,nav=panddaInput.split(";")
-    if len(panddaInput.split(";"))==3:
-        method,dataset,nav=panddaInput.split(";")
+
+    
+    dataset,site_idx,event_idx,method,ddtag,run=panddaInput.split(";")
     
 
 
@@ -1259,40 +1252,19 @@ def pandda_densityC(request):
 
 
     #mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
-    dsList=list()
-    for k,v in sorted(eventDict.items()):
-        for k1,v1 in v.items():
-            dsList.append([k,k1,v1[0][:-2]])
+    # dsList=list()
+    # for k,v in sorted(eventDict.items()):
+    #     for k1,v1 in v.items():
+    #         dsList.append([k,k1,v1[0][:-2]])
 
             
-    for n,i in enumerate(dsList):        
-        if i[0]+i[2][-1]==dataset[:-2]:        
-            break
+    # for n,i in enumerate(dsList):        
+    #     if i[0]+i[2][-1]==dataset[:-2]:        
+    #         break
             
-    if "prev" in nav:
-             
-        n=n-1
-        if n==-1:
-            n=len(dsList)-1
-        dataset,site_idx,method=dsList[n]
-        dataset=dataset+method[-1]+"_1"
-        method=method[:-2]
-
-    if "next" in nav:
-        n=n+1
-        if n==len(dsList):
-            n=0
-        
-        dataset,site_idx,method=dsList[n]
-        dataset=dataset+method[-1]+"_1"
-        method=method[:-2]
-
-    if "stay" in nav:
-        #site_idx=dsList[[x[0] for x in dsList].index(dataset[:-3])][1]
-        site_idx=site 
 
     ligand=dataset.split("-")[-1].split("_")[0]
-    modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
+    modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/modelled_structures/'
     pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
     
     center="[0,0,0]"
@@ -1304,9 +1276,10 @@ def pandda_densityC(request):
     with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
         inspect_events=inp.readlines()
     for i in inspect_events:
-        if dataset in i:
-            if i.split(",")[11]==site_idx:
-                k=i.split(",")
+        if dataset+ddtag+"_"+run in i:
+            line=i.split(",")
+            if dataset+ddtag+"_"+run == line[0] and event_idx==line[1] and site_idx==line[11]:
+                k=line
             
     headers=inspect_events[0].split(",")
     bdc=k[2]    
@@ -1343,13 +1316,29 @@ def pandda_densityC(request):
         ligconfid="low_conf_radio"
         
     pdb=pdb.replace("/data/visitors/","")
-    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
-    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
-    summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+"/html/"+dataset+".html")
+    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
+    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+    summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
+    
+    with open(path+"/fragmax/process/panddainspects.csv","r") as csvFile:
+        reader = csv.reader(csvFile)
+        lines = list(reader)
+    lines=lines[1:]
+    for n,i in enumerate(lines):
+        if panddaInput.split(";")==i[:-1]:
+            if n==len(lines)-1:
+                prevstr=(";".join(lines[n-1][:-1]))
+                nextstr=(";".join(lines[0][:-1]))
+            elif n==0:
+                prevstr=(";".join(lines[-1][:-1]))
+                nextstr=(";".join(lines[n+1][:-1]))
+            else:
+                prevstr=(";".join(lines[n-1][:-1]))
+                nextstr=(";".join(lines[n+1][:-1]))
     return render(request,'fragview/pandda_densityC.html', {
-        "siten":site,
-        "event":event,
-        "dataset":dataset,
+        "siten":site_idx,
+        "event":event_idx,
+        "dataset":dataset+ddtag+"_"+run,
         "method":method,
         "rwork":rwork,
         "rfree":rfree,
@@ -1370,7 +1359,9 @@ def pandda_densityC(request):
         "ligconfid":ligconfid,
         "comment":comment,
         "bdc":bdc,
-        "summary":summarypath
+        "summary":summarypath,
+        "prevstr":prevstr,
+        "nextstr":nextstr
 
         })
     #else:
@@ -1619,7 +1610,17 @@ def pandda_inspect(request):
                 for k1,v1 in v.items():
                     #print(k,k1,v1[0][:-2])
                     detailsDict=datasetDetails(k,k1,v1[0][:-4])
-                    ds=v1[0][:-4]+";"+k+v1[0][-3:]+";"+detailsDict['event_idx']+";"+k1
+                    #ds=method;dataset;event_id;site_id
+                    
+                    dataset=k
+                    site_idx=k1.split("_")[0]
+                    event_idx=k1.split("_")[1]
+                    proc_method="_".join(v1[0].split("_")[0:2])
+                    ddtag=v1[0].split("_")[2]
+                    run=v1[0].split("_")[3]
+
+                    ds=dataset+";"+site_idx+";"+event_idx+";"+proc_method+";"+ddtag+";"+run
+                    #ds=v1[0][:-4]+";"+k+v1[0][-3:]+";"+detailsDict['event_idx']+";"+k1
                     #datasetDetails(dataset,site_idx,method)
                     
                     
@@ -1627,8 +1628,7 @@ def pandda_inspect(request):
                         html+='        <tr class=info>\n'
                     else:
                         html+='        <tr class=success>\n'
-                    html+='          <th class="text-nowrap" scope="row" style="text-align: center;"><form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+';stay" name="structure" size="1">Open</button></form></th>\n'
-                    
+                    html+='          <th class="text-nowrap" scope="row" style="text-align: center;"><form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form></th>\n'
                     html+='          <th class="text-nowrap" scope="row">'+k+v1[0][-3:]+'</th>\n'
                     html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>'+v1[0][:-4]+'</td>\n'
                                         
@@ -1951,7 +1951,7 @@ def datasetDetails(dataset,site_idx,method):
     
     for i in a:
         if dataset in i:
-            if i.split(",")[11]==site_idx:
+            if i.split(",")[11]+"_"+i.split(",")[1]==site_idx:
                 k=i.split(",")
 
     headers=a[0].split(",")
@@ -1996,7 +1996,7 @@ def panddaEvents(filters):
             
             if line[headers.index("Ligand Placed")]=="True":                
                 dtag=line[0][:-3]
-                site_idx=line[11]
+                site_idx=line[11]+"_"+line[1]
                 bdc=line[2]
                 intersting=line[headers.index("Ligand Confidence")]
                 if intersting=="High":
@@ -2876,55 +2876,125 @@ def get_results_info(entry):
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
-    #acr_list=glob.glob(subpath+"*/fragmax/results/"+acr+"**")
-    acr_list=glob.glob(path+"*/fragmax/results/"+acr+"**")
-    pipeline_dict=dict()
-    for pacr in acr_list:
-        pipeline_dict[pacr.split("/")[-1]]=glob.glob(pacr+"/**")
+    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")
+    with open(path+"/fragmax/process/results.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","sigma","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])
 
-    dimple_dict=dict()
-    fspipe_dict=dict()
+        
+        for entry in sorted(resultsList):
 
-    for key,value in pipeline_dict.items():
-        l=list()
-        for dtprc in value:        
-            if os.path.exists(dtprc+"/dimple/dimple.log"):
-                l.append(dtprc+"/dimple/dimple.log")
-        dimple_dict[key]=l
-        m=list()
-        for dtprc in value:        
-            if os.path.isdir(dtprc+"/fspipeline"):
-                if len(glob.glob(dtprc+"/fspipeline/final**pdb"))!=0:                
-                    m.append(glob.glob(dtprc+"/fspipeline/final**pdb")[0])
-        fspipe_dict[key]=m
+            usracr="_".join(entry.split("/")[8:11])
+
+            if "dimple" in usracr:
+                with open(entry,"r") as inp:
+                    dimple_log=inp.readlines()
+                blist=list()
+                for n,line in enumerate(dimple_log):
+                    if "data_file: " in line:
+                        usrpdbpath= line.replace("data_file: ","")
+                    if "# MTZ " in line:
+                        spg=line.split(")")[1].split("(")[0].replace(" ","")
+                        a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+                        alpha=str("{0:.2f}".format(float(alpha)))
+                        beta=str("{0:.2f}".format(float(beta)))
+                        gamma=str("{0:.2f}".format(float(gamma)))
+                    if line.startswith("info:") and "R/Rfree" in line:
+                        r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+                        r_free=str("{0:.2f}".format(float(r_free)))
+                        r_work=str("{0:.2f}".format(float(r_work)))
+                    if line.startswith("blobs: "):            
+                        blist=[x.replace(" ","")+"]" for x in line.split(":")[-1][2:-2].split("],")]
+                        blist=[x.replace(" ","") for x in blist]
+                    if line.startswith("#     RMS: "):
+                        bonds,angles=line.split()[5],line.split()[9]
+                    if line.startswith("info: resol. "):
+                        resolution=line.split()[2]
+                        resolution=str("{0:.2f}".format(float(resolution)))
+                pdbout  ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
+                dif_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
+                nat_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+
+            if "fspipeline" in usracr:
+                with open(entry,"r") as inp:
+                    pdb_file=inp.readlines()
+                for line in pdb_file:
+                    if "REMARK Final:" in line:            
+                        r_work=line.split()[4]
+                        r_free=line.split()[7]
+                        r_free=str("{0:.2f}".format(float(r_free)))
+                        r_work=str("{0:.2f}".format(float(r_work)))
+                        bonds=line.split()[10]
+                        angles=line.split()[13]
+                    if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                        resolution=line.split(":")[-1].replace(" ","").replace("\n","")
+                        resolution=str("{0:.2f}".format(float(resolution)))
+                    if "CRYST1" in line:
+                        a=line[9:15]
+                        b=line[18:24]
+                        c=line[27:33]
+                        alpha=line[34:40].replace(" ","")
+                        beta=line[41:47].replace(" ","")
+                        gamma=line[48:54].replace(" ","")
+                        a=str("{0:.2f}".format(float(a)))
+                        b=str("{0:.2f}".format(float(b)))
+                        c=str("{0:.2f}".format(float(c)))
+                        spg="".join(line.split()[-4:])
+                with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:        
+                    blist=list()
+                    for line in inp.readlines():
+                        if "INFO:: cluster at xyz = " in line:
+                            blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
+                            blob="["+blob+"]"
+                            blist.append(blob)
+                            blist=[x.replace(" ","") for x in blist]
+                with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
+                    for mline in inp.readlines():
+                        if "_2mFo-DFc.ccp4" in mline:
+                            print(mline)
+                            pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
+                            dif_map ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
+                            nat_map ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
+
+            dataset=path+"/fragmax/results/ligandfit/"+usracr   
+            if os.path.exists(dataset+"/final.pdb"): 
+            
+                if "Apo" in dataset:
+                    ligfitscore="--"
+                    rhofitscore="--"
 
 
-    fspline=""
-    dimpleline=""
-    sortedline=""
 
-    sortedacr=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" not in x and "DM" not in x]
-    sortedacr+=[x for x in natsort.natsorted(set(list(fspipe_dict.keys())+list(dimple_dict.keys()))) if "Apo" in x or "DM" in x]
+                else:
 
+                    key=dataset.split("/")[-1]
+                    if "EDNA_proc" in dataset:
+                        pipeline="_".join(dataset.split("_")[-3:])
+                    else:
+                        pipeline="_".join(dataset.split("_")[-2:])
+                    if os.path.exists(dataset+"/rhofit/Hit_corr.log"):
+                        with open(dataset+"/rhofit/Hit_corr.log","r") as inp:
 
-
-    for key,value in natsort.natsorted(fspipe_dict.items()):
-        for f in value:            
-            fspline+=fsp_info_general(f)+"\n"
-
-    for key,value in natsort.natsorted(dimple_dict.items()):
-        for f in value:
-            dimpleline+=dpl_info_general(f)+"\n"
-
-    dl=fspline.split("\n")+dimpleline.split("\n")            
-    for i in sortedacr:
-        for j in dl:
-            if i in j:
-                sortedline+=j+"\n"            
+                            rhofitscore=inp.readlines()[0].split()[1]               
 
 
-    with open(path+"/fragmax/process/generalrefsum.csv","w") as outp:
-        outp.write(sortedline)
+                    lig=dataset.split(acr+"-")[-1].split("_")[0]
+                    ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/*"+fraglib+"*/"+lig+"/"+lig+".svg"
+
+                    if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_summary.dat"):
+                        with open(dataset+"/LigandFit_run_1_/LigandFit_summary.dat","r") as inp:                    
+
+                            ligfitscore=inp.readlines()[6].split()[2]
+
+                    if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log"):
+                        with open(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log","r") as inp:
+                            for line in inp.readlines():
+                                if line.startswith(" lig_xyz"):
+                                    ligblob=line.split("lig_xyz ")[-1].replace("\n","")
+                blist=",".join(blist)
+            if "fragmax/results" in pdbout:
+                writer.writerow([usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob])
+        
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()

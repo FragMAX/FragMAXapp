@@ -1,4 +1,5 @@
 
+
 {% extends 'fragview/base.html' %}
 
 {% block title %}Norrsken - Results{% endblock %}
@@ -65,7 +66,7 @@
  <table  id="resultsTable">
    <thead>
   <tr>
-   <th>Open Structure</th>
+   <th>View Structure</th>
    <th>Data set</th>
    <th>Space group</th>
    <th>Res. [&Aring;]</th>
@@ -78,21 +79,43 @@
    <th>c</th>
    <th>&alpha;</th>
    <th>&beta;</th>
-    <th>&gamma;</th>
-   <th>Unmodelled blobs</th>
-   <th>&sigma;</th>
+   <th>&gamma;</th>
+   <th>RhoFit</th>
+   <th>LigFit</th>
   </tr>
  </thead>
   <tbody>
-    <tr>
-    
+    <tr>    
     </tr>
-    {% for line in files %}
+    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
 
-    {{line |safe}}
-
-    {% endfor %}    
-                   
+    <tr>    
+      <td>
+          <form action="/density/" method="get" target="_blank">
+          <button class="btn" type="submit" 
+          value="{{usracr}}" 
+          name="structure" >Open</button>
+          </form>
+      </td>
+      <td>{{usracr}}</td>
+      <td>{{spg}}</td>
+      <td>{{resolution}}</td>
+      <td>{{r_work}}</td>
+      <td>{{r_free}}</td>
+      <td>{{bonds}}</td>
+      <td>{{angles}}</td>
+      <td>{{a}}</td>
+      <td>{{b}}</td>
+      <td>{{c}}</td>
+      <td>{{alpha}}</td>
+      <td>{{beta}}</td>
+      <td>{{gamma}}</td>
+      <td>{{rhofitscore}}</td>
+      <td>{{ligfitscore}}</td>
+      
+    </tr>
+    {% endfor %}                   
+              
   </tbody>
   </table>
 

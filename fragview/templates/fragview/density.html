@@ -19,7 +19,6 @@
      width: calc(100% - 550px);
      height: calc(100% - 100px);
    }
-   
    #help {
      display: none;
      font-size: 16px;
@@ -69,7 +68,7 @@
 <body style="background-color: white">
 
   
-    <h5>Showing results for: {{name }} </h5>
+    <h5 style="padding-left:20px">Showing results for: {{name }} </h5>
     
     
     
@@ -101,8 +100,14 @@
         <div>
           <h6>Structure navigation</h6>
         </div>
-        <input class="btn " type="button" value="Previous"  ></input> 
-        <input  class="btn" type="button" value="Next" ></input> 
+        <div style="display:inline-flex">
+        <form action="/density/" method="get" >
+          <button class="btn" type="submit" value="{{prevstr}}" name="structure">Previous</button>
+        </form>
+        <form action="/density/" method="get" style="padding-left: 5px;">
+          <button class="btn" type="submit" value="{{nextstr}}" name="structure">Next</button>
+        </form>
+        </div>
       </div>
       <div style="padding-top:20px">
         <table>
@@ -116,13 +121,13 @@
           <tr>
             <th>Rwork
             </th>
-            <td>{{rwork}} %
+            <td>{{rwork}} 
             </td>
           </tr>
           <tr>
             <th>Rfree
             </th>
-            <td>{{rfree}} %
+            <td>{{rfree}} 
             </td>
           </tr>
           <tr>
@@ -146,7 +151,9 @@
 
         </table>
       </div>
-      <div style="padding-left:30px !important;">
+      
+      <div style="display:{{ligbox}};">
+      <div style="padding-left:30px !important; ">
         <div>
           <h6>RhoFit</h6>
         </div>
@@ -175,22 +182,19 @@
           </label>
         </div>
       </div>
+
       <div style="padding-top: 30px;padding-left:30px !important;">
         <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
           <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
       </div>
-      <div style="padding-top:30px">    
+      <div style="padding:30px 0 0 30px">    
           <h6>Dataset ligand</h6>     
-      <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
+      <img style="text-align:center" class="ligpng" id="ligand" src="{{ligand}}" >
       </div>
     </div>
-
-
-
+    </div>
     <div style="display:flex;">
-    {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
-    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
     <div style="padding-left:20px !important; padding-top:7px !important">
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
@@ -276,7 +280,7 @@
     function showligfit(){
       V.model_bags[1]  .visible=true; 
       V.redraw_all()
-      V.recenter({{ligandfitcenter}},null,25)
+      V.recenter({{ligfitcenter}},null,25)
       updateview();
       document.getElementById("ligfit_radio").checked=1
 
