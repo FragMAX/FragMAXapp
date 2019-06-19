@@ -658,10 +658,10 @@ def datasets(request):
     resyncImages=str(request.GET.get("resyncImgButton"))
     resyncStatus=str(request.GET.get("resyncstButton"))
 
-    if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
-        with open(path+"/fragmax/process/datacollectionPar.csv") as csvinp:
+    if os.path.exists(path+"/fragmax/process/datacollections.csv"):
+        with open(path+"/fragmax/process/datacollections.csv") as csvinp:
             if acr not in "".join(csvinp.readlines()):
-                os.remove(path+"/fragmax/process/datacollectionPar.csv")
+                os.remove(path+"/fragmax/process/datacollections.csv")
                 create_dataColParam(acr,path)   
                 get_project_status()     
                 if not os.path.exists(path+"/fragmax/results/"):    
@@ -671,7 +671,7 @@ def datasets(request):
         if not os.path.exists(path+"/fragmax/results/"):
             get_project_status_initial()        
     if "resyncDataset" in resyncAction:
-        shutil.move(path+"/fragmax/process/datacollectionPar.csv",path+"/fragmax/process/datacollectionParold.csv")
+        shutil.move(path+"/fragmax/process/datacollections.csv",path+"/fragmax/process/datacollectionsold.csv")
         create_dataColParam(acr,path)
     if "resyncImages" in resyncImages:
         with open(path+"/fragmax/scripts/hdf2jpg.sh","w") as outp:
@@ -711,19 +711,18 @@ def datasets(request):
             get_project_status_initial()
         
     
-
-    with open(path+"/fragmax/process/datacollectionPar.csv","r") as inp:
-        a=inp.readlines()
-
-    acr_list =a[1].replace("\n","").split(",")
-    smp_list =[x.replace("\n","").split(acr+"-")[-1] for x in a[2].split(",")]
-    prf_list =a[2].replace("\n","").split(",")
-    res_list =a[3].replace("\n","").split(",")
-    img_list =a[4].replace("\n","").split(",")
-    path_list=a[5].replace("\n","").split(",")
-    snap_list=a[6].replace("\n","").split(",")
-    png_list =a[7].replace("\n","").split(",")
-    run_list =a[8].replace("\n","").split(",")
+    with open(path+"/fragmax/process/datacollections.csv","r") as readFile:
+        reader = csv.reader(readFile)
+        lines = list(reader)
+        acr_list=[x[3] for x in lines[1:]]
+        smp_list=[x[1] for x in lines[1:]]
+        prf_list=[x[0] for x in lines[1:]]
+        res_list=[x[6] for x in lines[1:]]
+        img_list=[x[5] for x in lines[1:]]
+        path_list=[x[2] for x in lines[1:]]
+        snap_list=[x[7].split(",")[0].replace("/mxn/groups/ispybstorage/","/static/") for x in lines[1:]]
+        png_list=[x[8] for x in lines[1:]]
+        run_list=[x[4] for x in lines[1:]]
     dpentry=list()
     rfentry=list()
     lgentry=list()
@@ -2505,71 +2504,49 @@ def retrieveParameters(xmlfile):
 def create_dataColParam(acr, path):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
-    if os.path.exists(path+"/fragmax/process/datacollectionPar.csv"):
+    if os.path.exists(path+"/fragmax/process/datacollections.csv"):
         return
     else:
         
         t = threading.Thread(target=ligandToSVG,args=())
         t.daemon = True
         t.start()
-
-        img_list=list()
-        prf_list=list()
-        res_list=list()
-        snap_list=list()
-        path_list=list()
-        acr_list=list()
-        png_list=list()
-        run_list=list()
-        os.makedirs(path+"/fragmax/process/",exist_ok=True)
-
-        for xml in natsort.natsorted(glob.glob(path+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
-            outdirxml=xml.replace("/process/","/fragmax/process/").split("fastdp")[0].replace("xds_","")[:-3]
-            if not os.path.exists(outdirxml+".xml"):
-                os.makedirs("/".join(outdirxml.split("/")[:-1]),exist_ok=True)
-                shutil.copyfile(xml,outdirxml+".xml")
-
-            with open(xml) as fd:
-                doc = xmltodict.parse(fd.read())
+        with open(path+"/fragmax/process/datacollections.csv","w") as csvFile:
+            writer = csv.writer(csvFile)
+            writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
             
-            img_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["numberOfImages"])
-            res_list.append("%.2f" % float(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["resolution"]))
-            run_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"])
-            prf_list.append(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"])
-            snap_list.append("/static/pyarch/visitors/"+proposal+"/"+shift+"/raw/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"]+"_1.snapshot.jpeg")
-            os.makedirs(path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/",exist_ok=True)
-            # if not os.path.exists(path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_1.xml"):
-            #     shutil.copyfile(xml,path+"/fragmax/process/"+acr+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"/"+doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]+"_1.xml")
+            for xml in natsort.natsorted(glob.glob(path+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"), key=lambda x: ("Apo" in x, x)):    
+                outdirxml=xml.replace("/process/","/fragmax/process/").split("fastdp")[0].replace("xds_","")[:-3]
+                if not os.path.exists(outdirxml+".xml"):
+                    if not os.path.exists("/".join(outdirxml.split("/")[:-1])):
+                        os.makedirs("/".join(outdirxml.split("/")[:-1]))
+                    shutil.copyfile(xml,outdirxml+".xml")        
 
-            path_list.append(xml.split("xds_")[0].replace("process","raw"))
-            acr_list.append(acr)
 
-            if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                png_list.append("/static/img/apo.png")
-            elif fraglib in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                wellNo=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"].split("-")[-1]
-                png_list.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg")
-            else:
-                png_list.append("noPNG")
-        
-    with open(path+"/fragmax/process/datacollectionPar.csv","w") as outp:            
-        outp.write("sep=,")
-        outp.write("\n")
-        outp.write(",".join(acr_list))
-        outp.write("\n")
-        outp.write(",".join(prf_list))
-        outp.write("\n")
-        outp.write(",".join(res_list))
-        outp.write("\n")
-        outp.write(",".join(img_list))
-        outp.write("\n")
-        outp.write(",".join(path_list))
-        outp.write("\n")
-        outp.write(",".join(snap_list))
-        outp.write("\n")
-        outp.write(",".join(png_list))
-        outp.write("\n")
-        outp.write(",".join(run_list))
+                with open(xml,"r") as fd:
+                    doc = xmltodict.parse(fd.read())
+
+                nIMG       = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["numberOfImages"]
+                resolution = "%.2f" % float(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["resolution"])
+                run        = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"]
+                dataset    = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]
+                sample     = dataset.split("-")[-1]
+                snaps      = ",".join([doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath"+i] for i in ["1","2","3","4"] if doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath"+i]!= "None"])
+                if len(snaps)<1:
+                    snaps="noSnapshots"
+                colPath    = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imageDirectory"]
+
+
+                if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
+                    ligsvg="/static/img/apo.png"
+                elif fraglib in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
+                    wellNo=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"].split("-")[-1]
+                    ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
+                else:
+                    ligsvg="noPNG"
+                
+                writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
+    
         
 def parseLigand_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
