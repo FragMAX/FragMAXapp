@@ -15,9 +15,8 @@
    #viewer {
      position: absolute;
      left: 550px;
-     top: 100px;
      width: calc(100% - 550px);
-     height: calc(100% - 100px);
+     height: 100%;
    }
    
    #help {
@@ -40,14 +39,15 @@
      background-color: rgba(0,0,0,0.1);
      position: absolute;
      left: 265px;
-     top: 100px;     
+     top: 10px;
+     height: calc(100% - 20px);     
      width: 270px;
      cursor: default;
      padding: 5px;
      border-radius: 5px;
      z-index: 9;
    }
-   #hud u { padding: 0 8px; text-decoration: none;
+   #hud u {  text-decoration: none;
             border: solid; border-width: 1px 0; }
    #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
    #inset {
@@ -61,6 +61,8 @@
      display: none;
    }
    a { color: #59C; }
+   #viewer b { color: #FCFCFC; }
+   #viewer b { position: absolute; top: 20px; left: 20px; }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -69,8 +71,8 @@
 <body style="background-color: white">
 
   
-    <h5>Showing results for: {{dataset }} {{method}}. Check the <a href="/static/{{summary}}" target="_blank">analysis summary</a></h5>
-    
+     <div id="viewer" ><b><h6 style="padding-left:20px">{{dataset }}_{{method}}</h6></b></div>
+
     
     
     <div id="left-controlpanel" >
@@ -78,6 +80,8 @@
       
       <div style="padding-left:15px !important;">
         <div>
+          <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>
+
           <h6>Structure navigation</h6>
         </div>
         <div style="display:flex">
@@ -216,7 +220,7 @@
     <div style="display:flex;">
     {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
     <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
-    <div style="padding-left:20px !important; padding-top:7px !important">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px">
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>

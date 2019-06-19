@@ -1251,19 +1251,7 @@ def pandda_densityC(request):
 
 
 
-    #mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
-    # dsList=list()
-    # for k,v in sorted(eventDict.items()):
-    #     for k1,v1 in v.items():
-    #         dsList.append([k,k1,v1[0][:-2]])
-
-            
-    # for n,i in enumerate(dsList):        
-    #     if i[0]+i[2][-1]==dataset[:-2]:        
-    #         break
-            
-
-    ligand=dataset.split("-")[-1].split("_")[0]
+    ligand=dataset.split("-")[-1].split("_")[0]+ddtag
     modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/modelled_structures/'
     pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
     
