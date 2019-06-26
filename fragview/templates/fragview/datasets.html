@@ -46,20 +46,17 @@
   }
 </style>
   <div>
-    <h4>Datasets selection</h4> 
+    <h4>Data Collection Overview</h4> 
     <div style="display:flex;">
-      {% comment %} <form action="/process_all/" method="get" id="procButton">
-        <button class="btn" type="submit" value="process" name="proteinPrefix" size="1">Process All</button>
-      </form>   {% endcomment %}
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncDataset" name="resyncdsButton" size="1">Resync datasets</button>
       </form>  
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Resync status</button>
       </form>  
-      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+      {% comment %} <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncImages" name="resyncImgButton" size="1">Resync SVG and Diff</button>
-      </form>  
+      </form>   {% endcomment %}
       </div>
   </div>
   <p></p>

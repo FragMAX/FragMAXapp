@@ -70,7 +70,6 @@
 </head>
 <body style="background-color: white">
 
-     <div id="viewer" ><b><h6 style="padding-left:20px">{{dataset }}_{{method}}</h6></b></div>
 
     
     
@@ -219,7 +218,8 @@
     <div style="display:flex;">
     {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
     <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+      <b><h6>{{dataset }}_{{method}}</h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>

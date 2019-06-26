@@ -61,8 +61,7 @@
      display: none;
    }
    a { color: #59C; }
-   #viewer b { color: #FCFCFC; }
-   #viewer b { position: absolute; top: 20px; left: 20px; }
+   
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -70,10 +69,6 @@
 </head>
 <body style="background-color: white">
 
-    <div id="viewer" ><b><h6 style="padding-left:20px">{{name }} </h6></b></div>
-
-    
-    
     
     
     <div id="left-controlpanel" >
@@ -82,19 +77,6 @@
           <h6>Blob navigation</h6>
         </div>
       </div>
-      {% comment %} <div class="col s12 required inline" style="padding-bottom:5px !important;" id="model_confidence">
-          <div class="radio" id="conf_level"><label>
-              <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high" >
-              <span class="item-label" for="high_conf_radio">Dmpl</span>
-          </label><label>
-              <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
-              <span class="item-label" for="medium_conf_radio">FSP</span>
-          </label><label>
-              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
-              <span class="item-label" for="low_conf_radio">BSTR</span>
-          </label></div>
-        </div>  {% endcomment %}
-
       <div style="padding-left:30px !important;">
         
         <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
@@ -157,7 +139,7 @@
       </div>
       
       <div style="display:{{ligbox}};">
-      <div style="padding-left:30px !important; ">
+      <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
           <h6>RhoFit</h6>
         </div>
@@ -173,7 +155,7 @@
       
 
           
-      <div style="padding-left:30px !important;">
+      <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
           <h6>LigFit</h6>
         </div>
@@ -187,7 +169,7 @@
         </div>
       </div>
 
-      <div style="padding-top: 30px;padding-left:30px !important;">
+      <div style="padding-top: 30px;padding-left:30px !important; display:{{dualviewbox}}">
         <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
           <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
@@ -199,7 +181,8 @@
     </div>
     </div>
     <div style="display:flex;">
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+    <b><h6>{{name }} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>
@@ -212,16 +195,15 @@
 
     <script>
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-      V.load_pdb("/static/{{pdb}}",null, function(){
-          V.recenter({{center}}, null, 1);
-      });
+      V.load_pdb("/static/{{pdb}}");
       V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
 
 
-      V.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ligfit_dataset}}/LigandFit_run_1_/ligand_fit_1.pdb");
-      V.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ligfit_dataset}}/rhofit/best.pdb");
+      V.load_pdb("{{ligfitpdb}}");
+      V.load_pdb("{{rhofitpdb}}");
+      {% comment %} V.load_pdb("/static/{{path}}/fragmax/results/{{ligfit_dataset}}/{{process}}/{{refine}}/rhofit/best.pdb"); {% endcomment %}
 
-      var blobs = [{{xyzlist}}];
+      var blobs = {{xyzlist}};
     
 
     var index = 0;
@@ -247,17 +229,15 @@
 
 
 
-    var proteinModel=V.model_bags[2]    
-    var ligfitModel =V.model_bags[1]    
-    var rhofitModel =V.model_bags[0]
-
+    lpos={{rpos}}
+    rpos={{lpos}}
 
     function test(){
       alert(rhofitModel)
     }
 
     function hiderhofit(){
-      V.model_bags[0].visible=false; 
+      V.model_bags[rpos].visible=false; 
       V.redraw_all()
       updateview();
       document.getElementById("rhofit_radio").checked=0
@@ -265,7 +245,7 @@
     }
 
     function hideligfit(){
-      V.model_bags[1]  .visible=false; 
+      V.model_bags[lpos]  .visible=false; 
       V.redraw_all()
       updateview();
       document.getElementById("ligfit_radio").checked=0
@@ -274,30 +254,30 @@
 
 
     function showrhofit(){
-      V.model_bags[0].visible=true; 
+      V.model_bags[rpos].visible=true; 
       V.redraw_all()
-      V.recenter({{ligfitcenter}},null,25)
+      V.recenter({{rhofitcenter}},null,25)
       updateview();
       document.getElementById("rhofit_radio").checked=1
     }
 
     function showligfit(){
-      V.model_bags[1]  .visible=true; 
+      V.model_bags[lpos]  .visible=true; 
       V.redraw_all()
-      V.recenter({{rhofitcenter}},null,25)
+      V.recenter({{ligfitcenter}},null,25)
       updateview();
       document.getElementById("ligfit_radio").checked=1
 
     }
 
     function showprotein(){
-      V.model_bags[2].visible=true; 
+      V.model_bags[-1].visible=true; 
       V.redraw_all();
       updateview();
     }
 
     function hideprotein(){
-      V.model_bags[2].visible=false; 
+      V.model_bags[-1].visible=false; 
       V.redraw_all();
       updateview();
     }

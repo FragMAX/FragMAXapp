@@ -50,8 +50,8 @@
    a { color: #59C; }
    img {cursor: pointer;}
    #viewer1 b, #viewer2 b { color: #FCFCFC;}
-   #viewer1 b { position: absolute; bottom: 30px; left: 30px; }
-   #viewer2 b { position: absolute; bottom: 30px; right: 30px; }
+   #viewer1 b { position: absolute; bottom: 30px; left: 30px;  background-color: #a8a8a8;}
+   #viewer2 b { position: absolute; bottom: 30px; right: 30px; background-color: #a8a8a8;}
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -67,21 +67,16 @@
 
     V1 = new UM.Viewer({viewer: "viewer1", focusable: true});
 
-    V1.load_pdb_and_ccp4_maps("/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final.pdb",
-                              "/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final_2mFo-DFc.ccp4",
-                              "/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final_mFo-DFc.ccp4", function () {
-                              
-
-    });
-    V1.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/rhofit/best.pdb");
+    V1.load_pdb_and_ccp4_maps("{{pdb}}",
+                              "{{dif}}",
+                              "{{nat}}");
+    V1.load_pdb("{{rhofit}}");
 
     V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1});
-    V2.load_pdb_and_ccp4_maps("/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final.pdb",
-                              "/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final_2mFo-DFc.ccp4",
-                              "/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/final_mFo-DFc.ccp4", function () {  
-
-    });
-    V2.load_pdb("/static/{{path}}/fragmax/results/ligandfit/{{ ligfit_dataset }}/LigandFit_run_1_/ligand_fit_1.pdb");
+    V2.load_pdb_and_ccp4_maps("{{pdb}}",
+                              "{{dif}}",
+                              "{{nat}}");
+    V2.load_pdb("{{ligfit}}");
 
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);
