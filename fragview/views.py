@@ -544,7 +544,7 @@ def dataset_info(request):
     xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
     datainfo=retrieveParameters(xmlfile)    
 
-    energy=format(float(datainfo["wavelength"])*13.6307922,".2f")
+    energy=format(12.4/float(datainfo["wavelength"]),".2f")
     totalExposure=str(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]))
     edgeResolution=str(float(datainfo["resolution"])*0.75625)
     #ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
