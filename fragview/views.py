@@ -32,9 +32,7 @@ from collections import Counter
 ################################
 #User specific data
 #Changing this parameters for different projects based on user credentials
-#acr="hCAII"
-#proposal="20180489"
-#shift="20190127"
+
 
 
 setfile="/mxn/home/guslim/Projects/webapp/static/projectSettings/.settings"
@@ -122,7 +120,7 @@ def pipedream_results(request):
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
         get_pipedream_results()
-    if not os.path.exists(path+"/fragmax/process/pipedream.csv"):
+    if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
             get_pipedream_results()
     try:
         datasetlist=list()
@@ -145,7 +143,7 @@ def pipedream_results(request):
         ccp4diflistW=list()
         ccp4natlist=list()
 
-        with open(path+"/fragmax/process/pipedream.csv","r") as inp:
+        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as inp:
             for a in inp.readlines():            
                 dataset=a.split(";")[0]
                 datasetlist.append(a.split(";")[0])
@@ -207,7 +205,7 @@ def submit_pipedream(request):
             userPDB=b_userPDBcode.replace("b_userPDBcode:","")
             userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
             
-            ## Download and prepare PDB file - remove waters and HETATM
+            ## Download and prepare PDB _file - remove waters and HETATM
             with open(userPDBpath,"w") as pdb:
                pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
             
@@ -355,7 +353,7 @@ def submit_pipedream(request):
             userPDB=b_userPDBcode.replace("b_userPDBcode:","")
             userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
             
-            ## Download and prepare PDB file - remove waters and HETATM
+            ## Download and prepare PDB _file - remove waters and HETATM
             with open(userPDBpath,"w") as pdb:
                pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
             
@@ -535,10 +533,10 @@ def project_summary_load(request):
 def dataset_info(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    a=str(request.GET.get('proteinPrefix'))     
-    prefix=a.split(";")[0]
-    images=a.split(";")[1]
-    run=a.split(";")[2]
+    dataset=str(request.GET.get('proteinPrefix'))     
+    prefix=dataset.split(";")[0]
+    images=dataset.split(";")[1]
+    run=dataset.split(";")[2]
 
     images=str(int(images)/2)
     xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
@@ -556,37 +554,37 @@ def dataset_info(request):
     solventConc="15%"
     soakTime="24h"
 
+    snapshot1=datainfo["snapshot1"].replace("/mxn/groups/ispybstorage/","/static/")
+    if datainfo["snapshot2"]=="None":
+        snapshot2=datainfo["snapshot1"].replace("/mxn/groups/ispybstorage/","/static/")
+    else:
+        snapshot2=datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/","/static/")
+
+    diffraction1=path.replace("/data/visitors/","/static/")+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
+    if not os.path.exists(diffraction1):    
+        h5data=path+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        cmd="adxv -sa "+h5data+"01.h5 "+diffraction1.replace("/static/","/data/visitors/")
+        subprocess.call(cmd,shell=True)
+        
+    diffraction2=path.replace("/data/visitors/","/static/")+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
+    if not os.path.exists(diffraction2):        
+        half=int(float(images)/200)
+        if half<10:
+            half="0"+str(half)
+        h5data=path+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        cmd="adxv -sa "+h5data+half+".h5 "+diffraction2.replace("/static/","/data/visitors/")
+        subprocess.call(cmd,shell=True)
+    
+
     if "Apo" in prefix:
         soakTime="Soaking not performed"
         fragConc="-"
         solventConc="-"
     
-    new_run=""
-    search_new_run_path=path+"/fragmax/manual_proc/"+acr+"/"+prefix
 
-    if os.path.exists(search_new_run_path):
-        if glob.glob(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/*") == []:
-            new_run="<p style='padding-left:310px;'><font color='green'>All processed data are merged to your project.</font></p>"    
-        elif os.path.exists(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat"):
-            with open(path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/stat","r") as inp:
-                if "None" in inp.readlines()[0]:
-                    new_run="<p style='padding-left:310px;'><font color='green'>All processed data are merged to your project.</font></p>"    
-                else:
-                    new_run="""<form style="padding-left:310px;" action="/dataproc_merge/" method="get" id="mergeproc">
-                               <p><font color='red'>You have manual processed data not merged to your project. 
-                               <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
-                               <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""
-        else:
-            new_run="""<form style="padding-left:310px;" action="/dataproc_merge/" method="get" id="mergeproc">
-                       <p><font color='red'>You have manual processed data not merged to your project. 
-                       <input type="hidden" value="""+search_new_run_path+""" name="mergeprocinput" size="1">
-                       <a href="javascript:{}" onclick="document.getElementById('mergeproc').submit();">Click here</a> to compare results</font></p></form>"""
-        #new_run+=search_new_run_path
-    #new_run="<p style='padding-left:260px;'>"+path+"/fragmax/manual_proc/"+acr+"/"+prefix+"/"+prefix+"_"+run+"     "+search_new_run_path+"</p>"
     return render(request,'fragview/dataset_info.html', {
         "proposal":proposal,
         "shift":shift,
-        "new_proc_run":new_run,
         "run":run,
         'imgprf': prefix, 
         'imgs': images,
@@ -620,10 +618,10 @@ def dataset_info(request):
         "transmission":datainfo["transmission"],
         "wavelength":datainfo["wavelength"],
         "xbeampos":datainfo["xbeampos"],
-        "snapshot1":datainfo["snapshot1"],
-        "snapshot2":datainfo["snapshot2"],
-        "snapshot3":datainfo["snapshot3"],
-        "snapshot4":datainfo["snapshot4"],
+        "snapshot1":snapshot1,
+        "snapshot2":snapshot2,    
+        "diffraction1":diffraction1,
+        "diffraction2":diffraction2,    
         "ybeampos":datainfo["ybeampos"],        
         "energy":energy,
         "totalExposure":totalExposure,
@@ -661,25 +659,10 @@ def datasets(request):
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncImages=str(request.GET.get("resyncImgButton"))
     resyncStatus=str(request.GET.get("resyncstButton"))
-
-    # if os.path.exists(path+"/fragmax/process/datacollections.csv"):
-    #     with open(path+"/fragmax/process/datacollections.csv") as csvinp:
-    #         if acr not in "".join(csvinp.readlines()):
-    #             os.remove(path+"/fragmax/process/datacollections.csv")
-    #             create_dataColParam(acr,path)   
-    #             get_project_status()     
-    #             if not os.path.exists(path+"/fragmax/results/"):    
-    #                 get_project_status_initial()
-    # else:
-    #     create_dataColParam(acr,path)    
-    #     if not os.path.exists(path+"/fragmax/results/"):
-    #         get_project_status_initial()      
-
     create_dataColParam(acr,path) 
-    #get_project_status_initial()
 
     if "resyncDataset" in resyncAction:
-        shutil.move(path+"/fragmax/process/datacollections.csv",path+"/fragmax/process/datacollectionsold.csv")
+        shutil.move(path+"/fragmax/process/"+acr+"/datacollections.csv",path+"/fragmax/process/datacollectionsold.csv")
         create_dataColParam(acr,path)
     
     if "resyncStatus" in resyncStatus:
@@ -688,7 +671,7 @@ def datasets(request):
             get_project_status_initial()
         
     
-    with open(path+"/fragmax/process/datacollections.csv","r") as readFile:
+    with open(path+"/fragmax/process/"+acr+"/datacollections.csv","r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)
         acr_list=[x[3] for x in lines[1:]]
@@ -708,8 +691,8 @@ def datasets(request):
 
 
     ##Proc status
-    if os.path.exists(path+"/fragmax/process/dpstatus.csv"):
-        with open(path+"/fragmax/process/dpstatus.csv") as inp:
+    if os.path.exists(path+"/fragmax/process/"+acr+"/dpstatus.csv"):
+        with open(path+"/fragmax/process/"+acr+"/dpstatus.csv") as inp:
             dp=inp.readlines()
             dpDict=dict()
             for line in dp:
@@ -788,8 +771,8 @@ def datasets(request):
                     <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
                 </td>""")
     ##Ref status
-    if os.path.exists(path+"/fragmax/process/rfstatus.csv"):
-        with open(path+"/fragmax/process/rfstatus.csv") as inp:
+    if os.path.exists(path+"/fragmax/process/"+acr+"/rfstatus.csv"):
+        with open(path+"/fragmax/process/"+acr+"/rfstatus.csv") as inp:
             rf=inp.readlines() 
             rfDict=dict()
             for line in rf:
@@ -831,8 +814,8 @@ def datasets(request):
                         <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
                     </td>""")
     ##Lig status
-    if os.path.exists(path+"/fragmax/process/lgstatus.csv"):
-        with open(path+"/fragmax/process/lgstatus.csv") as inp:
+    if os.path.exists(path+"/fragmax/process/"+acr+"/lgstatus.csv"):
+        with open(path+"/fragmax/process/"+acr+"/lgstatus.csv") as inp:
             lg=inp.readlines()
             lgDict=dict()
             for line in lg:
@@ -905,10 +888,10 @@ def results(request):
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
         resultSummary()
-    if not os.path.exists(path+"/fragmax/process/results.csv"):
+    if not os.path.exists(path+"/fragmax/process/"+acr+"/results.csv"):
         resultSummary()
     try:
-        with open(path+"/fragmax/process/results.csv","r") as readFile:
+        with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
         return render(request, "fragview/results.html",{"csvfile":lines})    
@@ -919,7 +902,7 @@ def results_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
     value=str(request.GET.get('structure'))     
-    with open(path+"/fragmax/process/results.csv","r") as readFile:
+    with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     result_info=list(filter(lambda x:x[0]==value,lines))[0]
@@ -1100,9 +1083,6 @@ def compare_poses(request):
 
     rhofit=path+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/rhofit/best.pdb"
     ligfit=sorted(glob.glob(path+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
-
-    
-
     pdb   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final.pdb"
     nat   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_mFo-DFc.ccp4"
     dif   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_2mFo-DFc.ccp4"
@@ -1168,7 +1148,7 @@ def pandda_density(request):
     if len(panddaInput.split(";"))==3:
         method,dataset,nav=panddaInput.split(";")
     
-    mdl=[x.split("/")[-3] for x in sorted(glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
+    mdl=[x.split("/")[-3] for x in sorted(glob.glob(path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
     if len(mdl)!=0:
         indices = [i for i, s in enumerate(mdl) if dataset in s][0]
         
@@ -1277,13 +1257,15 @@ def pandda_densityC(request):
 
     panddaInput=str(request.GET.get('structure'))     
     
-    if len(panddaInput.split(";"))==4:
-        method,dataset,site,nav=panddaInput.split(";")
+    
 
     
     dataset,site_idx,event_idx,method,ddtag,run=panddaInput.split(";")
     
-
+    
+    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
+    map2=glob.glob(path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+    summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
 
     allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents([])
           
@@ -1294,7 +1276,7 @@ def pandda_densityC(request):
     ligand=dataset.split("-")[-1].split("_")[0]+ddtag
     modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/modelled_structures/'
     pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
-    
+    pdb=pdb.replace("/data/visitors/","")
     center="[0,0,0]"
     rwork=""
     rfree=""
@@ -1343,12 +1325,9 @@ def pandda_densityC(request):
     else:
         ligconfid="low_conf_radio"
         
-    pdb=pdb.replace("/data/visitors/","")
-    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
-    map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
-    summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
     
-    with open(path+"/fragmax/process/panddainspects.csv","r") as csvFile:
+    
+    with open(path+"/fragmax/process/"+acr+"/panddainspects.csv","r") as csvFile:        
         reader = csv.reader(csvFile)
         lines = list(reader)
     lines=lines[1:]
@@ -1398,7 +1377,9 @@ def pandda_densityC(request):
 def pandda_inspect(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/html_summaries/*inspect.html")]
-
+    if proc_methods==[]:
+        localcmd="cd "+path+"/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
+        return render(request,'fragview/pandda_notready.html', {"cmd":localcmd})
     newest=0
     newestpath=""
     newestmethod=""
@@ -1497,9 +1478,21 @@ def pandda_inspect(request):
                         
                         
             totalEvents=high_conf+medium_conf+low_conf
-                        
             uniqueEvents=str(len(allEventDict.items()))
-
+            
+            with open(path+"/fragmax/process/"+acr+"/panddainspects.csv","w") as csvFile:
+                writer = csv.writer(csvFile)
+                writer.writerow(["dataset","site_idx","event_idx","proc_method","ddtag","run","bdc"])
+                for k,v in natsort.natsorted(eventDict.items()):
+                    for k1,v1 in v.items():
+                        dataset=k
+                        site_idx=k1.split("_")[0]
+                        event_idx=k1.split("_")[1]
+                        proc_method="_".join(v1[0].split("_")[0:2])
+                        ddtag=v1[0].split("_")[2]
+                        run=v1[0].split("_")[3]
+                        bdc=v1[1]
+                        writer.writerow([dataset,site_idx,event_idx,proc_method,ddtag,run,bdc])
 
 
             html =''
@@ -1869,6 +1862,17 @@ def submit_pandda(request):
         '''        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        \n'''
         '''        shutil.move(i,i+".bak")\n'''
         '''        shutil.copyfile(pdb,i)\n'''
+        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/*")\n'''
+        '''    for _file in linksFolder:       \n'''
+        '''        dst=os.path.realpath(_file)    \n'''
+        '''        if _file!=dst:  \n'''
+        '''            shutil.move(_file,_file+".bak")\n'''
+        '''        \n'''
+        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/*.bak")\n'''
+        '''    for _file in linksFolder:       \n'''
+        '''        dst=os.path.realpath(_file)    \n'''
+        '''        if _file!=dst: \n'''
+        '''            shutil.copyfile(dst,_file.replace(".bak",""))\n'''
         '''def CAD_worker(mtzfile):\n'''
         '''    stdout = subprocess.Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=subprocess.PIPE).stdout\n'''
         '''    output = stdout.read().decode("utf-8")\n'''
@@ -1886,9 +1890,9 @@ def submit_pandda(request):
         '''    subprocess.call("uniqueify -f "+freeRflag+" "+mtzfile+" "+mtzfile.replace("/results/","/process/"),shell=True)\n'''
         '''    cadCommand="""cad hklin1 """+mtzfile+ """ hklout """ +outmtz+ """ <<eof\n'''
         ''' monitor BRIEF\n'''
-        ''' labin file 1 - \n'''
+        ''' labin _file 1 - \n'''
         '''  ALL"\n'''
-        ''' resolution file 1 999.0 """+ highres+"""\n'''
+        ''' resolution _file 1 999.0 """+ highres+"""\n'''
         '''eof"""\n'''
         '''    subprocess.call(cadCommand,shell=True)\n'''
         '''    subprocess.call("phenix.maps "+mtzfile.replace(".mtz",".pdb")+" "+mtzfile,shell=True    )\n'''
@@ -1906,6 +1910,7 @@ def submit_pandda(request):
         '''run_CAD()\n'''
         '''pandda_run(method)\n'''
         '''fix_symlinks(method)\n'''
+        '''os.system('chmod -R g+rwx path+"/fragmax/results/pandda/"')\n'''
         )
 
     
@@ -1933,8 +1938,12 @@ def submit_pandda(request):
 
 def pandda_analyse(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    fixsl=request.GET.get("fixsymlinks")
+    if not fixsl is None and "FixSymlinks" in fixsl:
+        t1 = threading.Thread(target=fix_pandda_symlinks,args=())
+        t1.daemon = True
+        t1.start()
     proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda")]
-
     newest=datetime.datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
     newestpath=""
     newestmethod=""
@@ -1949,12 +1958,14 @@ def pandda_analyse(request):
                     newestmethod=methods
     
     method=request.GET.get("methods")
+
     if method is None or "panddaSelect" in method:
         if os.path.exists(newestpath+"/html_summaries/pandda_analyse.html"):
             with open(newestpath+"/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                
-                return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+newestmethod)})
+                localcmd="cd "+path+"/fragmax/results/pandda/"+newestmethod+"/pandda/; pandda.inspect"
+
+                return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+newestmethod)})
         else:
             running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
@@ -1963,8 +1974,8 @@ def pandda_analyse(request):
         if os.path.exists(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
             with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-
-            return render(request,'fragview/pandda_analyse.html', {'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
+                localcmd="cd "+path+"/fragmax/results/pandda/"+method+"/pandda/; pandda.inspect"                    
+            return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
             running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/*running*")]    
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
@@ -2004,11 +2015,12 @@ def datasetDetails(dataset,site_idx,method):
 def panddaEvents(filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
-    eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv")]
+    eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv") ]
     if len(filters)!=0:
         eventscsv=[x for x in eventscsv if  any(xs in x for xs in filters)]
     eventDict=dict()
     allEventDict=dict()
+
     high_conf=0
     medium_conf=0
     low_conf=0
@@ -2021,9 +2033,11 @@ def panddaEvents(filters):
         headers=a[0]
         for line in a:
             
-            if line[headers.index("Ligand Placed")]=="True":                
+            if line[headers.index("Ligand Placed")]=="True":
+                
                 dtag=line[0][:-3]
-                site_idx=line[11]+"_"+line[1]
+                event_idx=line[1]
+                site_idx=line[11]
                 bdc=line[2]
                 intersting=line[headers.index("Ligand Confidence")]
                 if intersting=="High":
@@ -2035,16 +2049,16 @@ def panddaEvents(filters):
                     
                 if dtag not in eventDict:
                     
-                    eventDict[dtag]={site_idx:{method+"_"+line[0][-3:]:bdc}}
-                    allEventDict[dtag]={site_idx:{method+"_"+line[0][-3:]:bdc}}
+                    eventDict[dtag]={site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}}
+                    allEventDict[dtag]={site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}}
                 else: 
 
                     if site_idx not in eventDict[dtag]:
-                        eventDict[dtag].update({site_idx:{method+"_"+line[0][-3:]:bdc}})
-                        allEventDict[dtag].update({site_idx:{method+"_"+line[0][-3]:bdc}})
+                        eventDict[dtag].update({site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}})
+                        allEventDict[dtag].update({site_idx+"_"+event_idx:{method+"_"+line[0][-3]:bdc}})
                     else:
-                        eventDict[dtag][site_idx].update({method+"_"+line[0][-3:]:bdc})
-                        allEventDict[dtag][site_idx].update({method+"_"+line[0][-3:]:bdc})
+                        eventDict[dtag][site_idx+"_"+event_idx].update({method+"_"+line[0][-3:]:bdc})
+                        allEventDict[dtag][site_idx+"_"+event_idx].update({method+"_"+line[0][-3:]:bdc})
 
 
     for k,v in eventDict.items():
@@ -2054,15 +2068,28 @@ def panddaEvents(filters):
 
 def fix_pandda_symlinks():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-    linksFolder=glob.glob(path+"/fragmax/results/pandda/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
-    for i in linksFolder:
-        print(i)
-        folder="/".join(i.split("/")[:-1])+"/"
-        pdbs=os.listdir(folder)
-        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
-        print(pdb)
-        shutil.move(i,i+".bak")
-        shutil.copyfile(pdb,i)
+    for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
+        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+        for i in linksFolder:        
+            folder="/".join(i.split("/")[:-1])+"/"
+            pdbs=os.listdir(folder)
+            pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        
+            shutil.move(i,i+".bak")
+            shutil.copyfile(pdb,i)
+        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/*")
+        for _file in linksFolder:       
+            dst=os.path.realpath(_file)    
+            if _file!=dst:  
+                if ".bak" not in _file:
+                    shutil.move(_file,_file+".bak")
+            
+        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/*.bak")
+        for _file in linksFolder:       
+            dst=os.path.realpath(_file)    
+            if _file!=dst: 
+                shutil.copyfile(dst,_file.replace(".bak",""))
+
+    os.system("chmod -R g+rw "+path+"/fragmax/results/pandda/")
 
 #############################################
 
@@ -2248,7 +2275,7 @@ def reproc_web(request):
                         refineCommand+="\ndimple "+dprespathsca+" "+pdbmodel+" "+dpresdir+"/dimple/"
                         outp.write(refineCommand)
                     else:
-                        return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
+                        return render(request,'fragview/reproc_web.html', {'command': "No mtz _file found. Please make sure you have processed this dataset first."})    
                 if "fspipeline" in refineSW:
                     refineCommand="\n\ncd "+dpresdir
                     if os.path.exists(dprespathmer):
@@ -2260,7 +2287,7 @@ def reproc_web(request):
                         outp.write(refineCommand)
 
                     else:
-                        return render(request,'fragview/reproc_web.html', {'command': "No mtz file found. Please make sure you have processed this dataset first."})    
+                        return render(request,'fragview/reproc_web.html', {'command': "No mtz _file found. Please make sure you have processed this dataset first."})    
             command ='echo "module purge | module load CCP4 XDSAPP | sbatch '+path+'/fragmax/scripts/man_refine.sh " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command,shell=True)
             return render(request,'fragview/reproc_web.html', {'command': refineCommand})
@@ -2594,7 +2621,7 @@ def retrieveParameters(xmlfile):
 def create_dataColParam(acr, path):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
     
-    if os.path.exists(path+"/fragmax/process/datacollections.csv"):
+    if os.path.exists(path+"/fragmax/process/"+acr+"/datacollections.csv"):
         return
     else:
         
@@ -2602,7 +2629,7 @@ def create_dataColParam(acr, path):
         # t.daemon = True
         # t.start()
         os.makedirs(path+"/fragmax/process/",exist_ok=True)
-        with open(path+"/fragmax/process/datacollections.csv","w") as csvFile:
+        with open(path+"/fragmax/process/"+acr+"/datacollections.csv","w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
             
@@ -2932,7 +2959,7 @@ def resultSummary():
     
     resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    with open(path+"/fragmax/process/results.csv","w") as csvFile:
+    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])
 
@@ -3010,12 +3037,12 @@ def resultSummary():
 
                         blist="["+blist[0]+"]"
                     with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-                            readFile=inp.readlines()
-                            for mline in readFile:
-                                if "_2mFo-DFc.ccp4" in mline:                            
-                                    pdbout  ="/".join(entry.split("/")[3:-1])+"/final.pdb"
-                                    dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
-                                    nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
+                        readFile=inp.readlines()
+                        for mline in readFile:
+                            if "_2mFo-DFc.ccp4" in mline:                            
+                                pdbout  ="/".join(entry.split("/")[3:-1])+"/final.pdb"
+                                dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
+                                nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
 
             rhofitscore="-"
             ligfitscore="-"
@@ -3311,7 +3338,7 @@ def process2results():
 
             
     #Creates HPC script to run dimple on all mtz files provided.
-    #PDB file can be provided in the header of the python script and parse to all 
+    #PDB _file can be provided in the header of the python script and parse to all 
     #pipelines (Dimple, pipedream, bessy)
 
 
@@ -3378,7 +3405,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
 
     def dimple_hpc(PDB):
         #Creates HPC script to run dimple on all mtz files provided.
-        #PDB file can be provided in the header of the python script and parse to all 
+        #PDB _file can be provided in the header of the python script and parse to all 
         #pipelines (Dimple, pipedream, bessy)
 
 
@@ -3487,18 +3514,18 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             pyOut.write('            path_list.append(roots)\n')
             pyOut.write('success_list=[x.split("/")[-2].split("_merged")[0] for x in path_list]    \n')
             pyOut.write('softwares = ["autoproc","EDNA","dials","fastdp","xdsapp","xdsxscale"]\n')
-            pyOut.write('for file,fpath in zip(success_list,path_list):\n')
+            pyOut.write('for _file,fpath in zip(success_list,path_list):\n')
             pyOut.write('    outdir=path+"/fragmax/results/"\n')
             pyOut.write('    for sw in softwares:\n')
-            pyOut.write('        if sw in file:\n')
-            pyOut.write('            outp=outdir+file.split("_"+sw)[0]+"/"+sw\n')
+            pyOut.write('        if sw in _file:\n')
+            pyOut.write('            outp=outdir+_file.split("_"+sw)[0]+"/"+sw\n')
             pyOut.write('            copy_string="rsync --ignore-existing -raz "+fpath+"/* "+outp+"/fspipeline"\n')
             pyOut.write('            subprocess.call(copy_string, shell=True)\n')
 
 
     def BUSTER_hpc(path, PDB):
         #Creates HPC script to run dimple on all mtz files provided.
-        #PDB file can be provided in the header of the python script and parse to all 
+        #PDB _file can be provided in the header of the python script and parse to all 
         #pipelines (Dimple, pipedream, bessy)
 
 
@@ -3600,7 +3627,7 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib):
                 '''fraglib=sys.argv[2]\n'''
                 '''acr=sys.argv[3]\n'''
                 '''fitmethod=sys.argv[4]\n'''
-                '''pdbList=[x for x in glob.glob(path+"/fragmax/results/"+acr+"*/*/dimple/final.pdb") if "Apo" not in x]\n'''
+                '''pdbList=[x for x in glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb") if "Apo" not in x]\n'''
                 '''cifList=list()\n'''
                 '''mtzList=[x.replace(".pdb",".mtz") for x in pdbList]\n'''
                 '''outListR=[x.replace("final.pdb","rhofit/") for x in pdbList]\n'''
@@ -3746,7 +3773,7 @@ def get_project_status():
         else:
             dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:none"
 
-        with open(path+"/fragmax/process/dpstatus.csv","w") as outp:
+        with open(path+"/fragmax/process/"+acr+"/dpstatus.csv","w") as outp:
             for key,value in dataProcStatusDict.items():
                 outp.write(key+":"+value+"\n")
             
@@ -3892,7 +3919,7 @@ def get_project_status():
         else:
             dataRefStatusDict[sample.split("/")[-2]]+=";fastdp_BUSTER:none"
 
-        with open(path+"/fragmax/process/rfstatus.csv","w") as outp:
+        with open(path+"/fragmax/process/"+acr+"/rfstatus.csv","w") as outp:
             for key,value in dataRefStatusDict.items():
                 outp.write(key+":"+value+"\n")
             
@@ -3949,14 +3976,14 @@ def get_project_status():
                     except:
                         dataLigStatusDict[sample.split("/")[-2]]=";"+d+"_"+r+"_ligandfit:none"
 
-        with open(path+"/fragmax/process/lgstatus.csv","w") as outp:
+        with open(path+"/fragmax/process/"+acr+"/lgstatus.csv","w") as outp:
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
 
 def get_pipedream_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
 
-    with open(path+"/fragmax/process/pipedream.csv","w") as outp:
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as outp:
         for dataset in glob.glob(path+"/fragmax/results/pipedream/"+acr+"/*/*/"):
             if "ref-" not in dataset:
                 if os.path.exists(dataset+"summary.xml"):
@@ -4050,7 +4077,7 @@ def get_project_status_initial():
         else:
             dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:none"
             
-        with open(path+"/fragmax/process/dpstatus.csv","w") as outp:
+        with open(path+"/fragmax/process/"+acr+"/dpstatus.csv","w") as outp:
             for key,value in dataProcStatusDict.items():
                 outp.write(key+":"+value+"\n")
 ###############################
