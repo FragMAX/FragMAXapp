@@ -61,7 +61,10 @@
      display: none;
    }
    a { color: #59C; }
-   
+   .svg {
+    -webkit-filter: contrast(0.5);
+    filter: contrast(0.5);
+    }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -174,14 +177,15 @@
           <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
       </div>
-      <div style="padding:30px 0 0 30px">    
+      {% comment %} <div style="padding:30px 0 0 30px">    
           <h6>Dataset ligand</h6>     
       <img style="text-align:center" class="ligpng" id="ligand" src="{{ligand}}" >
-      </div>
+      </div> {% endcomment %}
     </div>
     </div>
     <div style="display:flex;">
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
+    <img class="ligpng svg" id="ligand" src="{{ligand}}" >
     <b><h6>{{name }} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
@@ -201,7 +205,6 @@
 
       V.load_pdb("{{ligfitpdb}}");
       V.load_pdb("{{rhofitpdb}}");
-      {% comment %} V.load_pdb("/static/{{path}}/fragmax/results/{{ligfit_dataset}}/{{process}}/{{refine}}/rhofit/best.pdb"); {% endcomment %}
 
       var blobs = {{xyzlist}};
     

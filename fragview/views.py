@@ -54,7 +54,6 @@ def project_definitions():
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
-    panddaprocessed="/fragmax/results/pandda/pandda/processed_datasets/"
     fraglib="F2XEntry"
     #fraglib="JBS"
     os.makedirs(path+"/fragmax/process/",exist_ok=True)
@@ -65,10 +64,10 @@ def project_definitions():
     
 
     
-    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,panddaprocessed,fraglib
+    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,fraglib
 
 
-proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
 if len(proposal)<7 or len(shift)<7 or len(acr)<1 or len(proposal_type)<5:
 
@@ -79,7 +78,6 @@ if len(proposal)<7 or len(shift)<7 or len(acr)<1 or len(proposal_type)<5:
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
-    panddaprocessed="/fragmax/results/pandda/pandda/processed_datasets/"
 
 ################################
 
@@ -105,7 +103,7 @@ def settings(request):
     return render(request, "fragview/settings.html",{"upd":status})
 
 def pipedream(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
 
     datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
@@ -115,7 +113,7 @@ def pipedream(request):
 
 def pipedream_results(request):
 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
 
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
@@ -174,7 +172,7 @@ def pipedream_results(request):
 def submit_pipedream(request):
 
     #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     ppdCMD=str(request.GET.get("ppdform"))
     empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
@@ -492,7 +490,7 @@ def submit_pipedream(request):
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
 def load_project_summary(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     number_known_apo=len(glob.glob(path+"/raw/"+acr+"/*Apo*"))
     number_datasets=len(glob.glob(path+"/raw/"+acr+"/*"))
@@ -514,7 +512,7 @@ def load_project_summary(request):
         "exp_date":natdate})
     
 def project_summary_load(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     a=str(request.GET.get('submitProc')) 
     out="No option selected"
@@ -526,12 +524,11 @@ def project_summary_load(request):
         resultSummary()    
         out="Data processing and Refinement results synced"
     elif "ligfitting" in a:
-        parseLigand_results()
         out="Ligand fitting results synced"
     return render(request,'fragview/project_summary_load.html', {'option': out})
 
 def dataset_info(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     dataset=str(request.GET.get('proteinPrefix'))     
     prefix=dataset.split(";")[0]
@@ -654,7 +651,7 @@ def post_new(request):
     return render(request, 'fragview/post_edit.html', {'form': form})
 
 def datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncImages=str(request.GET.get("resyncImgButton"))
@@ -662,7 +659,7 @@ def datasets(request):
     create_dataColParam(acr,path) 
 
     if "resyncDataset" in resyncAction:
-        shutil.move(path+"/fragmax/process/"+acr+"/datacollections.csv",path+"/fragmax/process/datacollectionsold.csv")
+        shutil.move(path+"/fragmax/process/"+acr+"/datacollections.csv",path+"/fragmax/process/"+acr+"/datacollectionsold.csv")
         create_dataColParam(acr,path)
     
     if "resyncStatus" in resyncStatus:
@@ -883,7 +880,7 @@ def datasets(request):
     #     return render_to_response('fragview/datasets_notready.html')    
     
 def results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
@@ -899,7 +896,7 @@ def results(request):
         return render_to_response('fragview/results_notready.html')
 
 def results_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     value=str(request.GET.get('structure'))     
     with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
@@ -1032,13 +1029,13 @@ def results_density(request):
         })
 
 def testfunc(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     
     return render(request, "fragview/testpage.html",{"files":"results"})    
     
 def load_pipedream_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     a=str(request.GET.get('structure')) 
     center=""
@@ -1073,7 +1070,7 @@ def dual_ligand(request):
         return render(request,'fragview/dual_ligand_notready.html', {'Report': a})
 
 def compare_poses(request):   
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
@@ -1120,7 +1117,7 @@ def compare_poses(request):
         })
 
 def ligfit_results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     resyncLigFits=str(request.GET.get("resyncligfit"))
 
     if "resyncligfit" in resyncLigFits:
@@ -1139,7 +1136,7 @@ def ligfit_results(request):
 ################ PANDDA #####################
 
 def pandda_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1253,7 +1250,7 @@ def pandda_density(request):
         return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_densityC(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1375,7 +1372,7 @@ def pandda_densityC(request):
     #    return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_inspect(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/html_summaries/*inspect.html")]
     if proc_methods==[]:
         localcmd="cd "+path+"/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
@@ -1754,7 +1751,7 @@ def pandda(request):
 def submit_pandda(request):
 
     #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     panddaCMD=str(request.GET.get("panddaform"))
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
@@ -1937,7 +1934,7 @@ def submit_pandda(request):
     return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
 
 def pandda_analyse(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     fixsl=request.GET.get("fixsymlinks")
     if not fixsl is None and "FixSymlinks" in fixsl:
         t1 = threading.Thread(target=fix_pandda_symlinks,args=())
@@ -1981,7 +1978,7 @@ def pandda_analyse(request):
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 def datasetDetails(dataset,site_idx,method):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     detailsDict=dict()
     with open(path+"/fragmax/results/pandda/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
@@ -2013,7 +2010,7 @@ def datasetDetails(dataset,site_idx,method):
     return detailsDict
 
 def panddaEvents(filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/*/pandda/analyses/pandda_inspect_events.csv") ]
     if len(filters)!=0:
@@ -2067,7 +2064,7 @@ def panddaEvents(filters):
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
 def fix_pandda_symlinks():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
         linksFolder=glob.glob(path+"/fragmax/results/pandda/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
         for i in linksFolder:        
@@ -2094,7 +2091,7 @@ def fix_pandda_symlinks():
 #############################################
 
 def procReport(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     biomax_static=path.replace("/data/visitors/","/static/")
     a=str(request.GET.get('dataHeader')) 
@@ -2149,7 +2146,7 @@ def procReport(request):
     return render(request,'fragview/procReport.html', {'Report': html})
 
 def dataproc_merge(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
     
@@ -2158,7 +2155,7 @@ def dataproc_merge(request):
     return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
 
 def reproc_web(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     dataproc = str(request.GET.get("submitProc"))
     strcrefine=str(request.GET.get("submitRefine"))
@@ -2340,7 +2337,7 @@ def ligfit_datasets(request):
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     allprc  = str(request.GET.get("submitallProc"))
     dtprc   = str(request.GET.get("submitdtProc"))
@@ -2412,44 +2409,27 @@ def dataproc_datasets(request):
         cccutoff=dtprc_inp[10].split(":")[-1]
         isigicutoff=dtprc_inp[11].split(":")[-1]
         sbatch_script_list=list()
+        nodes=12
         if usexdsapp=="true":
-            t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff))
+            t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
             t.daemon = True
             t.start()
-            
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsapp_fragmax_part0.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsapp_fragmax_part1.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsapp_fragmax_part2.sh")
         if usedials=="true":
-            t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff))
+            t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
             t.daemon = True
             t.start()
             
-            sbatch_script_list.append(path+"/fragmax/scripts/dials_fragmax_part0.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/dials_fragmax_part1.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/dials_fragmax_part2.sh")
         if useautproc=="true":
-            t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff))
+            t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
             t.daemon = True
             t.start()
-
-            sbatch_script_list.append(path+"/fragmax/scripts/autoproc_fragmax_part0.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/autoproc_fragmax_part1.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/autoproc_fragmax_part2.sh")            
+          
         if usexdsxscale=="true":
-            t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff))
+            t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
             t.daemon = True
             t.start()
             
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsxscale_fragmax_part0.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsxscale_fragmax_part1.sh")
-            sbatch_script_list.append(path+"/fragmax/scripts/xdsxscale_fragmax_part2.sh")
-        
-        
-        #for script in sbatch_script_list:            
-        #    command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        #    subprocess.call(command,shell=True)
-        return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
+        return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
 
     
     if refprc!="None":
@@ -2460,7 +2440,7 @@ def dataproc_datasets(request):
     return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
 
 def kill_HPC_job(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     jobid_k=str(request.GET.get('jobid_kill'))     
 
@@ -2502,7 +2482,7 @@ def kill_HPC_job(request):
     return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
 def hpcstatus(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -2557,7 +2537,7 @@ def hpcstatus(request):
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
 
 def add_run_DP(outdir):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     fout=outdir.split("cd ")[-1].split(" #")[0]
     SW=outdir.split(" #")[-1]
@@ -2576,7 +2556,7 @@ def add_run_DP(outdir):
     return "cd "+next_run+" #"+SW
 
 def retrieveParameters(xmlfile):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     #Dictionary with parameters for dataset info template page
     
@@ -2619,16 +2599,12 @@ def retrieveParameters(xmlfile):
     return paramDict
 
 def create_dataColParam(acr, path):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     if os.path.exists(path+"/fragmax/process/"+acr+"/datacollections.csv"):
         return
-    else:
-        
-        # t = threading.Thread(target=ligandToSVG,args=())
-        # t.daemon = True
-        # t.start()
-        os.makedirs(path+"/fragmax/process/",exist_ok=True)
+    else:        
+        os.makedirs(path+"/fragmax/process/"+acr,exist_ok=True)
         with open(path+"/fragmax/process/"+acr+"/datacollections.csv","w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
@@ -2665,67 +2641,7 @@ def create_dataColParam(acr, path):
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
        
-# def parseLigand_results():
-#     proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
-#     with open(path+"/fragmax/process/autolig.csv","w") as outp:            
-
-#         for dataset in glob.glob(path+"/fragmax/results/ligandfit/*"):
-#             if os.path.exists(dataset+"/final.pdb") and "Apo" not in dataset:
-#                 blob=[""]
-#                 resolution="NaN"
-#                 key=dataset.split("/")[-1]
-#                 if "EDNA_proc" in dataset:
-#                     pipeline="_".join(dataset.split("_")[-3:])
-#                 else:
-#                     pipeline="_".join(dataset.split("_")[-2:])
-#                 if os.path.exists(dataset+"/rhofit/Hit_corr.log"):
-#                     with open(dataset+"/rhofit/Hit_corr.log","r") as inp:
-#                         rhofitscore=inp.readlines()[0].split()[1]               
-
-#                 if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_summary.dat"):
-#                     with open(dataset+"/LigandFit_run_1_/LigandFit_summary.dat","r") as inp:
-#                         ligfitscore=inp.readlines()[6].split()[2]
-
-#                 lig=dataset.split(acr+"-")[-1].split("_")[0]
-#                 ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/*"+fraglib+"*/"+lig+"/"+lig+".svg"
-
-#                 with open(dataset+"/final.pdb","r") as inp:
-#                     for line in inp.readlines():
-#                         if "RESOLUTION RANGE HIGH " in line:
-
-#                             resolution=line[-10:].replace(" ","").replace("\n","")
-
-#                 if os.path.exists(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log"):
-#                     with open(dataset+"/LigandFit_run_1_/LigandFit_run_1_1.log","r") as inp:
-#                         for line in inp.readlines():
-#                             if line.startswith(" lig_xyz"):
-#                                 blob=line.split("lig_xyz ")[-1].replace("\n","")
-
-
-#                 l='''<tr>
-#                 <td>
-#                 <form action="/dual_density/" method="get" id="%s_form" target="_blank">
-#                 <button class="btn" type="submit" value="%s;%s" name="ligfit_dataset" size="1">Open Dual Viewer</button>
-#                 </form>
-#                 </td>
-#                 <td>%s</td>
-#                 <td>%s</td>
-#                 <td>%s</td>
-#                 <td>%s</td>
-#                 <td>
-                
-                
-                
-#                 <a href=%s target="_blank">
-
-#                     <img class="ligpng" id="ligand" src=%s onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="115" >
-
-#                 </a>
-#                 </td>  
-#                 </tr>
-#                 ''' % (key,key,blob,key,resolution,rhofitscore,ligfitscore,ligpng,ligpng)
-
-#                 outp.write(l)                                                                 
+                                                               
 
 def fsp_info_general(entry):
     usracr=""
@@ -2955,7 +2871,7 @@ def get_results_info(entry):
                     ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
 
 def resultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
     resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
@@ -3034,8 +2950,10 @@ def resultSummary():
                                 blob="["+blob+"]"
                                 blist.append(blob)
                                 blist=[",".join(blist).replace(" ","")]
-
-                        blist="["+blist[0]+"]"
+                        try:
+                            blist="["+blist[0]+"]"
+                        except:
+                            blist="[]"
                     with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
                         readFile=inp.readlines()
                         for mline in readFile:
@@ -3080,10 +2998,9 @@ def resultSummary():
             if "fragmax/results" in pdbout:
                 writer.writerow([usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob])
         
-def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    nodes=15
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3113,10 +3030,11 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         script+='xdsapp --cmd --dir='+outdir+'/xdsapp -j 8 -c 5 -i '+h5master+' delphi=10 --fried=True --range=1\ '+nImg+' \n\n'
         scriptList.append(script)
         os.makedirs(outdir,exist_ok=True)
+        os.makedirs(outdir+"/xdsapp",exist_ok=True)
 
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
     for num,chunk in enumerate(chunkScripts):
-        time.sleep(1)
+        time.sleep(0.2)
         with open(path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh", "w") as outfile:
             outfile.write(chunk)
                 
@@ -3124,10 +3042,9 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
-    nodes=15
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3160,17 +3077,17 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
 
     for num,chunk in enumerate(chunkScripts):
-        time.sleep(1)
+        time.sleep(0.2)
         with open(path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh", "w") as outfile:
             outfile.write(chunk)
         script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    nodes=15
+    
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3193,8 +3110,8 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
-        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,exist_ok=True)
         os.makedirs(outdir+"/xdsxscale",exist_ok=True)
@@ -3208,17 +3125,17 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
 
 
     for num,chunk in enumerate(chunkScripts):
-        time.sleep(1)
+        time.sleep(0.2)
         with open(path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh", "w") as outfile:
             outfile.write(chunk)
         script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    nodes=15
+    
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3231,7 +3148,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j.out\n"""
     header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j.err\n"""    
     header+= """module purge\n\n"""
-    header+= """module load CCP4 XDS DIALS\n\n"""
+    header+= """module load CCP4 XDS DIALS/1.12.3-PReSTO\n\n"""
 
     scriptList=list()
 
@@ -3241,8 +3158,8 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
-        h5master=dtc["imageDirectory"]+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
+        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,exist_ok=True)
         os.makedirs(outdir+"/dials",exist_ok=True)
@@ -3256,7 +3173,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
 
     for num,chunk in enumerate(chunkScripts):
-        time.sleep(1)
+        time.sleep(0.2)
         with open(path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh", "w") as outfile:
             outfile.write(chunk)
         script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
@@ -3264,7 +3181,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         subprocess.call(command,shell=True)
 
 def process2results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     with open(path+"/fragmax/scripts/process2results.py","w") as writeFile:
         writeFile.write('''import os '''
@@ -3372,7 +3289,7 @@ def process2results():
         outp.write(proc2resOut)
     
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     process2results() 
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
         writeFile.write('''\nimport commands, os,sys'''
@@ -3560,7 +3477,6 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
 
     dimple_hpc(userPDB)
     fspipeline_hpc(userPDB)
-    process2results()
 
     slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
     # if useBUSTER:
@@ -3596,7 +3512,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
 
 def ligandToSVG():
     
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     lib="F2XEntry"
     ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
@@ -3614,7 +3530,7 @@ def ligandToSVG():
                 outw.write(content)
 
 def autoLigandFit(useLigFit,useRhoFit,fraglib):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     with open(path+"/fragmax/scripts/autoligand.py","w") as writeFile:
         writeFile.write('''import multiprocessing\n'''
@@ -3712,7 +3628,7 @@ def merge_project():
     ### Symlink snapshots
 
 def get_project_status():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     dataProcStatusDict=dict()
     dataRefStatusDict=dict()
@@ -3981,7 +3897,7 @@ def get_project_status():
                 outp.write(key+":"+value+"\n")
 
 def get_pipedream_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as outp:
         for dataset in glob.glob(path+"/fragmax/results/pipedream/"+acr+"/*/*/"):
@@ -4015,7 +3931,7 @@ def scrsplit(a, n):
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
 def get_project_status_initial():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,panddaprocessed,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     dataProcStatusDict=dict()
     dp=["autoproc","dials","xdsxscale","EDNA_proc","fastdp","xdsapp"]
