@@ -107,7 +107,7 @@ def pipedream(request):
 
     datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
-    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i]
+    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i] 
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
@@ -186,18 +186,19 @@ def submit_pipedream(request):
     #Select one dataset or entire project
     if "alldatasets" not in input_data:
         input_data=input_data.replace("input_data:","")
-        ppdoutdir=input_data.replace("/raw/","/fragmax/process/pipedream/").replace("_master.h5","")
+        ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
+
         os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
-        if os.path.exists(ppdoutdir):
-            try:
-                int(ppdoutdir[-1])
-            except ValueError:
-                run="1"
-            else:
-                run=str(int(ppdoutdir[-1])+1)
+        # if os.path.exists(ppdoutdir):
+        #     try:
+        #         int(ppdoutdir[-1])
+        #     except ValueError:
+        #         run="1"
+        #     else:
+        #         run=str(int(ppdoutdir[-1])+1)
             
 
-            ppdoutdir=ppdoutdir+"_run"+run
+        #     ppdoutdir=ppdoutdir+"_run"+run
         
         if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
             userPDB=b_userPDBcode.replace("b_userPDBcode:","")
@@ -238,26 +239,18 @@ def submit_pipedream(request):
 
         #Rhofit ligand
         if "true" in rho_ligandfromname:
-            ligand = input_data.split("/")[-1][:-12].replace(acr+"-","")
+            ligand = input_data.split("/")[8].split("-")[-1]
+                            
         elif "false" in rho_ligandfromname:
             if len(rho_ligandcode)>15:
                 ligand=rho_ligandcode.replace("rho_ligandcode:","")
             elif len(rho_ligandsmiles)>17:
                 ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
-        lib=""
-        try:
-            int(ligand[-2])
-        except ValueError:
-            lib=ligand[:-2]
-        else:
-            lib=ligand[:-3]
-        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+lib+"/"+ligand+"/"+ligand+".cif"
         
-        #### Create symlink of fragment library to user project folder (/fragmax/process/fragment/lib)
-        os.makedirs(path+"/fragmax/process/fragment/", exist_ok=True)
-        if os.path.lexists(path+"/fragmax/process/fragment/"+lib):
-            os.remove(path+"/fragmax/process/fragment/"+lib)
-        os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
+        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif"
+        
+            
+        
 
 
         #Keep Hydrogen RhoFit
@@ -332,20 +325,8 @@ def submit_pipedream(request):
 
     if "alldatasets" in input_data:
         ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
-        ppdoutdirList=[x.replace("/raw/","/fragmax/process/pipedream/").replace("_master.h5","") for x in ppddatasetList]
+        ppdoutdirList=[path+"/fragmax/process/"+acr+"/"+x.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream" for x in ppddatasetList]
         
-        for i in ppdoutdirList:
-            os.makedirs("/".join(i.split("/")[:-1]),exist_ok=True)
-
-            if os.path.exists(ppdoutdir):
-                try:
-                    int(ppdoutdir[-1])
-                except ValueError:
-                    run="1"
-                else:
-                    run=str(int(ppdoutdir[-1])+1)
-                shutil.copytree(i,i+"_run"+run)
-            
         
         if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
             userPDB=b_userPDBcode.replace("b_userPDBcode:","")
@@ -390,19 +371,6 @@ def submit_pipedream(request):
         lib=rho_ligandcode.replace("rho_ligandcode:","")
                 
         
-        #### Create symlink of fragment library to user project folder (/fragmax/process/fragment/lib)
-        os.makedirs(path+"/fragmax/process/fragment/", exist_ok=True)
-        if os.path.lexists(path+"/fragmax/process/fragment/"+lib):
-            try:
-                os.remove(path+"/fragmax/process/fragment/"+lib)
-            except:
-                pass
-            else:
-                os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
-        else:
-            os.symlink("/data/staff/biomax/fragmax/fragment/"+lib+"/",path+"/fragmax/process/fragment/"+lib)
-
-
         #Keep Hydrogen RhoFit
         keepH=""
         if "true" in rho_keepH:
@@ -445,46 +413,45 @@ def submit_pipedream(request):
         if "false" in rho_occuprefine:
             occRef=" -nooccref"
         
-        allPipedreamOut=""
-        allPipedreamOut+= """#!/bin/bash\n"""
-        allPipedreamOut+= """#!/bin/bash\n"""
-        allPipedreamOut+= """#SBATCH -t 99:55:00\n"""
-        allPipedreamOut+= """#SBATCH -J pipedream\n"""
-        allPipedreamOut+= """#SBATCH --exclusive\n"""
-        allPipedreamOut+= """#SBATCH -N1\n"""
-        allPipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
-        allPipedreamOut+= """#SBATCH --mem=220000\n""" 
-        allPipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
-        allPipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
-        allPipedreamOut+= """module purge\n"""
-        allPipedreamOut+= """module load autoPROC BUSTER\n\n"""
-        
+        header=""
+        header+= """#!/bin/bash\n"""
+        header+= """#!/bin/bash\n"""
+        header+= """#SBATCH -t 99:55:00\n"""
+        header+= """#SBATCH -J pipedream\n"""
+        header+= """#SBATCH --exclusive\n"""
+        header+= """#SBATCH -N1\n"""
+        header+= """#SBATCH --cpus-per-task=40\n"""
+        #header+= """#SBATCH --mem=220000\n""" 
+        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
+        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
+        header+= """module purge\n"""
+        header+= """module load autoPROC BUSTER\n\n"""
+        scriptList=list()
+
         for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):
-            lib=""
-            try:
-                int(ligand[-2])
-            except ValueError:
-                lib=ligand[:-2]
-            else:
-                lib=ligand[:-3]
+            
             chdir="cd "+"/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
-                ligand = ppddata.split("/")[-1][:-12].replace(acr+"-","")
-                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+lib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
+                ligand = ppddata.split("/")[8].split("-")[-1]
+                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
             if "apo" in ppddata.lower():
                 rhofitINPUT=""
             ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
         
-            allPipedreamOut+=chdir+"\n"
+            allPipedreamOut=chdir+"\n"
             allPipedreamOut+=ppd+"\n\n"
+            
+            scriptList.append(allPipedreamOut)
+        chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,35) )]
 
-        with open(path+"/fragmax/scripts/pipedream_allDatasets.sh","w") as ppdsh:
-            ppdsh.write(allPipedreamOut)
-        
-        
-        script=path+"/fragmax/scripts/pipedream_allDatasets.sh"
-        command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
+        for num,chunk in enumerate(chunkScripts):
+            time.sleep(0.2)
+            with open(path+"/fragmax/scripts/pipedream_part"+str(num)+".sh", "w") as outfile:
+                outfile.write(chunk)
+                    
+            script=path+"/fragmax/scripts/pipedream_part"+str(num)+".sh"
+            command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
 
         
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
@@ -3601,7 +3568,7 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib):
         with open(path+"/fragmax/scripts/autoligand.sh","w") as writeFile:
             writeFile.write('''#!/bin/bash\n'''
                     '''#!/bin/bash\n'''
-                    '''#SBATCH -t 99:55:00\n'''
+                    '''#SBATCH -t 3:00:00\n'''
                     '''#SBATCH -J autoLigfit\n'''
                     '''#SBATCH --exclusive\n'''
                     '''#SBATCH -N1\n'''

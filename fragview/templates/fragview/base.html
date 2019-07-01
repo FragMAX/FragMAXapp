@@ -174,12 +174,12 @@
 
 
 
-      <li class="isDisabled">
+      {% comment %} <li class="isDisabled">
          <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
       </li>
       <li class="isDisabled">
          <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
-      </li>
+      </li> {% endcomment %}
       <li>
          <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">Dataset<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
       </li>
@@ -213,16 +213,19 @@
          <a href="/ligfit_results" class="collapsible-header sidenav-links" data-turbolinks="false">LigaFit Results<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
       </li>  {% endcomment %}
       
-      <li>
+      {% comment %} <li>
          <a href="/ugly" class="collapsible-header sidenav-links" data-turbolinks="false">UglyMOL<i class="material-icons" style="font-size:22px;color:white">art_track</i></a>
-      </li>
+      </li> {% endcomment %}
       <li >
          <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
       </li>
       <li class="last">
-         <a href="/admin" class="collapsible-header sidenav-links" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
+         <a href="/settings" class="collapsible-header sidenav-links" data-turbolinks="false">Settings<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
       </li>
-      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px">
+      {% comment %} <li class="last">
+         <a href="/admin" class="collapsible-header sidenav-links" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
+      </li> {% endcomment %}
+      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px; position: absolute;bottom: 30px;">
 
       <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
          <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>

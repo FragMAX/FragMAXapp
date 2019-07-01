@@ -75,6 +75,12 @@
     -webkit-filter: contrast(0.5);
     filter: contrast(0.5);
     }
+    .navbt{
+      width: 110px;
+      font-size: 11px;
+
+
+    }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -82,21 +88,21 @@
 </head>
 <body style="background-color: white">
 
-
-    
-    
-    
     <div id="left-controlpanel" >
       
       
       <div style="padding-left:15px !important;">
         <div>
-          <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>
-          <h6>Structure navigation</h6>
+          <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>          
         </div>
-        <div style="display:flex">
-        <form action="/pandda_densityC/" method="get" id="pandda_form"><button class="btn" type="submit" value="{{prevstr}}" name="structure" size="1">Previous</button></form>        
-        <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn" type="submit" value="{{nextstr}}" name="structure" size="1">Next</button></form>
+        <div style="display:flex">        
+        <form action="/pandda_densityC/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{prevstr}}" name="structure" size="1" >Prev event</button></form>        
+        <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{nextstr}}" name="structure" size="1" >Next event</button></form>
+        </div>
+
+        <div style="display:flex">        
+        <form action="/pandda_densityC/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{prevstr}}" name="structure" size="1" >Prev  site</button></form>        
+        <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{nextstr}}" name="structure" size="1" >Next  site</button></form>
         </div>
       </div>
       <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
