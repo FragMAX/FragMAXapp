@@ -120,49 +120,7 @@ def pipedream_results(request):
         get_pipedream_results()
     if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
             get_pipedream_results()
-    try:
-        # datasetlist=list()
-        # summarylist=list()
-        # fragmentlist=list()
-        # fragliblist=list()
-        # spacegrouplist=list()
-        # resolutionlist=list()
-        # rworklist=list()
-        # rfreelist=list()
-        # rhofitscorelist=list()
-        # alist=list()
-        # blist=list()
-        # clist=list()
-        # alphalist=list()
-        # betalist=list()
-        # gammalist=list()
-        # ligsvglist=list()
-        # rhofitfolderlist=list()
-        # ccp4diflistW=list()
-        # ccp4natlist=list()
-
-        # with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as inp:
-        #     for a in inp.readlines():            
-        #         dataset=a.split(";")[0]
-        #         datasetlist.append(a.split(";")[0])
-        #         summarylist.append(a.split(";")[1])
-        #         fragmentlist.append(a.split(";")[2])
-        #         fragliblist.append(a.split(";")[3])
-        #         spacegrouplist.append(a.split(";")[4])
-        #         resolutionlist.append(a.split(";")[5])
-        #         rworklist.append(a.split(";")[6])
-        #         rfreelist.append(a.split(";")[7])
-        #         rhofitscorelist.append(a.split(";")[8])
-        #         alist.append(a.split(";")[9])
-        #         blist.append(a.split(";")[10])
-        #         clist.append(a.split(";")[11])
-        #         alphalist.append(a.split(";")[12])
-        #         betalist.append(a.split(";")[13])
-        #         gammalist.append(a.split(";")[14])
-        #         ligsvglist.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+a.split(";")[3]+"/"+a.split(";")[2]+"/"+a.split(";")[2]+".svg")
-        #         rhofitfolderlist.append(path.replace("/data/visitors/","/static/")+"/fragmax/results/pipedream/"+acr+"/"+dataset.split("_")[0]+"/"+dataset+"/rhofit-"+a.split(";")[2])
-            
-        # resultList=zip(datasetlist,summarylist,fragmentlist,fragliblist,spacegrouplist,resolutionlist,rworklist,rfreelist,rhofitscorelist,alist,blist,clist,alphalist,betalist,gammalist,ligsvglist,rhofitfolderlist)
+    try:       
         with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
@@ -467,6 +425,46 @@ def submit_pipedream(request):
         
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
+def get_pipedream_results():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
+        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
+            xmlDict=dict()
+            with open(summary) as fd:
+                doc=fd.read()
+
+            for p in pList:
+                try:
+                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
+                        key=i.split(">")[0][1:]
+                        value=i.split(">")[1].split("<")[0]
+                        if value != "":
+                            xmlDict[key]=value
+                except:
+                    pass
+            for n,i in enumerate(doc.split()):
+                if "<R>" in i:            
+                    xmlDict["R"]=i[3:9]
+                if "<Rfree>" in i:
+                    xmlDict["Rfree"]=i[7:13]
+                if "id=" in i:
+                    xmlDict["ligand"]=i.split('"')[1]               
+                if "correlationcoefficient" in i:    
+                    xmlDict["rhofitscore"]=i[24:30]                
+                if "reshigh" in i:            
+                    xmlDict["resolution"]=i[9:13]
+            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
+            if xmlDict!={}:        
+                if "rhofitscore" not in xmlDict:
+                    xmlDict["rhofitscore"]="-"
+                if "ligand" not in xmlDict:
+                    xmlDict["ligand"]="Apo"
+                if "resolution" in xmlDict:
+                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
+        
 def load_project_summary(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
@@ -1015,27 +1013,90 @@ def testfunc(request):
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    a=str(request.GET.get('structure')) 
-    center=""
+    sample=str(request.GET.get('structure')) 
+
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+        reader = csv.reader(readFile)
+        lines = list(reader)[1:]
     
-    name,pdb,nat,dif,frag,center=a.split(";")
-    with open(frag.replace("/static/","/data/visitors/"),"r") as inp:
-         for line in inp.readlines():
-                if line.startswith("HETATM"):
-                    center="["+",".join(line[32:54].split())+"]"
-                    break
-    prevst,nextst=["prev","next"]
+    for n,line in enumerate(lines):
+        if line[0]==sample:
+            ligand      =line[4]
+            symmetry    =line[5]
+            resolution  =line[6]
+            rwork       =line[7]
+            rfree       =line[8]
+            rhofitscore =line[10]
+            currentpos=n
+            if currentpos==len(lines)-1:
+                prevstr=lines[currentpos-1][0]
+                nextstr=lines[0][0]
+            elif currentpos==0:
+                prevstr=lines[-1][0]
+                nextstr=lines[currentpos+1][0]
+
+            else:
+                prevstr=lines[currentpos-1][0]
+                nextstr=lines[currentpos+1][0]
+            
     
-    return render(request,'fragview/pipedream_density.html', {
-        "name":name,
-        "pdb":pdb,
-        "nat":nat,
-        "dif":dif,
-        "frag":frag,
-        "prevst":prevst,
-        "nextst":nextst,
-        "center":center
-    })
+
+    if "Apo" not in sample:
+        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/rhofit*/")
+        files.sort(key=lambda x: os.path.getmtime(x))
+        if files!=[]:
+            pdb=files[-1]+"refine.pdb"
+            dif=files[-1]+"refine_mFo-DFc.ccp4"
+            nat=files[-1]+"refine_2mFo-DFc.ccp4"
+            mtz=files[-1]+"refine.mtz"
+            rhofit=files[-1]+"best.pdb"
+
+    else:
+        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/refine*/")
+        files.sort(key=lambda x: os.path.getmtime(x))
+        if files!=[]:
+            pdb=files[-1]+"refine.pdb"
+            dif=files[-1]+"refine_mFo-DFc.ccp4"
+            nat=files[-1]+"refine_2mFo-DFc.ccp4"
+            mtz=files[-1]+"refine.mtz"
+            
+            
+    if os.path.exists(mtz):
+        if not os.path.exists(dif):
+            cmd="cd "+files[-1]+";"
+            cmd+="phenix.mtz2map "+mtz
+            subprocess.call(cmd,shell=True)
+
+        #name,pdb,nat,dif,frag,center=a.split(";")
+    with open(rhofit,"r") as inp:
+        for line in inp.readlines():
+            if line.startswith("HETATM"):
+                center="["+",".join(line[32:54].split())+"]"
+                    
+       
+        
+        return render(request,'fragview/pipedream_density.html', {
+            "name":sample.replace("/data/visitors/","/static/"),
+            "pdb":pdb.replace("/data/visitors/","/static/"),
+            "nat":nat.replace("/data/visitors/","/static/"),
+            "dif":dif.replace("/data/visitors/","/static/"),
+            "rhofit":rhofit.replace("/data/visitors/","/static/"),
+            "center":center,
+            "symmetry":symmetry,
+            "resolution":resolution,
+            "rwork":rwork,
+            "rfree":rfree,
+            "rhofitscore":rhofitscore,
+            "ligand":ligand.replace("/data/visitors/","/static/"),
+            "prevstr":prevstr,
+            "nextstr":nextstr,
+            # "name":name,
+
+            # "frag":frag,
+            # "prevst":prevst,
+            # "nextst":nextst,
+            
+        })
 
 def ugly(request):
     return render(request,'fragview/ugly.html')
@@ -3872,46 +3933,6 @@ def get_project_status():
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
 
-def get_pipedream_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
-        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
-            xmlDict=dict()
-            with open(summary) as fd:
-                doc=fd.read()
-
-            for p in pList:
-                try:
-                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
-                        key=i.split(">")[0][1:]
-                        value=i.split(">")[1].split("<")[0]
-                        if value != "":
-                            xmlDict[key]=value
-                except:
-                    pass
-            for n,i in enumerate(doc.split()):
-                if "<R>" in i:            
-                    xmlDict["R"]=i[3:9]
-                if "<Rfree>" in i:
-                    xmlDict["Rfree"]=i[7:13]
-                if "id=" in i:
-                    xmlDict["ligand"]=i.split('"')[1]               
-                if "correlationcoefficient" in i:    
-                    xmlDict["rhofitscore"]=i[24:30]                
-                if "reshigh" in i:            
-                    xmlDict["resolution"]=i[9:13]
-            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
-            if xmlDict!={}:        
-                if "rhofitscore" not in xmlDict:
-                    xmlDict["rhofitscore"]="-"
-                if "ligand" not in xmlDict:
-                    xmlDict["ligand"]="Apo"
-                if "resolution" in xmlDict:
-                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
-        
                     
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
