@@ -86,17 +86,17 @@
     <tr>
     
     </tr>
-    {% for dataset,summary,fragment,fraglib,spacegroup,resolution,rwork,rfree,rhofitscore,a,b,c,alpha,beta,gamma,ligsvg,rhofitfolder in files %}
+    {% for dataset,DIR,fragment,fraglib,ligsvg,spacegroup,resolution,rwork,rfree,rhofitscore,a,b,c,alpha,beta,gamma in files %}
 
     <tr>
       <td>
       <form action="/pipedream_density/" method="get" id="pipedream_form" target="_blank">
-      <button class="btn" type="submit" value="{{dataset}};{{rhofitfolder}}/merged-hydrogenated.pdb;{{rhofitfolder}}/refine_2mFo-DFc.ccp4;{{rhofitfolder}}/refine_mFo-DFc.ccp4;{{rhofitfolder}}/best.pdb;[10,10,10]," name="structure" size="1">Open</button>
+      <button class="btn" type="submit" value="{{sample}}" name="structure" size="1">Open</button>
       </form>
       
       </td>
       <td>{{dataset}}</td>
-      <td><a href="{{summary}}">Summary</a></td>
+      <td><a href="{{DIR}}/summary.out">Summary</a></td>
       <td>{{spacegroup}}</td>
       <td>{{resolution}}</td>
       <td>{{rwork}}</td>

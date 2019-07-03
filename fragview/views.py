@@ -121,49 +121,52 @@ def pipedream_results(request):
     if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
             get_pipedream_results()
     try:
-        datasetlist=list()
-        summarylist=list()
-        fragmentlist=list()
-        fragliblist=list()
-        spacegrouplist=list()
-        resolutionlist=list()
-        rworklist=list()
-        rfreelist=list()
-        rhofitscorelist=list()
-        alist=list()
-        blist=list()
-        clist=list()
-        alphalist=list()
-        betalist=list()
-        gammalist=list()
-        ligsvglist=list()
-        rhofitfolderlist=list()
-        ccp4diflistW=list()
-        ccp4natlist=list()
+        # datasetlist=list()
+        # summarylist=list()
+        # fragmentlist=list()
+        # fragliblist=list()
+        # spacegrouplist=list()
+        # resolutionlist=list()
+        # rworklist=list()
+        # rfreelist=list()
+        # rhofitscorelist=list()
+        # alist=list()
+        # blist=list()
+        # clist=list()
+        # alphalist=list()
+        # betalist=list()
+        # gammalist=list()
+        # ligsvglist=list()
+        # rhofitfolderlist=list()
+        # ccp4diflistW=list()
+        # ccp4natlist=list()
 
-        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as inp:
-            for a in inp.readlines():            
-                dataset=a.split(";")[0]
-                datasetlist.append(a.split(";")[0])
-                summarylist.append(a.split(";")[1])
-                fragmentlist.append(a.split(";")[2])
-                fragliblist.append(a.split(";")[3])
-                spacegrouplist.append(a.split(";")[4])
-                resolutionlist.append(a.split(";")[5])
-                rworklist.append(a.split(";")[6])
-                rfreelist.append(a.split(";")[7])
-                rhofitscorelist.append(a.split(";")[8])
-                alist.append(a.split(";")[9])
-                blist.append(a.split(";")[10])
-                clist.append(a.split(";")[11])
-                alphalist.append(a.split(";")[12])
-                betalist.append(a.split(";")[13])
-                gammalist.append(a.split(";")[14])
-                ligsvglist.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+a.split(";")[3]+"/"+a.split(";")[2]+"/"+a.split(";")[2]+".svg")
-                rhofitfolderlist.append(path.replace("/data/visitors/","/static/")+"/fragmax/results/pipedream/"+acr+"/"+dataset.split("_")[0]+"/"+dataset+"/rhofit-"+a.split(";")[2])
+        # with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as inp:
+        #     for a in inp.readlines():            
+        #         dataset=a.split(";")[0]
+        #         datasetlist.append(a.split(";")[0])
+        #         summarylist.append(a.split(";")[1])
+        #         fragmentlist.append(a.split(";")[2])
+        #         fragliblist.append(a.split(";")[3])
+        #         spacegrouplist.append(a.split(";")[4])
+        #         resolutionlist.append(a.split(";")[5])
+        #         rworklist.append(a.split(";")[6])
+        #         rfreelist.append(a.split(";")[7])
+        #         rhofitscorelist.append(a.split(";")[8])
+        #         alist.append(a.split(";")[9])
+        #         blist.append(a.split(";")[10])
+        #         clist.append(a.split(";")[11])
+        #         alphalist.append(a.split(";")[12])
+        #         betalist.append(a.split(";")[13])
+        #         gammalist.append(a.split(";")[14])
+        #         ligsvglist.append(path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+a.split(";")[3]+"/"+a.split(";")[2]+"/"+a.split(";")[2]+".svg")
+        #         rhofitfolderlist.append(path.replace("/data/visitors/","/static/")+"/fragmax/results/pipedream/"+acr+"/"+dataset.split("_")[0]+"/"+dataset+"/rhofit-"+a.split(";")[2])
             
-        resultList=zip(datasetlist,summarylist,fragmentlist,fragliblist,spacegrouplist,resolutionlist,rworklist,rfreelist,rhofitscorelist,alist,blist,clist,alphalist,betalist,gammalist,ligsvglist,rhofitfolderlist)
-        return render_to_response('fragview/pipedream_results.html', {'files': resultList})
+        # resultList=zip(datasetlist,summarylist,fragmentlist,fragliblist,spacegrouplist,resolutionlist,rworklist,rfreelist,rhofitscorelist,alist,blist,clist,alphalist,betalist,gammalist,ligsvglist,rhofitfolderlist)
+        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+            reader = csv.reader(readFile)
+            lines = list(reader)[1:]
+        return render_to_response('fragview/pipedream_results.html', {'files': lines})
     except:
         #return render_to_response('fragview/index.html')
         pass
@@ -189,7 +192,8 @@ def submit_pipedream(request):
         ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
 
         os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
-        # if os.path.exists(ppdoutdir):
+        if os.path.exists(ppdoutdir):
+            shutil.rmtree(ppdoutdir)
         #     try:
         #         int(ppdoutdir[-1])
         #     except ValueError:
@@ -266,9 +270,13 @@ def submit_pipedream(request):
                 clusterSearch=" -allclusters"
             else:
                 ncluster=rho_xclusters.split(":")[-1]
+                if ncluster=="":
+                    ncluster=1
                 clusterSearch=" -xcluster "+ncluster
         else:
             ncluster=rho_xclusters.split(":")[-1]
+            if ncluster=="":
+                    ncluster=1
             clusterSearch=" -xcluster "+ncluster
 
         #Search mode for RhoFit
@@ -383,9 +391,13 @@ def submit_pipedream(request):
                 clusterSearch=" -allclusters"
             else:
                 ncluster=rho_xclusters.split(":")[-1]
+                if ncluster=="":
+                    ncluster=1
                 clusterSearch=" -xcluster "+ncluster
         else:
             ncluster=rho_xclusters.split(":")[-1]
+            if ncluster=="":
+                    ncluster=1
             clusterSearch=" -xcluster "+ncluster
 
         #Search mode for RhoFit
@@ -428,8 +440,7 @@ def submit_pipedream(request):
         header+= """module load autoPROC BUSTER\n\n"""
         scriptList=list()
 
-        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):
-            
+        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):            
             chdir="cd "+"/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
                 ligand = ppddata.split("/")[8].split("-")[-1]
@@ -2607,9 +2618,7 @@ def create_dataColParam(acr, path):
                     ligsvg="noPNG"
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
-       
-                                                               
-
+                                                                      
 def fsp_info_general(entry):
     usracr=""
     spg=""
@@ -3283,7 +3292,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             '''\n'''
             '''\nif "buster" in argsfit:'''
             '''\n    # submit the third job (a swarm) to be dependent on the second'''
-            '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_ligfit.sh" % (jobnum1,path)    '''
+            '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_buster.sh" % (jobnum1,path)    '''
             '''\n    status,jobnum3 = commands.getstatusoutput(cmd)''')
 
 
@@ -3866,33 +3875,44 @@ def get_project_status():
 def get_pipedream_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as outp:
-        for dataset in glob.glob(path+"/fragmax/results/pipedream/"+acr+"/*/*/"):
-            if "ref-" not in dataset:
-                if os.path.exists(dataset+"summary.xml"):
-                    summary=dataset+"summary.xml"
-                    with open(summary) as fd: 
-                        try:
-                            doc = xmltodict.parse(fd.read())
-                            sample     =summary.replace("/data/visitors/","/static/").split("/")[-2]
-                            a          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["a"])))
-                            b          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["b"])))
-                            c          =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["c"])))
-                            alpha      =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["alpha"])))
-                            beta       =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["beta"])))
-                            gamma      =str("{0:.2f}".format(float(doc["GPhL-pipedream"]["inputdata"]["cell"]["gamma"])))
-                            symm       =doc["GPhL-pipedream"]["refdata"]["symm"]
-                            resolution =doc["GPhL-pipedream"]["inputdata"]["table1"]['shellstats'][0]['reshigh']
-                            rwork      =str("{0:.2f}".format(100*float(doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"])))
-                            rfree      =str("{0:.2f}".format(100*float(doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["Rfree"])))
-                            fragment   =doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["@id"]
-                            rhofitscore=doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"]["correlationcoefficient"]
-                            param      =sample+";"+summary.replace("/data/visitors/","/static/").replace(".xml",".out")+";"+fragment+";"+fraglib+";"+symm+";"+resolution+";"+rwork+";"+rfree+";"+rhofitscore+";"+a+";"+b+";"+c+";"+alpha+";"+beta+";"+gamma
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
+        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
+            xmlDict=dict()
+            with open(summary) as fd:
+                doc=fd.read()
 
-                            outp.write(param+"\n")
-                        except:
-                            pass
-
+            for p in pList:
+                try:
+                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
+                        key=i.split(">")[0][1:]
+                        value=i.split(">")[1].split("<")[0]
+                        if value != "":
+                            xmlDict[key]=value
+                except:
+                    pass
+            for n,i in enumerate(doc.split()):
+                if "<R>" in i:            
+                    xmlDict["R"]=i[3:9]
+                if "<Rfree>" in i:
+                    xmlDict["Rfree"]=i[7:13]
+                if "id=" in i:
+                    xmlDict["ligand"]=i.split('"')[1]               
+                if "correlationcoefficient" in i:    
+                    xmlDict["rhofitscore"]=i[24:30]                
+                if "reshigh" in i:            
+                    xmlDict["resolution"]=i[9:13]
+            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
+            if xmlDict!={}:        
+                if "rhofitscore" not in xmlDict:
+                    xmlDict["rhofitscore"]="-"
+                if "ligand" not in xmlDict:
+                    xmlDict["ligand"]="Apo"
+                if "resolution" in xmlDict:
+                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
+        
+                    
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
