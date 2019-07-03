@@ -102,369 +102,6 @@ def settings(request):
         status="No update"
     return render(request, "fragview/settings.html",{"upd":status})
 
-def pipedream(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
-
-    datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
-    datasetPathList=natsort.natsorted(datasetPathList)
-    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i] 
-    datasetList=zip(datasetPathList,datasetNameList)
-    return render(request, "fragview/pipedream.html",{"data":datasetList})
-
-def pipedream_results(request):
-
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
-
-    resync=str(request.GET.get("resync"))
-    if "resyncresults" in resync:
-        get_pipedream_results()
-    if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
-            get_pipedream_results()
-    try:       
-        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
-            reader = csv.reader(readFile)
-            lines = list(reader)[1:]
-        return render_to_response('fragview/pipedream_results.html', {'files': lines})
-    except:
-        #return render_to_response('fragview/index.html')
-        pass
-    return render(request, "fragview/pipedream_results.html")
-
-def submit_pipedream(request):
-
-    #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-    ppdCMD=str(request.GET.get("ppdform"))
-    empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
-
-    #variables init
-    ligand="none"
-    ppdoutdir="none"
-    ppd="INITVALUE"
-    userPDB="NoPDB"
-    pdbchains="A"
-    userPDBpath=""
-    #Select one dataset or entire project
-    if "alldatasets" not in input_data:
-        input_data=input_data.replace("input_data:","")
-        ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
-
-        os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
-        if os.path.exists(ppdoutdir):
-            shutil.rmtree(ppdoutdir)
-        #     try:
-        #         int(ppdoutdir[-1])
-        #     except ValueError:
-        #         run="1"
-        #     else:
-        #         run=str(int(ppdoutdir[-1])+1)
-            
-
-        #     ppdoutdir=ppdoutdir+"_run"+run
-        
-        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
-            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
-            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
-            
-            ## Download and prepare PDB _file - remove waters and HETATM
-            with open(userPDBpath,"w") as pdb:
-               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
-            
-            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
-            subprocess.call(preparePDB,shell=True)
-
-        #STARANISO setting    
-        if "true" in ap_staraniso:
-            useANISO=" -useaniso"
-        else:
-            useANISO=""
-        
-        #BUSTER refinement mode
-        if "thorough" in b_refinemode:
-            refineMode=" -thorough"
-        elif "quick" in b_refinemode:
-            refineMode=" -quick"
-        else:
-            refineMode=" "
-
-        #PDB_REDO options
-        pdbREDO=""
-        if "true" in b_sideaiderefit:
-            pdbREDO+=" -remediate"
-            refineMode=" -thorough"
-        if "true" in b_sideaiderebuild:
-            if "remediate" not in pdbREDO:
-                pdbREDO+=" -remediate"
-            pdbREDO+=" -sidechainrebuild"
-        if "true" in b_pepflip:
-            pdbREDO+=" -runpepflip"
-
-        #Rhofit ligand
-        if "true" in rho_ligandfromname:
-            ligand = input_data.split("/")[8].split("-")[-1]
-                            
-        elif "false" in rho_ligandfromname:
-            if len(rho_ligandcode)>15:
-                ligand=rho_ligandcode.replace("rho_ligandcode:","")
-            elif len(rho_ligandsmiles)>17:
-                ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
-        
-        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif"
-        
-            
-        
-
-
-        #Keep Hydrogen RhoFit
-        keepH=""
-        if "true" in rho_keepH:
-            keepH=" -keepH"
-
-        #Cluster to search for ligands
-        clusterSearch=""
-        ncluster="1"
-        if len(rho_allclusters)>16:
-            if "true" in rho_allclusters.split(":")[-1].lower(): 
-                clusterSearch=" -allclusters"
-            else:
-                ncluster=rho_xclusters.split(":")[-1]
-                if ncluster=="":
-                    ncluster=1
-                clusterSearch=" -xcluster "+ncluster
-        else:
-            ncluster=rho_xclusters.split(":")[-1]
-            if ncluster=="":
-                    ncluster=1
-            clusterSearch=" -xcluster "+ncluster
-
-        #Search mode for RhoFit
-        if "thorough" in rho_fittingproc:
-            fitrefineMode=" -rhothorough"
-        elif "quick" in rho_fittingproc:
-            fitrefineMode=" -rhoquick"
-        else:
-            fitrefineMode=" "
-        #Post refine for RhoFit
-        if "thorough" in rho_postrefine:
-            postrefineMode=" -postthorough"
-        elif "standard" in rho_postrefine:
-            postrefineMode=" -postref"
-        elif "quick" in rho_postrefine:
-            postrefineMode=" -postquick"
-        else:
-            postrefineMode=" "
-        
-        scanChirals=""
-        if "false" in rho_scanchirals:
-            scanChirals=" -nochirals"
-        
-        occRef=""
-        if "false" in rho_occuprefine:
-            occRef=" -nooccref"
-        
-        singlePipedreamOut=""
-        singlePipedreamOut+= """#!/bin/bash\n"""
-        singlePipedreamOut+= """#!/bin/bash\n"""
-        singlePipedreamOut+= """#SBATCH -t 99:55:00\n"""
-        singlePipedreamOut+= """#SBATCH -J pipedream\n"""
-        singlePipedreamOut+= """#SBATCH --exclusive\n"""
-        singlePipedreamOut+= """#SBATCH -N1\n"""
-        singlePipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
-        singlePipedreamOut+= """#SBATCH --mem=220000\n""" 
-        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.out\n"""
-        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.err\n"""    
-        singlePipedreamOut+= """module purge\n"""
-        singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
-        
-        chdir="cd "+"/".join(ppdoutdir.split("/")[:-1])
-        ppd="pipedream -h5 "+input_data+" -d "+ppdoutdir+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef+" -nofreeref -nthreads -1 -v"
-        
-        singlePipedreamOut+=chdir+"\n"
-        singlePipedreamOut+=ppd
-
-        with open(path+"/fragmax/scripts/pipedream_"+ligand+".sh","w") as ppdsh:
-            ppdsh.write(singlePipedreamOut)
-
-        script=path+"/fragmax/scripts/pipedream_"+ligand+".sh"
-        command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command,shell=True)
-
-    if "alldatasets" in input_data:
-        ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
-        ppdoutdirList=[path+"/fragmax/process/"+acr+"/"+x.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream" for x in ppddatasetList]
-        
-        
-        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
-            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
-            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
-            
-            ## Download and prepare PDB _file - remove waters and HETATM
-            with open(userPDBpath,"w") as pdb:
-               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
-            
-            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
-            subprocess.call(preparePDB,shell=True)
-
-        #STARANISO setting    
-        if "true" in ap_staraniso:
-            useANISO=" -useaniso"
-        else:
-            useANISO=""
-        
-        #BUSTER refinement mode
-        if "thorough" in b_refinemode:
-            refineMode=" -thorough"
-        elif "quick" in b_refinemode:
-            refineMode=" -quick"
-        else:
-            refineMode=" "
-
-        #PDB_REDO options
-        pdbREDO=""
-        if "true" in b_sideaiderefit:
-            pdbREDO+=" -remediate"
-            refineMode=" -thorough"
-        if "true" in b_sideaiderebuild:
-            if "remediate" not in pdbREDO:
-                pdbREDO+=" -remediate"
-            pdbREDO+=" -sidechainrebuild"
-        if "true" in b_pepflip:
-            pdbREDO+=" -runpepflip"
-
-        #Rhofit ligand
-        
-        
-        lib=rho_ligandcode.replace("rho_ligandcode:","")
-                
-        
-        #Keep Hydrogen RhoFit
-        keepH=""
-        if "true" in rho_keepH:
-            keepH=" -keepH"
-
-        #Cluster to search for ligands
-        clusterSearch=""
-        if len(rho_allclusters)>16:
-            if "true" in rho_allclusters.split(":")[-1].lower(): 
-                clusterSearch=" -allclusters"
-            else:
-                ncluster=rho_xclusters.split(":")[-1]
-                if ncluster=="":
-                    ncluster=1
-                clusterSearch=" -xcluster "+ncluster
-        else:
-            ncluster=rho_xclusters.split(":")[-1]
-            if ncluster=="":
-                    ncluster=1
-            clusterSearch=" -xcluster "+ncluster
-
-        #Search mode for RhoFit
-        if "thorough" in rho_fittingproc:
-            fitrefineMode=" -rhothorough"
-        elif "quick" in rho_fittingproc:
-            fitrefineMode=" -rhoquick"
-        else:
-            fitrefineMode=" "
-        #Post refine for RhoFit
-        if "thorough" in rho_postrefine:
-            postrefineMode=" -postthorough"
-        elif "standard" in rho_postrefine:
-            postrefineMode=" -postref"
-        elif "quick" in rho_postrefine:
-            postrefineMode=" -postquick"
-        else:
-            postrefineMode=" "
-        
-        scanChirals=""
-        if "false" in rho_scanchirals:
-            scanChirals=" -nochirals"
-        
-        occRef=""
-        if "false" in rho_occuprefine:
-            occRef=" -nooccref"
-        
-        header=""
-        header+= """#!/bin/bash\n"""
-        header+= """#!/bin/bash\n"""
-        header+= """#SBATCH -t 99:55:00\n"""
-        header+= """#SBATCH -J pipedream\n"""
-        header+= """#SBATCH --exclusive\n"""
-        header+= """#SBATCH -N1\n"""
-        header+= """#SBATCH --cpus-per-task=40\n"""
-        #header+= """#SBATCH --mem=220000\n""" 
-        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
-        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
-        header+= """module purge\n"""
-        header+= """module load autoPROC BUSTER\n\n"""
-        scriptList=list()
-
-        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):            
-            chdir="cd "+"/".join(ppdout.split("/")[:-1])
-            if "apo" not in ppddata.lower():
-                ligand = ppddata.split("/")[8].split("-")[-1]
-                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
-            if "apo" in ppddata.lower():
-                rhofitINPUT=""
-            ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
-        
-            allPipedreamOut=chdir+"\n"
-            allPipedreamOut+=ppd+"\n\n"
-            
-            scriptList.append(allPipedreamOut)
-        chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,35) )]
-
-        for num,chunk in enumerate(chunkScripts):
-            time.sleep(0.2)
-            with open(path+"/fragmax/scripts/pipedream_part"+str(num)+".sh", "w") as outfile:
-                outfile.write(chunk)
-                    
-            script=path+"/fragmax/scripts/pipedream_part"+str(num)+".sh"
-            command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-
-        
-    return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
-    
-def get_pipedream_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
-        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
-            xmlDict=dict()
-            with open(summary) as fd:
-                doc=fd.read()
-
-            for p in pList:
-                try:
-                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
-                        key=i.split(">")[0][1:]
-                        value=i.split(">")[1].split("<")[0]
-                        if value != "":
-                            xmlDict[key]=value
-                except:
-                    pass
-            for n,i in enumerate(doc.split()):
-                if "<R>" in i:            
-                    xmlDict["R"]=i[3:9]
-                if "<Rfree>" in i:
-                    xmlDict["Rfree"]=i[7:13]
-                if "id=" in i:
-                    xmlDict["ligand"]=i.split('"')[1]               
-                if "correlationcoefficient" in i:    
-                    xmlDict["rhofitscore"]=i[24:30]                
-                if "reshigh" in i:            
-                    xmlDict["resolution"]=i[9:13]
-            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
-            if xmlDict!={}:        
-                if "rhofitscore" not in xmlDict:
-                    xmlDict["rhofitscore"]="-"
-                if "ligand" not in xmlDict:
-                    xmlDict["ligand"]="Apo"
-                if "resolution" in xmlDict:
-                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
-        
 def load_project_summary(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
@@ -1010,94 +647,6 @@ def testfunc(request):
     
     return render(request, "fragview/testpage.html",{"files":"results"})    
     
-def load_pipedream_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    sample=str(request.GET.get('structure')) 
-
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
-        reader = csv.reader(readFile)
-        lines = list(reader)[1:]
-    
-    for n,line in enumerate(lines):
-        if line[0]==sample:
-            ligand      =line[4]
-            symmetry    =line[5]
-            resolution  =line[6]
-            rwork       =line[7]
-            rfree       =line[8]
-            rhofitscore =line[10]
-            currentpos=n
-            if currentpos==len(lines)-1:
-                prevstr=lines[currentpos-1][0]
-                nextstr=lines[0][0]
-            elif currentpos==0:
-                prevstr=lines[-1][0]
-                nextstr=lines[currentpos+1][0]
-
-            else:
-                prevstr=lines[currentpos-1][0]
-                nextstr=lines[currentpos+1][0]
-            
-    
-
-    if "Apo" not in sample:
-        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/rhofit*/")
-        files.sort(key=lambda x: os.path.getmtime(x))
-        if files!=[]:
-            pdb=files[-1]+"refine.pdb"
-            dif=files[-1]+"refine_mFo-DFc.ccp4"
-            nat=files[-1]+"refine_2mFo-DFc.ccp4"
-            mtz=files[-1]+"refine.mtz"
-            rhofit=files[-1]+"best.pdb"
-
-    else:
-        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/refine*/")
-        files.sort(key=lambda x: os.path.getmtime(x))
-        if files!=[]:
-            pdb=files[-1]+"refine.pdb"
-            dif=files[-1]+"refine_mFo-DFc.ccp4"
-            nat=files[-1]+"refine_2mFo-DFc.ccp4"
-            mtz=files[-1]+"refine.mtz"
-            
-            
-    if os.path.exists(mtz):
-        if not os.path.exists(dif):
-            cmd="cd "+files[-1]+";"
-            cmd+="phenix.mtz2map "+mtz
-            subprocess.call(cmd,shell=True)
-
-        #name,pdb,nat,dif,frag,center=a.split(";")
-    with open(rhofit,"r") as inp:
-        for line in inp.readlines():
-            if line.startswith("HETATM"):
-                center="["+",".join(line[32:54].split())+"]"
-                    
-       
-        
-        return render(request,'fragview/pipedream_density.html', {
-            "name":sample.replace("/data/visitors/","/static/"),
-            "pdb":pdb.replace("/data/visitors/","/static/"),
-            "nat":nat.replace("/data/visitors/","/static/"),
-            "dif":dif.replace("/data/visitors/","/static/"),
-            "rhofit":rhofit.replace("/data/visitors/","/static/"),
-            "center":center,
-            "symmetry":symmetry,
-            "resolution":resolution,
-            "rwork":rwork,
-            "rfree":rfree,
-            "rhofitscore":rhofitscore,
-            "ligand":ligand.replace("/data/visitors/","/static/"),
-            "prevstr":prevstr,
-            "nextstr":nextstr,
-            # "name":name,
-
-            # "frag":frag,
-            # "prevst":prevst,
-            # "nextst":nextst,
-            
-        })
-
 def ugly(request):
     return render(request,'fragview/ugly.html')
 
@@ -1171,6 +720,472 @@ def ligfit_results(request):
             return render(request,'fragview/ligfit_results_notready.html')
     else:
         return render(request,'fragview/ligfit_results_notready.html')
+
+################ PIPEDREAM #####################
+
+
+def pipedream(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
+
+    datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
+    datasetPathList=natsort.natsorted(datasetPathList)
+    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i] 
+    datasetList=zip(datasetPathList,datasetNameList)
+    return render(request, "fragview/pipedream.html",{"data":datasetList})
+
+def pipedream_results(request):
+
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
+
+    resync=str(request.GET.get("resync"))
+    if "resyncresults" in resync:
+        get_pipedream_results()
+    if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
+            get_pipedream_results()
+    try:       
+        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+            reader = csv.reader(readFile)
+            lines = list(reader)[1:]
+        return render_to_response('fragview/pipedream_results.html', {'files': lines})
+    except:
+        #return render_to_response('fragview/index.html')
+        pass
+    return render(request, "fragview/pipedream_results.html")
+
+def submit_pipedream(request):
+
+    #Function definitions
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    ppdCMD=str(request.GET.get("ppdform"))
+    empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
+
+    #variables init
+    ligand="none"
+    ppdoutdir="none"
+    ppd="INITVALUE"
+    userPDB="NoPDB"
+    pdbchains="A"
+    userPDBpath=""
+    #Select one dataset or entire project
+    if "alldatasets" not in input_data:
+        input_data=input_data.replace("input_data:","")
+        ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
+
+        os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
+        if os.path.exists(ppdoutdir):
+            shutil.rmtree(ppdoutdir)
+        #     try:
+        #         int(ppdoutdir[-1])
+        #     except ValueError:
+        #         run="1"
+        #     else:
+        #         run=str(int(ppdoutdir[-1])+1)
+            
+
+        #     ppdoutdir=ppdoutdir+"_run"+run
+        
+        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
+            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
+            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
+            
+            ## Download and prepare PDB _file - remove waters and HETATM
+            with open(userPDBpath,"w") as pdb:
+               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
+            
+            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
+            subprocess.call(preparePDB,shell=True)
+
+        #STARANISO setting    
+        if "true" in ap_staraniso:
+            useANISO=" -useaniso"
+        else:
+            useANISO=""
+        
+        #BUSTER refinement mode
+        if "thorough" in b_refinemode:
+            refineMode=" -thorough"
+        elif "quick" in b_refinemode:
+            refineMode=" -quick"
+        else:
+            refineMode=" "
+
+        #PDB_REDO options
+        pdbREDO=""
+        if "true" in b_sideaiderefit:
+            pdbREDO+=" -remediate"
+            refineMode=" -thorough"
+        if "true" in b_sideaiderebuild:
+            if "remediate" not in pdbREDO:
+                pdbREDO+=" -remediate"
+            pdbREDO+=" -sidechainrebuild"
+        if "true" in b_pepflip:
+            pdbREDO+=" -runpepflip"
+
+        #Rhofit ligand
+        if "true" in rho_ligandfromname:
+            ligand = input_data.split("/")[8].split("-")[-1]
+                            
+        elif "false" in rho_ligandfromname:
+            if len(rho_ligandcode)>15:
+                ligand=rho_ligandcode.replace("rho_ligandcode:","")
+            elif len(rho_ligandsmiles)>17:
+                ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
+        
+        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif"
+        
+            
+        
+
+
+        #Keep Hydrogen RhoFit
+        keepH=""
+        if "true" in rho_keepH:
+            keepH=" -keepH"
+
+        #Cluster to search for ligands
+        clusterSearch=""
+        ncluster="1"
+        if len(rho_allclusters)>16:
+            if "true" in rho_allclusters.split(":")[-1].lower(): 
+                clusterSearch=" -allclusters"
+            else:
+                ncluster=rho_xclusters.split(":")[-1]
+                if ncluster=="":
+                    ncluster=1
+                clusterSearch=" -xcluster "+ncluster
+        else:
+            ncluster=rho_xclusters.split(":")[-1]
+            if ncluster=="":
+                    ncluster=1
+            clusterSearch=" -xcluster "+ncluster
+
+        #Search mode for RhoFit
+        if "thorough" in rho_fittingproc:
+            fitrefineMode=" -rhothorough"
+        elif "quick" in rho_fittingproc:
+            fitrefineMode=" -rhoquick"
+        else:
+            fitrefineMode=" "
+        #Post refine for RhoFit
+        if "thorough" in rho_postrefine:
+            postrefineMode=" -postthorough"
+        elif "standard" in rho_postrefine:
+            postrefineMode=" -postref"
+        elif "quick" in rho_postrefine:
+            postrefineMode=" -postquick"
+        else:
+            postrefineMode=" "
+        
+        scanChirals=""
+        if "false" in rho_scanchirals:
+            scanChirals=" -nochirals"
+        
+        occRef=""
+        if "false" in rho_occuprefine:
+            occRef=" -nooccref"
+        
+        singlePipedreamOut=""
+        singlePipedreamOut+= """#!/bin/bash\n"""
+        singlePipedreamOut+= """#!/bin/bash\n"""
+        singlePipedreamOut+= """#SBATCH -t 99:55:00\n"""
+        singlePipedreamOut+= """#SBATCH -J pipedream\n"""
+        singlePipedreamOut+= """#SBATCH --exclusive\n"""
+        singlePipedreamOut+= """#SBATCH -N1\n"""
+        singlePipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
+        singlePipedreamOut+= """#SBATCH --mem=220000\n""" 
+        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.out\n"""
+        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.err\n"""    
+        singlePipedreamOut+= """module purge\n"""
+        singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
+        
+        chdir="cd "+"/".join(ppdoutdir.split("/")[:-1])
+        ppd="pipedream -h5 "+input_data+" -d "+ppdoutdir+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef+" -nofreeref -nthreads -1 -v"
+        
+        singlePipedreamOut+=chdir+"\n"
+        singlePipedreamOut+=ppd
+
+        with open(path+"/fragmax/scripts/pipedream_"+ligand+".sh","w") as ppdsh:
+            ppdsh.write(singlePipedreamOut)
+
+        script=path+"/fragmax/scripts/pipedream_"+ligand+".sh"
+        command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        subprocess.call(command,shell=True)
+
+    if "alldatasets" in input_data:
+        ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
+        ppdoutdirList=[path+"/fragmax/process/"+acr+"/"+x.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream" for x in ppddatasetList]
+        
+        
+        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
+            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
+            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
+            
+            ## Download and prepare PDB _file - remove waters and HETATM
+            with open(userPDBpath,"w") as pdb:
+               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
+            
+            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
+            subprocess.call(preparePDB,shell=True)
+
+        #STARANISO setting    
+        if "true" in ap_staraniso:
+            useANISO=" -useaniso"
+        else:
+            useANISO=""
+        
+        #BUSTER refinement mode
+        if "thorough" in b_refinemode:
+            refineMode=" -thorough"
+        elif "quick" in b_refinemode:
+            refineMode=" -quick"
+        else:
+            refineMode=" "
+
+        #PDB_REDO options
+        pdbREDO=""
+        if "true" in b_sideaiderefit:
+            pdbREDO+=" -remediate"
+            refineMode=" -thorough"
+        if "true" in b_sideaiderebuild:
+            if "remediate" not in pdbREDO:
+                pdbREDO+=" -remediate"
+            pdbREDO+=" -sidechainrebuild"
+        if "true" in b_pepflip:
+            pdbREDO+=" -runpepflip"
+
+        #Rhofit ligand
+        
+        
+        lib=rho_ligandcode.replace("rho_ligandcode:","")
+                
+        
+        #Keep Hydrogen RhoFit
+        keepH=""
+        if "true" in rho_keepH:
+            keepH=" -keepH"
+
+        #Cluster to search for ligands
+        clusterSearch=""
+        if len(rho_allclusters)>16:
+            if "true" in rho_allclusters.split(":")[-1].lower(): 
+                clusterSearch=" -allclusters"
+            else:
+                ncluster=rho_xclusters.split(":")[-1]
+                if ncluster=="":
+                    ncluster=1
+                clusterSearch=" -xcluster "+ncluster
+        else:
+            ncluster=rho_xclusters.split(":")[-1]
+            if ncluster=="":
+                    ncluster=1
+            clusterSearch=" -xcluster "+ncluster
+
+        #Search mode for RhoFit
+        if "thorough" in rho_fittingproc:
+            fitrefineMode=" -rhothorough"
+        elif "quick" in rho_fittingproc:
+            fitrefineMode=" -rhoquick"
+        else:
+            fitrefineMode=" "
+        #Post refine for RhoFit
+        if "thorough" in rho_postrefine:
+            postrefineMode=" -postthorough"
+        elif "standard" in rho_postrefine:
+            postrefineMode=" -postref"
+        elif "quick" in rho_postrefine:
+            postrefineMode=" -postquick"
+        else:
+            postrefineMode=" "
+        
+        scanChirals=""
+        if "false" in rho_scanchirals:
+            scanChirals=" -nochirals"
+        
+        occRef=""
+        if "false" in rho_occuprefine:
+            occRef=" -nooccref"
+        
+        header=""
+        header+= """#!/bin/bash\n"""
+        header+= """#!/bin/bash\n"""
+        header+= """#SBATCH -t 99:55:00\n"""
+        header+= """#SBATCH -J pipedream\n"""
+        header+= """#SBATCH --exclusive\n"""
+        header+= """#SBATCH -N1\n"""
+        header+= """#SBATCH --cpus-per-task=40\n"""
+        #header+= """#SBATCH --mem=220000\n""" 
+        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
+        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
+        header+= """module purge\n"""
+        header+= """module load autoPROC BUSTER\n\n"""
+        scriptList=list()
+
+        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):            
+            chdir="cd "+"/".join(ppdout.split("/")[:-1])
+            if "apo" not in ppddata.lower():
+                ligand = ppddata.split("/")[8].split("-")[-1]
+                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
+            if "apo" in ppddata.lower():
+                rhofitINPUT=""
+            ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
+        
+            allPipedreamOut=chdir+"\n"
+            allPipedreamOut+=ppd+"\n\n"
+            
+            scriptList.append(allPipedreamOut)
+        chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,35) )]
+
+        for num,chunk in enumerate(chunkScripts):
+            time.sleep(0.2)
+            with open(path+"/fragmax/scripts/pipedream_part"+str(num)+".sh", "w") as outfile:
+                outfile.write(chunk)
+                    
+            script=path+"/fragmax/scripts/pipedream_part"+str(num)+".sh"
+            command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
+
+        
+    return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
+    
+def get_pipedream_results():
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
+        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
+            xmlDict=dict()
+            with open(summary) as fd:
+                doc=fd.read()
+
+            for p in pList:
+                try:
+                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
+                        key=i.split(">")[0][1:]
+                        value=i.split(">")[1].split("<")[0]
+                        if value != "":
+                            xmlDict[key]=value
+                except:
+                    pass
+            for n,i in enumerate(doc.split()):
+                if "<R>" in i:            
+                    xmlDict["R"]=i[3:9]
+                if "<Rfree>" in i:
+                    xmlDict["Rfree"]=i[7:13]
+                if "id=" in i:
+                    xmlDict["ligand"]=i.split('"')[1]               
+                if "correlationcoefficient" in i:    
+                    xmlDict["rhofitscore"]=i[24:30]                
+                if "reshigh" in i:            
+                    xmlDict["resolution"]=i[9:13]
+            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
+            if xmlDict!={}:        
+                if "rhofitscore" not in xmlDict:
+                    xmlDict["rhofitscore"]="-"
+                if "ligand" not in xmlDict:
+                    xmlDict["ligand"]="Apo"
+                if "resolution" in xmlDict:
+                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
+        
+
+
+def load_pipedream_density(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+
+    sample=str(request.GET.get('structure')) 
+
+    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+        reader = csv.reader(readFile)
+        lines = list(reader)[1:]
+    
+    for n,line in enumerate(lines):
+        if line[0]==sample:
+            ligand      =line[4]
+            symmetry    =sym2spg(line[5])
+            resolution  =line[6]
+            rwork       =line[7]
+            rfree       =line[8]
+            rhofitscore =line[10]
+            currentpos=n
+            if currentpos==len(lines)-1:
+                prevstr=lines[currentpos-1][0]
+                nextstr=lines[0][0]
+            elif currentpos==0:
+                prevstr=lines[-1][0]
+                nextstr=lines[currentpos+1][0]
+
+            else:
+                prevstr=lines[currentpos-1][0]
+                nextstr=lines[currentpos+1][0]
+            
+    
+
+    if "Apo" not in sample:
+        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/rhofit*/")
+        files.sort(key=lambda x: os.path.getmtime(x))
+        if files!=[]:
+            pdb=files[-1]+"refine.pdb"
+            dif=files[-1]+"refine_mFo-DFc.ccp4"
+            nat=files[-1]+"refine_2mFo-DFc.ccp4"
+            mtz=files[-1]+"refine.mtz"
+            rhofit=files[-1]+"best.pdb"
+        with open(rhofit,"r") as inp:
+            for line in inp.readlines():
+                if line.startswith("HETATM"):
+                    center="["+",".join(line[32:54].split())+"]"
+        cE="true"
+
+    else:
+        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/refine*/")
+        files.sort(key=lambda x: os.path.getmtime(x))
+        if files!=[]:
+            pdb=files[-1]+"refine.pdb"
+            dif=files[-1]+"refine_mFo-DFc.ccp4"
+            nat=files[-1]+"refine_2mFo-DFc.ccp4"
+            mtz=files[-1]+"refine.mtz"
+            rhofit=""
+            rhofitscore="-"
+            center="[0,0,0]"
+            cE="false"
+            
+            
+    if os.path.exists(mtz):
+        if not os.path.exists(dif):
+            cmd="cd "+files[-1]+";"
+            cmd+="phenix.mtz2map "+mtz
+            subprocess.call(cmd,shell=True)
+
+        #name,pdb,nat,dif,frag,center=a.split(";")
+    
+                    
+       
+        
+        return render(request,'fragview/pipedream_density.html', {
+            "name":sample.replace("/data/visitors/","/static/"),
+            "pdb":pdb.replace("/data/visitors/","/static/"),
+            "nat":nat.replace("/data/visitors/","/static/"),
+            "dif":dif.replace("/data/visitors/","/static/"),
+            "rhofit":rhofit.replace("/data/visitors/","/static/"),
+            "center":center,
+            "symmetry":symmetry,
+            "resolution":resolution,
+            "rwork":rwork,
+            "rfree":rfree,
+            "rhofitscore":rhofitscore,
+            "ligand":ligand.replace("/data/visitors/","/static/"),
+            "prevstr":prevstr,
+            "nextstr":nextstr,
+            "cE":cE,
+            # "name":name,
+
+            # "frag":frag,
+            # "prevst":prevst,
+            # "nextst":nextst,
+            
+        })
+
+
+
 
 ################ PANDDA #####################
 
@@ -4009,3 +4024,53 @@ def get_project_status_initial():
 #################################
 def split_b(target,ini,end):
     return target.split(ini)[-1].split(end)[0]
+
+def sym2spg(sym):
+    spgDict={"1": "P 1","2":" P -1","3":" P 2    ","4":"P 21"    ,"5":"C 2",
+            "6": "P m","7":" P c    ","8":" C m    ","9":"C c"    ,"10":"P 2/m",
+            "11": "P 21/m","12":" C 2/m","13":" P 2/c","14":"P 21/c","15":"C 2/c",
+            "16": "P 2 2 2","17":" P 2 2 21    ","18":" P 21 21 2 ","19":"P 21 21 21" ,"20":"C 2 2 21",
+            "21": "C 2 2 2","22":" F 2 2 2","23":" I 2 2 2","24":"I 21 21 21" ,"25":"P m m 2",
+            "26": "P m c 21 ","27":" P c c 2","28":" P m a 2","29":"P c a 21" ,"30":"P n c 2",
+            "31": "P m n 21 ","32":" P b a 2","33":" P n a 21    ","34":"P n n 2","35":"C m m 2",
+            "36": "C m c 21 ","37":" C c c 2","38":" A m m 2","39":"A b m 2","40":"A m a 2",
+            "41": "A b a 2","42":" F m m 2","43":" F d d 2","44":"I m m 2","45":"I b a 2",
+            "46": "I m a 2","47":" P m m m","48":" P n n n","49":"P c c m","50":"P b a n",
+            "51": "P m m a","52":" P n n a","53":" P m n a","54":"P c c a","55":"P b a m",
+            "56": "P c c n","57":" P b c m","58":" P n n m","59":"P m m n","60":"P b c n",
+            "61": "P b c a","62":" P n m a","63":" C m c m","64":"C m c a","65":"C m m m",
+            "66": "C c c m","67":" C m m a","68":" C c c a","69":"F m m m","70":"F d d d",
+            "71": "I m m m","72":" I b a m","73":" I b c a","74":"I m m a","75":"P 4",
+            "76": "P 41","77":" P 42","78":" P 43","79":"I 4"    ,"80":"I 41",
+            "81": "P -4","82":" I -4","83":" P 4/m","84":"P 42/m","85":"P 4/n",
+            "86": "P 42/n","87":" I 4/m","88":" I 41/a","89":"P 4 2 2","90":"P 4 21 2",
+            "91": "P 41 2 2 ","92":" P 41 21 2 ","93":" P 42 2 2 ","94":"P 42 21 2" ,"95":"P 43 2 2",
+            "96": "P 43 21 2 ","97":" I 4 2 2","98":" I 41 2 2 ","99":"P 4 m m","100":"P 4 b m",
+            "101": "P 42 c m ","102":" P 42 n m ","103":" P 4 c c","104":"P 4 n c","105":"P 42 m c",
+            "106": "P 42 b c ","107":" I 4 m m","108":" I 4 c m","109":"I 41 m d" ,"110":"I 41 c d",
+            "111": "P -4 2 m ","112":" P -4 2 c ","113":" P -4 21 m ","114":"P -4 21 c" ,"115":"P -4 m 2",
+            "116": "P -4 c 2 ","117":" P -4 b 2 ","118":" P -4 n 2 ","119":"I -4 m 2" ,"120":"I -4 c 2",
+            "121": "I -4 2 m ","122":" I -4 2 d ","123":" P 4/m m m ","124":"P 4/m c c" ,"125":"P 4/n b m",
+            "126": "P 4/n n c ","127":" P 4/m b m ","128":" P 4/m n c ","129":"P 4/n m m" ,"130":"P 4/n c c",
+            "131": "P 42/m m c ","132":" P 42/m c m ","133":" P 42/n b c ","134":"P 42/n n m" ,"135":"P 42/m b c",
+            "136": "P 42/m n m ","137":" P 42/n m c ","138":" P 42/n c m ","139":"I 4/m m m" ,"140":"I 4/m c m",
+            "141": "I 41/a m d ","142":" I 41/a c d ","143":" P 3    ","144":"P 31","145":"P 32",
+            "146": "R 3    ","147":" P -3","148":" R -3","149":"P 3 1 2","150":"P 3 2 1",
+            "151": "P 31 1 2 ","152":" P 31 2 1 ","153":" P 32 1 2 ","154":"P 32 2 1" ,"155":"R 3 2",
+            "156": "P 3 m 1","157":" P 3 1 m","158":" P 3 c 1","159":"P 3 1 c"    ,"160":"R 3 m",
+            "161": "R 3 c","162":" P -3 1 m ","163":" P -3 1 c ","164":"P -3 m 1" ,"165":"P -3 c 1",
+            "166": "R -3 m","167":" R -3 c","168":" P 6    ","169":"P 61","170":"P 65",
+            "171": "P 62","172":" P 64","173":" P 63","174":"P -6","175":"P 6/m",
+            "176": "P 63/m","177":" P 6 2 2","178":" P 61 2 2 ","179":"P 65 2 2" ,"180":"P 62 2 2",
+            "181": "P 64 2 2 ","182":" P 63 2 2 ","183":" P 6 m m","184":"P 6 c c"    ,"185":"P 63 c m",
+            "186": "P 63 m c ","187":" P -6 m 2 ","188":" P -6 c 2 ","189":"P -6 2 m" ,"190":"P -6 2 c",
+            "191": "P 6/m m m ","192":" P 6/m c c ","193":" P 63/m c m ","194":"P 63/m m c" ,"195":"P 2 3",
+            "196": "F 2 3","197":" I 2 3","198":" P 21 3","199":"I 21 3","200":"P m -3",
+            "201": "P n -3","202":" F m -3","203":" F d -3","204":"I m -3","205":"P a -3",
+            "206": "I a -3","207":" P 4 3 2","208":" P 42 3 2 ","209":"F 4 3 2","210":"F 41 3 2",
+            "211": "I 4 3 2","212":" P 43 3 2 ","213":" P 41 3 2 ","214":"I 41 3 2" ,"215":"P -4 3 m",
+            "216": "F -4 3 m ","217":" I -4 3 m ","218":" P -4 3 n ","219":"F -4 3 c" ,"220":"I -4 3 d",
+            "221": "P m -3 m ","222":" P n -3 n ","223":" P m -3 n ","224":"P n -3 m" ,"225":"F m -3 m",
+            "226": "F m -3 c ","227":" F d -3 m ","228":" F d -3 c ","229":"I m -3 m" ,"230":"I a -3 d"}
+    
+    return spgDict[sym]

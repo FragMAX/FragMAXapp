@@ -162,9 +162,12 @@
 
       V.load_pdb_and_ccp4_maps("{{pdb}}",
                                "{{nat}}",
-                               "{{dif}}", function () { 
-                                V.recenter({{center}}, null, 25);     
-      });
+                               "{{dif}}"
+                            {% ifequal cE "true" %}
+                            , function () { 
+                            V.recenter({{center}}, null, 25);}     
+                            {% endifequal %}                            
+       );
       V.load_pdb("{{rhofit}}");
   </script>
 </body>
