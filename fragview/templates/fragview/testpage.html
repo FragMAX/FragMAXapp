@@ -5,252 +5,198 @@
 {% block content %}
 
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My MDB Django Project</title>
 
-{% comment %} Define dataset run number <- Edit CSV file and update views {% endcomment %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Bootstrap -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Material Design for Bootstrap -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.16/css/mdb.min.css" rel="stylesheet">
+</head>
+
+
 <style>
+.flex-container {
+  padding-left: 250px !important;
+  margin: 0;
+  list-style: none;
   
-  th {
-      cursor: pointer;
-      text-align: center;
-  }
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  
+  -webkit-flex-flow: row wrap;
+  justify-content: space-around;
+}
 
-
-    td, th {
-      border: 1px solid #f0f0f0;
-      padding: 8px;
-      text-align: center;
-
-    } 
-  tr:nth-child(even) {
-    background-color: #dddddd;
-    height: 150px;
-
-  }
-
-  {% comment %} tr td:nth-child(10) {
-      text-align: left;
-
-  } {% endcomment %}
-  .container {
-      margin: 0 50px 50px 300px !important;
-      max-width: 100% !important;
-      width: calc(100% - 350px) !important;
-  }
-  .crystalsnap {
-    height:88px;
-    width:116px;
-  }
-  .ligpng {
-    height:88px;
-    width:88px;
-  }
-
-  table {
-    width:90%;
-  }
-  td {
-      width:18%;
-      position:relative;
-  }
-  td:after{
-      content:'';
-      display:block;
-      margin-top:100%;
-  }
-  td .content {
-      position:absolute;
-      top:0;
-      bottom:0;
-      left:0;
-      right:0;
-      background:blue;
-  }
+.flex-item {
+  background: tomato;
+  padding: 5px;
+  width: 200px;
+  height: 150px;
+  margin-top: 10px;
+  
+  line-height: 150px;
+  color: white;
+  font-weight: bold;
+  font-size: 3em;
+  text-align: center;
+}
 </style>
-  <div>
-    <h4>Data Collection Overview</h4> 
-    <div style="display:flex;">
-      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
-        <button class="btn" type="submit" value="resyncDataset" name="resyncdsButton" size="1">Resync datasets</button>
-      </form>  
-      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
-        <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Resync status</button>
-      </form>  
-      {% comment %} <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
-        <button class="btn" type="submit" value="resyncImages" name="resyncImgButton" size="1">Resync SVG and Diff</button>
-      </form>   {% endcomment %}
-      </div>
+<body>
+  
+  <ul class="flex-container">
+  <li class="flex-item">
+  <div class="card">
+
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
   </div>
-  <p></p>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+  <li class="flex-item">
+  <div class="card">
 
-<div class="input-field col s12" id="searchDiv">
-        <i class="material-icons prefix">search</i>
-        <input type="text" id="searchSample" onkeyup="searchSampleName()"  title="Type in a sample name">
-        <label for="searchSample">Search for Sample names..</label>        
-    </div>
-    
- <table id="datasetTable">
-  <thead>
-  <tr>
-  <th>Info/Process</th>
-  <th>Protein</th>
-  <th>Sample name</th>
-  <th>Run</th>
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
+  </div>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+  <li class="flex-item">
+  <div class="card">
 
-  <th>Data Evaluation</th>
-  {% comment %} <th>Ref Status</th>
-  <th>Lig Status</th> {% endcomment %}
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
+  </div>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+  <li class="flex-item">
+  <div class="card">
 
-  <th>Resolution</sub> [&Aring;]</th>
-  <th>Frames</th>
-  {% comment %} <th>Path</th>   {% endcomment %}
-  <th>Crystal Picture</th>  
-  <th>Ligand</th>
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
+  </div>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+  <li class="flex-item">
+  <div class="card">
 
-  </tr>
-  </thead>
-  <tbody>
-    <tr >
-    </tr>
-    {% for img,prf,res,path,snap,acr,png,run,smp,dps,rfs,lgs in files %}
-    <tr>
-    <td>
-    {% comment %} <form action="/dataset_info">
-        <input class="btn-small" id={{prf}} name={{ prf }} type="submit" value="Get Info" />
-          <a href="javascript:{}" onclick="document.getElementById({{prf}}).submit();">hCAII-H5_testing</a> 
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
+  </div>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+  <li class="flex-item">
+  <div class="card">
 
-    </form> {% endcomment %}
+  <!-- Card image -->
+  <div class="view overlay">
+    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
+    <a href="#!">
+      <div class="mask rgba-white-slight"></div>
+    </a>
+  </div>
+  <!-- Card content -->
+  <div class="card-body">
+    <!-- Title -->
+    <h4 class="card-title">Card title</h4>
+    <!-- Text -->
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <!-- Button -->
+    <a href="#" class="btn btn-primary">Button</a>
+  </div>
+</div>
+  </li>
+</ul>
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
+  <!-- Popper.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
 
+  <!-- Bootstrap -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
-    <form action="/dataset_info/" method="get" id={{prf}} >
-      <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
-    </form>
+  <!-- Material Design for Bootstrap -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.16/js/mdb.min.js"></script>
 
-    </td>
-    <td><p>{{ acr }}</p></td>
-    <td><p>{{ smp }}</p></td>
-    <td><p>{{ run }}</p></td>
-    {% comment %} {{dps| safe}}     {% endcomment %}
-
-    <td>
-    <table class="matrix">
-    <tr>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-        <td>
-            <div class="content">1</div>
-        </td>
-    </tr>
-    <table>
-    
-    </td>
-    {% comment %} {{rfs| safe}}
-    {{lgs | safe}} {% endcomment %}
-    <td><p>{{ res }}</p></td>
-    <td><p>{{ img }}</p></td>
-    {% comment %} <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td> {% endcomment %}
-
-    
-    <td>
-      <a href={{ snap }} target="_blank">
-          <img class="crystalsnap" id="snap1" src={{ snap }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
-      </a>
-    </td>    
-      
-    <td>
-      <a href={{ png }} target="_blank">
-
-        <img class="ligpng" id="ligand" src={{ png }} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="40" width="86">
-
-          {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noligand" height="40" width="86"> {% endcomment %}
-      </a>
-    </td>
-    </tr>
-    {% endfor %}                   
-  </tbody>
-  </table>
-
-
-  </tbody>
-
-</table>
-<script>
-const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
-    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-
-// do the work...
-document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-    const table = th.closest('table');
-    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-        .forEach(tr => table.appendChild(tr) );
-})));
-function searchSampleName() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchSample");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("datasetTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[2];
-            if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-            }       
-        }
-        }
-</script>
-
+  <script>
+    new WOW().init();
+  </script>
+</body>
+</html>
 {% endblock %}
 
 

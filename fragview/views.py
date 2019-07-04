@@ -1087,8 +1087,6 @@ def get_pipedream_results():
                 if "resolution" in xmlDict:
                     writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
         
-
-
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
@@ -1183,8 +1181,6 @@ def load_pipedream_density(request):
             # "nextst":nextst,
             
         })
-
-
 
 
 ################ PANDDA #####################
@@ -3079,7 +3075,7 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         nImg=dtc["numberOfImages"]
 
         script="cd "+outdir+"/xdsapp\n"
-        script+='xdsapp --cmd --dir='+outdir+'/xdsapp -j 8 -c 5 -i '+h5master+' delphi=10 --fried=True --range=1\ '+nImg+' \n\n'
+        script+='xdsapp --cmd --dir='+outdir+'/xdsapp -j 8 -c 5 -i '+h5master+' --delphi=10 --fried=True --range=1\ '+nImg+' \n\n'
         scriptList.append(script)
         os.makedirs(outdir,exist_ok=True)
         os.makedirs(outdir+"/xdsapp",exist_ok=True)
