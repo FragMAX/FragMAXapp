@@ -2682,7 +2682,6 @@ def create_dataColParam(acr, path):
                     snaps="noSnapshots"
                 colPath    = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imageDirectory"]
 
-
                 if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
                     ligsvg="/static/img/apo.png"                
                 else:
@@ -3342,7 +3341,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     process2results() 
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
-        writeFile.write('''\nimport commands, os,sys'''
+        writeFile.write('''\nimport commands, os, sys, glob, time, subprocess'''
             '''\n'''
             '''\nargsfit=sys.argv[1]'''
             '''\npath=sys.argv[2]'''
@@ -3351,7 +3350,11 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             '''\ncmd = "sbatch "+path+"/fragmax/scripts/run_proc2res.sh"'''
             '''\nstatus, jobnum1 = commands.getstatusoutput(cmd)'''
             '''\njobnum1=jobnum1.split("batch job ")[-1]'''
+            '''\nPDB=path+"/fragmax/process/"+sys.argv[3]+".pdb"'''
             '''\n'''
+            '''\ndef scrsplit(a, n):'''
+            '''\n    k, m = divmod(len(a), n)'''
+            '''\n    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))'''
             '''\nif "dimple" in argsfit:'''
             '''\n    # submit the second job to be dependent on the first'''
             '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
@@ -3367,7 +3370,38 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             '''\nif "buster" in argsfit:'''
             '''\n    # submit the third job (a swarm) to be dependent on the second'''
             '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_buster.sh" % (jobnum1,path)    '''
-            '''\n    status,jobnum3 = commands.getstatusoutput(cmd)''')
+            '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
+            '''\nif "buster" in argsfit:'''
+            '''\n    # submit the third job (a swarm) to be dependent on the second'''
+            '''\n    '''
+            '''\n    '''
+            '''\n'''
+            '''\n    header= """#!/bin/bash\n"""'''
+            '''\n    header+= """#!/bin/bash\n"""'''
+            '''\n    header+= """#SBATCH -t 99:55:00\n"""'''
+            '''\n    header+= """#SBATCH -J BUSTER\n"""'''
+            '''\n    header+= """#SBATCH --exclusive\n"""'''
+            '''\n    header+= """#SBATCH -N1\n"""'''
+            '''\n    header+= """#SBATCH --cpus-per-task=40\n"""'''
+            '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\n"""'''
+            '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\n"""    '''
+            '''\n    header+= """module purge\n"""'''
+            '''\n    header+= """module load autoPROC BUSTER\n\n"""'''
+
+            '''\n    inputData=list()'''
+            '''\n    for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):'''
+            '''\n        mtzList=glob.glob(proc+"*mtz")'''
+            '''\n        if mtzList:'''
+            '''\n            inputData.append(sorted(glob.glob(proc+"*mtz"))[0])'''
+            '''\n    scriptList=['echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+mtzin+' hklout '+mtzin.replace("merged","truncate")+" ; refine -p "+PDB+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster\n\n" for mtzin in inputData]'''
+            '''\n    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
+
+            '''\n    for num,chunk in enumerate(chunkScripts):'''
+            '''\n        time.sleep(0.2)'''
+            '''\n        with open(path+"/fragmax/scripts/buster_part"+str(num)+".sh", "w") as outfile:'''
+            '''\n            outfile.write(chunk)        '''
+            '''\n        cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_part%s.sh" % (jobnum1,path,str(num))'''
+            '''\n        status,jobnum3 = commands.getstatusoutput(cmd)''')
 
 
     def dimple_hpc(PDB):
@@ -3489,58 +3523,24 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             pyOut.write('            copy_string="rsync --ignore-existing -raz "+fpath+"/* "+outp+"/fspipeline"\n')
             pyOut.write('            subprocess.call(copy_string, shell=True)\n')
 
-
-    def BUSTER_hpc(path, PDB):
-        #Creates HPC script to run dimple on all mtz files provided.
-        #PDB _file can be provided in the header of the python script and parse to all 
-        #pipelines (Dimple, pipedream, bessy)
-
-
-        ##This line will make dimple run on unscaled unmerged files. It seems that works 
-        ##better sometimes
-        mtzlist=[x.split("_merged")[0]+"_unmerged_unscaled.mtz" for x in mtzlist]
-
-
-        busterOut=""
-
-        #define env for script for dimple
-        busterOut+= """#!/bin/bash\n"""
-        busterOut+= """#!/bin/bash\n"""
-        busterOut+= """#SBATCH -t 99:55:00\n"""
-        busterOut+= """#SBATCH -J BUSTER\n"""
-        busterOut+= """#SBATCH --exclusive\n"""
-        busterOut+= """#SBATCH -N1\n"""
-        busterOut+= """#SBATCH --cpus-per-task=48\n"""
-        busterOut+= """#SBATCH --mem=220000\n""" 
-        busterOut+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\n"""
-        busterOut+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\n"""    
-        busterOut+= """module purge \n"""
-        busterOut+= """module load autoPROC BUSTER Phenix \n\n"""
-
-
-        #dimple doesnt play well with many jobs sent at the same time to HPC. not sure why though           
-
-
-        busterOut+="\n\n"
-
-        return busterOut
+    
 
     dimple_hpc(userPDB)
     fspipeline_hpc(userPDB)
 
-    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
+    #slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
     # if useBUSTER:
     #     script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
     #     command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     #     subprocess.call(command,shell=True)
-    if useFSP:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
-    if useDIMPLE:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh " 
-    
-    
-    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(command,shell=True)
+    #if useFSP:
+    #    slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
+    #if useDIMPLE:
+    #    slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh " 
+    #
+    #
+    #command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #subprocess.call(command,shell=True)
 
 
     argsfit="none"
@@ -3548,17 +3548,12 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         argsfit="fspipeline"
     if useDIMPLE:
         argsfit+="dimple"
-    
-    
-    #command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+" "+path+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    if useBUSTER:
+        argsfit+="buster"
+    nodes=5
+    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+nodes+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
-    # script=path+"/fragmax/scripts/run_fspipeline.sh"
-    # command ='echo "module purge | module load Phenix CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    # subprocess.call(command,shell=True)
-    # script=path+"/fragmax/scripts/run_dimple.sh"
-    # command ='echo "module purge | module load Phenix CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    # subprocess.call(command,shell=True)
+    
 
 def ligandToSVG():
     
