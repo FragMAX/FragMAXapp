@@ -48,13 +48,14 @@ def project_definitions():
     proposal = prjset.split(";")[1].split(":")[-1]
     shift    = prjset.split(";")[2].split(":")[-1]    
     acronym  = prjset.split(";")[3].split(":")[-1]    
-    proposal_type = prjset.split(";")[4].split(":")[-1].replace("\n","") 
+    proposal_type = prjset.split(";")[4].split(":")[-1]
+    fraglib  = prjset.split(";")[5].split(":")[-1].replace("\n","") 
 
 
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
-    fraglib="F2XEntry"
+    #fraglib="F2XEntry"
     #fraglib="JBS"
     os.makedirs(path+"/fragmax/process/",exist_ok=True)
     os.makedirs(path+"/fragmax/scripts/",exist_ok=True)
@@ -124,6 +125,8 @@ def load_project_summary(request):
         "fraglib":fraglib,
         "exp_date":natdate})
     
+
+####NOT used anymore
 def project_summary_load(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
@@ -139,6 +142,8 @@ def project_summary_load(request):
     elif "ligfitting" in a:
         out="Ligand fitting results synced"
     return render(request,'fragview/project_summary_load.html', {'option': out})
+##############
+
 
 def dataset_info(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
@@ -155,7 +160,6 @@ def dataset_info(request):
     energy=format(12.4/float(datainfo["wavelength"]),".2f")
     totalExposure=str(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]))
     edgeResolution=str(float(datainfo["resolution"])*0.75625)
-    #ligpng="JBS/"+prefix.split("-")[1]+"/image.png"
     ligpng="/static/img/nolig.png"
     if "Apo" not in prefix.split("-"):
         ligpng=prefix.split("-")[-1]
@@ -723,7 +727,6 @@ def ligfit_results(request):
 
 ################ PIPEDREAM #####################
 
-
 def pipedream(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
 
@@ -1181,7 +1184,6 @@ def load_pipedream_density(request):
             # "nextst":nextst,
             
         })
-
 
 ################ PANDDA #####################
 
@@ -2682,12 +2684,9 @@ def create_dataColParam(acr, path):
 
 
                 if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                    ligsvg="/static/img/apo.png"
-                elif fraglib in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                    wellNo=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"].split("-")[-1]
-                    ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+wellNo+"/"+wellNo+".svg"
+                    ligsvg="/static/img/apo.png"                
                 else:
-                    ligsvg="noPNG"
+                    ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+sample+"/"+sample+".svg"
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
                                                                       
@@ -3143,8 +3142,9 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
     header+= """#SBATCH -J xdsxscale\n"""
     header+= """#SBATCH --exclusive\n"""
     header+= """#SBATCH -N1\n"""
-    header+= """#SBATCH --cpus-per-task=40\n"""    
+    header+= """#SBATCH --cpus-per-task=40\n"""       
     #header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH --mem-per-cpu=2000\n""" 
     header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.out\n"""
     header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.err\n"""    
     header+= """module purge\n\n"""
@@ -3166,7 +3166,7 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
 
         
         script="cd "+outdir+"/xdsxscale \n"
-        script+="xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=48 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        script+="xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
 
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
@@ -3193,6 +3193,8 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
     #header+= """#SBATCH --mem=220000\n""" 
+    header+= """#SBATCH --mem-per-cpu=2000\n""" 
+
     header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j.out\n"""
     header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j.err\n"""    
     header+= """module purge\n\n"""
@@ -3214,7 +3216,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
         
         script="cd "+outdir+"/dials \n"
-        script+="xia2 goniometer.axes=0,1,0 pipeline=dials failover=true  nproc=48 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        script+="xia2 goniometer.axes=0,1,0 pipeline=dials failover=true  nproc=40 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
 
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
@@ -3318,7 +3320,7 @@ def process2results():
     proc2resOut+= """#!/bin/bash\n"""
     proc2resOut+= """#!/bin/bash\n"""
     proc2resOut+= """#SBATCH -t 99:55:00\n"""
-    proc2resOut+= """#SBATCH -J ScaleMerge\n"""
+    proc2resOut+= """#SBATCH -J aimless\n"""
     proc2resOut+= """#SBATCH --exclusive\n"""
     proc2resOut+= """#SBATCH -N1\n"""
     proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
@@ -3662,8 +3664,6 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib):
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
     
-    
-       
 def merge_project():
     srcprj="20190401"
     dstprj="20190330"
@@ -3943,8 +3943,7 @@ def get_project_status():
         with open(path+"/fragmax/process/"+acr+"/lgstatus.csv","w") as outp:
             for key,value in dataLigStatusDict.items():
                 outp.write(key+":"+value+"\n")
-
-                    
+          
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
