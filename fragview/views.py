@@ -2959,7 +2959,44 @@ def resultSummary():
                 pdbout  ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
                 dif_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
                 nat_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
-
+            
+            if "buster" in usracr:
+                with open(entry,"r") as inp:
+                    pdb_file=inp.readlines()
+                for line in pdb_file:
+                    if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
+                        r_work=line.split(" ")[-1]                
+                        r_work=str("{0:.2f}".format(float(r_work)))
+                    if "REMARK   3   FREE R VALUE                     :" in line:            
+                        r_free=line.split(" ")[-1]
+                        r_free=str("{0:.2f}".format(float(r_free)))
+                    if "REMARK   3   BOND LENGTHS                       (A) :" in line:
+                        bonds=line.split()[-1]
+                    if "REMARK   3   BOND ANGLES                  (DEGREES) :" in line:   
+                        angles=line.split()[-1]
+                    if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                        resolution=line.split(":")[-1].replace(" ","").replace("\n","")
+                        resolution=str("{0:.2f}".format(float(resolution)))
+                    if "CRYST1" in line:
+                        a=line[9:15]
+                        b=line[18:24]
+                        c=line[27:33]
+                        alpha=line[34:40].replace(" ","")
+                        beta=line[41:47].replace(" ","")
+                        gamma=line[48:54].replace(" ","")
+                        a=str("{0:.2f}".format(float(a)))
+                        b=str("{0:.2f}".format(float(b)))
+                        c=str("{0:.2f}".format(float(c)))
+                        spg="".join(line.split()[-4:])
+                if not os.path.exists(entry.replace("BUSTER_model","final")):            
+                    shutil.copyfile(entry, entry.replace("BUSTER_model","final"))
+                if not os.path.exists(entry.replace("BUSTER_refln","final")):            
+                    shutil.copyfile(entry, entry.replace("BUSTER_refln","final"))
+                blist="[]"
+                pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
+                dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
+                nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
+            
             if "fspipeline" in usracr:
 
                 if os.path.exists("/".join(entry.split("/")[:-1])+"/mtz2map.log") and os.path.exists("/".join(entry.split("/")[:-1])+"/blobs.log"):
