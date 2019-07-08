@@ -274,14 +274,11 @@ def datasets(request):
     resyncStatus=str(request.GET.get("resyncstButton"))
     create_dataColParam(acr,path) 
 
-    if "resyncDataset" in resyncAction:
-        shutil.move(path+"/fragmax/process/"+acr+"/datacollections.csv",path+"/fragmax/process/"+acr+"/datacollectionsold.csv")
+    if "resyncDataset" in resyncAction:        
         create_dataColParam(acr,path)
     
     if "resyncStatus" in resyncStatus:
         get_project_status()
-        if not os.path.exists(path+"/fragmax/results/"):
-            get_project_status_initial()
         
     
     with open(path+"/fragmax/process/"+acr+"/datacollections.csv","r") as readFile:
@@ -301,7 +298,8 @@ def datasets(request):
     lgentry=list()
 
 
-
+    if not os.path.exists(path+"/fragmax/process/"+acr+"/allstatus.csv"):
+        get_project_status()
 
     ##Proc status
     if os.path.exists(path+"/fragmax/process/"+acr+"/allstatus.csv"):
@@ -334,7 +332,7 @@ def datasets(request):
                 elif status[0][3]=="partial":
                     da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
                 else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p></td>""")
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>""")
 
 
                 if status[0][4]=="full" :
@@ -357,7 +355,7 @@ def datasets(request):
                 elif status[0][6]=="partial":
                     da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
                 else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p></td>""")
                 
                 
                 dpentry.append(da)
@@ -396,12 +394,12 @@ def datasets(request):
     else:
         for i in prf_list:
             dpentry.append("""<td>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>
-                    <p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>    
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>    
                 </td>""")
             rfentry.append("""<td>
                         <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
@@ -3630,8 +3628,9 @@ def get_project_status():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     statusDict=dict()
+    procList=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
     resList=glob.glob(path+"/fragmax/results/"+acr+"*/")
-    for i in resList:
+    for i in procList:
         dataset_run=i.split("/")[-2]
         statusDict[dataset_run]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
         
@@ -3640,19 +3639,6 @@ def get_project_status():
         for j in glob.glob(result+"*"):
             dp=j.split("/")[-1]
             
-            if glob.glob(j+"/*autoproc*_merged.mtz")!=[]:            
-                statusDict[dts].update({"autoproc":"full"})
-            if glob.glob(j+"/*dials*_merged.mtz")!=[]:            
-                statusDict[dts].update({"dials":"full"})
-            if glob.glob(j+"/*EDNA*_merged.mtz")!=[]:            
-                statusDict[dts].update({"EDNA":"full"})
-            if glob.glob(j+"/*fastdp*_merged.mtz")!=[]:            
-                statusDict[dts].update({"fastdp":"full"})
-            if glob.glob(j+"/*xdsapp*_merged.mtz")!=[]:            
-                statusDict[dts].update({"xdsapp":"full"})
-            if glob.glob(j+"/*xdsxscale*_merged.mtz")!=[]:            
-                statusDict[dts].update({"xdsxscale":"full"})
-                
                 
             if os.path.exists(j+"/dimple/final.pdb"):
                 statusDict[dts].update({"dimple":"full"})
@@ -3664,12 +3650,33 @@ def get_project_status():
                 statusDict[dts].update({"ligfit":"full"})
             if glob.glob(j+"/*/rhofit/best.pdb")!=[]:
                 statusDict[dts].update({"rhofit":"full"})
+                
+    for process in procList:
+        dts=process.split("/")[-2]
+        j=glob.glob(path+"/fragmax/process/"+acr+"/*/"+dts+"/")
+        if j!=[]:
+            j=j[0]
+        if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:            
+            statusDict[dts].update({"autoproc":"full"})
+        if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:            
+            statusDict[dts].update({"dials":"full"})
+        ej=glob.glob(path+"/process/"+acr+"/*/*"+dts+"*/EDNA_proc/results/*mtz")
+        if ej!=[]:
+            statusDict[dts].update({"EDNA":"full"})
+        fj=glob.glob(path+"/process/"+acr+"/*/*"+dts+"*/fastdp/results/*mtz.gz")    
+        if fj!=[]:
+            statusDict[dts].update({"fastdp":"full"})
+        if glob.glob(j+"/xdsapp/*mtz")!=[]:            
+            statusDict[dts].update({"xdsapp":"full"})
+        if glob.glob(j+"/xdsxscale/DataFiles/*mtz")!=[]:            
+            statusDict[dts].update({"xdsxscale":"full"})    
 
     with open(path+"/fragmax/process/"+acr+"/allstatus.csv","w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["dataset","run","autoproc","dials","EDNA","fastdp","xdsapp","xdsxscale","dimple","fspipeline","buster","ligfit","rhofit"])    
         for dataset_run,status in statusDict.items():    
             writer.writerow([dataset_run]+list(status.values()))
+
   
 def get_project_status_initial():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
