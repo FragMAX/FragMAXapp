@@ -2919,7 +2919,7 @@ def get_results_info(entry):
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
-    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")
+    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/final**pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
     with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
@@ -2930,6 +2930,7 @@ def resultSummary():
             pdbout   = ""
             usracr   = "_".join(entry.split("/")[8:11])
             pipeline = "_".join(entry.split("/")[9:11])
+           
 
             if "dimple" in usracr:
                 with open(entry,"r") as inp:
@@ -3231,7 +3232,9 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
 def process2results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
+    for dp in ["xdsapp","autoproc","xdsxscale","EDNA","fastdp","dials"]:
+        #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
+        [os.makedirs("/".join(x.split("/")[:8]+x.split("/")[10:]).replace("/process/","/results/")+dp, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
     with open(path+"/fragmax/scripts/process2results.py","w") as writeFile:
         writeFile.write('''import os '''
                 '''\nimport glob'''
@@ -3257,14 +3260,14 @@ def process2results():
                 '''\n    srcmtz=dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"'''
-                '''\n        if not os.path.exists(dstmtz):            '''
+                '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    srcmtz=dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"'''
-                '''\n        if not os.path.exists(dstmtz):            '''
+                '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
@@ -3273,7 +3276,7 @@ def process2results():
                 '''\n        srcmtz=mtzoutList[0]    '''
                 '''\n    if os.path.exists(srcmtz):                '''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsapp/"+dataset.split("/")[-2]+"_xdsapp_merged.mtz"        '''
-                '''\n        if not os.path.exists(dstmtz):'''
+                '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)        '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
@@ -3281,24 +3284,24 @@ def process2results():
                 '''\n    if mtzoutList!=[]:'''
                 '''\n        srcmtz=mtzoutList[0]    '''
                 '''\n    dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/EDNA/"+dataset.split("/")[-2]+"_EDNA_merged.mtz"        '''
-                '''\n    if not os.path.exists(dstmtz):'''
+                '''\n    if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n        shutil.copyfile(srcmtz,dstmtz)        '''
                 '''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
                 '''\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    mtzoutList=glob.glob(path+"/process/"+acr+"/"+dataset.split("/")[-3]+"/*"+dataset.split("/")[-2]+"*/fastdp/results/*_noanom_fast_dp.mtz.gz")'''
                 '''\n    if mtzoutList!=[]:'''
                 '''\n        srcmtz=mtzoutList[0]        '''
-                '''\n    if os.path.exists(srcmtz):                '''
-                '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/fastdp/"+dataset.split("/")[-2]+"_fastdp_merged.mtz"        '''
-                '''\n        if not os.path.exists(dstmtz):'''
-                '''\n            shutil.copyfile(srcmtz,dstmtz)'''
-                '''\n            try:'''
-                '''\n                subprocess.check_call(['gunzip', dstmtz+".gz"])'''
-                '''\n            except:'''
-                '''\n                pass'''
-                '''\n            a=dataset.split("process/")[0]+"results/"+dataset_run+"/fastdp/"+dataset_run+"_fastdp_unmerged.mtz"'''
-                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/aimless.log"'''
-                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
+                '''\n        if os.path.exists(srcmtz):                '''
+                '''\n            dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/fastdp/"+dataset.split("/")[-2]+"_fastdp_merged.mtz"        '''
+                '''\n            if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
+                '''\n                shutil.copyfile(srcmtz,dstmtz)'''
+                '''\n                try:'''
+                '''\n                    subprocess.check_call(['gunzip', dstmtz+".gz"])'''
+                '''\n                except:'''
+                '''\n                    pass'''
+                '''\n                a=dataset.split("process/")[0]+"results/"+dataset+"/fastdp/"+dataset+"_fastdp_unmerged.mtz"'''
+                '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    ''')
 
 
@@ -3330,10 +3333,10 @@ def process2results():
     proc2resOut+= """module load CCP4 Phenix\n\n"""
 
 
-
+    #HARD CODED
     #dimpleOut+=" & ".join(dimp)
     proc2resOut+="\n\n"
-    proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "+path+" "+acr+" P1211"
+    proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "+path+" "+acr+" C2"
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
     
@@ -3376,24 +3379,24 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             '''\n    '''
             '''\n    '''
             '''\n'''
-            '''\n    header= """#!/bin/bash\n"""'''
-            '''\n    header+= """#!/bin/bash\n"""'''
-            '''\n    header+= """#SBATCH -t 99:55:00\n"""'''
-            '''\n    header+= """#SBATCH -J BUSTER\n"""'''
-            '''\n    header+= """#SBATCH --exclusive\n"""'''
-            '''\n    header+= """#SBATCH -N1\n"""'''
-            '''\n    header+= """#SBATCH --cpus-per-task=40\n"""'''
-            '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\n"""'''
-            '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\n"""    '''
-            '''\n    header+= """module purge\n"""'''
-            '''\n    header+= """module load autoPROC BUSTER\n\n"""'''
+            '''\n    header= """#!/bin/bash\\n"""'''
+            '''\n    header+= """#!/bin/bash\\n"""'''
+            '''\n    header+= """#SBATCH -t 99:55:00\\n"""'''
+            '''\n    header+= """#SBATCH -J BUSTER\\n"""'''
+            '''\n    header+= """#SBATCH --exclusive\\n"""'''
+            '''\n    header+= """#SBATCH -N1\\n"""'''
+            '''\n    header+= """#SBATCH --cpus-per-task=40\\n"""'''
+            '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\\n"""'''
+            '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\\n"""    '''
+            '''\n    header+= """module purge\\n"""'''
+            '''\n    header+= """module load autoPROC BUSTER\\n\\n"""'''
 
             '''\n    inputData=list()'''
             '''\n    for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):'''
             '''\n        mtzList=glob.glob(proc+"*mtz")'''
             '''\n        if mtzList:'''
             '''\n            inputData.append(sorted(glob.glob(proc+"*mtz"))[0])'''
-            '''\n    scriptList=['echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+mtzin+' hklout '+mtzin.replace("merged","truncate")+" ; refine -p "+PDB+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster\n\n" for mtzin in inputData]'''
+            '''\n    scriptList=['echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+mtzin+' hklout '+mtzin.replace("merged","truncate")+" ; refine -p "+PDB+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster" for mtzin in inputData]'''
             '''\n    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
 
             '''\n    for num,chunk in enumerate(chunkScripts):'''
@@ -3528,31 +3531,31 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     dimple_hpc(userPDB)
     fspipeline_hpc(userPDB)
 
-    #slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
-    # if useBUSTER:
-    #     script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
-    #     command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #     subprocess.call(command,shell=True)
-    #if useFSP:
-    #    slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
-    #if useDIMPLE:
-    #    slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh " 
-    #
-    #
-    #command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #subprocess.call(command,shell=True)
-
-
-    argsfit="none"
-    if useFSP:
-        argsfit="fspipeline"
-    if useDIMPLE:
-        argsfit+="dimple"
+    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
     if useBUSTER:
-        argsfit+="buster"
-    nodes=5
-    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+nodes+' " | ssh -F ~/.ssh/ clu0-fe-1'
+         script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+         subprocess.call(command,shell=True)
+    if useFSP:
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
+    if useDIMPLE:
+        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh " 
+    
+    
+    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
+
+
+    #argsfit="none"
+    #if useFSP:
+    #    argsfit+="fspipeline"
+    #if useDIMPLE:
+    #    argsfit+="dimple"
+    #if useBUSTER:
+    #    argsfit+="buster"
+    #nodes=5
+    #command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+str(nodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #subprocess.call(command,shell=True)
     
 
 def ligandToSVG():
