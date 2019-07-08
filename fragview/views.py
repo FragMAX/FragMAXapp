@@ -2988,10 +2988,10 @@ def resultSummary():
                         b=str("{0:.2f}".format(float(b)))
                         c=str("{0:.2f}".format(float(c)))
                         spg="".join(line.split()[-4:])
-                if not os.path.exists(entry.replace("BUSTER_model","final")):            
-                    shutil.copyfile(entry, entry.replace("BUSTER_model","final"))
-                if not os.path.exists(entry.replace("BUSTER_refln","final")):            
-                    shutil.copyfile(entry, entry.replace("BUSTER_refln","final"))
+                if not os.path.exists(entry.replace("BUSTER_model.pdb","final.pdb")):            
+                    shutil.copyfile(entry, entry.replace("BUSTER_model.pdb","final.pdb"))
+                if not os.path.exists(entry.replace("BUSTER_model.pdb","final.mtz")):            
+                    shutil.copyfile(entry.replace("BUSTER_model.pdb","BUSTER_refln.mtz"), entry.replace("BUSTER_model.pdb","final.mtz"))
                 blist="[]"
                 pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
                 dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
