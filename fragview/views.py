@@ -3497,16 +3497,16 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     subprocess.call(command,shell=True)
 
 
-    #argsfit="none"
-    #if useFSP:
-    #    argsfit+="fspipeline"
-    #if useDIMPLE:
-    #    argsfit+="dimple"
-    #if useBUSTER:
-    #    argsfit+="buster"
-    #nodes=5
-    #command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+str(nodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #subprocess.call(command,shell=True)
+    argsfit="none"
+    if useFSP:
+        argsfit+="fspipeline"
+    if useDIMPLE:
+        argsfit+="dimple"
+    if useBUSTER:
+        argsfit+="buster"
+    nodes=5
+    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+str(nodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(command,shell=True)
     
 
 def ligandToSVG():
@@ -3678,7 +3678,6 @@ def get_project_status():
             writer.writerow([dataset_run]+list(status.values()))
 
   
-def get_project_status_initial():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     dataProcStatusDict=dict()
