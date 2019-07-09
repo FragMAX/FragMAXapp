@@ -89,6 +89,8 @@ def error_page(request):
     return render(request, "fragview/error.html")
 
 def process_all(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+
     return render(request, "fragview/process_all.html",{"acronym":acr})
 
 def settings(request):
@@ -3215,21 +3217,21 @@ def process2results(spacegroup):
                 '''\n            srcmtz=[x for x in glob.glob(dataset+"autoproc/*mtz") if "aimless" in x][0]'''
                 '''\n    dstmtz=path+"/fragmax/results/"+dataset.split("/")[-2]+"/autoproc/"+dataset.split("/")[-2]+"_autoproc_merged.mtz"'''
                 '''\n    shutil.copyfile(srcmtz,dstmtz)'''
-                '''\n    cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n    cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n    subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    srcmtz=dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"'''
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
-                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    srcmtz=dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"'''
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
-                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
                 '''\n    mtzoutList=glob.glob(dataset+"xdsapp/*F.mtz")'''
                 '''\n    if mtzoutList!=[]:'''
@@ -3238,7 +3240,7 @@ def process2results(spacegroup):
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsapp/"+dataset.split("/")[-2]+"_xdsapp_merged.mtz"        '''
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)        '''
-                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
                 '''\n    mtzoutList=glob.glob(path+"/process/"+acr+"/"+dataset.split("/")[-3]+"/*"+dataset.split("/")[-2]+"*/EDNA_proc/results/*_noanom_aimless.mtz")'''
                 '''\n    if mtzoutList!=[]:'''
@@ -3246,7 +3248,7 @@ def process2results(spacegroup):
                 '''\n    dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/EDNA/"+dataset.split("/")[-2]+"_EDNA_merged.mtz"        '''
                 '''\n    if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n        shutil.copyfile(srcmtz,dstmtz)        '''
-                '''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    mtzoutList=glob.glob(path+"/process/"+acr+"/"+dataset.split("/")[-3]+"/*"+dataset.split("/")[-2]+"*/fastdp/results/*_noanom_fast_dp.mtz.gz")'''
                 '''\n    if mtzoutList!=[]:'''
@@ -3260,7 +3262,7 @@ def process2results(spacegroup):
                 '''\n                except:'''
                 '''\n                    pass'''
                 '''\n                a=dataset.split("process/")[0]+"results/"+dataset+"/fastdp/"+dataset+"_fastdp_unmerged.mtz"'''
-                '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+a+" HKLOUT "+a.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(a.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+a.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+a.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log"'''
+                '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; wait 1 ; echo 'START' | aimless HKLIN "+dstmtz.replace("_unmerged.mtz","_scaled.mtz")+" HKLOUT "+dstmtz.replace("_unmerged.mtz","_merged.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "+'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '+dstmtz.replace("_unmerged.mtz","_merged.mtz")+' hklout '+dstmtz.replace("_unmerged.mtz","_truncate.mtz")+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
                 '''\n                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
                 '''\n    '''%(path,acr,spacegroup))
 
@@ -3296,66 +3298,66 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     process2results(spacegroup) 
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
         writeFile.write('''\nimport commands, os, sys, glob, time, subprocess'''
-            '''\n'''
-            '''\nargsfit=sys.argv[1]'''
-            '''\npath=sys.argv[2]'''
-            '''\n'''
-            '''\n# submit the first job'''
-            '''\ncmd = "sbatch "+path+"/fragmax/scripts/run_proc2res.sh"'''
-            '''\nstatus, jobnum1 = commands.getstatusoutput(cmd)'''
-            '''\njobnum1=jobnum1.split("batch job ")[-1]'''
-            '''\nPDB=path+"/fragmax/process/"+sys.argv[3]+".pdb"'''
-            '''\n'''
-            '''\ndef scrsplit(a, n):'''
-            '''\n    k, m = divmod(len(a), n)'''
-            '''\n    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))'''
-            '''\nif "dimple" in argsfit:'''
-            '''\n    # submit the second job to be dependent on the first'''
-            '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
-            '''\n    '''
-            '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
-            '''\n    '''
-            '''\nif "fspipeline" in argsfit:'''
-            '''\n    # submit the third job (a swarm) to be dependent on the second'''
-            '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_fspipeline.sh" % (jobnum1,path)    '''
-            '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
-            '''\n    '''
-            '''\n'''
-            '''\nif "buster" in argsfit:'''
-            '''\n    # submit the third job (a swarm) to be dependent on the second'''
-            '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_buster.sh" % (jobnum1,path)    '''
-            '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
-            '''\nif "buster" in argsfit:'''
-            '''\n    # submit the third job (a swarm) to be dependent on the second'''
-            '''\n    '''
-            '''\n    '''
-            '''\n'''
-            '''\n    header= """#!/bin/bash\\n"""'''
-            '''\n    header+= """#!/bin/bash\\n"""'''
-            '''\n    header+= """#SBATCH -t 99:55:00\\n"""'''
-            '''\n    header+= """#SBATCH -J BUSTER\\n"""'''
-            '''\n    header+= """#SBATCH --exclusive\\n"""'''
-            '''\n    header+= """#SBATCH -N1\\n"""'''
-            '''\n    header+= """#SBATCH --cpus-per-task=40\\n"""'''
-            '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\\n"""'''
-            '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\\n"""    '''
-            '''\n    header+= """module purge\\n"""'''
-            '''\n    header+= """module load autoPROC BUSTER\\n\\n"""'''
-
-            '''\n    inputData=list()'''
-            '''\n    for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):'''
-            '''\n        mtzList=glob.glob(proc+"*mtz")'''
-            '''\n        if mtzList:'''
-            '''\n            inputData.append(sorted(glob.glob(proc+"*mtz"))[0])'''
-            '''\n    scriptList=['echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+mtzin+' hklout '+mtzin.replace("merged","truncate")+" ; refine -p "+PDB+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster" for mtzin in inputData]'''
-            '''\n    chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
-
-            '''\n    for num,chunk in enumerate(chunkScripts):'''
-            '''\n        time.sleep(0.2)'''
-            '''\n        with open(path+"/fragmax/scripts/buster_part"+str(num)+".sh", "w") as outfile:'''
-            '''\n            outfile.write(chunk)        '''
-            '''\n        cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_part%s.sh" % (jobnum1,path,str(num))'''
-            '''\n        status,jobnum3 = commands.getstatusoutput(cmd)''')
+                        '''\nargsfit=sys.argv[1]'''
+                        '''\npath=sys.argv[2]'''
+                        '''\nacr=sys.argv[3]'''
+                        '''\nnodes=sys.argv[4]'''
+                        '''\nPDBfile=sys.argv[5]'''
+                        '''\ncmd = "sbatch "+path+"/fragmax/scripts/run_proc2res.sh"'''
+                        '''\nstatus, jobnum1 = commands.getstatusoutput(cmd)'''
+                        '''\njobnum1=jobnum1.split("batch job ")[-1]'''
+                        '''\ninputData=list()'''
+                        '''\nfor proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):'''
+                        '''\n    mtzList=glob.glob(proc+"*mtz")'''
+                        '''\n    if mtzList:'''
+                        '''\n        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])'''
+                        '''\ndef scrsplit(a, n):'''
+                        '''\n    k, m = divmod(len(a), n)'''
+                        '''\n    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))'''
+                        '''\nif "dimple" in argsfit:'''
+                        '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
+                        '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
+                        '''\nif "fspipeline" in argsfit:'''
+                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit" --cpu=1 '''"""
+                        '''\n    scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ ; "+fsp for x in inputData]'''
+                        """\n    header='''#!/bin/bash\\n'''"""
+                        """\n    header+='''#!/bin/bash\\n'''"""
+                        """\n    header+='''#SBATCH -t 99:55:00\\n'''"""
+                        """\n    header+='''#SBATCH -J FSpipeline\\n'''"""
+                        """\n    header+='''#SBATCH --exclusive\\n'''"""
+                        """\n    header+='''#SBATCH -N1\\n'''"""
+                        """\n    header+='''#SBATCH --cpus-per-task=48\\n'''"""
+                        """\n    header+='''#SBATCH --mem=220000\\n'''"""
+                        """\n    header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\\n'''"""
+                        """\n    header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\\n\\n'''"""
+                        """\n    header+='''module purge\\n'''"""
+                        """\n    header+='''module load CCP4 Phenix\\n'''"""
+                        '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
+                        '''\n    for n,chunk in enumerate(chunkScripts):'''
+                        '''\n        with open(path+"/fragmax/scripts/fspipeline_part"+str(n)+".sh","w") as writeFile:'''
+                        '''\n            writeFile.write(chunk)'''
+                        '''\n        cmd = "sbatch --dependency=afterany:"+jobnum1+" "+path+"/fragmax/scripts/fspipeline_part"+str(n)+".sh" '''
+                        '''\n        status,jobnum3 = commands.getstatusoutput(cmd)'''
+                        '''\nif "buster" in argsfit:'''
+                        '''\n    header= """#!/bin/bash\\n"""'''
+                        '''\n    header+= """#!/bin/bash\\n"""'''
+                        '''\n    header+= """#SBATCH -t 99:55:00\\n"""'''
+                        '''\n    header+= """#SBATCH -J BUSTER\\n"""'''
+                        '''\n    header+= """#SBATCH --exclusive\\n"""'''
+                        '''\n    header+= """#SBATCH -N1\\n"""'''
+                        '''\n    header+= """#SBATCH --cpus-per-task=40\\n"""'''
+                        '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\\n"""'''
+                        '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\\n"""    '''
+                        '''\n    header+= """module purge\\n"""'''
+                        '''\n    header+= """module load autoPROC BUSTER\\n\\n"""'''
+                        '''\n    scriptList=["refine -L -p "+PDBfile+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster " for mtzin in inputData]'''
+                        '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
+                        '''\n    for num,chunk in enumerate(chunkScripts):'''
+                        '''\n        time.sleep(0.2)'''
+                        '''\n        with open(path+"/fragmax/scripts/buster_part"+str(num)+".sh", "w") as outfile:'''
+                        '''\n            outfile.write(chunk)        '''
+                        '''\n        cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_part%s.sh" % (jobnum1,path,str(num))'''
+                        '''\n        status,jobnum3 = commands.getstatusoutput(cmd)''')
 
 
     def dimple_hpc(PDB):
@@ -3384,119 +3386,53 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         dimpleOut+= """#SBATCH -e """+path+"""/fragmax/logs/dimple_fragmax_%j.err\n"""    
         dimpleOut+= """module purge\n"""
         dimpleOut+= """module load CCP4 Phenix \n\n"""
+        
+        dimpleOut+="python "+path+"/fragmax/scripts/run_dimple.py"
+        dimpleOut+="\n\n"
+        
+        with open(path+"/fragmax/scripts/run_dimple.sh","w") as outp:
+            outp.write(dimpleOut)
+
 
         for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
             mtzList=glob.glob(proc+"*mtz")
             if mtzList:
                 inputData.append("'"+sorted(glob.glob(proc+"*mtz"))[0]+"'")
+       
+
+        with open(path+"/fragmax/scripts/run_dimple.py","w") as writeFile:
+            writeFile.write('''import multiprocessing\n'''
+                            '''import subprocess\n'''
+                            '''import glob\n'''
+                            '''\n'''
+                            '''\n'''
+                            '''path="%s"\n'''
+                            '''acr="%s"\n'''
+                            '''PDB="%s"\n'''
+                            '''\n'''
+                            '''inputData=list()\n'''
+                            '''for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):\n'''
+                            '''    mtzList=glob.glob(proc+"*mtz")\n'''
+                            '''    if mtzList:\n'''
+                            '''        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])\n'''
+                            '''\n'''
+                            '''outDirs=["/".join(x.split("/")[:-1])+"/dimple" for x in inputData]\n'''
+                            '''mtzList=inputData\n'''
+                            '''\n'''
+                            '''inpdata=list()\n'''
+                            '''for a,b in zip(outDirs,mtzList):\n'''
+                            '''    inpdata.append([a,b])\n'''
+                            '''    \n'''
+                            '''def fragmax_worker((di, mtz)):\n'''
+                            '''    command="dimple -s "+mtz+" "+PDB+" "+di+" ; cd "+di+" ; phenix.mtz2map final.mtz"\n'''
+                            '''    subprocess.call(command, shell=True) \n'''
+                            '''def mp_handler():\n'''
+                            '''    p = multiprocessing.Pool(48)\n'''
+                            '''    p.map(fragmax_worker, inpdata)\n'''
+                            '''if __name__ == "__main__":\n'''
+                            '''    mp_handler()\n'''%(path,acr,PDB))    
         
-        with open(path+"/fragmax/scripts/run_dimple.py","w") as pyout:
-            pyout.write("import multiprocessing\n")
-            pyout.write("import time\n")
-            pyout.write("import os\n")
-            pyout.write("import shutil\n")
-            pyout.write("import subprocess\n")
-            pyout.write("outDirs=["+"',\n".join(["/".join(x.split("/")[:-1])+"/dimple" for x in inputData])+"']\n\n")
-            pyout.write("mtzList=["+",\n".join(inputData)+"]\n\n")
-            pyout.write("inpdata=list()\n")
-            pyout.write("for a,b in zip(outDirs,mtzList):\n")
-            pyout.write("    inpdata.append([a,b])\n")
-            pyout.write("def fragmax_worker((di, mtz)):\n")
-            pyout.write("    command='dimple -s %s %s %s ; cd %s ; phenix.mtz2map final.mtz' %(mtz, '"+PDB+"', di,di)\n")
-            pyout.write("    subprocess.call(command, shell=True) \n")
-            pyout.write("def mp_handler():\n")
-            pyout.write("    p = multiprocessing.Pool(48)\n")
-            pyout.write("    p.map(fragmax_worker, inpdata)\n")
-            pyout.write("if __name__ == '__main__':\n")
-            pyout.write("    mp_handler()\n")
-            
-        dimpleOut+="python "+path+"/fragmax/scripts/run_dimple.py"
-        dimpleOut+="\n\n"
-        with open(path+"/fragmax/scripts/run_dimple.sh","w") as outp:
-            outp.write(dimpleOut)
-        
-    def fspipeline_hpc(PDB):
-        #This pipeline will run bessy fspipeline on all mtz files under the current directory
-        #for now, results are not exported in a convenient way. I will have to fix this in the future
-
-        
-        fsp_exec_path="/data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py"
-
-        fspOut=""
-
-        #define env for script for fspipeline
-        fspOut+= """#!/bin/bash\n"""
-        fspOut+= """#!/bin/bash\n"""
-        fspOut+= """#SBATCH -t 99:55:00\n"""
-        fspOut+= """#SBATCH -J fsp\n"""
-        fspOut+= """#SBATCH --exclusive\n"""
-        fspOut+= """#SBATCH -N1\n"""
-        fspOut+= """#SBATCH --cpus-per-task=48\n"""
-        fspOut+= """#SBATCH --mem=220000\n""" 
-        fspOut+= """#SBATCH -o """+path+"""/fragmax/logs/fsp_fragmax_%j.out\n"""
-        fspOut+= """#SBATCH -e """+path+"""/fragmax/logs/fsp_fragmax_%j.err\n"""    
-        fspOut+= """module purge\n"""
-        fspOut+= """module load CCP4 Phenix\n\n"""
-        fspOut+= "cd "+path+"/fragmax/results/"+"\n\n"
-        fspOut+="python "
-        fspOut+=fsp_exec_path
-        fspOut+=" --refine="
-        fspOut+=PDB
-        fspOut+=" --exclude='unscaled unmerged scaled final dimple ligfit rhofit'"
-        fspOut+=" --cpu=48"
-        fspOut+=" --dir="+path+"/fragmax/results/"+"fspipeline\n\n"
-        fspOut+="python "+path+"/fragmax/scripts/run_fspipeline.py "+path
-        
-        
-        with open(path+"/fragmax/scripts/run_fspipeline.sh","w") as outp:
-            outp.write(fspOut)
-        with open(path+"/fragmax/scripts/run_fspipeline.py","w") as pyOut:
-            pyOut.write("import multiprocessing\n")
-            pyOut.write("import time\n")
-            pyOut.write("import os\n")
-            pyOut.write("import shutil\n")
-            pyOut.write("import subprocess\n")
-            pyOut.write("import sys\n")
-            pyOut.write("import glob\n")
-
-            pyOut.write("path=sys.argv[1]\n")
-                
-            pyOut.write('fsp_list =glob.glob("'+path+'/fragmax/results/*fspipeline*")\n')
-            pyOut.write('path_list=list()\n')
-            pyOut.write('for fsp_run in fsp_list:\n')
-            pyOut.write('    for roots, dirs, files in os.walk(fsp_run):\n')
-            pyOut.write('        if "mtz2map.log" in files:      \n')
-            pyOut.write('            path_list.append(roots)\n')
-            pyOut.write('success_list=[x.split("/")[-2].split("_merged")[0] for x in path_list]    \n')
-            pyOut.write('softwares = ["autoproc","EDNA","dials","fastdp","xdsapp","xdsxscale"]\n')
-            pyOut.write('for _file,fpath in zip(success_list,path_list):\n')
-            pyOut.write('    outdir=path+"/fragmax/results/"\n')
-            pyOut.write('    for sw in softwares:\n')
-            pyOut.write('        if sw in _file:\n')
-            pyOut.write('            outp=outdir+_file.split("_"+sw)[0]+"/"+sw\n')
-            pyOut.write('            copy_string="rsync --ignore-existing -raz "+fpath+"/* "+outp+"/fspipeline"\n')
-            pyOut.write('            subprocess.call(copy_string, shell=True)\n')
-
-    
-
     dimple_hpc(userPDB)
-    fspipeline_hpc(userPDB)
-
-    slurmqueue="RES=$(sbatch "+path+"/fragmax/scripts/run_proc2res.sh)  "
-    if useBUSTER:
-         script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
-         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-         subprocess.call(command,shell=True)
-    if useFSP:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_fspipeline.sh "
-    if useDIMPLE:
-        slurmqueue+=" && sbatch --dependency=afterok:${RES##* } "+path+"/fragmax/scripts/run_dimple.sh " 
-    
-    
-    command ='echo "module purge | module load CCP4 Phenix | '+slurmqueue+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(command,shell=True)
-
-
     argsfit="none"
     if useFSP:
         argsfit+="fspipeline"
@@ -3504,8 +3440,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
         argsfit+="dimple"
     if useBUSTER:
         argsfit+="buster"
-    nodes=5
-    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+userPDB+' '+acr+' '+str(nodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    nodes=10
+    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+str(nodes)+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
     
 
