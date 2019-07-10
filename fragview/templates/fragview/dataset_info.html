@@ -15,6 +15,13 @@
         font-size: 12px;
 
     }
+    #resultsTable th {
+      cursor: pointer;
+    }
+    .resultsHeader{
+        text-align: center; 
+        font-size:16px;
+    }
     .top-options {
         font-size: 15px !important;
     }
@@ -45,7 +52,7 @@
     }
     .flexdiv_options {
         display: flex;
-        padding-left: 40px;
+        {% comment %} padding-left: 40px; {% endcomment %}
     }
     .flex-left {
         max-width:750px; 
@@ -189,80 +196,65 @@
 </div>
 
 <div class="card_options">
-    <div class="flexdiv_options card ">
-        <div class="flex-left">
+    <div class=" card " style="min-width:925px">
+        <div >
             <div>
                 <div class="card-content card-content-left">
-                    <div class="card-title">Data processing</div>
-                    <table class="optionstable" > 
-                        <col width="8%">
-                        <col width="17%">
-                        <tbody>
+                    <div class="card-title">Results</div>
+                    <table class="optionstable"  id="resultsTable"> 
+                        <thead>
                             <tr>
-                                <th class="top-options">Software</th>
-                                <td class=" top-options">
-                                    <select class="selectbox" name="procSW">
-                                        <option disabled selected value> -- select an option -- </option>
-                                        <option value="dials">XIA2/DIALS</option>
-                                        <option value="xdsxscale">XIA2/XDS_XSCALE</option>
-                                        <option value="autoproc">autoProc</option>
-                                        <option value="xdsapp">XDSAPP</option>
-                                    </select>                
-                                </td>
+                            <th class="resultsHeader">View Structure</th>
+                            <th class="resultsHeader">Data set</th>
+                            <th class="resultsHeader">Space group</th>
+                            <th class="resultsHeader">Res. [&Aring;]</th>
+                            <th class="resultsHeader">R<sub>work</sub> [%]</th>
+                            <th class="resultsHeader">R<sub>free</sub> [%]</th>
+                            <th class="resultsHeader">RMS bonds [&Aring;]</th>
+                            <th class="resultsHeader">RMS angles [&deg;]</th>
+                            <th class="resultsHeader">a</th>
+                            <th class="resultsHeader">b</th>
+                            <th class="resultsHeader">c</th>
+                            <th class="resultsHeader">&alpha;</th>
+                            <th class="resultsHeader">&beta;</th>
+                            <th class="resultsHeader">&gamma;</th>
+                            <th class="resultsHeader">RhoFit</th>
+                            <th class="resultsHeader">LigFit</th>
                             </tr>
-                <tr>
-                    <th class=" top-options">Space group</th>
-                    <td class=" top-options">
-                        <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
-                    </td>
-                </tr>
+                        </thead>
+                        <tbody>
+                            <tr>    
+                            </tr>
+                            {% for usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
 
-                <tr>
-                    <th class=" top-options">Cell parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="cellparameters" placeholder="(a, b, c, α, β, γ)"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Friedel law</th>
-                    <td class=" top-options">
-                        <select class="selectbox" name="friedel">
-                            <option disabled selected value> -- select an option -- </option>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="e.g.:  1-1800"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr class="custompar">
-                    <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th></th>
-                    <td style="padding-top:20px">
-                         <form action="/reproc_web/" method="get" id="procB" name="dataprocButton" size="1" style="padding-left:20px;" target="_blank">
-                            <button class="btn btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitProc" size="1">Run data processing</button>
-                        </form>
-
-
-                    </td>
-                </tr>
-
-                </tbody>
+                            <tr>    
+                            <td style="text-align:center">
+                                <form action="/density/" method="get" target="_blank">
+                                <button class="btn" type="submit" 
+                                value="{{usracr}}" 
+                                name="structure" >Open</button>
+                                </form>
+                            </td>
+                            <td >{{usracr}}</td>
+                            <td style="text-align:center">{{spg}}</td>
+                            <td style="text-align:center">{{resolution}}</td>
+                            <td style="text-align:center">{{r_work}}</td>
+                            <td style="text-align:center">{{r_free}}</td>
+                            <td style="text-align:center">{{bonds}}</td>
+                            <td style="text-align:center">{{angles}}</td>
+                            <td style="text-align:center">{{a}}</td>
+                            <td style="text-align:center">{{b}}</td>
+                            <td style="text-align:center">{{c}}</td>
+                            <td style="text-align:center">{{alpha}}</td>
+                            <td style="text-align:center">{{beta}}</td>
+                            <td style="text-align:center">{{gamma}}</td>
+                            <td style="text-align:center">{{rhofitscore}}</td>
+                            <td style="text-align:center">{{ligfitscore}}</td>
+                            
+                            </tr>
+                            {% endfor %}                   
+                                    
+                        </tbody>
 
                 </table>
             </div>
@@ -270,148 +262,10 @@
         </div>
     </div>
 
-    <div class="flex-center">
-        <div>
-
-            <div class="card-content card-content-left">
-                <div class="card-title">Structure Refinement</div>
-                <table class="optionstable">
-                    <col width="8%">
-                    <col width="17%">
-                    <tbody>
-                        <tr>
-                            <th class=" top-options">Software</th>
-                            <td class=" top-options">
-                                <select class="selectbox" name="refineSW">
-                                    <option disabled selected value> -- select an option -- </option>
-                                    <option value="dimple">Dimple</option>
-                                    <option value="buster">BUSTER</option>
-                                    <option value="fspipeline">FSpipeline</option>
-                                </select>
-                            </td>
-                        </tr>
-            <tr>
-                <th class=" top-options">Refinement mode</th>
-                <td class=" top-options">
-                    <select class="selectbox" name="refineMode">
-                        <option disabled selected value> -- select an option -- </option>
-                        <option value="refxslow">Extra (Slowest)</option>
-                        <option value="refslow">Normal</option>
-                        <option value="reffast">Quick (Fast)</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">Threshold for MR</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">Resolution cutoff</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">PDB model</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="pdbmodel" placeholder="PDB ID or full path"></input>
-                </td>
-            </tr>
-            <tr class="custompar">
-                <th class=" top-options">Custom parameters</th>
-                <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
-            </tr>
-            <tr>
-                <th></th>
-                <td style="padding-top:20px">
-                    <form action="/reproc_web/" method="get" id="refineB" name="refineButton" size="1" style="padding-left:20px;" target="_blank">
-                        <button class="btn btn-right" type="submit" onsubmit="return refine()" value="No Software Selected" name="submitRefine" size="1">Run refinement</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-
-            </table>
-        </div>
-
-    </div>
-</div>
+    
 
 
-<div class="flex-right">
-    <div>
-        <div class="card-content card-content-right">
-            <div class="card-title">Ligand fitting</div>
-            <table class="optionstable">
-                <col width="8%">
-                <col width="17%">
-                <tbody>
-                    <tr>
-                        <th class=" top-options">Software</th>
-                        <td class=" top-options">
-                            <select class="selectbox" name="ligfitSW">
-                                <option disabled selected value> -- select an option -- </option>
-                                <option value="rhofit">RhoFit</option>
-                                <option value="phenixligfit">Phenix LigFit</option>
-                            </select>
-                        </td>
-                    </tr>
-        <tr>
-        <th class=" top-options">Ligand SMILES</th>
-        <td class=" top-options">
-            <input class="selectbox" name="ligsmiles" placeholder="CN1C=NC2=C1C(=O)N(C(=O)N2C)C"></input>
-        </td>
-        </tr>
-        <tr>
-            <th class=" top-options">Copies to search</th>
-            <td class=" top-options">
-                <input class="selectbox" name="numberofcopies" placeholder="default: 1"></input>
-            </td>
-        <tr>
-        </tr>
-        <tr>
-            <th class=" top-options">Fitting process</th>
-            <td class=" top-options">
-                <select class="selectbox" name="fitprocess">
-                    <option disabled selected value> -- select an option -- </option>
-                    <option value="ligfitquick">Quick</option>
-                    <option value="ligfitthorough">Thorough</option>
-                </select>
-            </td>
-        <tr>
-        </tr>
-        <tr>
-            <th class=" top-options">Scan chirals</th>
-            <td class=" top-options">
-                <select class="selectbox" name="scanchirals">
-                    <option disabled selected value> -- select an option -- </option>
-                    <option value="chiralsyes">Yes</option>
-                    <option value="chiralsno">No</option>
-                </select>
-            </td>
-        </tr>
-        <tr class="custompar">
-            <th class=" top-options">Custom parameters</th>
-            <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
-        </tr>
-        <tr>
-            <th></th>
-            <td style="padding-top:20px">
 
-                <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
-            </td>
-        </tr>
-
-        </tbody>
-        </table>
-    </div>
-</div>
-</div>
-<div class="bottom-right">
-    <input type="button" class="btn-large maxivorange" value="Run All"> </input>
-</div>
 </div>
 </div>
 <div class="flexdiv">
@@ -428,7 +282,7 @@
         
     </div>
     <div class="flex-left">
-        <div class="card">
+        <div class="card" style="min-height:700px">
             <div class="card-content card-content-left">
                 <div class="card-title">Experiment parameters</div>
                 <table class="tableInfo">
@@ -533,7 +387,7 @@
     </div>
 
     <div class="flex-right">
-        <div class="card">
+        <div class="card" style="min-height:700px">
             <div class="card-content card-content-right">
                 <div class="card-title">Beamline parameters</div>
                 <table class="tableInfo">
@@ -642,7 +496,7 @@
 </div>
 
 <script>
-    var f = document.getElementById("procB");
+    {% comment %} var f = document.getElementById("procB");
     
     f.onsubmit = function dataproc() {
         var procSW   = document.getElementsByName("procSW")[0].value;
@@ -680,7 +534,7 @@
         
         document.getElementsByName("submitRefine")[0].value = "runRefine;"+procSW+";"+refineSW+";"+refineMode+";"+spg+";"+ResCutoff+";"+mrthresh+";"+pdbmodel+";"+custom+";"+imgdir+";"+"{{imgprf}}_{{run}}"
 
-    }
+    } {% endcomment %}
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -717,6 +571,20 @@
             modal.style.display = "none";
         }
     }
+
+    const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    // do the work...
+    document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+        const table = th.closest('table');
+        Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+            .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+            .forEach(tr => table.appendChild(tr) );
+    })));
     
 </script>
 {% endblock %}

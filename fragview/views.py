@@ -196,9 +196,14 @@ def dataset_info(request):
         soakTime="Soaking not performed"
         fragConc="-"
         solventConc="-"
-    
-
+    if os.path.exists(path+"/fragmax/process/"+acr+"/results.csv"):
+        with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
+            reader = csv.reader(readFile)
+            lines = [line for line in list(reader)[1:] if prefix+"_"+run in line[0]]
+    else:
+        lines=[]
     return render(request,'fragview/dataset_info.html', {
+        "csvfile":lines,
         "proposal":proposal,
         "shift":shift,
         "run":run,
