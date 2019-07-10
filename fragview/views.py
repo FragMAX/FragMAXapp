@@ -325,11 +325,11 @@ def datasets(request):
 
             
                 if status[0][2]=="full":
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> DIALS</font></p>""")
                 elif status[0][2]=="partial":
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> DIALS</font></p>""")
                 else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> DIALS</font></p>""")
 
                 if status[0][3]=="full":
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
@@ -340,11 +340,11 @@ def datasets(request):
 
 
                 if status[0][4]=="full" :
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> fastdp</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Fastdp</font></p>""")
                 elif status[0][4]=="partial":
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> fastdp</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> Fastdp</font></p>""")
                 else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Fastdp</font></p>""")
 
                 if status[0][5]=="full":
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDSAPP</font></p>""")
@@ -355,25 +355,25 @@ def datasets(request):
 
 
                 if status[0][6]=="full":
-                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDS/XSCALE</font></p>""")
                 elif status[0][6]=="partial":
-                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XIA2/XDS</font></p>""")
+                    da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDS/XSCALE</font></p>""")
                 else:
-                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p></td>""")
+                    da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDS/XSCALE</font></p></td>""")
                 
                 
                 dpentry.append(da)
                 re="<td>"  
-                if status[0][7]=="full":
-                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
-                else:
-                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
-                
-                
                 if status[0][9]=="full":
                     re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
                 else:
                     re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
+                
+                
+                if status[0][7]=="full":
+                    re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
+                else:
+                    re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
 
 
                 if status[0][8]=="full":
@@ -2293,11 +2293,7 @@ def refine_datasets(request):
         with open(path+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
                pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
         pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
-    # if "ATOM" in userPDB:
-    #     userPDB=userPDB.replace("pdbmodel:","")
-    #     pdbmodel=path+"fragmax/process/userPDB.pdb"
-    #     with open(path+"fragmax/process/userPDB.pdb","w") as pdbfile:
-    #         pdbfile.write(userPDB)
+    
     spacegroup=refspacegroup.replace("refspacegroup:","")
     run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
     outinfo = "<br>".join(userInput.split(";;"))
@@ -2706,7 +2702,7 @@ def get_results_info(entry):
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
-    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final**pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/final**pdb")
+    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
     with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
@@ -2775,10 +2771,10 @@ def resultSummary():
                         b=str("{0:.2f}".format(float(b)))
                         c=str("{0:.2f}".format(float(c)))
                         spg="".join(line.split()[-4:])
-                if not os.path.exists(entry.replace("BUSTER_model.pdb","final.pdb")):            
-                    shutil.copyfile(entry, entry.replace("BUSTER_model.pdb","final.pdb"))
-                if not os.path.exists(entry.replace("BUSTER_model.pdb","final.mtz")):            
-                    shutil.copyfile(entry.replace("BUSTER_model.pdb","BUSTER_refln.mtz"), entry.replace("BUSTER_model.pdb","final.mtz"))
+                if not os.path.exists(entry.replace("refine.pdb","final.pdb")):            
+                    shutil.copyfile(entry, entry.replace("refine.pdb","final.pdb"))
+                if not os.path.exists(entry.replace("refine.pdb","final.mtz")):            
+                    shutil.copyfile(entry.replace("refine.pdb","refine.mtz"), entry.replace("refine.pdb","final.mtz"))
                 blist="[]"
                 pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
                 dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
@@ -3178,7 +3174,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
                         '''\nif "fspipeline" in argsfit:'''
-                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit" --cpu=1 '''"""
+                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 '''"""
                         '''\n    scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ ; "+fsp for x in inputData]'''
                         """\n    header='''#!/bin/bash\\n'''"""
                         """\n    header+='''#!/bin/bash\\n'''"""
