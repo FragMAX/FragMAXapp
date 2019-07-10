@@ -292,7 +292,13 @@
             <tr>
                 <th class=" top-options"></th>
                 <td class=" top-options">
-                    <input type='file' accept=".pdb" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' />
+                    {% comment %} <input type='file' accept=".pdb" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' /> {% endcomment %}                   
+                    <select class="selectbox " name="dropdownModel">
+                        <option disabled selected value="fromCODE"> -- select PDB model -- </option>                        
+                        {% for model in models %}
+                        <option value={{model}}>{{model}}</option>    
+                        {% endfor %}                                    
+                    </select>    
                 </td>
             </tr>
             <tr>
@@ -405,13 +411,13 @@
                                 </div>                                                       
                         </form>                    
                     </tr>
-                    <tr>
+                    {% comment %} <tr>
                         <th class=" top-options">Ligand File</th>
                         <td class=" top-options">
                             <input type='file' accept=".csv,.txt,.smi,.smiles" onchange='onChooseFile(event, onFileLoad.bind(this, "ligcontent"))' />
                         </td>
-                    </tr>
-                    <th ></th>
+                    </tr> {% endcomment %}
+                    <th class=" top-options">Ligand File</th>
                         <td class=" top-options">
                             <form id="swSelectionForrefinement" >
                                 
@@ -510,10 +516,10 @@ var f2 = document.getElementById("rfprocBtn");
         var refinemode      = ";;refinemode:"+document.getElementsByName("refMode")[0].value
         var mrthreshold     = ";;mrthreshold:"+document.getElementsByName("mrthresh")[0].value
         var refinerescutoff = ";;refinerescutoff:"+document.getElementsByName("refrescutoff")[0].value
-        if (document.getElementById("pdbcontent").innerHTML.includes("ATOM")) {
-            var pdbmodel    = ";;pdbupload:"+document.getElementById("pdbcontent").innerHTML
+        if (document.getElementsByName("dropdownModel")[0].value=="fromCODE") {
+            var pdbmodel    = ";;pdbmodel:"+document.getElementsByName("pdbcode")[0].value            
             } else {
-                var pdbmodel    = ";;pdbmodel:"+document.getElementsByName("pdbcode")[0].value
+                var pdbmodel    = ";;pdbmodel:"+document.getElementsByName("dropdownModel")[0].value
         }
         var refspacegroup   = ";;refspacegroup:"+document.getElementsByName("refspacegroup")[0].value
         var customrefparam  = ";;customrefine:"+document.getElementsByName("customrefine")[0].value

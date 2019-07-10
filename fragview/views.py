@@ -90,8 +90,8 @@ def error_page(request):
 
 def process_all(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    return render(request, "fragview/process_all.html",{"acronym":acr})
+    models=[x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]
+    return render(request, "fragview/process_all.html",{"acronym":acr,"models":models})
 
 def settings(request):
     allprc  = str(request.GET.get("updatedefinitions"))
@@ -247,16 +247,18 @@ def dataset_info(request):
         })
   
 def post_list(request):
-    
+    #NOT USED ANYMORE
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
     #posts = glob.glob("/data/visitors/*")
     return render(request, 'fragview/post_list.html', {'posts': posts})
 
 def post_detail(request,pk):
+    #NOT USED ANYMORE
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'fragview/post_detail.html', {'post': post})
 
 def post_new(request):
+    #NOT USED ANYMORE
     if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
@@ -582,6 +584,7 @@ def ugly(request):
     return render(request,'fragview/ugly.html')
 
 def dual_ligand(request):
+    #NOT USED ANYMORE
     try:
         a="load maps and pdb"
         return render(request,'fragview/dual_ligand.html', {'Report': a})
@@ -636,6 +639,7 @@ def compare_poses(request):
         })
 
 def ligfit_results(request):
+    #NOT USED ANYMORE
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     resyncLigFits=str(request.GET.get("resyncligfit"))
 
@@ -722,8 +726,8 @@ def submit_pipedream(request):
             with open(userPDBpath,"w") as pdb:
                pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
             
-            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
-            subprocess.call(preparePDB,shell=True)
+            #preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
+            #subprocess.call(preparePDB,shell=True)
 
         #STARANISO setting    
         if "true" in ap_staraniso:
@@ -763,10 +767,6 @@ def submit_pipedream(request):
         
         rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif"
         
-            
-        
-
-
         #Keep Hydrogen RhoFit
         keepH=""
         if "true" in rho_keepH:
@@ -2125,6 +2125,7 @@ def procReport(request):
     return render(request,'fragview/procReport.html', {'Report': html})
 
 def dataproc_merge(request):    
+    #NEEDS UPDATE 
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
@@ -2286,6 +2287,12 @@ def refine_datasets(request):
         useBUSTER=True
     #if len(userPDB)<20:
     pdbmodel=userPDB.replace("pdbmodel:","")
+    if pdbmodel in [x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]:
+        pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
+    else:
+        with open(path+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
+               pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
+        pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
     # if "ATOM" in userPDB:
     #     userPDB=userPDB.replace("pdbmodel:","")
     #     pdbmodel=path+"fragmax/process/userPDB.pdb"
@@ -2298,13 +2305,12 @@ def refine_datasets(request):
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
 
 def ligfit_datasets(request):
+    #MAYBE NO USE ANYMORE
     userInput=str(request.GET.get("submitligProc"))
     empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname=userInput.split(";;")
     useRhoFit="False"
     useLigFit="False"
     
-
-
     if "true" in rhofitSW:
         useRhoFit="True"
     if "true" in ligfitSW:
@@ -2316,107 +2322,108 @@ def ligfit_datasets(request):
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
+    #MAYBE NO USE ANYMORE
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    allprc  = str(request.GET.get("submitallProc"))
-    dtprc   = str(request.GET.get("submitdtProc"))
-    refprc  = str(request.GET.get("submitrfProc"))
-    ligproc = str(request.GET.get("submitligProc"))
-    if allprc!="None":
-        userinputs=allprc.split(";;")
-        dpSW=list()
-        dpSW.append("xdsapp")    if ("true" in userinputs[3]) else False
-        dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
-        dpSW.append("dials")     if ("true" in userinputs[1]) else False
-        dpSW.append("autoproc")  if ("true" in userinputs[4]) else False
-        if dpSW==[]:
-            dpSW=[""]
+    # allprc  = str(request.GET.get("submitallProc"))
+    # dtprc   = str(request.GET.get("submitdtProc"))
+    # refprc  = str(request.GET.get("submitrfProc"))
+    # ligproc = str(request.GET.get("submitligProc"))
+    # if allprc!="None":
+    #     userinputs=allprc.split(";;")
+    #     dpSW=list()
+    #     dpSW.append("xdsapp")    if ("true" in userinputs[3]) else False
+    #     dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
+    #     dpSW.append("dials")     if ("true" in userinputs[1]) else False
+    #     dpSW.append("autoproc")  if ("true" in userinputs[4]) else False
+    #     if dpSW==[]:
+    #         dpSW=[""]
 
-        rfSW=list()
-        rfSW.append("dimple")     if ("true" in userinputs[12]) else False
-        rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
-        rfSW.append("buster")     if ("true" in userinputs[14]) else False
-        if rfSW==[]:
-            rfSW=[""]
+    #     rfSW=list()
+    #     rfSW.append("dimple")     if ("true" in userinputs[12]) else False
+    #     rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
+    #     rfSW.append("buster")     if ("true" in userinputs[14]) else False
+    #     if rfSW==[]:
+    #         rfSW=[""]
             
-        lfSW=list()   
-        lfSW.append("rhofit") if ("true" in userinputs[19]) else False
-        lfSW.append("ligfit") if ("true" in userinputs[20]) else False
-        if lfSW==[]:
-            lfSW=[""]
+    #     lfSW=list()   
+    #     lfSW.append("rhofit") if ("true" in userinputs[19]) else False
+    #     lfSW.append("ligfit") if ("true" in userinputs[20]) else False
+    #     if lfSW==[]:
+    #         lfSW=[""]
             
-        PDBID=userinputs[18].split(":")[-1]
+    #     PDBID=userinputs[18].split(":")[-1]
 
-        spg=userinputs[5].split(":")[-1]
-        pnodes=30
-        with open(path+"/fragmax/scripts/processALL.sh","w") as outp:
-            outp.write("""#!/bin/bash \n"""
-                    """#!/bin/bash \n"""
-                    """#SBATCH -t 99:55:00 \n"""
-                    """#SBATCH -J FragMAX \n"""
-                    """#SBATCH --exclusive \n"""
-                    """#SBATCH -N1 \n"""
-                    """#SBATCH --cpus-per-task=40 \n"""
-                    """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j.out \n"""
-                    """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j.err \n"""
-                    """module purge \n"""
-                    """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                    """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
-        for node in range(pnodes):
-            script=path+"/fragmax/scripts/processALL.sh"
-            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch '+script+" "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command,shell=True)
-            time.sleep(0.2)
-        return render(request,'fragview/testpage.html', {
-            'dpSW': "<br>".join(dpSW),
-            'rfSW': "<br>".join(rfSW),
-            'lfSW': "<br>".join(lfSW),
-            "pdb":PDBID,
-            "sym":spg
-            })
-    if dtprc!="None":
-        dtprc_inp=dtprc.split(";")
-        usedials=dtprc_inp[1].split(":")[-1]
-        usexdsxscale=dtprc_inp[2].split(":")[-1]
-        usexdsapp=dtprc_inp[3].split(":")[-1]
-        useautproc=dtprc_inp[4].split(":")[-1]
-        spacegroup=dtprc_inp[5].split(":")[-1]
-        cellparam=dtprc_inp[6].split(":")[-1]
-        friedel=dtprc_inp[7].split(":")[-1]
-        datarange=dtprc_inp[8].split(":")[-1]
-        rescutoff=dtprc_inp[9].split(":")[-1]
-        cccutoff=dtprc_inp[10].split(":")[-1]
-        isigicutoff=dtprc_inp[11].split(":")[-1]
-        sbatch_script_list=list()
-        nodes=12
-        if usexdsapp=="true":
-            t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-            t.daemon = True
-            t.start()
-        if usedials=="true":
-            t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-            t.daemon = True
-            t.start()
+    #     spg=userinputs[5].split(":")[-1]
+    #     pnodes=30
+    #     with open(path+"/fragmax/scripts/processALL.sh","w") as outp:
+    #         outp.write("""#!/bin/bash \n"""
+    #                 """#!/bin/bash \n"""
+    #                 """#SBATCH -t 99:55:00 \n"""
+    #                 """#SBATCH -J FragMAX \n"""
+    #                 """#SBATCH --exclusive \n"""
+    #                 """#SBATCH -N1 \n"""
+    #                 """#SBATCH --cpus-per-task=40 \n"""
+    #                 """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j.out \n"""
+    #                 """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j.err \n"""
+    #                 """module purge \n"""
+    #                 """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
+    #                 """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
+    #     for node in range(pnodes):
+    #         script=path+"/fragmax/scripts/processALL.sh"
+    #         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch '+script+" "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #         subprocess.call(command,shell=True)
+    #         time.sleep(0.2)
+    #     return render(request,'fragview/testpage.html', {
+    #         'dpSW': "<br>".join(dpSW),
+    #         'rfSW': "<br>".join(rfSW),
+    #         'lfSW': "<br>".join(lfSW),
+    #         "pdb":PDBID,
+    #         "sym":spg
+    #         })
+    # if dtprc!="None":
+    #     dtprc_inp=dtprc.split(";")
+    #     usedials=dtprc_inp[1].split(":")[-1]
+    #     usexdsxscale=dtprc_inp[2].split(":")[-1]
+    #     usexdsapp=dtprc_inp[3].split(":")[-1]
+    #     useautproc=dtprc_inp[4].split(":")[-1]
+    #     spacegroup=dtprc_inp[5].split(":")[-1]
+    #     cellparam=dtprc_inp[6].split(":")[-1]
+    #     friedel=dtprc_inp[7].split(":")[-1]
+    #     datarange=dtprc_inp[8].split(":")[-1]
+    #     rescutoff=dtprc_inp[9].split(":")[-1]
+    #     cccutoff=dtprc_inp[10].split(":")[-1]
+    #     isigicutoff=dtprc_inp[11].split(":")[-1]
+    #     sbatch_script_list=list()
+    #     nodes=12
+    #     if usexdsapp=="true":
+    #         t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
+    #         t.daemon = True
+    #         t.start()
+    #     if usedials=="true":
+    #         t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
+    #         t.daemon = True
+    #         t.start()
             
-        if useautproc=="true":
-            t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-            t.daemon = True
-            t.start()
+    #     if useautproc=="true":
+    #         t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
+    #         t.daemon = True
+    #         t.start()
           
-        if usexdsxscale=="true":
-            t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-            t.daemon = True
-            t.start()
+    #     if usexdsxscale=="true":
+    #         t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
+    #         t.daemon = True
+    #         t.start()
             
-        return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
+    #     return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
 
     
-    if refprc!="None":
-        pass
+    # if refprc!="None":
+    #     pass
 
-    if ligproc!="None":
-        pass
-    return render(request,'fragview/dataproc_datasets.html', {'allproc': "\n"+"\n".join(sbatch_script_list)})
+    # if ligproc!="None":
+    #     pass
+    return render(request,'fragview/dataproc_datasets.html', {'allproc': ""})
 
 def kill_HPC_job(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
@@ -2516,6 +2523,7 @@ def hpcstatus(request):
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
 
 def add_run_DP(outdir):
+    #MAYBE NO USE ANYMORE
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
     fout=outdir.split("cd ")[-1].split(" #")[0]
@@ -2616,154 +2624,6 @@ def create_dataColParam(acr, path):
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
                                                                       
-def fsp_info_general(entry):
-    usracr=""
-    spg=""
-    res=""
-    r_work=""
-    r_free=""
-    bonds=""
-    angles=""
-    blob=""
-    sigma=""
-    a=""
-    b=""
-    c=""
-    alpha=""
-    beta=""
-    gamma=""
-    blist=""    
-    usracr=entry.split("/results/")[1].split("/")[0]+entry.split(entry.split("/results/")[1].split("/")[0])[-1].split("_merged.pdb")[0]+"_fspipeline"
-    #usrpdbpath= line.replace("data_file: ","")
-    with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-        blobs_log=inp.readlines()
-    with open(entry,"r") as inp:
-        pdb_file=inp.readlines()
-    
-    for line in pdb_file:
-        if "REMARK Final:" in line:            
-            r_work=line.split()[4]
-            r_free=line.split()[7]
-            r_free=str("{0:.2f}".format(float(r_free)))
-            r_work=str("{0:.2f}".format(float(r_work)))
-            bonds=line.split()[10]
-            angles=line.split()[13]
-        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-            res=line.split(":")[-1].replace(" ","").replace("\n","")
-            res=str("{0:.2f}".format(float(res)))
-        if "CRYST1" in line:
-            #a,b,c,alpha,beta,gamma=line.split(" ")[1:-4]
-            a=line[9:15]
-            b=line[18:24]
-            c=line[27:33]
-            alpha=line[34:40]
-            beta=line[41:47]
-            gamma=line[48:54]
-            a=str("{0:.2f}".format(float(a)))
-            b=str("{0:.2f}".format(float(b)))
-            c=str("{0:.2f}".format(float(c)))
-
-            spg="".join(line.split()[-4:])
-            
-    with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:
-        blobs_log=inp.readlines()
-    for line in blobs_log:
-        if "using sigma cut off " in line:
-            sigma=line.split("cut off")[-1].replace(" ","").replace("\n","")
-        if "INFO:: cluster at xyz = " in line:
-            blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
-            blob="["+blob+"]"
-            blist=blob+"<br>"+blist
-        #print(blist)
-    blist="<br>".join(blist.split("<br>")[:3])
-    try:
-    
-        with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-            for mline in inp.readlines():
-                if "_2mFo-DFc.ccp4" in mline:
-                    pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
-                    event1  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
-                    ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
-            
-        
-        #pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-        #event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-        #ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
-        tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><button class="btn" type="submit" value="%s"  name="structure" size="1" >Open</button></form></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>""".replace("        ","").replace("\n","")%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blist.replace("<br>",",").replace(" ",""),usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,sigma)
-    except:
-        pdbout="None"
-        event1="None"
-        ccp4_nat="None"
-        tr= """<tr><td></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>""".replace("        ","").replace("\n","")%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-    
-    return tr
-
-def dpl_info_general(entry):
-    usracr=""
-    spg=""
-    res=""
-    r_work=""
-    r_free=""
-    bonds=""
-    angles=""
-    blob=""
-    sigma=""
-    a=""
-    b=""
-    c=""
-    alpha=""
-    beta=""
-    gamma=""
-    
-    with open(entry,"r") as inp:
-        dimple_log=inp.readlines()
-    for n,line in enumerate(dimple_log):
-        if "data_file: " in line:
-            usracr=line.split("/")[-3]+"_"+line.split("/")[-2]+"_dimple"
-            usracr=usracr.replace(".mtz","")   
-            usrpdbpath= line.replace("data_file: ","")
-        if "# MTZ " in line:
-            spg=line.split(")")[1].split("(")[0].replace(" ","")
-            a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-            alpha=str("{0:.2f}".format(float(alpha)))
-            beta=str("{0:.2f}".format(float(beta)))
-            gamma=str("{0:.2f}".format(float(gamma)))
-        
-        if line.startswith("info:") and "R/Rfree" in line:
-            r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-            r_free=str("{0:.2f}".format(float(r_free)))
-            r_work=str("{0:.2f}".format(float(r_work)))
-        if line.startswith( "density_info: Density"):
-            sigma=line.split("(")[-1].split(" sigma")[0]
-        if line.startswith("blobs: "):
-            l=""
-            l=ast.literal_eval(line.split(":")[-1].replace(" ",""))
-            blob="<br>".join(map(str,l[:]))
-            blob5="<br>".join(map(str,l[:5]))
-        if line.startswith("#     RMS: "):
-            bonds,angles=line.split()[5],line.split()[9]
-        if line.startswith("info: resol. "):
-            res=line.split()[2]
-            res=str("{0:.2f}".format(float(res)))
-    
-    try:        
-        
-        pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-        event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-        ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
-        if os.path.exists("/data/visitors/"+pdbout):
-            tr= """<tr><td><form action="/density/" method="get" id="%s_form" target="_blank"><button class="btn" type="submit" value="%s"  name="structure" size="1" >Open</button></form></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"""%(usracr,pdbout+";"+event1+";"+ccp4_nat+";"+blob.replace("<br>",",").replace(" ",""),usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob5,sigma)
-        else:
-            tr=""
-    except:    
-        pdbout="None"
-        event1="None"
-        ccp4_nat="None"
-        if os.path.exists("/data/visitors/"+pdbout):
-            tr= """<tr><td>No structure</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>NO</td></tr>"""%(usracr,spg,res,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blob,sigma)
-        else:
-            tr=""
-    return tr
 
 def get_results_info(entry):
     usracr="_".join(entry.split("/")[8:11])
