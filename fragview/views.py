@@ -37,6 +37,21 @@ from collections import Counter
 
 setfile="/mxn/home/guslim/Projects/webapp/static/projectSettings/.settings"
 
+class ThreadWithReturnValue(threading.Thread):
+        def __init__(self, group=None, target=None, name=None,
+                    args=(), kwargs={}, Verbose=None):
+            threading.Thread.__init__(self, group, target, name, args, kwargs)
+            self._return = None
+        def run(self):
+            print(type(self._target))
+            if self._target is not None:
+                self._return = self._target(*self._args,
+                                                    **self._kwargs)
+        def join(self, *args):
+            threading.Thread.join(self, *args)
+            return self._return
+
+
 def project_definitions():
     proposal = ""
     shift    = ""
@@ -2309,7 +2324,7 @@ def refine_datasets(request):
         with open(path+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
             pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
         pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
-    
+    pdbmodel.replace(".pdb.pdb",".pdb")
     spacegroup=refspacegroup.replace("refspacegroup:","")
     run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters)
     outinfo = "<br>".join(userInput.split(";;"))
@@ -2869,24 +2884,10 @@ def resultSummary():
 
         ligfit_dataset="_".join(usracr.split("_")[:-2])
         
-        return [usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]
-        
+        return [usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]        
+    
     resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-
-    class ThreadWithReturnValue(threading.Thread):
-        def __init__(self, group=None, target=None, name=None,
-                    args=(), kwargs={}, Verbose=None):
-            threading.Thread.__init__(self, group, target, name, args, kwargs)
-            self._return = None
-        def run(self):
-            print(type(self._target))
-            if self._target is not None:
-                self._return = self._target(*self._args,
-                                                    **self._kwargs)
-        def join(self, *args):
-            threading.Thread.join(self, *args)
-            return self._return
 
     with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
@@ -2897,6 +2898,7 @@ def resultSummary():
             
             
             writer.writerow(row.join())
+
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     if "filters:" in filters:
@@ -3476,6 +3478,8 @@ def get_project_status():
     statusDict=dict()
     procList=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
     resList=glob.glob(path+"/fragmax/results/"+acr+"*/")
+    
+    
     for i in procList:
         dataset_run=i.split("/")[-2]
         statusDict[dataset_run]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
@@ -3524,71 +3528,6 @@ def get_project_status():
             writer.writerow([dataset_run]+list(status.values()))
 
   
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    dataProcStatusDict=dict()
-    dp=["autoproc","dials","xdsxscale","EDNA_proc","fastdp","xdsapp"]
-    sampleList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/") 
-    for sample in sampleList:
-        
-        
-        ### DATA PROCESSING
-        #### AUTOPROC
-        if os.path.exists(sample+"autoproc/"):
-            if os.path.exists(sample+"autoproc/summary.html"):
-                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:full"
-            else:
-                dataProcStatusDict[sample.split("/")[-2]]=";autoproc:partial"
-        else:
-            dataProcStatusDict[sample.split("/")[-2]]=";autoproc:none"
-
-        #### DIALS
-        if os.path.exists(sample+"dials/xia2.html"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";dials:full"
-        elif os.path.exists(sample+"dials/xia2.error"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";dials:partial"
-        else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";dials:none"
-
-        #### XDSXSCALE
-        if os.path.exists(sample+"xdsxscale/xia2.html"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:full"
-        elif os.path.exists(sample+"xdsxscale/xia2.error"):
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:partial"
-        else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsxscale:none"
-
-        #### EDNA_PROC
-        autosample="/".join(sample.split("/")[:-2])+"/"+"xds_"+sample.split("/")[-2]+"_1/".replace("/fragmax/","/")
-        if os.path.exists(autosample+"EDNA/results/"):
-            if os.path.exists(autosample+"EDNA/results/ep_"+autosample.split("/")[-2]+"_noanom.mtz"):
-                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:full"
-            else:
-                dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:partial"
-        else:
-            dataProcStatusDict[autosample.split("/")[-2][4:-2]]+=";EDNA_proc:none"
-
-        #### XDSAPP
-        if os.path.exists(sample+"xdsapp/"):
-            if os.path.exists(sample+"xdsapp/results_"+sample.split("/")[-2]+"_data.txt"):                
-                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:full"                
-            else:
-                dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:partial"
-        else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";xdsapp:none"
-
-        #### FASTDP
-        if os.path.exists(autosample+"fastdp/results/"):
-            if os.path.exists(autosample+"fastdp/results/ap_"+sample.split("/")[-2][:-1]+"_run1_noanom_fast_dp.mtz.gz"):
-                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:full"
-            else:
-                dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:partial"
-        else:
-            dataProcStatusDict[sample.split("/")[-2]]+=";fastdp:none"
-            
-        with open(path+"/fragmax/process/"+acr+"/dpstatus.csv","w") as outp:
-            for key,value in dataProcStatusDict.items():
-                outp.write(key+":"+value+"\n")
 ###############################
 
 ###############################        
