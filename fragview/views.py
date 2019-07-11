@@ -2713,62 +2713,92 @@ def get_results_info(entry):
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
-    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])
+    def info_func(entry):
+        usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""    ,""    ,""     ,     "","" ,""        ,""    ,""    ,""   ,""    ,"","","","","","","","","","","",""]
+        pdbout   = ""
+        usracr   = "_".join(entry.split("/")[8:11])
+        pipeline = "_".join(entry.split("/")[9:11])
 
-        
-        for entry in sorted(resultsList):
-            pdbout   = ""
-            usracr   = "_".join(entry.split("/")[8:11])
-            pipeline = "_".join(entry.split("/")[9:11])
-           
 
-            if "dimple" in usracr:
-                entry=entry.replace("final.pdb","dimple.log")
-                with open(entry,"r") as inp:
-                    dimple_log=inp.readlines()
-                blist=list()
-                for n,line in enumerate(dimple_log):
-                    if "data_file: " in line:
-                        usrpdbpath= line.replace("data_file: ","")
-                    if "# MTZ " in line:
-                        spg=line.split(")")[1].split("(")[0].replace(" ","")
-                        a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-                        alpha=str("{0:.2f}".format(float(alpha)))
-                        beta=str("{0:.2f}".format(float(beta)))
-                        gamma=str("{0:.2f}".format(float(gamma)))
-                    if line.startswith("info:") and "R/Rfree" in line:
-                        r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-                        r_free=str("{0:.2f}".format(float(r_free)))
-                        r_work=str("{0:.2f}".format(float(r_work)))
-                    if line.startswith("blobs: "):                     
-                        blist=line.split(":")[-1].rstrip()
-                    if line.startswith("#     RMS: "):
-                        bonds,angles=line.split()[5],line.split()[9]
-                    if line.startswith("info: resol. "):
-                        resolution=line.split()[2]
-                        resolution=str("{0:.2f}".format(float(resolution)))
-                pdbout  ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-                dif_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-                nat_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
-            
-            if "buster" in usracr:
+        if "dimple" in usracr:
+            entry=entry.replace("final.pdb","dimple.log")
+            with open(entry,"r") as inp:
+                dimple_log=inp.readlines()
+            blist=list()
+            for n,line in enumerate(dimple_log):
+                if "data_file: " in line:
+                    usrpdbpath= line.replace("data_file: ","")
+                if "# MTZ " in line:
+                    spg=line.split(")")[1].split("(")[0].replace(" ","")
+                    a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+                    alpha=str("{0:.2f}".format(float(alpha)))
+                    beta=str("{0:.2f}".format(float(beta)))
+                    gamma=str("{0:.2f}".format(float(gamma)))
+                if line.startswith("info:") and "R/Rfree" in line:
+                    r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+                    r_free=str("{0:.2f}".format(float(r_free)))
+                    r_work=str("{0:.2f}".format(float(r_work)))
+                if line.startswith("blobs: "):                     
+                    blist=line.split(":")[-1].rstrip()
+                if line.startswith("#     RMS: "):
+                    bonds,angles=line.split()[5],line.split()[9]
+                if line.startswith("info: resol. "):
+                    resolution=line.split()[2]
+                    resolution=str("{0:.2f}".format(float(resolution)))
+            pdbout  ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
+            dif_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
+            nat_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+
+        if "buster" in usracr:
+            with open(entry,"r") as inp:
+                pdb_file=inp.readlines()
+            for line in pdb_file:
+                if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
+                    r_work=line.split(" ")[-1]                
+                    r_work=str("{0:.2f}".format(float(r_work)))
+                if "REMARK   3   FREE R VALUE                     :" in line:            
+                    r_free=line.split(" ")[-1]
+                    r_free=str("{0:.2f}".format(float(r_free)))
+                if "REMARK   3   BOND LENGTHS                       (A) :" in line:
+                    bonds=line.split()[-1]
+                if "REMARK   3   BOND ANGLES                  (DEGREES) :" in line:   
+                    angles=line.split()[-1]
+                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                    resolution=line.split(":")[-1].replace(" ","").replace("\n","")
+                    resolution=str("{0:.2f}".format(float(resolution)))
+                if "CRYST1" in line:
+                    a=line[9:15]
+                    b=line[18:24]
+                    c=line[27:33]
+                    alpha=line[34:40].replace(" ","")
+                    beta=line[41:47].replace(" ","")
+                    gamma=line[48:54].replace(" ","")
+                    a=str("{0:.2f}".format(float(a)))
+                    b=str("{0:.2f}".format(float(b)))
+                    c=str("{0:.2f}".format(float(c)))
+                    spg="".join(line.split()[-4:])
+            if not os.path.exists(entry.replace("refine.pdb","final.pdb")):            
+                shutil.copyfile(entry, entry.replace("refine.pdb","final.pdb"))
+            if not os.path.exists(entry.replace("refine.pdb","final.mtz")):            
+                shutil.copyfile(entry.replace("refine.pdb","refine.mtz"), entry.replace("refine.pdb","final.mtz"))
+            blist="[]"
+            pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
+            dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
+            nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
+
+        if "fspipeline" in usracr:
+
+            if os.path.exists("/".join(entry.split("/")[:-1])+"/mtz2map.log") and os.path.exists("/".join(entry.split("/")[:-1])+"/blobs.log"):
                 with open(entry,"r") as inp:
                     pdb_file=inp.readlines()
                 for line in pdb_file:
-                    if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
-                        r_work=line.split(" ")[-1]                
-                        r_work=str("{0:.2f}".format(float(r_work)))
-                    if "REMARK   3   FREE R VALUE                     :" in line:            
-                        r_free=line.split(" ")[-1]
+                    if "REMARK Final:" in line:            
+                        r_work=line.split()[4]
+                        r_free=line.split()[7]
                         r_free=str("{0:.2f}".format(float(r_free)))
-                    if "REMARK   3   BOND LENGTHS                       (A) :" in line:
-                        bonds=line.split()[-1]
-                    if "REMARK   3   BOND ANGLES                  (DEGREES) :" in line:   
-                        angles=line.split()[-1]
+                        r_work=str("{0:.2f}".format(float(r_work)))
+                        bonds=line.split()[10]
+                        angles=line.split()[13]
                     if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
                         resolution=line.split(":")[-1].replace(" ","").replace("\n","")
                         resolution=str("{0:.2f}".format(float(resolution)))
@@ -2783,100 +2813,90 @@ def resultSummary():
                         b=str("{0:.2f}".format(float(b)))
                         c=str("{0:.2f}".format(float(c)))
                         spg="".join(line.split()[-4:])
-                if not os.path.exists(entry.replace("refine.pdb","final.pdb")):            
-                    shutil.copyfile(entry, entry.replace("refine.pdb","final.pdb"))
-                if not os.path.exists(entry.replace("refine.pdb","final.mtz")):            
-                    shutil.copyfile(entry.replace("refine.pdb","refine.mtz"), entry.replace("refine.pdb","final.mtz"))
-                blist="[]"
-                pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
-                dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
-                nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
-            
-            if "fspipeline" in usracr:
 
-                if os.path.exists("/".join(entry.split("/")[:-1])+"/mtz2map.log") and os.path.exists("/".join(entry.split("/")[:-1])+"/blobs.log"):
-                    with open(entry,"r") as inp:
-                        pdb_file=inp.readlines()
-                    for line in pdb_file:
-                        if "REMARK Final:" in line:            
-                            r_work=line.split()[4]
-                            r_free=line.split()[7]
-                            r_free=str("{0:.2f}".format(float(r_free)))
-                            r_work=str("{0:.2f}".format(float(r_work)))
-                            bonds=line.split()[10]
-                            angles=line.split()[13]
-                        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-                            resolution=line.split(":")[-1].replace(" ","").replace("\n","")
-                            resolution=str("{0:.2f}".format(float(resolution)))
-                        if "CRYST1" in line:
-                            a=line[9:15]
-                            b=line[18:24]
-                            c=line[27:33]
-                            alpha=line[34:40].replace(" ","")
-                            beta=line[41:47].replace(" ","")
-                            gamma=line[48:54].replace(" ","")
-                            a=str("{0:.2f}".format(float(a)))
-                            b=str("{0:.2f}".format(float(b)))
-                            c=str("{0:.2f}".format(float(c)))
-                            spg="".join(line.split()[-4:])
-
-                    with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:    
-                        readFile=inp.readlines()
-                        blist=list()
-                        for line in readFile:
-                            if "INFO:: cluster at xyz = " in line:
-                                blob=line.split("(")[-1].split(")")[0].replace("  ","").rstrip()
-                                blob="["+blob+"]"
-                                blist.append(blob)
-                                blist=[",".join(blist).replace(" ","")]
-                        try:
-                            blist="["+blist[0]+"]"
-                        except:
-                            blist="[]"
-                    with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-                        readFile=inp.readlines()
-                        for mline in readFile:
-                            if "_2mFo-DFc.ccp4" in mline:                            
-                                pdbout  ="/".join(entry.split("/")[3:-1])+"/final.pdb"
-                                dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
-                                nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
-
-            rhofitscore="-"
-            ligfitscore="-"
-            ligblob=[0,0,0]
-            if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout: 
-                lig=usracr.split("_")[0].split("-")[-1]            
-                ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"            
-                ligfitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/"            
-                rhofitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/rhofit/"            
-
-                     
-                if os.path.exists(rhofitPath):
-                    if os.path.exists(rhofitPath+"Hit_corr.log"):
-                        with open(rhofitPath+"Hit_corr.log","r") as inp:
-                            rhofitscore=inp.readlines()[0].split()[1]   
-                if os.path.exists(ligfitPath):
+                with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:    
+                    readFile=inp.readlines()
+                    blist=list()
+                    for line in readFile:
+                        if "INFO:: cluster at xyz = " in line:
+                            blob=line.split("(")[-1].split(")")[0].replace("  ","").rstrip()
+                            blob="["+blob+"]"
+                            blist.append(blob)
+                            blist=[",".join(blist).replace(" ","")]
                     try:
-                        ligfitRUNPath=sorted(glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*"))[-1]                
-                        if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*")!=[]:
-                            if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:                        
-                                if os.path.exists(ligfitRUNPath+"/LigandFit_summary.dat"):
-                                    with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:                    
-                                        ligfitscore=inp.readlines()[6].split()[2]
-
-                                ligfitlog=glob.glob(ligfitRUNPath+"/LigandFit*.log")[0]
-                                if os.path.exists(ligfitlog):
-                                    with open(ligfitlog,"r") as inp:
-                                        for line in inp.readlines():
-                                            if line.startswith(" lig_xyz"):
-                                                ligblob=line.split("lig_xyz ")[-1].replace("\n","")
+                        blist="["+blist[0]+"]"
                     except:
-                        pass
-            
-            ligfit_dataset="_".join(usracr.split("_")[:-2])
-            if "fragmax/results" in pdbout:
-                writer.writerow([usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob])
+                        blist="[]"
+                with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
+                    readFile=inp.readlines()
+                    for mline in readFile:
+                        if "_2mFo-DFc.ccp4" in mline:                            
+                            pdbout  ="/".join(entry.split("/")[3:-1])+"/final.pdb"
+                            dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
+                            nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
+
+        rhofitscore="-"
+        ligfitscore="-"
+        ligblob=[0,0,0]
+        if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout: 
+            lig=usracr.split("_")[0].split("-")[-1]            
+            ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"            
+            ligfitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/"            
+            rhofitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/rhofit/"            
+
+
+            if os.path.exists(rhofitPath):
+                if os.path.exists(rhofitPath+"Hit_corr.log"):
+                    with open(rhofitPath+"Hit_corr.log","r") as inp:
+                        rhofitscore=inp.readlines()[0].split()[1]   
+            if os.path.exists(ligfitPath):
+                try:
+                    ligfitRUNPath=sorted(glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*"))[-1]                
+                    if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*")!=[]:
+                        if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:                        
+                            if os.path.exists(ligfitRUNPath+"/LigandFit_summary.dat"):
+                                with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:                    
+                                    ligfitscore=inp.readlines()[6].split()[2]
+
+                            ligfitlog=glob.glob(ligfitRUNPath+"/LigandFit*.log")[0]
+                            if os.path.exists(ligfitlog):
+                                with open(ligfitlog,"r") as inp:
+                                    for line in inp.readlines():
+                                        if line.startswith(" lig_xyz"):
+                                            ligblob=line.split("lig_xyz ")[-1].replace("\n","")
+                except:
+                    pass
+
+        ligfit_dataset="_".join(usracr.split("_")[:-2])
         
+        return [usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]
+        
+    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
+    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
+
+    class ThreadWithReturnValue(threading.Thread):
+        def __init__(self, group=None, target=None, name=None,
+                    args=(), kwargs={}, Verbose=None):
+            threading.Thread.__init__(self, group, target, name, args, kwargs)
+            self._return = None
+        def run(self):
+            print(type(self._target))
+            if self._target is not None:
+                self._return = self._target(*self._args,
+                                                    **self._kwargs)
+        def join(self, *args):
+            threading.Thread.join(self, *args)
+            return self._return
+
+    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
+        for entry in resultsList:
+            row = ThreadWithReturnValue(target=info_func, args=(entry,))
+            row.start()
+            
+            
+            writer.writerow(row.join())
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     if "filters:" in filters:
