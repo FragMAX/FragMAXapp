@@ -117,17 +117,33 @@
     .card-title {
         display:inline-flex !important;
     }
+    .datasetbox{
+        max-width: 350px;
+        margin-left: 16px;
+    }
 </style>
+
 
 
 {% comment %}
 <meta http-equiv="refresh" content="5" /> {% endcomment %}
 
 <div>
-    <h5 style="padding-left:310px;">{{acronym}} data collection Overview</h5>    
-    <h6 style="padding-left:310px;">This page will process/reprocess all your datasets using the same input parameters</h6>
-    <h7 style="padding-left:330px;">&bull; BioMAX autoprocessing statistics is displayed in the bottom of the page</h7>
-
+    <h5 style="padding-left:310px;">{{acronym}} Data Analysis</h5>    
+    
+    {% comment %} <h7 style="padding-left:330px;">&bull; BioMAX autoprocessing statistics is displayed in the bottom of the page</h7> {% endcomment %}
+    <div style="padding-left:310px;display: flex">
+        <label style="padding-top: 10px;">
+            <input id="processALLckbox" name="processALLckbox" type="checkbox" class="filled-in dt-checkboxes" value="alldatasets" checked>
+            <span for="processALLckbox">Process all datasets </span>
+        </label>
+        <select class="selectbox datasetbox" id="dropdownDataset" name="dropdownDataset" disabled>
+            <option disabled selected value> -- select a dataset -- </option>            
+            {% for datasetName in datasets %}
+            <option value={{datasetName}}>{{datasetName}}</option>    
+            {% endfor %}                                    
+        </select>
+    </div>
 </div>
 
 
@@ -481,10 +497,20 @@
 </div>
 </div>
 </div>
+<h6 style="padding-left:330px;">• This page will process/reprocess your datasets using at MAX IV HPC and <b>replace</b> your current result</h6>
 <p hidden id="pdbcontent"></p>
 <p hidden id="ligcontent"></p>
 
 <script>
+$(document).ready(function() {
+    $("#processALLckbox").click(function() {
+       if ($(this).is(":checked")) { 
+          $("#dropdownDataset").prop("disabled", true);
+       } else {
+          $("#dropdownDataset").prop("disabled", false);  
+       }
+    });
+});
 var f = document.getElementById("dtprocBtn");
     
     f.onsubmit = function dataproc() {
@@ -500,8 +526,13 @@ var f = document.getElementById("dtprocBtn");
         var rescutoff       = ";rescutoff:"+document.getElementsByName("rescutoff")[0].value
         var cccutoff        = ";cccutoff:"+document.getElementsByName("cccutoff")[0].value
         var isigicutoff     = ";isigicutoff:"+document.getElementsByName("isigmacutoff")[0].value
-    
-        var dtproccmd= dialsSW+xdsxscaleSW+xdsappSW+autoprocSW+spacegroup+cellparam+friedel+datarange+rescutoff+cccutoff+isigicutoff
+        if (document.getElementById("processALLckbox").checked){
+            var dtsfilters      = ";filters:ALL"
+            }
+        else {
+            var dtsfilters      = ";filters:"+document.getElementsByName("dropdownDataset")[0].value
+        }
+        var dtproccmd= dialsSW+xdsxscaleSW+xdsappSW+autoprocSW+spacegroup+cellparam+friedel+datarange+rescutoff+cccutoff+isigicutoff+dtsfilters
         document.getElementsByName("submitdtProc")[0].value = dtproccmd
 
     }
@@ -523,8 +554,14 @@ var f2 = document.getElementById("rfprocBtn");
         }
         var refspacegroup   = ";;refspacegroup:"+document.getElementsByName("refspacegroup")[0].value
         var customrefparam  = ";;customrefine:"+document.getElementsByName("customrefine")[0].value
+        if (document.getElementById("processALLckbox").checked){
+            var dtsfilters      = ";;filters:ALL"
+            }
+        else {
+            var dtsfilters      = ";;filters:"+document.getElementsByName("dropdownDataset")[0].value
+        }
 
-        var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel+refspacegroup
+        var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel+refspacegroup+dtsfilters
         document.getElementsByName("submitrfProc")[0].value = refinecmd
 
     }
@@ -539,15 +576,20 @@ var f3 = document.getElementById("ligprocBtn");
         var fitprocess      = ";;fitprocess:"+document.getElementsByName("fitprocess")[0].value
         var scanchirals     = ";;scanchirals:"+document.getElementsByName("scanchirals")[0].value
         var customligfit    = ";;customligfit:"+document.getElementsByName("customligfit")[0].value
-        var ligandfromname  = ";;ligfromname:"+document.getElementsByName("ligfromname")[0].checked;
-
-        var ligfitcmd= rhofitSW+ligfitSW+ligandfile+fitprocess+scanchirals+customligfit+ligandfromname
+        var ligandfromname  = ";;ligfromname:"+document.getElementsByName("ligfromname")[0].checked
+        if (document.getElementById("processALLckbox").checked){
+            var dtsfilters      = ";;filters:ALL"
+            }
+        else {
+            var dtsfilters      = ";;filters:"+document.getElementsByName("dropdownDataset")[0].value
+        }
+        var ligfitcmd= rhofitSW+ligfitSW+ligandfile+fitprocess+scanchirals+customligfit+ligandfromname+dtsfilters
         
         document.getElementsByName("submitligProc")[0].value = ligfitcmd
         console.log(ligfitcmd)
     }
 
-var fAll = document.getElementById("allprocBtn");
+{% comment %} var fAll = document.getElementById("allprocBtn");
 
     fAll.onsubmit = function dataprocess(){
         //Data proc options
@@ -588,8 +630,14 @@ var fAll = document.getElementById("allprocBtn");
         var dtproccmd= dialsSW+xdsxscaleSW+xdsappSW+autoprocSW+spacegroup+cellparam+friedel+datarange+rescutoff+cccutoff+isigicutoff
         var refinecmd= dimpleSW+fspSW+busterSW+refinemode+mrthreshold+refinerescutoff+pdbmodel
         var ligfitcmd= rhofitSW+ligfitSW+ligandfile+fitprocess+scanchirals+customligfit
+        if (document.getElementById("processALLckbox").checked){
+            var dtsfilters      = ";;filters: "
+            }
+        else {
+            var dtsfilters      = ";;filters:"+document.getElementsByName("dropdownDataset")[0].value
+        }
 
-        document.getElementsByName("submitallProc")[0].value = dtproccmd+refinecmd+ligfitcmd
+        document.getElementsByName("submitallProc")[0].value = dtproccmd+refinecmd+ligfitcmd+dtsfilters
 
 }
 
@@ -611,7 +659,10 @@ function onChooseFile(event, onLoadFileHandler) {
     let fr = new FileReader();
     fr.onload = onLoadFileHandler;
     fr.readAsText(file);
-}
+} {% endcomment %}
+
+
+
 </script>
 
 {% endblock %}

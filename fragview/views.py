@@ -57,10 +57,10 @@ def project_definitions():
     static_datapath="/static/biomax/"+proposal+"/"+shift
     #fraglib="F2XEntry"
     #fraglib="JBS"
-    os.makedirs(path+"/fragmax/process/",exist_ok=True)
-    os.makedirs(path+"/fragmax/scripts/",exist_ok=True)
-    os.makedirs(path+"/fragmax/results/",exist_ok=True)
-    os.makedirs(path+"/fragmax/logs/",exist_ok=True)
+    os.makedirs(path+"/fragmax/process/",mode=0o760, exist_ok=True)
+    os.makedirs(path+"/fragmax/scripts/",mode=0o760, exist_ok=True)
+    os.makedirs(path+"/fragmax/results/",mode=0o760, exist_ok=True)
+    os.makedirs(path+"/fragmax/logs/",mode=0o760, exist_ok=True)
 
     
 
@@ -91,7 +91,8 @@ def error_page(request):
 def process_all(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     models=[x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]
-    return render(request, "fragview/process_all.html",{"acronym":acr,"models":models})
+    datasets=sorted([x.split("/")[-1].replace("_master.h5","") for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5")],key=lambda x: ("Apo" in x, x))
+    return render(request, "fragview/process_all.html",{"acronym":acr,"models":models,"datasets":datasets})
 
 def settings(request):
     allprc  = str(request.GET.get("updatedefinitions"))
@@ -288,7 +289,8 @@ def datasets(request):
     
     if "resyncStatus" in resyncStatus:
         get_project_status()
-        
+        create_dataColParam(acr,path)
+        resultSummary()
     
     with open(path+"/fragmax/process/"+acr+"/datacollections.csv","r") as readFile:
         reader = csv.reader(readFile)
@@ -710,7 +712,7 @@ def submit_pipedream(request):
         input_data=input_data.replace("input_data:","")
         ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
 
-        os.makedirs("/".join(ppdoutdir.split("/")[:-1]),exist_ok=True)
+        os.makedirs("/".join(ppdoutdir.split("/")[:-1]),mode=0o760, exist_ok=True)
         if os.path.exists(ppdoutdir):
             shutil.rmtree(ppdoutdir)
         #     try:
@@ -2178,7 +2180,7 @@ def reproc_web(request):
                 if ResCutoff!="":
                     ResCutoff=" --res="+ResCutoff
                 dataprocCommand = "xdsapp --cmd --dir "+outputdir+"/xdsapp -j 8 -c 6 -i "+imgdir+dataset+"_master.h5 --fried="+Friedel+spg+ResCutoff+" --range="+DRange+" "+custom
-                os.makedirs(outputdir+"/xdsapp",exist_ok=True)
+                os.makedirs(outputdir+"/xdsapp",mode=0o760, exist_ok=True)
                 outp.write('\n'+"cd "+outputdir+"/xdsapp")
                 outp.write('\n'+dataprocCommand) 
             if "autoproc" in procSW:
@@ -2196,7 +2198,7 @@ def reproc_web(request):
                     CellPar=' cell="'+CellPar+'" '                
             
                 dataprocCommand = 'process -h5 '+imgdir+dataset+'_master.h5 -d '+outputdir+'/autoproc '+Friedel+spg+CellPar+'autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS="0 -1 0" autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=6 autoPROC_XdsKeyword_DATA_RANGE='+DRange+' autoPROC_XdsKeyword_SPOT_RANGE='+DRange+' '+custom
-                os.makedirs(outputdir,exist_ok=True)
+                os.makedirs(outputdir,mode=0o760, exist_ok=True)
                 if os.path.exists(outputdir+"/autoproc"):
                     shutil.move(outputdir+"/autoproc",outputdir+"/autoproc_last")
                 outp.write('\n'+"cd "+outputdir)
@@ -2277,7 +2279,7 @@ def reproc_web(request):
 
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
-    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup=userInput.split(";;")
+    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters=userInput.split(";;")
     if "false" in dimpleSW:
         useDIMPLE=False
     else:
@@ -2292,15 +2294,24 @@ def refine_datasets(request):
         useBUSTER=True
     #if len(userPDB)<20:
     pdbmodel=userPDB.replace("pdbmodel:","")
+    os.makedirs(path+"/fragmax/models/",mode=0o760, exist_ok=True)
     if pdbmodel in [x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]:
-        pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
+        if ".pdb" not in pdbmodel:
+            pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
+        else:
+            pdbmodel=path+"/fragmax/models/"+pdbmodel
+    elif "/data/visitors/biomax/" in pdbmodel:
+
+        if not os.path.exists(path+"/fragmax/models/"+pdbmodel.split("/")[-1]):
+            shutil.copyfile(pdbmodel,path+"/fragmax/models/"+pdbmodel.split("/")[-1])
+            pdbmodel=path+"/fragmax/models/"+pdbmodel.split("/")[-1]
     else:
         with open(path+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
-               pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
+            pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
         pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
     
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup)
+    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
@@ -2308,7 +2319,7 @@ def refine_datasets(request):
 def ligfit_datasets(request):
     #MAYBE NO USE ANYMORE
     userInput=str(request.GET.get("submitligProc"))
-    empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname=userInput.split(";;")
+    empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname,filters=userInput.split(";;")
     useRhoFit="False"
     useLigFit="False"
     
@@ -2317,113 +2328,109 @@ def ligfit_datasets(request):
     if "true" in ligfitSW:
         useLigFit="True"
   
-    t1 = threading.Thread(target=autoLigandFit,args=(useLigFit,useRhoFit,fraglib,))
+    t1 = threading.Thread(target=autoLigandFit,args=(useLigFit,useRhoFit,fraglib,filters))
     t1.daemon = True
     t1.start()
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
-    #MAYBE NO USE ANYMORE
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    # allprc  = str(request.GET.get("submitallProc"))
-    # dtprc   = str(request.GET.get("submitdtProc"))
-    # refprc  = str(request.GET.get("submitrfProc"))
-    # ligproc = str(request.GET.get("submitligProc"))
-    # if allprc!="None":
-    #     userinputs=allprc.split(";;")
-    #     dpSW=list()
-    #     dpSW.append("xdsapp")    if ("true" in userinputs[3]) else False
-    #     dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
-    #     dpSW.append("dials")     if ("true" in userinputs[1]) else False
-    #     dpSW.append("autoproc")  if ("true" in userinputs[4]) else False
-    #     if dpSW==[]:
-    #         dpSW=[""]
+    allprc  = str(request.GET.get("submitallProc"))
+    dtprc   = str(request.GET.get("submitdtProc"))
+    if allprc!="None":
+        userinputs=allprc.split(";;")
+        dpSW=list()
+        dpSW.append("xdsapp")    if ("true" in userinputs[3]) else False
+        dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
+        dpSW.append("dials")     if ("true" in userinputs[1]) else False
+        dpSW.append("autoproc")  if ("true" in userinputs[4]) else False
+        if dpSW==[]:
+            dpSW=[""]
 
-    #     rfSW=list()
-    #     rfSW.append("dimple")     if ("true" in userinputs[12]) else False
-    #     rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
-    #     rfSW.append("buster")     if ("true" in userinputs[14]) else False
-    #     if rfSW==[]:
-    #         rfSW=[""]
+        rfSW=list()
+        rfSW.append("dimple")     if ("true" in userinputs[12]) else False
+        rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
+        rfSW.append("buster")     if ("true" in userinputs[14]) else False
+        if rfSW==[]:
+            rfSW=[""]
             
-    #     lfSW=list()   
-    #     lfSW.append("rhofit") if ("true" in userinputs[19]) else False
-    #     lfSW.append("ligfit") if ("true" in userinputs[20]) else False
-    #     if lfSW==[]:
-    #         lfSW=[""]
+        lfSW=list()   
+        lfSW.append("rhofit") if ("true" in userinputs[19]) else False
+        lfSW.append("ligfit") if ("true" in userinputs[20]) else False
+        if lfSW==[]:
+            lfSW=[""]
             
-    #     PDBID=userinputs[18].split(":")[-1]
+        PDBID=userinputs[18].split(":")[-1]
 
-    #     spg=userinputs[5].split(":")[-1]
-    #     pnodes=30
-    #     with open(path+"/fragmax/scripts/processALL.sh","w") as outp:
-    #         outp.write("""#!/bin/bash \n"""
-    #                 """#!/bin/bash \n"""
-    #                 """#SBATCH -t 99:55:00 \n"""
-    #                 """#SBATCH -J FragMAX \n"""
-    #                 """#SBATCH --exclusive \n"""
-    #                 """#SBATCH -N1 \n"""
-    #                 """#SBATCH --cpus-per-task=40 \n"""
-    #                 """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j.out \n"""
-    #                 """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j.err \n"""
-    #                 """module purge \n"""
-    #                 """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-    #                 """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
-    #     for node in range(pnodes):
-    #         script=path+"/fragmax/scripts/processALL.sh"
-    #         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch '+script+" "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    #         subprocess.call(command,shell=True)
-    #         time.sleep(0.2)
-    #     return render(request,'fragview/testpage.html', {
-    #         'dpSW': "<br>".join(dpSW),
-    #         'rfSW': "<br>".join(rfSW),
-    #         'lfSW': "<br>".join(lfSW),
-    #         "pdb":PDBID,
-    #         "sym":spg
-    #         })
-    # if dtprc!="None":
-    #     dtprc_inp=dtprc.split(";")
-    #     usedials=dtprc_inp[1].split(":")[-1]
-    #     usexdsxscale=dtprc_inp[2].split(":")[-1]
-    #     usexdsapp=dtprc_inp[3].split(":")[-1]
-    #     useautproc=dtprc_inp[4].split(":")[-1]
-    #     spacegroup=dtprc_inp[5].split(":")[-1]
-    #     cellparam=dtprc_inp[6].split(":")[-1]
-    #     friedel=dtprc_inp[7].split(":")[-1]
-    #     datarange=dtprc_inp[8].split(":")[-1]
-    #     rescutoff=dtprc_inp[9].split(":")[-1]
-    #     cccutoff=dtprc_inp[10].split(":")[-1]
-    #     isigicutoff=dtprc_inp[11].split(":")[-1]
-    #     sbatch_script_list=list()
-    #     nodes=12
-    #     if usexdsapp=="true":
-    #         t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-    #         t.daemon = True
-    #         t.start()
-    #     if usedials=="true":
-    #         t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-    #         t.daemon = True
-    #         t.start()
+        spg=userinputs[5].split(":")[-1]
+        pnodes=30
+        with open(path+"/fragmax/scripts/processALL.sh","w") as outp:
+            outp.write("""#!/bin/bash \n"""
+                    """#!/bin/bash \n"""
+                    """#SBATCH -t 99:55:00 \n"""
+                    """#SBATCH -J FragMAX \n"""
+                    """#SBATCH --exclusive \n"""
+                    """#SBATCH -N1 \n"""
+                    """#SBATCH --cpus-per-task=40 \n"""
+                    """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j.out \n"""
+                    """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j.err \n"""
+                    """module purge \n"""
+                    """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
+                    """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
+        for node in range(pnodes):
+            script=path+"/fragmax/scripts/processALL.sh"
+            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch '+script+" "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command,shell=True)
+            time.sleep(0.2)
+        return render(request,'fragview/testpage.html', {
+            'dpSW': "<br>".join(dpSW),
+            'rfSW': "<br>".join(rfSW),
+            'lfSW': "<br>".join(lfSW),
+            "pdb":PDBID,
+            "sym":spg
+            })
+    if dtprc!="None":
+        dtprc_inp=dtprc.split(";")
+        usedials=dtprc_inp[1].split(":")[-1]
+        usexdsxscale=dtprc_inp[2].split(":")[-1]
+        usexdsapp=dtprc_inp[3].split(":")[-1]
+        useautproc=dtprc_inp[4].split(":")[-1]
+        spacegroup=dtprc_inp[5].split(":")[-1]
+        cellparam=dtprc_inp[6].split(":")[-1]
+        friedel=dtprc_inp[7].split(":")[-1]
+        datarange=dtprc_inp[8].split(":")[-1]
+        rescutoff=dtprc_inp[9].split(":")[-1]
+        cccutoff=dtprc_inp[10].split(":")[-1]
+        isigicutoff=dtprc_inp[11].split(":")[-1]
+        filters=dtprc_inp[-1].split(":")[-1]
+        sbatch_script_list=list()
+        nodes=12
+        if filters!="ALL":
+            nodes=1
+        if usexdsapp=="true":
+            t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t.daemon = True
+            t.start()
+        if usedials=="true":
+            t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t.daemon = True
+            t.start()
             
-    #     if useautproc=="true":
-    #         t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-    #         t.daemon = True
-    #         t.start()
+        if useautproc=="true":
+            t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t.daemon = True
+            t.start()
           
-    #     if usexdsxscale=="true":
-    #         t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes))
-    #         t.daemon = True
-    #         t.start()
+        if usexdsxscale=="true":
+            t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t.daemon = True
+            t.start()
             
-    #     return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
+        return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
 
     
-    # if refprc!="None":
-    #     pass
-
-    # if ligproc!="None":
-    #     pass
+    
     return render(request,'fragview/dataproc_datasets.html', {'allproc': ""})
 
 def kill_HPC_job(request):
@@ -2539,7 +2546,7 @@ def add_run_DP(outdir):
     next_run=fout+"/run_"+str(last_run+1)
     
     if not os.path.exists(next_run) and "autoPROC" not in SW:
-        os.makedirs(next_run, exist_ok=True)
+        os.makedirs(next_run, mode=0o760, exist_ok=True)
 
     return "cd "+next_run+" #"+SW
 
@@ -2592,7 +2599,7 @@ def create_dataColParam(acr, path):
     if os.path.exists(path+"/fragmax/process/"+acr+"/datacollections.csv"):
         return
     else:        
-        os.makedirs(path+"/fragmax/process/"+acr,exist_ok=True)
+        os.makedirs(path+"/fragmax/process/"+acr,mode=0o760, exist_ok=True)
         with open(path+"/fragmax/process/"+acr+"/datacollections.csv","w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
@@ -2624,8 +2631,7 @@ def create_dataColParam(acr, path):
                     ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+sample+"/"+sample+".svg"
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
-                                                                      
-
+                                                                    
 def get_results_info(entry):
     usracr="_".join(entry.split("/")[8:11])
 
@@ -2707,7 +2713,7 @@ def get_results_info(entry):
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     
-    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/dimple.log")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
+    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
     with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
@@ -2721,6 +2727,7 @@ def resultSummary():
            
 
             if "dimple" in usracr:
+                entry=entry.replace("final.pdb","dimple.log")
                 with open(entry,"r") as inp:
                     dimple_log=inp.readlines()
                 blist=list()
@@ -2870,9 +2877,13 @@ def resultSummary():
             if "fragmax/results" in pdbout:
                 writer.writerow([usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob])
         
-def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
 
+    if filters=="ALL":
+        filters=""
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -2890,7 +2901,7 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
     scriptList=list()
 
 
-    for xml in sorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
@@ -2901,8 +2912,8 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         script="cd "+outdir+"/xdsapp\n"
         script+='xdsapp --cmd --dir='+outdir+'/xdsapp -j 8 -c 5 -i '+h5master+' --delphi=10 --fried=True --range=1\ '+nImg+' \n\n'
         scriptList.append(script)
-        os.makedirs(outdir,exist_ok=True)
-        os.makedirs(outdir+"/xdsapp",exist_ok=True)
+        os.makedirs(outdir,mode=0o760, exist_ok=True)
+        os.makedirs(outdir+"/xdsapp",mode=0o760, exist_ok=True)
 
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
     for num,chunk in enumerate(chunkScripts):
@@ -2914,9 +2925,13 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-    
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
+
+    if filters=="ALL":
+        filters=""   
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -2934,14 +2949,14 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
     scriptList=list()
 
 
-    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
-        os.makedirs(outdir,exist_ok=True)
+        os.makedirs(outdir,mode=0o760, exist_ok=True)
         script="cd "+outdir+"\n"
         script+='''process -h5 '''+h5master+''' -noANO autoPROC_XdsKeyword_LIB=\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\ '''+nImg+''' autoPROC_XdsKeyword_SPOT_RANGE=1\ '''+nImg+''' -d '''+outdir+'''/autoproc\n\n'''
         scriptList.append(script)
@@ -2956,9 +2971,13 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
 
+    if filters=="ALL":
+        filters=""
     
 
     header= """#!/bin/bash\n"""
@@ -2977,17 +2996,18 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
 
     scriptList=list()
 
-    
+    with open(path+"/fragmax/scripts/filter.txt","w") as inp:
+        inp.write(filters)    
 
-    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
-        os.makedirs(outdir,exist_ok=True)
-        os.makedirs(outdir+"/xdsxscale",exist_ok=True)
+        os.makedirs(outdir,mode=0o760, exist_ok=True)
+        os.makedirs(outdir+"/xdsxscale",mode=0o760, exist_ok=True)
 
         
         script="cd "+outdir+"/xdsxscale \n"
@@ -3005,10 +3025,14 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes):
+def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
 
-    
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
+
+    if filters=="ALL":
+        filters=""
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3029,15 +3053,15 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
 
     
 
-    for xml in natsort.natsorted(glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")):
+    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
-        os.makedirs(outdir,exist_ok=True)
-        os.makedirs(outdir+"/dials",exist_ok=True)
+        os.makedirs(outdir,mode=0o760, exist_ok=True)
+        os.makedirs(outdir+"/dials",mode=0o760, exist_ok=True)
 
         
         script="cd "+outdir+"/dials \n"
@@ -3055,11 +3079,11 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def process2results(spacegroup):
+def process2results(spacegroup, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
     for dp in ["xdsapp","autoproc","xdsxscale","EDNA","fastdp","dials"]:
-        #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
-        [os.makedirs("/".join(x.split("/")[:8]+x.split("/")[10:]).replace("/process/","/results/")+dp, exist_ok=True) for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
+        #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
+        [os.makedirs("/".join(x.split("/")[:8]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
     with open(path+"/fragmax/scripts/process2results.py","w") as writeFile:
         writeFile.write('''import os '''
                 '''\nimport glob'''
@@ -3154,9 +3178,14 @@ def process2results(spacegroup):
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
     
-def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
+def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-    process2results(spacegroup) 
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
+
+    if filters=="ALL":
+        filters=""
+    process2results(spacegroup, filters) 
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
         writeFile.write('''\nimport commands, os, sys, glob, time, subprocess'''
                         '''\nargsfit=sys.argv[1]'''
@@ -3170,7 +3199,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                         '''\ninputData=list()'''
                         '''\nfor proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):'''
                         '''\n    mtzList=glob.glob(proc+"*mtz")'''
-                        '''\n    if mtzList:'''
+                        '''\n    if mtzList and "'''+filters+'''" in proc:'''
                         '''\n        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])'''
                         '''\ndef scrsplit(a, n):'''
                         '''\n    k, m = divmod(len(a), n)'''
@@ -3179,7 +3208,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
                         '''\nif "fspipeline" in argsfit:'''
-                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 '''"""
+                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 '''"""
                         '''\n    scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ ; "+fsp for x in inputData]'''
                         """\n    header='''#!/bin/bash\\n'''"""
                         """\n    header+='''#!/bin/bash\\n'''"""
@@ -3193,6 +3222,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                         """\n    header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\\n\\n'''"""
                         """\n    header+='''module purge\\n'''"""
                         """\n    header+='''module load CCP4 Phenix\\n'''"""
+                        """\n    if '"""+filters+"""'!="":"""
+                        """\n        nodes=1"""
                         '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
                         '''\n    for n,chunk in enumerate(chunkScripts):'''
                         '''\n        with open(path+"/fragmax/scripts/fspipeline_part"+str(n)+".sh","w") as writeFile:'''
@@ -3212,6 +3243,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                         '''\n    header+= """module purge\\n"""'''
                         '''\n    header+= """module load autoPROC BUSTER\\n\\n"""'''
                         '''\n    scriptList=["refine -L -p "+PDBfile+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster " for mtzin in inputData]'''
+                        """\n    if '"""+filters+"""'!="":"""
+                        """\n        nodes=1"""
                         '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
                         '''\n    for num,chunk in enumerate(chunkScripts):'''
                         '''\n        time.sleep(0.2)'''
@@ -3255,12 +3288,6 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
             outp.write(dimpleOut)
 
 
-        for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
-            mtzList=glob.glob(proc+"*mtz")
-            if mtzList:
-                inputData.append("'"+sorted(glob.glob(proc+"*mtz"))[0]+"'")
-       
-
         with open(path+"/fragmax/scripts/run_dimple.py","w") as writeFile:
             writeFile.write('''import multiprocessing\n'''
                             '''import subprocess\n'''
@@ -3274,7 +3301,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                             '''inputData=list()\n'''
                             '''for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):\n'''
                             '''    mtzList=glob.glob(proc+"*mtz")\n'''
-                            '''    if mtzList:\n'''
+                            '''    if mtzList and "%s" in proc:\n'''
                             '''        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])\n'''
                             '''\n'''
                             '''outDirs=["/".join(x.split("/")[:-1])+"/dimple" for x in inputData]\n'''
@@ -3291,7 +3318,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
                             '''    p = multiprocessing.Pool(48)\n'''
                             '''    p.map(fragmax_worker, inpdata)\n'''
                             '''if __name__ == "__main__":\n'''
-                            '''    mp_handler()\n'''%(path,acr,PDB))    
+                            '''    mp_handler()\n'''%(path,acr,PDB,filters))    
         
     dimple_hpc(userPDB)
     argsfit="none"
@@ -3305,7 +3332,6 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup):
     command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+str(nodes)+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
     
-
 def ligandToSVG():
     
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
@@ -3325,9 +3351,12 @@ def ligandToSVG():
                 content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
                 outw.write(content)
 
-def autoLigandFit(useLigFit,useRhoFit,fraglib):
+def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
+    if "filters:" in filters:
+        filters=filters.split(":")[-1]
+    if filters=="ALL":
+        filters=""
     with open(path+"/fragmax/scripts/autoligand.py","w") as writeFile:
         writeFile.write('''import multiprocessing\n'''
                 '''import time\n'''
@@ -3339,7 +3368,7 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib):
                 '''fraglib=sys.argv[2]\n'''
                 '''acr=sys.argv[3]\n'''
                 '''fitmethod=sys.argv[4]\n'''
-                '''pdbList=[x for x in glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb") if "Apo" not in x]\n'''
+                '''pdbList=[x for x in glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb") if "Apo" not in x and "'''+filters+'''" in x]\n'''
                 '''cifList=list()\n'''
                 '''mtzList=[x.replace(".pdb",".mtz") for x in pdbList]\n'''
                 '''outListR=[x.replace("final.pdb","rhofit/") for x in pdbList]\n'''
@@ -3542,8 +3571,7 @@ def get_project_status():
                 outp.write(key+":"+value+"\n")
 ###############################
 
-#################################
-        
+###############################        
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
