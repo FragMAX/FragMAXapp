@@ -3366,7 +3366,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
             argsfit+="buster"
     else:
         userPDB="-"
-    nodes=25
+    nodes=10
     command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+str(nodes)+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
     

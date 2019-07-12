@@ -1,7 +1,7 @@
 {% extends 'fragview/base.html' %}
 
 {% load static %}
-{% block title %}Norrsken - Data Analysis{% endblock %}
+{% block title %}FragMAX - Data Analysis{% endblock %}
 {% block content %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
@@ -103,7 +103,7 @@
 
     /* Create an active/current tablink class */
     .tab button.active {
-    background-color: #ccc;
+    background-color: #fea901;
     }
 
     /* Style the tab content */
@@ -119,8 +119,30 @@
 <meta http-equiv="refresh" content="5" /> {% endcomment %}
 
 <div>
-    <h5 style="padding-left:310px;">{{acronym}} Data Analysis</h5>    
-    
+        <div style="position:absolute; right: 50px" >
+            <h5 >HPC Nodes</h5>        
+            <div class="radio" id="ligand_placed" >
+                <label>
+                    <input class="with-gap" id="1node" name="1node" type="radio" value="1" disabled>
+                    <span class="item-label" for="1node">1</span>
+                </label>
+                <label>
+                    <input class="with-gap" id="5node" name="5node" type="radio" value="5" disabled>
+                    <span class="item-label" for="5node">5</span>
+                </label>
+                <label>
+                    <input class="with-gap" id="5node" name="5node" type="radio" value="10" disabled checked>
+                    <span class="item-label" for="5node">10</span>
+                </label>
+                <label>
+                    <input class="with-gap" id="5node" name="5node" type="radio" value="25" disabled>
+                    <span class="item-label" for="5node">25</span>
+                </label>
+            </div>
+        </div>
+    <h5 style="padding-left:310px;">{{acronym}} Data Analysis</h5>
+       
+    <h6 style="padding-left:330px;">• This page will process/reprocess your datasets using at MAX IV HPC and <b>replace</b> your current result</h6>    
     {% comment %} <h7 style="padding-left:330px;">&bull; BioMAX autoprocessing statistics is displayed in the bottom of the page</h7> {% endcomment %}
     <div style="padding-left:310px;display: flex">
         <label style="padding-top: 10px;">
@@ -160,93 +182,87 @@
                                     <form id="swSelectionFordataproc" >
                                         <br>
                                         <div>
-                                        <div class="checkbox" id="dials">
-                                        <label>
-                                            <input id="dialscheckboxinput" name="dialscheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="dials">
-                                            <span for="dialscheckboxinput">XIA2/DIALS </span>
-                                        </label>
-                                        </div>
-                                        <div class="checkbox" id="xdsxscale" >
-                                        <label>
-                                            <input id="xdsxscalecheckboxinput" name="xdsxscalecheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsxscale">
-                                            <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE </span>
-                                        </label>
-                                        </div>
-                                        <div class="checkbox" id="xdsapp" >
+                                            <div class="checkbox" id="dials">
                                             <label>
-                                                <input id="xdsappcheckboxinput" name="xdsappcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsapp">
-                                                <span for="xdsappcheckboxinput">XDSAPP </span>
+                                                <input id="dialscheckboxinput" name="dialscheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="dials">
+                                                <span for="dialscheckboxinput">XIA2/DIALS </span>
                                             </label>
-                                        </div>    
-                                        <div class="checkbox" id="autoproc"  >
-                                        <label>
-                                            <input id="autoproccheckboxinput" name="autoproccheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="autoproc">
-                                            <span for="autoproccheckboxinput">autoProc </span>
-                                        </label>
-                                        </div> 
+                                            </div>
+                                            <div class="checkbox" id="xdsxscale" >
+                                            <label>
+                                                <input id="xdsxscalecheckboxinput" name="xdsxscalecheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsxscale">
+                                                <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE </span>
+                                            </label>
+                                            </div>
+                                            <div class="checkbox" id="xdsapp" >
+                                                <label>
+                                                    <input id="xdsappcheckboxinput" name="xdsappcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="xdsapp">
+                                                    <span for="xdsappcheckboxinput">XDSAPP </span>
+                                                </label>
+                                            </div>    
+                                            <div class="checkbox" id="autoproc"  >
+                                            <label>
+                                                <input id="autoproccheckboxinput" name="autoproccheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="autoproc">
+                                                <span for="autoproccheckboxinput">autoProc </span>
+                                            </label>
+                                            </div> 
                                         </div>                     
                                     </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">Space group</th>
+                                <td class=" top-options">
+                                    <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th class=" top-options">Cell parameters</th>
+                                <td class=" top-options"><input class="selectbox" name="cellparam" placeholder="(a, b, c, α, β, γ)"></input> </td>
+                            </tr>
+                            {% comment %} <tr>
+                                <th class=" top-options">Friedel law</th>
+                                <td class=" top-options">
+                                    <select class="selectbox" name="friedel">
+                                        <option value="true" selected>True</option>
+                                        <option value="false">False</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr hidden>
+                                <th class=" top-options">Data range</th>
+                                <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">Resolution cutoff</th>
+                                <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">CC1/2 cutoff</th>
+                                <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">I/σ(I) cutoff</th>
+                                <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                            </tr>
+                            <tr class="custompar">
+                                <th class=" top-options">Custom parameters</th>
+                                <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                            </tr> {% endcomment %}
+                            <tr>
+                                <th></th>
+                                <td style="padding-top:50px">
+                                    <form action="/dataproc_datasets/" method="get" id="dtprocBtn" name="dataprocButton" size="1" target="_blank">
+                                        <button class="btn-large  btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitdtProc" size="1">Run data processing</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-
-                </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Space group</th>
-                    <td class=" top-options">
-                        <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th class=" top-options">Cell parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="cellparam" placeholder="(a, b, c, α, β, γ)"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Friedel law</th>
-                    <td class=" top-options">
-                        <select class="selectbox" name="friedel">
-                            <option value="true" selected>True</option>
-                            <option value="false">False</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr hidden>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
-                </tr>
-                <tr class="custompar">
-                    <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
-                </tr>
-                <tr>
-                    <th></th>
-                    <td style="padding-top:20px">
-                        <form action="/dataproc_datasets/" method="get" id="dtprocBtn" name="dataprocButton" size="1" target="_blank">
-                            <button class="btn  btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" name="submitdtProc" size="1">Run data processing</button>
-                        </form>
-                    </td>
-                </tr>
-
-                </tbody>
-
-                </table>
             </div>
-
         </div>
-    </div>
 
     <div class="flex-center">
         <div>
@@ -262,8 +278,8 @@
                             <td class=" top-options">
                                 
                                 <form id="swSelectionForrefinement" >
-                                        <br>
-                                        <div>
+                                    <br>
+                                    <div>
                                         <div class="checkbox" id="dials">
                                         <label>
                                             <input id="dimplecheckboxinput" name="dimplecheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="dimple">
@@ -282,112 +298,111 @@
                                             <span for="fspcheckboxinput">FSpipeline </span>
                                         </label>
                                         </div>
-                                        </div>                     
+                                    </div>                     
                                 </form>
-                                </td>
+                            </td>
                         </tr>
-                 </div>
+                 
 
 
-            <tr>
-                <th class=" top-options">PDB model</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="pdbcode" placeholder="PDB ID or full path"></input>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options"></th>
-                <td class=" top-options">
-                    {% comment %} <input type='file' accept=".pdb" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' /> {% endcomment %}                   
-                    <select class="selectbox " name="dropdownModel">
-                        <option disabled selected value="fromCODE"> -- select PDB model -- </option>                        
-                        <option value=""></option>                        
-                        {% for model in models %}
-                        <option value={{model}}>{{model}}</option>    
-                        {% endfor %}                                    
-                    </select>    
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">Space group</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="refspacegroup" placeholder="P43212"></input>
-                </td>
-            </tr>
-            <tr>
-                    <th class=" top-options">Water placement</th>
-                    <td class=" top-options">
-                        <form id="swSelectionForrefinement" >
-                                <br>
-                                <div>                                
-                                <div class="checkbox" id="arpwarp">
-                                <label>
-                                    <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
-                                    <span for="arpwarpcheckboxinput">use ARP/wARP </span>
-                                </label>
-                                </div>
-                                <div class="checkbox" id="arpwarp">
-                                <label>
-                                    <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
-                                    <span for="cootwatercheckboxinput">use Coot </span>
-                                </label>
-                                </div>
-                                <div class="checkbox" id="arpwarp">
-                                <label>
-                                    <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
-                                    <span for="phenixwatercheckboxinput">use Phenix </span>
-                                </label>
-                                </div>
-                                </div>                     
-                        </form>
-                    </td>
-                </tr>
-            <tr>
-            
-            <tr>
-                <th class=" top-options">Refinement mode</th>
-                <td class=" top-options">
-                    <select class="selectbox" name="refMode">
-                        <option disabled selected value> -- select an option -- </option>
-                        <option value="refslow">Extra (Slowest)</option>
-                        <option value="refslow">Normal (Slow)</option>
-                        <option value="reffast">Quick (Fast)</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">Threshold for MR</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
-                </td>
-            </tr>
-            <tr>
-                <th class=" top-options">Resolution cutoff</th>
-                <td class=" top-options">
-                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
-                </td>
-            </tr>
-            
+                        <tr>
+                            <th class=" top-options">PDB model</th>
+                            <td class=" top-options">
+                                <input class="selectbox" name="pdbcode" placeholder="PDB ID or full path"></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class=" top-options"></th>
+                            <td class=" top-options">
+                                {% comment %} <input type='file' accept=".pdb" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' /> {% endcomment %}                   
+                                <select class="selectbox " name="dropdownModel">
+                                    <option disabled selected value="fromCODE"> -- select PDB model -- </option>                        
+                                    <option value=""></option>                        
+                                    {% for model in models %}
+                                    <option value={{model}}>{{model}}</option>    
+                                    {% endfor %}                                    
+                                </select>    
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class=" top-options">Space group</th>
+                            <td class=" top-options">
+                                <input class="selectbox" name="refspacegroup" placeholder="P43212"></input>
+                            </td>
+                        </tr>
+                        {% comment %} <tr>
+                            <th class=" top-options">Water placement</th>
+                            <td class=" top-options">
+                                <form id="swSelectionForrefinement" >
+                                    <br>
+                                    <div>                                
+                                        <div class="checkbox" id="arpwarp">
+                                        <label>
+                                            <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
+                                            <span for="arpwarpcheckboxinput">use ARP/wARP </span>
+                                        </label>
+                                        </div>
+                                        <div class="checkbox" id="arpwarp">
+                                        <label>
+                                            <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
+                                            <span for="cootwatercheckboxinput">use Coot </span>
+                                        </label>
+                                        </div>
+                                        <div class="checkbox" id="arpwarp">
+                                        <label>
+                                            <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
+                                            <span for="phenixwatercheckboxinput">use Phenix </span>
+                                        </label>
+                                        </div>
+                                    </div>                     
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                        
+                            <tr>
+                                <th class=" top-options">Refinement mode</th>
+                                <td class=" top-options">
+                                    <select class="selectbox" name="refMode">
+                                        <option disabled selected value> -- select an option -- </option>
+                                        <option value="refslow">Extra (Slowest)</option>
+                                        <option value="refslow">Normal (Slow)</option>
+                                        <option value="reffast">Quick (Fast)</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">Threshold for MR</th>
+                                <td class=" top-options">
+                                    <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class=" top-options">Resolution cutoff</th>
+                                <td class=" top-options">
+                                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                                </td>
+                            </tr>
                 
+                    
 
-            <tr class="custompar">
-                <th class=" top-options">Custom parameters</th>
-                <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
-            </tr>
-            <tr>
-                <th></th>
-                <td style="padding-top:20px">
-                    <form action="/refine_datasets/" method="get" id="rfprocBtn" name="rfprocButton" size="1" target="_blank">
-                        <button class="btn  btn-right" type="submit" onsubmit="return refineproc()" value="No Software Selected" name="submitrfProc" size="1">Run refinement</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-            </table>
+                            <tr class="custompar">
+                                <th class=" top-options">Custom parameters</th>
+                                <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                            </tr> {% endcomment %}
+                            <tr>
+                                <th></th>
+                                <td style="padding-top:20px">
+                                    <form action="/refine_datasets/" method="get" id="rfprocBtn" name="rfprocButton" size="1" target="_blank">
+                                        <button class="btn-large  btn-right" type="submit" onsubmit="return refineproc()" value="No Software Selected" name="submitrfProc" size="1">Run refinement</button>
+                                    </form>
+                                </td>
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-
     </div>
-</div>
 
 
 <div class="flex-right">
@@ -439,7 +454,7 @@
                             </form>        
                         </td>
                     </tr>
-                    <tr>
+                    {% comment %} <tr>
                         <th class=" top-options">Fitting process</th>
                         <td class=" top-options">
                             <select class="selectbox" name="fitprocess">
@@ -463,12 +478,12 @@
                     <tr class="custompar">
                         <th class=" top-options">Custom parameters</th>
                         <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
-                    </tr>
+                    </tr> {% endcomment %}
                     <tr>
                         <th></th>
-                        <td style="padding-top:20px">
+                        <td style="padding-top:200px">
                             <form action="/ligfit_datasets/" method="get" id="ligprocBtn" name="ligprocButton" size="1" target="_blank">
-                                <button class="btn  btn-right" type="submit" onsubmit="return ligandfitproc()" value="No Software Selected" name="submitligProc" size="1">Run ligand fitting</button>
+                                <button class="btn-large  btn-right" type="submit" onsubmit="return ligandfitproc()" value="No Software Selected" name="submitligProc" size="1">Run ligand fitting</button>
                             </form>
                         </td>
                     </tr>
@@ -481,24 +496,21 @@
     {% comment %} <form action="/dataproc_datasets/" method="get" id="allprocBtn" name="allprocButton" size="1" target="_blank">
         <button class="btn-large maxivorange btn-right" type="submit" onsubmit="return dataprocess()" value="No Software Selected " name="submitallProc" size="1">Run All</button>
     </form> {% endcomment %}
-    {% comment %} <form action="/dataproc_datasets/" method="get" id="allprocBtn" name="allprocButton" size="1" target="_blank">
-        <button class="btn-large maxivorange btn-right" type="submit" onsubmit="return dataprocess()" value="No Software Selected " name="submitallProc" size="1">Run All</button>
-    </form> {% endcomment %}
     
     
 </div>
 </div>
 </div>
-<h6 style="padding-left:330px;">• This page will process/reprocess your datasets using at MAX IV HPC and <b>replace</b> your current result</h6>
+
 <p hidden id="pdbcontent"></p>
 <p hidden id="ligcontent"></p>
-
+<h6 style="padding-left:330px;">Click the tabs to change parameters for each software</h6>
 
 
 <div class=" card_options">
     <div class="card tab">
         <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS_XSCALE</button>
+        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
         <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
         <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
         <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
@@ -509,42 +521,438 @@
     </div>
 
     <div id="DIALS" class="card tabcontent">
-        <h3>Options</h3>
-        <p>XIA2/DIALS options here</p>
+        <div class="card-title">Dials Options</div>        
+        <table class="optionstable flex-left" >
+            <col width="8%">
+            <col width="17%">
+            <tbody>                            
+                <tr>
+                    <th class=" top-options">Friedel law</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="friedel">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <th class=" top-options">Data range</th>
+                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">CC1/2 cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">I/σ(I) cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>                            
+            </tbody>
+        </table>
     </div>
 
     <div id="XDS_XSCALE" class="card tabcontent">
-        <h3>Options</h3>
-        <p>XIA2/XDS with XSCALE options here</p> 
+        <div class="card-title">XDS/XSCALE Options</div> 
+        <table class="optionstable flex-left" >
+            <col width="8%">
+            <col width="17%">
+            <tbody>                            
+                <tr>
+                    <th class=" top-options">Friedel law</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="friedel">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <th class=" top-options">Data range</th>
+                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">CC1/2 cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">I/σ(I) cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>                            
+            </tbody>
+        </table> 
     </div>
 
     <div id="autoPROC" class="card tabcontent">
-        <h3>Options</h3>
-        <p>autoPROC options here</p>
+        <div class="card-title">autoPROC Options</div> 
+        <table class="optionstable flex-left" >
+            <col width="8%">
+            <col width="17%">
+            <tbody>                            
+                <tr>
+                    <th class=" top-options">Friedel law</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="friedel">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <th class=" top-options">Data range</th>
+                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">CC1/2 cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">I/σ(I) cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>                            
+            </tbody>
+        </table>
     </div>
     <div id="XDSAPP" class="card tabcontent">
-        <h3>Options</h3>
-        <p>XDSAPP options here</p>
+        <div class="card-title">XDSAPP Options</div> 
+        <table class="optionstable flex-left" >
+            <col width="8%">
+            <col width="17%">
+            <tbody>                            
+                <tr>
+                    <th class=" top-options">Friedel law</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="friedel">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <th class=" top-options">Data range</th>
+                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">CC1/2 cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">I/σ(I) cutoff</th>
+                    <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
+                </tr>                            
+            </tbody>
+        </table>
     </div>
     <div id="DIMPLE" class="card tabcontent">
-        <h3>Options</h3>
-        <p>DIMPLE options here</p>
+        <div class="card-title">Dimple Options</div> 
+        <table class="optionstable flex-left">
+            <col width="8%">
+            <col width="17%">
+            <tbody>                        
+                <tr>
+                    <th class=" top-options">Water placement</th>
+                    <td class=" top-options">
+                        <form id="swSelectionForrefinement" >
+                            <br>
+                            <div>                                
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
+                                    <span for="arpwarpcheckboxinput">use ARP/wARP </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
+                                    <span for="cootwatercheckboxinput">use Coot </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
+                                    <span for="phenixwatercheckboxinput">use Phenix </span>
+                                </label>
+                                </div>
+                            </div>                     
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                
+                    <tr>
+                        <th class=" top-options">Refinement mode</th>
+                        <td class=" top-options">
+                            <select class="selectbox" name="refMode">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="refslow">Extra (Slowest)</option>
+                                <option value="refslow">Normal (Slow)</option>
+                                <option value="reffast">Quick (Fast)</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Threshold for MR</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Resolution cutoff</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                        </td>
+                    </tr>
+        
+            
+
+                    <tr class="custompar">
+                        <th class=" top-options">Custom parameters</th>
+                        <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                    </tr>
+                    
+            </tbody>
+        </table>
     </div>
     <div id="BUSTER" class="card tabcontent">
-        <h3>Options</h3>
-        <p>BUSTER options here</p>
+        <div class="card-title">BUSTER Options</div>
+        <table class="optionstable flex-left">
+            <col width="8%">
+            <col width="17%">
+            <tbody>                        
+                <tr>
+                    <th class=" top-options">Water placement</th>
+                    <td class=" top-options">
+                        <form id="swSelectionForrefinement" >
+                            <br>
+                            <div>                                
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
+                                    <span for="arpwarpcheckboxinput">use ARP/wARP </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
+                                    <span for="cootwatercheckboxinput">use Coot </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
+                                    <span for="phenixwatercheckboxinput">use Phenix </span>
+                                </label>
+                                </div>
+                            </div>                     
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                
+                    <tr>
+                        <th class=" top-options">Refinement mode</th>
+                        <td class=" top-options">
+                            <select class="selectbox" name="refMode">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="refslow">Extra (Slowest)</option>
+                                <option value="refslow">Normal (Slow)</option>
+                                <option value="reffast">Quick (Fast)</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Threshold for MR</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Resolution cutoff</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                        </td>
+                    </tr>
+        
+            
+
+                    <tr class="custompar">
+                        <th class=" top-options">Custom parameters</th>
+                        <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                    </tr>
+                    
+            </tbody>
+        </table>
     </div>
     <div id="FSPipeline" class="card tabcontent">
-        <h3>Options</h3>
-        <p>FSPipeline options here</p>
+        <div class="card-title">FSPipeline Options</div> 
+        <table class="optionstable flex-left">
+            <col width="8%">
+            <col width="17%">
+            <tbody>                        
+                <tr>
+                    <th class=" top-options">Water placement</th>
+                    <td class=" top-options">
+                        <form id="swSelectionForrefinement" >
+                            <br>
+                            <div>                                
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
+                                    <span for="arpwarpcheckboxinput">use ARP/wARP </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
+                                    <span for="cootwatercheckboxinput">use Coot </span>
+                                </label>
+                                </div>
+                                <div class="checkbox" id="arpwarp">
+                                <label>
+                                    <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
+                                    <span for="phenixwatercheckboxinput">use Phenix </span>
+                                </label>
+                                </div>
+                            </div>                     
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                
+                    <tr>
+                        <th class=" top-options">Refinement mode</th>
+                        <td class=" top-options">
+                            <select class="selectbox" name="refMode">
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="refslow">Extra (Slowest)</option>
+                                <option value="refslow">Normal (Slow)</option>
+                                <option value="reffast">Quick (Fast)</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Threshold for MR</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class=" top-options">Resolution cutoff</th>
+                        <td class=" top-options">
+                            <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
+                        </td>
+                    </tr>
+        
+            
+
+                    <tr class="custompar">
+                        <th class=" top-options">Custom parameters</th>
+                        <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                    </tr>
+                    
+            </tbody>
+        </table>
     </div>
     <div id="RhoFit" class="card tabcontent">
-        <h3>Options</h3>
-        <p>RhoFit options here</p>
+        <div class="card-title">RhoFit Options</div> 
+        <table class="optionstable flex-left">
+            <col width="8%">
+            <col width="17%">
+            <tbody>                    
+                <tr>
+                    <th class=" top-options">Fitting process</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="fitprocess">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="ligfitquick">Quick</option>
+                            <option value="ligfitthorough">Thorough</option>
+                        </select>
+                    </td>
+                <tr>
+                </tr>
+                <tr>
+                    <th class=" top-options">Scan chirals</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="scanchirals">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="chiralsyes">Yes</option>
+                            <option value="chiralsno">No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
+                </tr>
+                
+            </tbody>
+        </table>
     </div>
     <div id="LigFit" class="card tabcontent">
-        <h3>Options</h3>
-        <p>LigFit options here</p>
+        <div class="card-title">LigFit Options</div> 
+        <table class="optionstable flex-left">
+            <col width="8%">
+            <col width="17%">
+            <tbody>                    
+                <tr>
+                    <th class=" top-options">Fitting process</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="fitprocess">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="ligfitquick">Quick</option>
+                            <option value="ligfitthorough">Thorough</option>
+                        </select>
+                    </td>
+                <tr>
+                </tr>
+                <tr>
+                    <th class=" top-options">Scan chirals</th>
+                    <td class=" top-options">
+                        <select class="selectbox" name="scanchirals">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="chiralsyes">Yes</option>
+                            <option value="chiralsno">No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
+                </tr>
+                
+            </tbody>
+        </table>
     </div>
 </div>
 
