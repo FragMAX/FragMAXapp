@@ -1760,7 +1760,11 @@ def submit_pandda(request):
         '''acr=sys.argv[3]\n'''
         '''fraglib=sys.argv[4]\n'''
         '''if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method):\n'''    
-        '''    os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''    
+        '''    os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''  
+        '''else:\n'''
+        '''    for i in glob.glob(path+"/fragmax/results/pandda/AR/xdsapp_dimple/*"):\n'''
+        '''        if i.split("/")[-1]!="pandda":\n'''
+        '''            shutil.rmtree(i)  \n'''
         '''def prepare_pandda_files(method):\n'''        
         '''    proc,ref=method.split("_")\n'''
         '''    missing=list()\n'''
@@ -3233,7 +3237,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
                         '''\nif "fspipeline" in argsfit:'''
-                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 '''"""
+                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 || true '''"""
                         '''\n    scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ ; "+fsp for x in inputData]'''
                         """\n    header='''#!/bin/bash\\n'''"""
                         """\n    header+='''#!/bin/bash\\n'''"""
