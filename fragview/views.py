@@ -1798,7 +1798,7 @@ def submit_pandda(request):
         '''if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method):\n'''    
         '''    os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''  
         '''else:\n'''
-        '''    for i in glob.glob(path+"/fragmax/results/pandda/AR/xdsapp_dimple/*"):\n'''
+        '''    for i in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*"):\n'''
         '''        if i.split("/")[-1]!="pandda":\n'''
         '''            shutil.rmtree(i)  \n'''
         '''def prepare_pandda_files(method):\n'''        
@@ -1936,8 +1936,7 @@ def submit_pandda(request):
         '''    multiprocessing.Pool(nproc).map(CAD_worker, dataPaths)    \n'''
         '''prepare_pandda_files(method)\n'''
         '''run_CAD()\n'''
-        '''pandda_run(method)\n'''
-        '''fix_symlinks(method)\n'''
+        '''pandda_run(method)\n'''        
         '''os.system('chmod -R g+rwx path+"/fragmax/results/pandda/"')\n'''
         )
 
@@ -1991,7 +1990,7 @@ def pandda_analyse(request):
         if os.path.exists(newestpath+"/html_summaries/pandda_analyse.html"):
             with open(newestpath+"/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                localcmd="cd "+path+"/fragmax/results/pandda/"+newestmethod+"/pandda/; pandda.inspect"
+                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+newestmethod+"/pandda/; pandda.inspect"
 
                 return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+newestmethod)})
         else:
@@ -2002,7 +2001,7 @@ def pandda_analyse(request):
         if os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
             with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/; pandda.inspect"                    
+                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+newestmethod+"/pandda/; pandda.inspect"
             return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
             running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/*running*")]    
@@ -2581,25 +2580,25 @@ def hpcstatus(request):
 
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
 
-def add_run_DP(outdir):
-    #MAYBE NO USE ANYMORE
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+# def add_run_DP(outdir):
+#     #MAYBE NO USE ANYMORE
+#     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-    fout=outdir.split("cd ")[-1].split(" #")[0]
-    SW=outdir.split(" #")[-1]
-    runs=[x for x in glob.glob(fout+"/*") if os.path.isdir(x) and "run_" in x]
-    if len(runs)==0:
-        last_run=0
-    else:
-        rlist=[x.split("/")[-1] for x in runs]
-        last_run=[int(x.replace("run_","")) for x in natsort.natsorted(rlist)][-1]
+#     fout=outdir.split("cd ")[-1].split(" #")[0]
+#     SW=outdir.split(" #")[-1]
+#     runs=[x for x in glob.glob(fout+"/*") if os.path.isdir(x) and "run_" in x]
+#     if len(runs)==0:
+#         last_run=0
+#     else:
+#         rlist=[x.split("/")[-1] for x in runs]
+#         last_run=[int(x.replace("run_","")) for x in natsort.natsorted(rlist)][-1]
     
-    next_run=fout+"/run_"+str(last_run+1)
+#     next_run=fout+"/run_"+str(last_run+1)
     
-    if not os.path.exists(next_run) and "autoPROC" not in SW:
-        os.makedirs(next_run, mode=0o760, exist_ok=True)
+#     if not os.path.exists(next_run) and "autoPROC" not in SW:
+#         os.makedirs(next_run, mode=0o760, exist_ok=True)
 
-    return "cd "+next_run+" #"+SW
+#     return "cd "+next_run+" #"+SW
 
 def retrieveParameters(xmlfile):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -3287,29 +3286,14 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                         '''\nif "dimple" in argsfit:'''
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
-                        '''\nif "fspipeline" in argsfit:'''
-                        """\n    fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDBfile+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 || true '''"""
-                        '''\n    scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ ; "+fsp for x in inputData]'''
-                        """\n    header='''#!/bin/bash\\n'''"""
-                        """\n    header+='''#!/bin/bash\\n'''"""
-                        """\n    header+='''#SBATCH -t 99:55:00\\n'''"""
-                        """\n    header+='''#SBATCH -J FSpipeline\\n'''"""
-                        """\n    header+='''#SBATCH --exclusive\\n'''"""
-                        """\n    header+='''#SBATCH -N1\\n'''"""
-                        """\n    header+='''#SBATCH --cpus-per-task=48\\n'''"""
-                        """\n    header+='''#SBATCH --mem=220000\\n'''"""
-                        """\n    header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\\n'''"""
-                        """\n    header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\\n\\n'''"""
-                        """\n    header+='''module purge\\n'''"""
-                        """\n    header+='''module load CCP4 Phenix\\n'''"""
-                        """\n    if '"""+filters+"""'!="":"""
-                        """\n        nodes=1"""
-                        '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
-                        '''\n    for n,chunk in enumerate(chunkScripts):'''
-                        '''\n        with open(path+"/fragmax/scripts/fspipeline_part"+str(n)+".sh","w") as writeFile:'''
-                        '''\n            writeFile.write(chunk)'''
-                        '''\n        cmd = "sbatch --dependency=afterany:"+jobnum1+" "+path+"/fragmax/scripts/fspipeline_part"+str(n)+".sh" '''
-                        '''\n        status,jobnum3 = commands.getstatusoutput(cmd)'''
+                        '''\nif "fspipeline" in argsfit:'''                                                
+                        '''\n    with open(path+"/fragmax/scripts/fspipeline_master.sh","w") as writeFile:'''
+                        '''\n        writeFile.write("""#!/bin/bash\\n#!/bin/bash\\n"""'''
+                        '''\n                    """#SBATCH -t 01:00:00\\n#SBATCH -J FSPmaster\\n\\n"""'''                        
+                        '''\n                    """for file in """+path+"/fragmax/scripts"+"""/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; done""")'''                        
+                        '''\n    cmd = "sbatch --dependency=afterany:"+jobnum1+" "+path+"/fragmax/scripts/fspipeline_master.sh" '''
+                        '''\n    time.sleep(10)'''
+                        '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
                         '''\nif "buster" in argsfit:'''
                         '''\n    header= """#!/bin/bash\\n"""'''
                         '''\n    header+= """#!/bin/bash\\n"""'''
@@ -3331,9 +3315,30 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                         '''\n        with open(path+"/fragmax/scripts/buster_part"+str(num)+".sh", "w") as outfile:'''
                         '''\n            outfile.write(chunk)        '''
                         '''\n        cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_part%s.sh" % (jobnum1,path,str(num))'''
-                        '''\n        status,jobnum3 = commands.getstatusoutput(cmd)''')
+                        '''\n        status,jobnum4 = commands.getstatusoutput(cmd)''')
+    def fspipeline_hpc(PDB):
+        inputData=list()
+        for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
+            mtzList=glob.glob(proc+"*mtz")
+            if mtzList and filters in proc:
+                inputData.append(sorted(glob.glob(proc+"*mtz"))[0])
+        fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDB+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 '''
+        scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ \n"+fsp for x in inputData]
+        header='''#!/bin/bash\n'''
+        header+='''#!/bin/bash\n'''
+        header+='''#SBATCH -t 04:00:00\n'''
+        header+='''#SBATCH -J FSpipeline\n'''
+        header+='''#SBATCH --cpus-per-task=2\n'''
+        header+='''#SBATCH --mem=5000\n'''
+        header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\n'''
+        header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\n\n'''
+        header+='''module purge\n'''
+        header+='''module load CCP4 Phenix\n'''
 
-
+        for n,worker in enumerate([header+x for x in scriptList]):
+            scriptFS=path+"/fragmax/scripts/fspipeline_worker_"+str(n)+".sh"
+            with open(scriptFS,"w") as writeFile:
+                writeFile.write(worker)
     def dimple_hpc(PDB):
         #Creates HPC script to run dimple on all mtz files provided.
         #PDB _file can be provided in the header of the python script and parse to all 
@@ -3401,11 +3406,13 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                             '''    mp_handler()\n'''%(path,acr,PDB,filters))    
     argsfit="none"
     if userPDB!="":            
-        dimple_hpc(userPDB)
+        
         
         if useFSP:
+            fspipeline_hpc(userPDB)
             argsfit+="fspipeline"
         if useDIMPLE:
+            dimple_hpc(userPDB)
             argsfit+="dimple"
         if useBUSTER:
             argsfit+="buster"
@@ -3415,24 +3422,24 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
     command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+str(nodes)+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(command,shell=True)
     
-def ligandToSVG():
+# def ligandToSVG():
     
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+#     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-    lib="F2XEntry"
-    ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
-    for ligPDB in ligPDBlist:
+#     lib="F2XEntry"
+#     ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
+#     for ligPDB in ligPDBlist:
         
-        inp=ligPDB
-        out=ligPDB.replace(".pdb",".svg")
-        if not os.path.exists(out):
-            subprocess.call("babel "+inp+" "+out+" -d",shell=True)
-            with open(out,"r") as outr:
-                content=outr.readlines()
-            with open(out,"w") as outw:
-                content="".join(content).replace(inp,"").replace("- Open Babel Depiction", "FragMAX")
-                content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
-                outw.write(content)
+#         inp=ligPDB
+#         out=ligPDB.replace(".pdb",".svg")
+#         if not os.path.exists(out):
+#             subprocess.call("babel "+inp+" "+out+" -d",shell=True)
+#             with open(out,"r") as outr:
+#                 content=outr.readlines()
+#             with open(out,"w") as outw:
+#                 content="".join(content).replace(inp,"").replace("- Open Babel Depiction", "FragMAX")
+#                 content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
+#                 outw.write(content)
 
 def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
