@@ -172,18 +172,36 @@
     {{new_proc_run | safe}}
     <div style="display:flex; padding-left:310px; ">
         <h6 >Open processing report</h6>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="dials{{imgprf}}" name="dataHeader" size="1">DIALS</button>
+        {% if dialsOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader" size="1">DIALS</button>
         </form>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="xdsxscale{{imgprf}}" name="dataHeader" size="1">XDS/XSCALE</button>
+        {% endif %}
+        {% if xdsOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader" size="1">XDS/XSCALE</button>
+        </form>        
+        {% endif %}
+        {% if autoprocOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader" size="1">autoPROC</button>
         </form>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="autoPROC{{imgprf}}" name="dataHeader" size="1">autoPROC</button>
+        {% endif %}
+        {% if xdsappOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{xdsappreport}}" name="dataHeader" size="1">XDSAPP</button>
         </form>
-        <form action="/procReport/" method="get" name="dialsreport2" size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="xdsapp{{imgprf}}" name="dataHeader" size="1">XDSAPP</button>
+        {% endif %}
+        {% if fastdpOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{fastdpreport}}" name="dataHeader" size="1">fastdp</button>
         </form>
+        {% endif %}
+        {% if ednaOK == "ready" %}
+        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{ednareport}}" name="dataHeader" size="1">EDNA</button>
+        </form>
+        {% endif %}
     </div>
 </div>
 

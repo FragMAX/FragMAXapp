@@ -60,12 +60,12 @@ def project_definitions():
     with open(setfile,"r") as inp:
         prjset=inp.readlines()[0]
 
-    proposal = prjset.split(";")[1].split(":")[-1]
-    shift    = prjset.split(";")[2].split(":")[-1]    
-    acronym  = prjset.split(";")[3].split(":")[-1]    
+    proposal      = prjset.split(";")[1].split(":")[-1]
+    shift         = prjset.split(";")[2].split(":")[-1]    
+    acronym       = prjset.split(";")[3].split(":")[-1]    
     proposal_type = prjset.split(";")[4].split(":")[-1]
-    fraglib  = prjset.split(";")[5].split(":")[-1].replace("\n","") 
-
+    fraglib       = prjset.split(";")[5].split(":")[-1].replace("\n","") 
+    shiftList     = prjset.split(";")[6].split(":")[-1].split(",")
 
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
@@ -80,10 +80,10 @@ def project_definitions():
     
 
     
-    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,fraglib
+    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,fraglib, shiftList
 
 
-proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
 if len(proposal)<7 or len(shift)<7 or len(acr)<1 or len(proposal_type)<5:
 
@@ -94,6 +94,7 @@ if len(proposal)<7 or len(shift)<7 or len(acr)<1 or len(proposal_type)<5:
     path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
     subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
     static_datapath="/static/biomax/"+proposal+"/"+shift
+    shiftList=["20190323"]
 
 ################################
 
@@ -104,7 +105,7 @@ def error_page(request):
     return render(request, "fragview/error.html")
 
 def process_all(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     models=[x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]
     datasets=sorted([x.split("/")[-1].replace("_master.h5","") for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5")],key=lambda x: ("Apo" in x, x))
     return render(request, "fragview/process_all.html",{"acronym":acr,"models":models,"datasets":datasets})
@@ -122,7 +123,7 @@ def settings(request):
     return render(request, "fragview/settings.html",{"upd":status})
 
 def load_project_summary(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     number_known_apo=len(glob.glob(path+"/raw/"+acr+"/*Apo*"))
     number_datasets=len(glob.glob(path+"/raw/"+acr+"/*"))
@@ -143,28 +144,8 @@ def load_project_summary(request):
         "fraglib":fraglib,
         "exp_date":natdate})
     
-
-####NOT used anymore
-def project_summary_load(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    a=str(request.GET.get('submitProc')) 
-    out="No option selected"
-    if "colParam" in a:
-        create_dataColParam(acr,path)
-        out="Data collection parameters synced"    
-        out="PanDDA result summary synced"
-    elif "procRef" in a:
-        resultSummary()    
-        out="Data processing and Refinement results synced"
-    elif "ligfitting" in a:
-        out="Ligand fitting results synced"
-    return render(request,'fragview/project_summary_load.html', {'option': out})
-##############
-
-
 def dataset_info(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     dataset=str(request.GET.get('proteinPrefix'))     
     prefix=dataset.split(";")[0]
@@ -172,7 +153,14 @@ def dataset_info(request):
     run=dataset.split(";")[2]
 
     images=str(int(images)/2)
-    xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
+    #xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
+    xmlfile=""
+    for s in shiftList:
+        p="/data/visitors/biomax/"+proposal+"/"+s
+        if os.path.exists(p+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"):
+            xmlfile=p+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
+            curp=p
+
     datainfo=retrieveParameters(xmlfile)    
 
     energy=format(12.4/float(datainfo["wavelength"]),".2f")
@@ -192,20 +180,51 @@ def dataset_info(request):
     else:
         snapshot2=datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/","/static/")
 
-    diffraction1=path.replace("/data/visitors/","/static/")+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
+    diffraction1=curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
+    diffraction1=diffraction1.replace("/data/visitors/","/static/")
     if not os.path.exists(diffraction1):    
-        h5data=path+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        h5data=curp+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
         cmd="adxv -sa "+h5data+"01.h5 "+diffraction1.replace("/static/","/data/visitors/")
         subprocess.call(cmd,shell=True)
-        
-    diffraction2=path.replace("/data/visitors/","/static/")+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
-    if not os.path.exists(diffraction2):        
+    
+    diffraction2=curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
+    diffraction2=diffraction2.replace("/data/visitors/","/static/")
+    if not os.path.exists(diffraction2):    
         half=int(float(images)/200)
         if half<10:
             half="0"+str(half)
-        h5data=path+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        h5data=curp+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
         cmd="adxv -sa "+h5data+half+".h5 "+diffraction2.replace("/static/","/data/visitors/")
         subprocess.call(cmd,shell=True)
+
+    #getreports
+    scurp=curp.replace("/data/visitors/","/static/")
+    xdsappreport    = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"
+    dialsreport     = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"  
+    xdsreport       = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"
+    autoprocreport  = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"
+    ednareport      = scurp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"
+    fastdpreport    = scurp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"
+
+    xdsappOK="no"
+    dialsOK="no"
+    xdsOK="no"
+    autoprocOK="no"
+    ednaOK="no"
+    fastdpOK="no"
+    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"):
+        xdsappOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"  ):
+        dialsOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"):
+        xdsOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"):
+        autoprocOK="ready"
+    if os.path.exists(curp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"):
+        ednaOK="ready"
+    if os.path.exists(curp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"):
+        fastdpOK="ready"
+
     
 
     if "Apo" in prefix:
@@ -221,7 +240,7 @@ def dataset_info(request):
     return render(request,'fragview/dataset_info.html', {
         "csvfile":lines,
         "proposal":proposal,
-        "shift":shift,
+        "shift":curp.split("/")[-1],
         "run":run,
         'imgprf': prefix, 
         'imgs': images,
@@ -264,7 +283,19 @@ def dataset_info(request):
         "totalExposure":totalExposure,
         "edgeResolution":edgeResolution,
         "acr":prefix.split("-")[0],
-        "fraglib":fraglib
+        "fraglib":fraglib,
+        "xdsappreport":xdsappreport,
+        "dialsreport":dialsreport,
+        "xdsreport":xdsreport,
+        "autoprocreport":autoprocreport,
+        "ednareport":ednareport,
+        "fastdpreport":fastdpreport,
+        "xdsappOK":xdsappOK,
+        "dialsOK":dialsOK,
+        "xdsOK":xdsOK,
+        "autoprocOK":autoprocOK,
+        "ednaOK":ednaOK,
+        "fastdpOK":fastdpOK,
         })
   
 def post_list(request):
@@ -293,7 +324,7 @@ def post_new(request):
     return render(request, 'fragview/post_edit.html', {'form': form})
 
 def datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncStatus=str(request.GET.get("resyncstButton"))
@@ -448,7 +479,7 @@ def datasets(request):
     #     return render_to_response('fragview/datasets_notready.html')    
     
 def results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
@@ -464,7 +495,7 @@ def results(request):
         return render_to_response('fragview/results_notready.html')
 
 def results_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     value=str(request.GET.get('structure'))     
     with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
@@ -597,7 +628,7 @@ def results_density(request):
         })
 
 def testfunc(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     
     return render(request, "fragview/testpage.html",{"files":"results"})    
@@ -614,7 +645,7 @@ def dual_ligand(request):
         return render(request,'fragview/dual_ligand_notready.html', {'Report': a})
 
 def compare_poses(request):   
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
@@ -662,7 +693,7 @@ def compare_poses(request):
 
 def ligfit_results(request):
     #NOT USED ANYMORE
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     resyncLigFits=str(request.GET.get("resyncligfit"))
 
     if "resyncligfit" in resyncLigFits:
@@ -681,7 +712,7 @@ def ligfit_results(request):
 ################ PIPEDREAM #####################
 
 def pipedream(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()   
 
     datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
@@ -691,7 +722,7 @@ def pipedream(request):
 
 def pipedream_results(request):
 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()   
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()   
 
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
@@ -711,7 +742,7 @@ def pipedream_results(request):
 def submit_pipedream(request):
 
     #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     ppdCMD=str(request.GET.get("ppdform"))
     empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
@@ -1000,12 +1031,17 @@ def submit_pipedream(request):
     return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
     
 def get_pipedream_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
-        for summary in glob.glob(path+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml"):
+        
+        pipedreamXML=list()
+        for s in shiftList:
+            p="/data/visitors/biomax/"+proposal+"/"+s
+            pipedreamXML+=glob.glob(p+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml")
+        for summary in pipedreamXML:
             xmlDict=dict()
             with open(summary) as fd:
                 doc=fd.read()
@@ -1040,7 +1076,7 @@ def get_pipedream_results():
                     writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
         
 def load_pipedream_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     sample=str(request.GET.get('structure')) 
 
@@ -1137,7 +1173,7 @@ def load_pipedream_density(request):
 ################ PANDDA #####################
 
 def pandda_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1251,7 +1287,7 @@ def pandda_density(request):
         return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_densityC(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1373,7 +1409,7 @@ def pandda_densityC(request):
     #    return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_inspect(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/html_summaries/*inspect.html")]
     if proc_methods==[]:
         localcmd="cd "+path+"/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
@@ -1742,7 +1778,7 @@ def pandda(request):
 def submit_pandda(request):
 
     #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     panddaCMD=str(request.GET.get("panddaform"))
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
@@ -1929,7 +1965,7 @@ def submit_pandda(request):
     return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
 
 def pandda_analyse(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     fixsl=request.GET.get("fixsymlinks")
     if not fixsl is None and "FixSymlinks" in fixsl:
         t1 = threading.Thread(target=fix_pandda_symlinks,args=())
@@ -1973,7 +2009,7 @@ def pandda_analyse(request):
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 def datasetDetails(dataset,site_idx,method):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     detailsDict=dict()
     with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
@@ -2005,7 +2041,7 @@ def datasetDetails(dataset,site_idx,method):
     return detailsDict
 
 def panddaEvents(filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/pandda_inspect_events.csv") ]
     if len(filters)!=0:
@@ -2059,7 +2095,7 @@ def panddaEvents(filters):
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
 def fix_pandda_symlinks():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
         linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
         for i in linksFolder:        
@@ -2086,63 +2122,66 @@ def fix_pandda_symlinks():
 #############################################
 
 def procReport(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-
-    biomax_static=path.replace("/data/visitors/","/static/")
-    a=str(request.GET.get('dataHeader')) 
-    if a.startswith("dials"):
-        a=a.replace("dials","")
-        a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/dials/xia2.html"
-        if os.path.exists(a):
-            with open(a,"r") as inp:
-                html="".join(inp.readlines())
-        else:
-            html='<h5 style="padding-left:260px;" >DIALS report for this dataset is not available</h5>'
-        html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
-        html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    method=""
+    report=str(request.GET.get('dataHeader')) 
+    # if a.startswith("dials"):
+    #     a=a.replace("dials","")
+    #     a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/dials/xia2.html"
+    #     if os.path.exists(a):
+    #         with open(a,"r") as inp:
+    #             html="".join(inp.readlines())
+    #     else:
+    #         html='<h5 style="padding-left:260px;" >DIALS report for this dataset is not available</h5>'
+    #     html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
+    #     html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
     
-    if a.startswith("xdsxscale"):
-        a=a.replace("xdsxscale","")
-        a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/xdsxscale/xia2.html"
-        if os.path.exists(a):
-            with open(a,"r") as inp:
-                html="".join(inp.readlines())
-        else:
-            html='<h5 style="padding-left:260px;" >XDS/XSCALE report for this dataset is not available</h5>'
-        html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
-        html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
+    # if a.startswith("xdsxscale"):
+    #     a=a.replace("xdsxscale","")
+    #     a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/xdsxscale/xia2.html"
+    #     if os.path.exists(a):
+    #         with open(a,"r") as inp:
+    #             html="".join(inp.readlines())
+    #     else:
+    #         html='<h5 style="padding-left:260px;" >XDS/XSCALE report for this dataset is not available</h5>'
+    #     html=html.replace("DEFAULT/scale/",a.replace(path,biomax_static).replace("xia2.html","DEFAULT/scale/"))
+    #     html=html.replace("DataFiles/",a.replace(path,biomax_static).replace("xia2.html","DataFiles/"))
     
-    if a.startswith("xdsapp"):
-        a=a.replace("xdsapp","")
-        a=path+"/fragmax/process/"+acr+"/"+a+"/"+a+"_1/xdsapp/results_"+a+"_1_data.txt"
-        if os.path.exists(a):
-            with open(a,"r") as inp:
-                html="<br>".join(inp.readlines())
-        else:
-            html='<h5 style="padding-left:260px;" >XDSAPP report for this dataset is not available</h5>'
+    # if a.startswith("xdsapp"):
+    #     a=a.replace("xdsapp","")
+    #     a=path+"/fragmax/process/"+acr+"/"+a+"/"+a+"_1/xdsapp/results_"+a+"_1_data.txt"
+    #     if os.path.exists(a):
+    #         with open(a,"r") as inp:
+    #             html="<br>".join(inp.readlines())
+    #     else:
+    #         html='<h5 style="padding-left:260px;" >XDSAPP report for this dataset is not available</h5>'
 
-        html='''<style>  .card {  margin: 40px 0 0 50px !important; }</style><div class="card" ><div class="card-content"><div class="card-title">XDSAPP Processing report</div><br>'''+html+'</div></div>'
+    #     html='''<style>  .card {  margin: 40px 0 0 50px !important; }</style><div class="card" ><div class="card-content"><div class="card-title">XDSAPP Processing report</div><br>'''+html+'</div></div>'
 
-    if a.startswith("autoPROC"):
-        a=a.replace("autoPROC","")
-        if os.path.exists(path+"/fragmax/results/"+a+"_1/pipedream/process/summary.html"):
-            a=path+"/fragmax/results/"+a+"_1/pipedream/process/summary.html"
-        else:
-            a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/autoproc/summary.html"
+    # if a.startswith("autoPROC"):
+    #     a=a.replace("autoPROC","")
+    #     if os.path.exists(path+"/fragmax/results/"+a+"_1/pipedream/process/summary.html"):
+    #         a=path+"/fragmax/results/"+a+"_1/pipedream/process/summary.html"
+    #     else:
+    #         a=path+"/fragmax/process/"+a.split("-")[0]+"/"+a+"/"+a+"_1/autoproc/summary.html"
 
 
-        if os.path.exists(a):
-            with open(a,"r") as inp:
-                html="".join(inp.readlines())
-        else:
-            html='<h5 style="padding-left:310px;" >autoPROC report for this dataset is not available</h5>' 
-    html=html.replace('src="/data/visitors/','src="/static/').replace('href="/data/visitors/','href="/static/').replace("gphl_logo.png","data:image/png;base64,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")
-
-    return render(request,'fragview/procReport.html', {'Report': html})
+    #     if os.path.exists(a):
+    #         with open(a,"r") as inp:
+    #             html="".join(inp.readlines())
+    #     else:
+    #         html='<h5 style="padding-left:310px;" >autoPROC report for this dataset is not available</h5>' 
+    # html=html.replace('src="/data/visitors/','src="/static/').replace('href="/data/visitors/','href="/static/').replace("gphl_logo.png","data:image/png;base64,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")
+    if "fastdp" in report or "EDNA" in report:
+        method="log"
+        with open(report.replace("/static/","/data/visitors/"),"r") as readFile:
+            report=readFile.readlines()
+        report="<br>".join(report)
+    return render(request,'fragview/procReport.html', {'reportHTML': report, "method":method})
 
 def dataproc_merge(request):    
     #NEEDS UPDATE 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
     
@@ -2151,7 +2190,7 @@ def dataproc_merge(request):
     return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
 
 def reproc_web(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     dataproc = str(request.GET.get("submitProc"))
     strcrefine=str(request.GET.get("submitRefine"))
@@ -2346,7 +2385,7 @@ def ligfit_datasets(request):
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
 def dataproc_datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     allprc  = str(request.GET.get("submitallProc"))
     dtprc   = str(request.GET.get("submitdtProc"))
@@ -2446,7 +2485,7 @@ def dataproc_datasets(request):
     return render(request,'fragview/dataproc_datasets.html', {'allproc': ""})
 
 def kill_HPC_job(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     jobid_k=str(request.GET.get('jobid_kill'))     
 
@@ -2488,7 +2527,7 @@ def kill_HPC_job(request):
     return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
 def hpcstatus(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -2544,7 +2583,7 @@ def hpcstatus(request):
 
 def add_run_DP(outdir):
     #MAYBE NO USE ANYMORE
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     fout=outdir.split("cd ")[-1].split(" #")[0]
     SW=outdir.split(" #")[-1]
@@ -2563,7 +2602,7 @@ def add_run_DP(outdir):
     return "cd "+next_run+" #"+SW
 
 def retrieveParameters(xmlfile):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     #Dictionary with parameters for dataset info template page
     
@@ -2606,8 +2645,15 @@ def retrieveParameters(xmlfile):
     return paramDict
 
 def create_dataColParam(acr, path):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
-    
+    #proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+    shiftList=["20190622","20190629"]
+    lists=list()
+    for s in shiftList:
+        lists+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+
+
     if os.path.exists(path+"/fragmax/process/"+acr+"/datacollections.csv"):
         return
     else:        
@@ -2616,7 +2662,7 @@ def create_dataColParam(acr, path):
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
             
-            for xml in natsort.natsorted(glob.glob(path+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"), key=lambda x: ("Apo" in x, x)):    
+            for xml in natsort.natsorted(lists, key=lambda x: ("Apo" in x, x)):    
                 outdirxml=xml.replace("/process/","/fragmax/process/").split("fastdp")[0].replace("xds_","")[:-3]
                 if not os.path.exists(outdirxml+".xml"):
                     if not os.path.exists("/".join(outdirxml.split("/")[:-1])):
@@ -2723,7 +2769,7 @@ def get_results_info(entry):
                     ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
 
 def resultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
     def info_func(entry):
         usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""    ,""    ,""     ,     "","" ,""        ,""    ,""    ,""   ,""    ,"","","","","","","","","","","",""]
@@ -2883,9 +2929,14 @@ def resultSummary():
         
         return [usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]        
     
-    resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
+    #for s in shiftList:
+    #resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
+    resultsList=list()
+    for s in shiftList:
+        p="/data/visitors/biomax/"+proposal+"/"+s
+        resultsList+=glob.glob(p+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
     resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-
+    
     with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
@@ -2897,7 +2948,7 @@ def resultSummary():
                 writer.writerow(row.join())
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -2945,7 +2996,7 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         subprocess.call(command,shell=True)
 
 def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -2991,7 +3042,7 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
         subprocess.call(command,shell=True)
 
 def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3045,7 +3096,7 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         subprocess.call(command,shell=True)
 
 def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3099,7 +3150,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         subprocess.call(command,shell=True)
 
 def process2results(spacegroup, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     for dp in ["xdsapp","autoproc","xdsxscale","EDNA","fastdp","dials"]:
         #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
         [os.makedirs("/".join(x.split("/")[:8]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
@@ -3208,7 +3259,7 @@ def process2results(spacegroup, filters):
         outp.write(proc2resOut)
     
 def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3366,7 +3417,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
     
 def ligandToSVG():
     
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     lib="F2XEntry"
     ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
@@ -3384,7 +3435,7 @@ def ligandToSVG():
                 outw.write(content)
 
 def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
     if filters=="ALL":
@@ -3396,11 +3447,17 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
                 '''import sys\n'''
                 '''import glob\n'''
                 '''import os\n'''
-                '''path=sys.argv[1]\n'''
-                '''fraglib=sys.argv[2]\n'''
-                '''acr=sys.argv[3]\n'''
+                '''path="'''+path+'''"\n'''
+                '''fraglib="'''+fraglib+'''"\n'''
+                '''acr="'''+acr+'''"\n'''
+                '''shiftList="'''+",".join(shiftList)+'''"\n'''
                 '''fitmethod=sys.argv[4]\n'''
-                '''pdbList=[x for x in glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb") if "Apo" not in x and "'''+filters+'''" in x]\n'''
+                '''pdbList=list()\n'''
+                '''shiftList=shiftList.split(",")\n'''
+                '''for s in shiftList:\n'''
+                '''    p="/data/visitors/biomax/'''+proposal+'''/"+s\n'''
+                '''    pdbList+=glob.glob(p+"/fragmax/results/"+acr+"*/*/*/final.pdb")\n'''
+                '''pdbList=[x for x in pdbList if "Apo" not in x and "'''+filters+'''" in x]\n'''
                 '''cifList=list()\n'''
                 '''mtzList=[x.replace(".pdb",".mtz") for x in pdbList]\n'''
                 '''outListR=[x.replace("final.pdb","rhofit/") for x in pdbList]\n'''
@@ -3470,24 +3527,17 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
                     '''python '''+path+'''/fragmax/scripts/autoligand.py '''+path+''' '''+fraglib+''' '''+acr+''' ligfit\n''')
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-    
-def merge_project():
-    srcprj="20190401"
-    dstprj="20190330"
-    srcacr="/mxn/groups/ispybstorage/pyarch/visitors/proposal/shift/raw/srcacr/"
-    dstacr="/mxn/groups/ispybstorage/pyarch/visitors/proposal/shift/raw/dstacr/"
-    ### Symlink raw folder
-
-    ### Symlink process folder
-    
-    ### Symlink snapshots
 
 def get_project_status():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     statusDict=dict()
-    procList=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
-    resList=glob.glob(path+"/fragmax/results/"+acr+"*/")
+    procList=list()
+    resList =list()
+    for s in shiftList:
+        p="/data/visitors/biomax/"+proposal+"/"+s
+        procList+=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(p+"/fragmax/process/"+acr+"/*/*/")]
+        resList+=glob.glob(p+"/fragmax/results/"+acr+"*/")
     
     
     for i in procList:
@@ -3513,17 +3563,27 @@ def get_project_status():
                 
     for process in procList:
         dts=process.split("/")[-2]
-        j=glob.glob(path+"/fragmax/process/"+acr+"/*/"+dts+"/")
+        j=list()
+        for s in shiftList:
+            p="/data/visitors/biomax/"+proposal+"/"+s
+            j+=glob.glob(p+"/fragmax/process/"+acr+"/*/"+dts+"/")
+        #j=glob.glob(path+"/fragmax/process/"+acr+"/*/"+dts+"/")
         if j!=[]:
             j=j[0]
         if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:            
             statusDict[dts].update({"autoproc":"full"})
         if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:            
             statusDict[dts].update({"dials":"full"})
-        ej=glob.glob(path+"/process/"+acr+"/*/*"+dts+"*/EDNA_proc/results/*mtz")
+        ej=list()
+        for s in shiftList:
+            p="/data/visitors/biomax/"+proposal+"/"+s            
+            ej+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/EDNA_proc/results/*mtz")
         if ej!=[]:
             statusDict[dts].update({"EDNA":"full"})
-        fj=glob.glob(path+"/process/"+acr+"/*/*"+dts+"*/fastdp/results/*mtz.gz")    
+        fj=list()
+        for s in shiftList:
+            p="/data/visitors/biomax/"+proposal+"/"+s            
+            fj+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/fastdp/results/*mtz.gz")    
         if fj!=[]:
             statusDict[dts].update({"fastdp":"full"})
         if glob.glob(j+"/xdsapp/*mtz")!=[]:            

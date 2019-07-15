@@ -46,7 +46,7 @@ urlpatterns = [
     path('procReport/', views.procReport, name='procReport'),
 
     path('project_summary/', views.load_project_summary, name='project_summary'),
-    path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
+    # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
 
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('process_all/', views.process_all, name='process_all'),
