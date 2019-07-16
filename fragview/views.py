@@ -2326,7 +2326,7 @@ def reproc_web(request):
 
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
-    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters=userInput.split(";;")
+    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe=userInput.split(";;")
     if "false" in dimpleSW:
         useDIMPLE=False
     else:
@@ -2361,7 +2361,7 @@ def refine_datasets(request):
             pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
     pdbmodel.replace(".pdb.pdb",".pdb")
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters)
+    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
@@ -2560,7 +2560,7 @@ def hpcstatus(request):
 
         #     </tr>""".format(i.split()[0])
         # else:
-        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+""".err</a></td><td>
+        output+="<tr><td>"+"</td><td>".join(i.split())+"""</td><td><a href='#' onclick="readTextFile('/static"""+stdout_file+"""'); return false;"> job_"""+i.split()[0]+""".out</a></td><td><a href='#' onclick="readTextFile('/static"""+stderr_file+"""'); return false;">job_"""+i.split()[0]+""".err</a></td><td>
         
         <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
             <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
@@ -2579,26 +2579,6 @@ def hpcstatus(request):
     
 
     return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
-
-# def add_run_DP(outdir):
-#     #MAYBE NO USE ANYMORE
-#     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
-#     fout=outdir.split("cd ")[-1].split(" #")[0]
-#     SW=outdir.split(" #")[-1]
-#     runs=[x for x in glob.glob(fout+"/*") if os.path.isdir(x) and "run_" in x]
-#     if len(runs)==0:
-#         last_run=0
-#     else:
-#         rlist=[x.split("/")[-1] for x in runs]
-#         last_run=[int(x.replace("run_","")) for x in natsort.natsorted(rlist)][-1]
-    
-#     next_run=fout+"/run_"+str(last_run+1)
-    
-#     if not os.path.exists(next_run) and "autoPROC" not in SW:
-#         os.makedirs(next_run, mode=0o760, exist_ok=True)
-
-#     return "cd "+next_run+" #"+SW
 
 def retrieveParameters(xmlfile):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -3257,11 +3237,14 @@ def process2results(spacegroup, filters):
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
     
-def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters):
+def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    customreffspipe=customreffspipe.split("customrefinefspipe:")[-1]    
+    customrefbuster=customrefbuster.split("customrefinebuster:")[-1]
+    customrefdimple=customrefdimple.split("customrefinedimple:")[-1]
+    argsfit="none"
     if "filters:" in filters:
         filters=filters.split(":")[-1]
-
     if filters=="ALL":
         filters=""
     process2results(spacegroup, filters) 
@@ -3270,8 +3253,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                         '''\nargsfit=sys.argv[1]'''
                         '''\npath=sys.argv[2]'''
                         '''\nacr=sys.argv[3]'''
-                        '''\nnodes=sys.argv[4]'''
-                        '''\nPDBfile=sys.argv[5]'''
+                        '''\nPDBfile=sys.argv[4]'''
                         '''\ncmd = "sbatch "+path+"/fragmax/scripts/run_proc2res.sh"'''
                         '''\nstatus, jobnum1 = commands.getstatusoutput(cmd)'''
                         '''\njobnum1=jobnum1.split("batch job ")[-1]'''
@@ -3286,59 +3268,99 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                         '''\nif "dimple" in argsfit:'''
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
-                        '''\nif "fspipeline" in argsfit:'''                                                
-                        '''\n    with open(path+"/fragmax/scripts/fspipeline_master.sh","w") as writeFile:'''
-                        '''\n        writeFile.write("""#!/bin/bash\\n#!/bin/bash\\n"""'''
-                        '''\n                    """#SBATCH -t 01:00:00\\n#SBATCH -J FSPmaster\\n\\n"""'''                        
-                        '''\n                    """for file in """+path+"/fragmax/scripts"+"""/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; done""")'''                        
-                        '''\n    cmd = "sbatch --dependency=afterany:"+jobnum1+" "+path+"/fragmax/scripts/fspipeline_master.sh" '''
-                        '''\n    time.sleep(10)'''
+                        '''\nif "fspipeline" in argsfit:'''                                                                                             
+                        '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/fspipeline_master.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
-                        '''\nif "buster" in argsfit:'''
-                        '''\n    header= """#!/bin/bash\\n"""'''
-                        '''\n    header+= """#!/bin/bash\\n"""'''
-                        '''\n    header+= """#SBATCH -t 99:55:00\\n"""'''
-                        '''\n    header+= """#SBATCH -J BUSTER\\n"""'''
-                        '''\n    header+= """#SBATCH --exclusive\\n"""'''
-                        '''\n    header+= """#SBATCH -N1\\n"""'''
-                        '''\n    header+= """#SBATCH --cpus-per-task=40\\n"""'''
-                        '''\n    header+= """#SBATCH -o """+path+"""/fragmax/logs/buster_fragmax_%j.out\\n"""'''
-                        '''\n    header+= """#SBATCH -e """+path+"""/fragmax/logs/buster_fragmax_%j.err\\n"""    '''
-                        '''\n    header+= """module purge\\n"""'''
-                        '''\n    header+= """module load autoPROC BUSTER\\n\\n"""'''
-                        '''\n    scriptList=["refine -L -p "+PDBfile+" -m "+mtzin.replace("merged","truncate")+" -TLS -nthreads 40 -d "+"/".join(mtzin.split("/")[:-1])+"/buster " for mtzin in inputData]'''
-                        """\n    if '"""+filters+"""'!="":"""
-                        """\n        nodes=1"""
-                        '''\n    chunkScripts=[header+"&\\n".join(x) for x in list(scrsplit(scriptList,int(nodes)) )]'''
-                        '''\n    for num,chunk in enumerate(chunkScripts):'''
-                        '''\n        time.sleep(0.2)'''
-                        '''\n        with open(path+"/fragmax/scripts/buster_part"+str(num)+".sh", "w") as outfile:'''
-                        '''\n            outfile.write(chunk)        '''
-                        '''\n        cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_part%s.sh" % (jobnum1,path,str(num))'''
-                        '''\n        status,jobnum4 = commands.getstatusoutput(cmd)''')
+                        '''\nif "buster" in argsfit:'''                        
+                        '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_master.sh" % (jobnum1,path)'''
+                        '''\n    status,jobnum4 = commands.getstatusoutput(cmd)''')
     def fspipeline_hpc(PDB):
         inputData=list()
+        scriptList=list()
+        m=0
+        inputData=list()
+        fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDB+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 '''+customreffspipe
         for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
             mtzList=glob.glob(proc+"*mtz")
             if mtzList and filters in proc:
                 inputData.append(sorted(glob.glob(proc+"*mtz"))[0])
-        fsp='''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine='''+PDB+''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 '''
         scriptList=["cd "+"/".join(x.split("/")[:-1])+"/ \n"+fsp for x in inputData]
-        header='''#!/bin/bash\n'''
-        header+='''#!/bin/bash\n'''
-        header+='''#SBATCH -t 04:00:00\n'''
-        header+='''#SBATCH -J FSpipeline\n'''
-        header+='''#SBATCH --cpus-per-task=2\n'''
-        header+='''#SBATCH --mem=5000\n'''
-        header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\n'''
-        header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\n\n'''
-        header+='''module purge\n'''
-        header+='''module load CCP4 Phenix\n'''
+        nodes=round(len(inputData)/48 + 0.499)
+        node0=64-nodes
 
-        for n,worker in enumerate([header+x for x in scriptList]):
-            scriptFS=path+"/fragmax/scripts/fspipeline_worker_"+str(n)+".sh"
-            with open(scriptFS,"w") as writeFile:
-                writeFile.write(worker)
+        for n,i in enumerate(list(scrsplit(scriptList,nodes))):    
+            header='''#!/bin/bash\n'''
+            header+='''#!/bin/bash\n'''
+            header+='''#SBATCH -t 04:00:00\n'''
+            header+='''#SBATCH -J FSpipeline\n'''
+            header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
+            header+='''#SBATCH --nice=25\n'''
+            header+='''#SBATCH --cpus-per-task=2\n'''    
+            header+='''#SBATCH --mem=5000\n'''
+            header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\n'''
+            header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\n\n'''
+            header+='''module purge\n'''
+            header+='''module load CCP4 Phenix\n'''
+            header+='''echo export TMPDIR='''+path+'''/fragmax/logs/\n\n'''
+            for j in i:
+                with open(path+"/fragmax/scripts/fspipeline_worker_"+str(m)+".sh","w") as writeFile:
+                    writeFile.write(header+j)
+                m+=1
+        with open(path+"/fragmax/scripts/fspipeline_master.sh","w") as writeFile:
+            writeFile.write("""#!/bin/bash\n"""
+                            """#!/bin/bash\n"""
+                            """#SBATCH -t 01:00:00\n"""
+                            """#SBATCH -J FSPmaster\n\n"""
+                            """#SBATCH -o """+path+"""/fragmax/logs/fspipeline_master_%j.out\n"""
+                            """for file in """+path+"/fragmax/scripts"+"""/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
+                            """rm fspipeline_worker*sh""")
+
+    def buster_hpc(PDB):
+        inputData=list()
+        scriptList=list()
+        m=0
+        for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
+            mtzList=glob.glob(proc+"*mtz")
+            if mtzList and filters in proc:
+                inputData.append(sorted(glob.glob(proc+"*mtz"))[0])
+        nodes=round(len(inputData)/48 + 0.499)
+        node0=54-nodes
+        for n,srcmtz in enumerate(inputData):
+            cmd=""
+            dstmtz=srcmtz.replace("merged","truncate")
+            if os.path.exists("/".join(srcmtz.split("/")[:-1])+"/buster"):
+                cmd+="rm -rf "+"/".join(srcmtz.split("/")[:-1])+"/buster\n\n"
+            if not os.path.exists(dstmtz):
+                cmd+='echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+srcmtz+' hklout '+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log\n\n"   
+            cmd+="refine -L -p "+PDB+" -m "+dstmtz+" "+customrefbuster+" -TLS -nthreads 2 -d "+"/".join(srcmtz.split("/")[:-1])+"/buster \n"
+            scriptList.append(cmd)
+        for n,i in enumerate(list(scrsplit(scriptList,nodes))):
+            header='''#!/bin/bash\n'''
+            header+='''#!/bin/bash\n'''
+            header+='''#SBATCH -t 04:00:00\n'''
+            header+='''#SBATCH -J BUSTER\n'''
+            header+='''#SBATCH --cpus-per-task=2\n'''
+            header+='''#SBATCH --mem=5000\n'''
+            header+='''#SBATCH --nice=25\n'''
+            header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
+            header+='''#SBATCH -o '''+path+'''/fragmax/logs/buster_fragmax_%j.out\n'''
+            header+='''#SBATCH -e '''+path+'''/fragmax/logs/buster_fragmax_%j.err\n\n'''
+            header+='''module purge\n'''
+            header+='''module load autoPROC BUSTER\n'''
+            header+='''echo export TMPDIR='''+path+'''/fragmax/logs/\n\n'''
+            for j in i:
+                with open(path+"/fragmax/scripts/buster_worker_"+str(m)+".sh","w") as writeFile:
+                    writeFile.write(header+j)
+                m+=1
+        with open(path+"/fragmax/scripts/buster_master.sh","w") as writeFile:
+            writeFile.write("""#!/bin/bash\n"""
+                            """#!/bin/bash\n"""
+                            """#SBATCH -t 01:00:00\n"""
+                            """#SBATCH -J BSTRmaster\n\n"""
+                            """#SBATCH -o """+path+"""/fragmax/logs/buster_master_%j.out\n"""
+                            """for file in """+path+"/fragmax/scripts"+"""/buster_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done"""
+                            """rm buster_worker*sh""")
+
     def dimple_hpc(PDB):
         #Creates HPC script to run dimple on all mtz files provided.
         #PDB _file can be provided in the header of the python script and parse to all 
@@ -3397,17 +3419,15 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                             '''    inpdata.append([a,b])\n'''
                             '''    \n'''
                             '''def fragmax_worker((di, mtz)):\n'''
-                            '''    command="dimple -s "+mtz+" "+PDB+" "+di+" ; cd "+di+" ; phenix.mtz2map final.mtz"\n'''
+                            '''    command="dimple -s "+mtz+" "+PDB+" "+di+" %s ; cd "+di+" ; phenix.mtz2map final.mtz"\n'''
                             '''    subprocess.call(command, shell=True) \n'''
                             '''def mp_handler():\n'''
                             '''    p = multiprocessing.Pool(48)\n'''
                             '''    p.map(fragmax_worker, inpdata)\n'''
                             '''if __name__ == "__main__":\n'''
-                            '''    mp_handler()\n'''%(path,acr,PDB,filters))    
-    argsfit="none"
-    if userPDB!="":            
-        
-        
+                            '''    mp_handler()\n'''%(path,acr,PDB,filters,customrefdimple))    
+    
+    if userPDB!="":         
         if useFSP:
             fspipeline_hpc(userPDB)
             argsfit+="fspipeline"
@@ -3415,32 +3435,16 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
             dimple_hpc(userPDB)
             argsfit+="dimple"
         if useBUSTER:
+            buster_hpc(userPDB)
             argsfit+="buster"
     else:
         userPDB="-"
-    nodes=10
-    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+str(nodes)+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    
+    command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call("rm "+path+"/fragmax/scripts/*.setvar.lis",shell=True)
+    subprocess.call("rm "+path+"/fragmax/scripts/slurm*.out",shell=True)
     subprocess.call(command,shell=True)
     
-# def ligandToSVG():
-    
-#     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
-#     lib="F2XEntry"
-#     ligPDBlist=glob.glob(path+"/fragmax/process/fragment/"+lib+"/*/*.pdb")
-#     for ligPDB in ligPDBlist:
-        
-#         inp=ligPDB
-#         out=ligPDB.replace(".pdb",".svg")
-#         if not os.path.exists(out):
-#             subprocess.call("babel "+inp+" "+out+" -d",shell=True)
-#             with open(out,"r") as outr:
-#                 content=outr.readlines()
-#             with open(out,"w") as outw:
-#                 content="".join(content).replace(inp,"").replace("- Open Babel Depiction", "FragMAX")
-#                 content=content.replace('fill="white"', 'fill="none"').replace('stroke-width="2.0"','stroke-width="3.5"').replace('stroke-width="1.0"','stroke-width="1.75"')
-#                 outw.write(content)
-
 def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:

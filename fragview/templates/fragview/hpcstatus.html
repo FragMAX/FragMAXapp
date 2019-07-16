@@ -62,13 +62,14 @@
               <th>TIME</th>
               <th>NODES</th>
               <th>NODE</th>       
-              <th>Software</th>                          
+                                      
               <th>Output file</th>             
               <th>Error file</th>             
               <th>Kill Job</th>             
           </tr>
           </thead>
           <tbody>
+           
               {{command | safe}}                
           </tbody>
       </table>
@@ -101,4 +102,15 @@
         </div>
     </div>
 
+<script>
+
+function readTextFile(file)
+{
+  var myWindow = window.open("", "MsgWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800");
+  fetch(file)
+   .then( r => r.text() )
+   .then( t => myWindow.document.write(t.split("\n").join('<br>')) )  ;
+}
+
+</script>
 {% endblock %}
