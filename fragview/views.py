@@ -2560,7 +2560,7 @@ def hpcstatus(request):
                 
             hpcList.append([jobid,partition,name,user,ST,TIME,NODE,NODEn,stdErr,stdOut])
     
-    return render(request,'fragview/hpcstatus.html', {'hpcList':hpcList})
+    return render(request,'fragview/hpcstatus.html', {'hpcList':hpcList, "proposal":proposal, "user":user})
 
 def retrieveParameters(xmlfile):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
