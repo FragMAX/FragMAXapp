@@ -68,48 +68,64 @@
               <th>Kill Job</th>             
           </tr>
           </thead>
-          <tbody>
-           
-              {{command | safe}}                
+          <tbody>          
+          {% for jobid,partition,name,user,ST,TIME,NODE,NODEname,StdERR,StdOUT in hpcList %} 
+            <tr>
+              <td>{{jobid}}</td>
+              <td>{{partition}}</td>
+              <td>{{name}}</td>
+              <td>{{user}}</td>
+              <td>{{ST}}</td>
+              <td>{{TIME}}</td>
+              <td>{{NODE}}</td>
+              <td>{{NODEname}}</td>
+              <td><a href="#" onclick="readTextFile('{{StdOUT}}'); return false;">job_{{jobid}}.out</a></td>
+              <td><a href="#" onclick="readTextFile('{{StdERR}}'); return false;">job_{{jobid}}.err</a></td>
+              <td>          
+                <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
+                    <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
+                </form>
+              </td>
+            </tr>     
+            {% endfor %}       
           </tbody>
       </table>
   </div>
 </div>
 
-<div class="card">
-        <div class="card-content">
-            
-            <div class="card-title">HPC Job history for user: guslim
-            </div>
-            <br>
-            <table class="table bordered">
-                <thead>
-                <tr>
-                    <th>JOB ID</th>
-                    
-                    <th>RUN TIME</th>
-                    <th>ACCOUNT</th>                    
-                    <th>Output file</th>             
-                    <th>Error file</th>   
-                    <th>EXIT CODE</th>
-                    
-                </tr>
-                </thead>
-                <tbody>
-                    {{history | safe}}                
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% comment %} <div class="card">
+  <div class="card-content">      
+    <div class="card-title">HPC Job history for user: guslim </div>
+      <br>
+      <table class="table bordered">
+          <thead>
+            <tr>
+              <th>JOB ID</th>                    
+              <th>RUN TIME</th>
+              <th>ACCOUNT</th>                    
+              <th>Output file</th>             
+              <th>Error file</th>   
+              <th>EXIT CODE</th>
+            </tr>
+          </thead>
+          <tbody>
+              {{history | safe}}                
+          </tbody>
+      </table>
+  </div>
+</div> {% endcomment %}
 
 <script>
 
 function readTextFile(file)
 {
-  var myWindow = window.open("", "MsgWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800");
+  var myWindow = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800");
+  myWindow.document.write('<title>'+file+'</title>');
+  myWindow.document.write("<style>font-size: 15px;font-family: monospace;line-height: 18px;</style>")
   fetch(file)
    .then( r => r.text() )
    .then( t => myWindow.document.write(t.split("\n").join('<br>')) )  ;
+   
 }
 
 </script>

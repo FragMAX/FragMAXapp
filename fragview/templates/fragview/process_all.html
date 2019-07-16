@@ -111,6 +111,13 @@
     display: none;
     padding: 6px 12px;
     }
+
+    .slider {
+        -webkit-appearance: none;
+        
+        height: 25px;
+        padding-left:10px !important;
+        }
 </style>
 
 
@@ -121,7 +128,7 @@
 <div>
         <div style="position:absolute; right: 50px" >
             <h5 >HPC Nodes</h5>        
-            <div class="radio" id="ligand_placed" >
+            <div class="radio" id="nodes" >
                 <label>
                     <input class="with-gap" id="1node" name="1node" type="radio" value="1" disabled>
                     <span class="item-label" for="1node">1</span>
@@ -221,35 +228,6 @@
                                 <th class=" top-options">Cell parameters</th>
                                 <td class=" top-options"><input class="selectbox" name="cellparam" placeholder="(a, b, c, α, β, γ)"></input> </td>
                             </tr>
-                            {% comment %} <tr>
-                                <th class=" top-options">Friedel law</th>
-                                <td class=" top-options">
-                                    <select class="selectbox" name="friedel">
-                                        <option value="true" selected>True</option>
-                                        <option value="false">False</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr hidden>
-                                <th class=" top-options">Data range</th>
-                                <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input> </td>
-                            </tr>
-                            <tr>
-                                <th class=" top-options">Resolution cutoff</th>
-                                <td class=" top-options"><input class="selectbox" name="rescutoff" placeholder="default: None"></input> </td>
-                            </tr>
-                            <tr>
-                                <th class=" top-options">CC1/2 cutoff</th>
-                                <td class=" top-options"><input class="selectbox" name="cccutoff" placeholder="default: None"></input> </td>
-                            </tr>
-                            <tr>
-                                <th class=" top-options">I/σ(I) cutoff</th>
-                                <td class=" top-options"><input class="selectbox" name="isigmacutoff" placeholder="default: None"></input> </td>
-                            </tr>
-                            <tr class="custompar">
-                                <th class=" top-options">Custom parameters</th>
-                                <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input> </td>
-                            </tr> {% endcomment %}
                             <tr>
                                 <th></th>
                                 <td style="padding-top:50px">
@@ -330,66 +308,6 @@
                                 <input class="selectbox" name="refspacegroup" placeholder="P43212"></input>
                             </td>
                         </tr>
-                        {% comment %} <tr>
-                            <th class=" top-options">Water placement</th>
-                            <td class=" top-options">
-                                <form id="swSelectionForrefinement" >
-                                    <br>
-                                    <div>                                
-                                        <div class="checkbox" id="arpwarp">
-                                        <label>
-                                            <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="arpwarp">
-                                            <span for="arpwarpcheckboxinput">use ARP/wARP </span>
-                                        </label>
-                                        </div>
-                                        <div class="checkbox" id="arpwarp">
-                                        <label>
-                                            <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="cootwater">
-                                            <span for="cootwatercheckboxinput">use Coot </span>
-                                        </label>
-                                        </div>
-                                        <div class="checkbox" id="arpwarp">
-                                        <label>
-                                            <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox" class="filled-in dt-checkboxes" value="phenixwater">
-                                            <span for="phenixwatercheckboxinput">use Phenix </span>
-                                        </label>
-                                        </div>
-                                    </div>                     
-                                </form>
-                            </td>
-                        </tr>
-                        <tr>
-                        
-                            <tr>
-                                <th class=" top-options">Refinement mode</th>
-                                <td class=" top-options">
-                                    <select class="selectbox" name="refMode">
-                                        <option disabled selected value> -- select an option -- </option>
-                                        <option value="refslow">Extra (Slowest)</option>
-                                        <option value="refslow">Normal (Slow)</option>
-                                        <option value="reffast">Quick (Fast)</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class=" top-options">Threshold for MR</th>
-                                <td class=" top-options">
-                                    <input class="selectbox" name="mrthresh" placeholder="default: 0.4"></input>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class=" top-options">Resolution cutoff</th>
-                                <td class=" top-options">
-                                    <input class="selectbox" name="refrescutoff" placeholder="default: None"></input>
-                                </td>
-                            </tr>
-                
-                    
-
-                            <tr class="custompar">
-                                <th class=" top-options">Custom parameters</th>
-                                <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
-                            </tr> {% endcomment %}
                             <tr>
                                 <th></th>
                                 <td style="padding-top:20px">
@@ -434,12 +352,6 @@
                                 </div>                                                       
                         </form>                    
                     </tr>
-                    {% comment %} <tr>
-                        <th class=" top-options">Ligand File</th>
-                        <td class=" top-options">
-                            <input type='file' accept=".csv,.txt,.smi,.smiles" onchange='onChooseFile(event, onFileLoad.bind(this, "ligcontent"))' />
-                        </td>
-                    </tr> {% endcomment %}
                     <th class=" top-options">Ligand File</th>
                         <td class=" top-options">
                             <form id="swSelectionForrefinement" >
@@ -454,31 +366,6 @@
                             </form>        
                         </td>
                     </tr>
-                    {% comment %} <tr>
-                        <th class=" top-options">Fitting process</th>
-                        <td class=" top-options">
-                            <select class="selectbox" name="fitprocess">
-                                <option disabled selected value> -- select an option -- </option>
-                                <option value="ligfitquick">Quick</option>
-                                <option value="ligfitthorough">Thorough</option>
-                            </select>
-                        </td>
-                    <tr>
-                    </tr>
-                    <tr>
-                        <th class=" top-options">Scan chirals</th>
-                        <td class=" top-options">
-                            <select class="selectbox" name="scanchirals">
-                                <option disabled selected value> -- select an option -- </option>
-                                <option value="chiralsyes">Yes</option>
-                                <option value="chiralsno">No</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr class="custompar">
-                        <th class=" top-options">Custom parameters</th>
-                        <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input> </td>
-                    </tr> {% endcomment %}
                     <tr>
                         <th></th>
                         <td style="padding-top:200px">
@@ -558,7 +445,6 @@
             </tbody>
         </table>
     </div>
-
     <div id="XDS_XSCALE" class="card tabcontent">
         <div class="card-title">XDS/XSCALE Options</div> 
         <table class="optionstable flex-left" >
@@ -597,7 +483,6 @@
             </tbody>
         </table> 
     </div>
-
     <div id="autoPROC" class="card tabcontent">
         <div class="card-title">autoPROC Options</div> 
         <table class="optionstable flex-left" >
@@ -679,7 +564,26 @@
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
-            <tbody>                        
+            <tbody> 
+                <tr>
+                    <th class=" top-options">Refinement method</th>
+                    <td class=" top-options">
+                        <div class="radio" id="dimpleSlow" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Normal</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">Slow</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slowest" name="slowest" type="radio" value="2" disabled>
+                                <span class="item-label" for="slowest">Slowest</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>                     
                 <tr>
                     <th class=" top-options">Water placement</th>
                     <td class=" top-options">
@@ -709,30 +613,58 @@
                     </td>
                 </tr>
                 <tr>
+                    <th class=" top-options">Refmac keywords</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="refmac-key" placeholder="default: None" disabled></input>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Remove HETATM</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="refrescutoff" placeholder="default: False" disabled></input>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Rigid body cycles</th>
+                    <td class=" top-options">
+                        {% comment %} <input class="selectbox" name="refrescutoff" placeholder="default: 10" disabled></input> {% endcomment %}
+                        <div style="display: flex;">
+                            <p><span id="rigidvalue" ></span></p>
+                            <input type="range" min="1" max="20" value="10" class="slider" id="rigidRange">
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Jelly body cycles</th>
+                    <td class=" top-options">
+                        {% comment %} <input class="selectbox" name="refrescutoff" placeholder="default: 4" disabled></input> {% endcomment %}
+                        <div style="display: flex;">
+                            <p><span id="jellyvalue" ></span></p>
+                            <input type="range" min="1" max="15" value="4" class="slider" id="jellyRange">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Threshold for MR</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Resolution cutoff</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="refrescutoff" placeholder="default: None" disabled></input>
+                    </td>
+                </tr>
+                <tr>
+                    <th class=" top-options">Nr of Molecules for MR</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="refrescutoff" placeholder="default: 1" disabled></input>
+                    </td>
+                </tr>
                 
-                    <tr>
-                        <th class=" top-options">Refinement mode</th>
-                        <td class=" top-options">
-                            <select class="selectbox" name="refMode" disabled>
-                                <option disabled selected value> -- select an option -- </option>
-                                <option value="refslow">Extra (Slowest)</option>
-                                <option value="refslow">Normal (Slow)</option>
-                                <option value="reffast">Quick (Fast)</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class=" top-options">Threshold for MR</th>
-                        <td class=" top-options">
-                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class=" top-options">Resolution cutoff</th>
-                        <td class=" top-options">
-                            <input class="selectbox" name="refrescutoff" placeholder="default: None" disabled></input>
-                        </td>
-                    </tr>
+                    
         
             
 
@@ -849,37 +781,126 @@
                     </td>
                 </tr>
                 <tr>
-                
-                    <tr>
-                        <th class=" top-options">Refinement mode</th>
-                        <td class=" top-options">
-                            <select class="selectbox" name="refMode" disabled>
-                                <option disabled selected value> -- select an option -- </option>
-                                <option value="refslow">Extra (Slowest)</option>
-                                <option value="refslow">Normal (Slow)</option>
-                                <option value="reffast">Quick (Fast)</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class=" top-options">Threshold for MR</th>
-                        <td class=" top-options">
-                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class=" top-options">Resolution cutoff</th>
-                        <td class=" top-options">
-                            <input class="selectbox" name="refrescutoff" placeholder="default: None" disabled></input>
-                        </td>
-                    </tr>
-        
-            
+                    <th class=" top-options">Molecular Replacement</th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspMR" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Yes</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">No</span>
+                            </label>                            
+                        </div>
+                    </td>
+                </tr>    
+                <tr>
+                    <th class=" top-options">Remove Hydrogens </th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspRMh" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Yes</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">No</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>    
+                <tr>
+                    <th class=" top-options">Remove Ligands </th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspRMl" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Yes</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">No</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>    
+                <tr>
+                    <th class=" top-options">Remove Water </th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspRMw" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Yes</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">No</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>    
 
-                    <tr class="custompar">
-                        <th class=" top-options">Custom parameters</th>
-                        <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
-                    </tr>
+                <tr>
+                    <th class=" top-options">Simulated Annealing</th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspSA" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled checked>
+                                <span class="item-label" for="normal">Yes</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <span class="item-label" for="slow">No</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>    
+
+                <tr>
+                    <th class=" top-options">Coot blob level</th>
+                    <td class=" top-options">
+                        <div style="display: flex;">
+                            <p><span id="fspcBlobvalue" ></span></p>
+                            <input type="range" min="0" max="50" value="15" class="slider" id="fspcb">
+                        </div>  
+                    </td>
+                </tr>    
+                <tr>
+                    <th class=" top-options">Coot blob map</th>
+                    <td class=" top-options">
+                        <div class="radio" id="fspCootMAP" >
+                            <label>
+                                <input class="with-gap" id="normal" name="normal" type="radio" value="1" disabled checked>
+                                <span class="item-label" for="normal">2Fo-Fc</span>
+                            </label>
+                            <label>
+                                <input class="with-gap" id="slow" name="slow" type="radio" value="2" disabled>
+                                <span class="item-label" for="slow">3Fo-2Fc</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>    
+                <tr>
+                    <th class=" top-options">Coot Peak diff search</th>
+                    <td class=" top-options">
+                    <div style="display: flex;">
+                        <p><span id="fspcDiffvalue" ></span></p>
+                        <input type="range" min="0" max="10" value="5" class="slider" id="fspcd">
+                    </div>                        
+                    </td>
+                </tr>    
+                
+                <tr>
+                    <th class=" top-options">Threshold for MR</th>
+                    <td class=" top-options">
+                        <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
+                    </td>
+                </tr>
+                <tr class="custompar">
+                    <th class=" top-options">Custom parameters</th>
+                    <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input> </td>
+                </tr>
                     
             </tbody>
         </table>
@@ -1134,7 +1155,31 @@ function onChooseFile(event, onLoadFileHandler) {
 } {% endcomment %}
 
 
+var sliderj = document.getElementById("jellyRange");
+var outputj = document.getElementById("jellyvalue");
+outputj.innerHTML = sliderj.value;
 
+sliderj.oninput = function() {
+      outputj.innerHTML = this.value;
+}
+
+
+var sliderr = document.getElementById("rigidRange");
+var outputr = document.getElementById("rigidvalue");
+outputr.innerHTML = sliderr.value;
+
+sliderr.oninput = function() {
+      outputr.innerHTML = this.value;
+}
+
+document.getElementById("fspcDiffvalue").innerHTML = document.getElementById("fspcd").value;
+document.getElementById("fspcd").oninput = function() {
+      document.getElementById("fspcDiffvalue").innerHTML = this.value;
+}
+document.getElementById("fspcBlobvalue").innerHTML = document.getElementById("fspcb").value/10;
+document.getElementById("fspcb").oninput = function() {
+      document.getElementById("fspcBlobvalue").innerHTML = this.value/10;
+}
 </script>
 
 {% endblock %}

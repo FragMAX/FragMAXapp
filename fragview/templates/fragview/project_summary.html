@@ -53,6 +53,10 @@
                     <td>{{shift}}</td>                    
                 </tr>
                 <tr>
+                    <th>Related Data Collections</th>
+                    <td>{{shiftList | safe}}</td>                    
+                </tr>
+                <tr>
                     <th>Protein</th>
                     <td>{{acronym}}</td>                    
                 </tr>
@@ -61,12 +65,12 @@
                     <td>Academic visitor</td>                    
                 </tr>
                 <tr>
-                    <th>Datasets collected</th>
-                    <td>{{num_dataset}} datasets</td>                    
+                    <th>Datasets collected (combined)</th>
+                    <td>{{num_dataset}} ({{totaldata}}) datasets</td>                    
                 </tr>
                 <tr>
-                    <th>Known Apo datasets</th>
-                    <td>{{known_apo}} datasets</td>                    
+                    <th>Known Apo datasets (combined)</th>
+                    <td>{{known_apo}} ({{totalapo}}) datasets</td>                    
                 </tr>
                 <tr hidden>
                     <th>Protein sequence</th>

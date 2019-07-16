@@ -127,21 +127,32 @@ def load_project_summary(request):
 
     number_known_apo=len(glob.glob(path+"/raw/"+acr+"/*Apo*"))
     number_datasets=len(glob.glob(path+"/raw/"+acr+"/*"))
-    if "JBSA" in "".join(glob.glob(path+"/raw/"+acr+"/*")):
-        fraglib="JBS Xtal Screen"
+    totalapo=0
+    totaldata=0
+    for s in shiftList:
+        p="/data/visitors/biomax/"+proposal+"/"+s
+        totalapo+=len(glob.glob(p+"/raw/"+acr+"/*Apo*"))
+        totaldata+=len(glob.glob(p+"/raw/"+acr+"/*"))
+    if "JBS" in fraglib:
+        libname="JBS Xtal Screen"
+    elif "F2XEntry" in fraglib:
+        libname="F2X Entry Screen"
     else:
-        fraglib="Custom library"
+        libname="Custom library"
     months={"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"}
     natdate=shift[0:4]+" "+months[shift[4:6]]+" "+shift[6:8]
     
     return render(request,'fragview/project_summary.html', {
         'acronym':acr,
         "proposal":proposal,
+        "shiftList":"<br>".join(shiftList),
         "proposal_type":proposal_type,
         "shift":shift,
         "known_apo":number_known_apo,
         "num_dataset":number_datasets,
-        "fraglib":fraglib,
+        "totalapo":totalapo,
+        "totaldata":totaldata,
+        "fraglib":libname,
         "exp_date":natdate})
     
 def dataset_info(request):    
@@ -2531,54 +2542,25 @@ def hpcstatus(request):
 
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
-    output=""
-
+    #output=""
+    hpcList=list()
+    for j in out.decode("UTF-8").split("\n")[1:-1]:
+        if j.split()!=[]:
+            try:
+                jobid,partition,name,user,ST,TIME,NODE,NODEn=j.split()
+            except ValueError:
+                jobid,partition,name,user,ST,TIME,NODE,NODEn1,NODEn2=j.split()
+                NODEn=NODEn1+NODEn2
+            try:
+                stdErr,stdOut=sorted(list(item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/logs/*"+jobid+"*") for s in shiftList] for item in it))
+                stdErr=stdErr.replace("/data/visitors/","/static/")
+                stdOut=stdOut.replace("/data/visitors/","/static/")
+            except:
+                stdErr,stdOut=["-","-"]
+                
+            hpcList.append([jobid,partition,name,user,ST,TIME,NODE,NODEn,stdErr,stdOut])
     
-
-
-    for i in out.decode("UTF-8").split("\n")[1:-1]:
-        proc_info = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scontrol', 'show', 'jobid', '-dd', i.split()[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out_info, err_info = proc_info.communicate()
-        try:
-            stdout_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
-            stderr_file=[x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
-        except IndexError:
-            stdout_file="No_output"
-            stderr_file="No_output"
-
-        try:
-            prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
-        except:
-            prosw="Unkown"
-        
-        # if not os.path.exists(stdout_file):
-        #     output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td>No output</td><td>No output"+"""</a></td><td>
-            
-        #     <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
-        #         <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
-        #     </form>
-
-        #     </tr>""".format(i.split()[0])
-        # else:
-        output+="<tr><td>"+"</td><td>".join(i.split())+"""</td><td><a href='#' onclick="readTextFile('/static"""+stdout_file+"""'); return false;"> job_"""+i.split()[0]+""".out</a></td><td><a href='#' onclick="readTextFile('/static"""+stderr_file+"""'); return false;">job_"""+i.split()[0]+""".err</a></td><td>
-        
-        <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
-            <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
-        </form>
-
-        </tr>""".format(i.split()[0])
-
-    # proc_sacct = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'sacct','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # out_sacct, err_sacct = proc_sacct.communicate()
-    # sacct=""
-    # for a in out_sacct.decode("UTF-8").split("\n")[2:-1]:
-    #     linelist=[a[:13],a[13:23],a[23:34],a[34:45],a[45:56],a[56:67],a[67:]]
-    #     linelist=[x.replace(" ","") for x in linelist]
-    #     sacct+="<tr><td>"+"</td><td>".join(linelist)+"</td></tr>"
-
-    
-
-    return render(request,'fragview/hpcstatus.html', {'command': output, 'history': ""})
+    return render(request,'fragview/hpcstatus.html', {'hpcList':hpcList})
 
 def retrieveParameters(xmlfile):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -3358,7 +3340,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                             """#SBATCH -t 01:00:00\n"""
                             """#SBATCH -J BSTRmaster\n\n"""
                             """#SBATCH -o """+path+"""/fragmax/logs/buster_master_%j.out\n"""
-                            """for file in """+path+"/fragmax/scripts"+"""/buster_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done"""
+                            """for file in """+path+"/fragmax/scripts"+"""/buster_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
                             """rm buster_worker*sh""")
 
     def dimple_hpc(PDB):
