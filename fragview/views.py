@@ -339,14 +339,15 @@ def datasets(request):
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncStatus=str(request.GET.get("resyncstButton"))
-    create_dataColParam(acr,path) 
+    datacollectionSummary(acr,path) 
 
     if "resyncDataset" in resyncAction:        
-        create_dataColParam(acr,path)
+        datacollectionSummary(acr,path)
     
     if "resyncStatus" in resyncStatus:
+        os.remove(path+"/fragmax/process/"+acr+"/datacollections.csv")
         get_project_status()
-        create_dataColParam(acr,path)
+        datacollectionSummary(acr,path)
         resultSummary()
     
     with open(path+"/fragmax/process/"+acr+"/datacollections.csv","r") as readFile:
@@ -2539,7 +2540,7 @@ def kill_HPC_job(request):
 def hpcstatus(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-
+    user=""
     proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     #output=""
@@ -2605,11 +2606,10 @@ def retrieveParameters(xmlfile):
     
     return paramDict
 
-def create_dataColParam(acr, path):
-    #proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def datacollectionSummary(acr, path):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-    shiftList=["20190622","20190629"]
+    
     lists=list()
     for s in shiftList:
         lists+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
@@ -3539,10 +3539,11 @@ def get_project_status():
         
     for result in resList:
         dts=result.split("/")[-2]
+        if dts not in statusDict:
+            statusDict[dts]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
+    
         for j in glob.glob(result+"*"):
             dp=j.split("/")[-1]
-            
-                
             if os.path.exists(j+"/dimple/final.pdb"):
                 statusDict[dts].update({"dimple":"full"})
             if os.path.exists(j+"/fspipeline/final.pdb"):
