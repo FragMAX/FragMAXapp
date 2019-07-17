@@ -1807,6 +1807,8 @@ def submit_pandda(request):
         '''method=sys.argv[2]\n'''
         '''acr=sys.argv[3]\n'''
         '''fraglib=sys.argv[4]\n'''
+        '''shiftList=sys.argv[5].split(",")\n'''  
+        '''proposal=path.split("/")[4]\n'''           
         '''if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method):\n'''    
         '''    os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''  
         '''else:\n'''
@@ -1821,9 +1823,9 @@ def submit_pandda(request):
         '''    copymtz=dict()\n'''
         '''    copylig=dict()\n'''
         '''    copycif=dict()\n'''
-        '''    datasets=sorted([x.split("/")[-2] for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5") if "ref-" not in x])\n'''
-        '''    refresults=sorted([x for x in glob.glob(path+"/fragmax/results/*/*/*/final*.pdb" ) if "/pandda/" not in x])\n'''
-        '''    selected=sorted([x for x in refresults if proc in x and ref in x and acr in x])\n'''
+        '''    datasets=sorted([x.split("/")[-2] for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])\n'''
+        '''    refresults=sorted([item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/*/*/final.pdb") for s in shiftList] for item in it])\n'''
+        '''    selected=sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/*/*/final.pdb") for s in shiftList] for item in it] if method.replace("_","/") in x])\n'''
         '''    for i in datasets:\n'''
         '''        for j in selected:\n'''
         '''            if i in j:\n'''
@@ -1837,12 +1839,13 @@ def submit_pandda(request):
         '''        if len(options)>0:\n'''
         '''            optionsDict[i]=options\n'''
         '''    for key,value in optionsDict.items():  \n'''
-        '''        for opt in value:             \n'''
-        '''            if "xdsapp" in opt or "dials" in opt or "autoproc" in opt:\n'''
-        '''                selected.append(opt)\n'''
-        '''                break            \n'''
+        '''        opt=[x for x in value if ref in x or proc in x]\n'''
+        '''        if opt==[]:\n'''
+        '''            opt=value        \n'''
+        '''        if opt!=[]:\n'''
+        '''            selected.append(opt[0])\n'''
         '''    for i in selected:\n'''
-        '''        a=i.split(acr)[0]+"pandda/"+acr+"/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n'''
+        '''        a=path+"/fragmax/results/pandda/"+acr+"/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n'''
         '''        copypdb[i]=a\n'''
         '''        copymtz[i.replace(".pdb",".mtz")]=a.replace(".pdb",".mtz")\n'''
         '''        b=i.split("/")[8].split("-")[-1].split("_")[0]\n'''
@@ -1952,22 +1955,22 @@ def submit_pandda(request):
         '''os.system('chmod -R g+rwx path+"/fragmax/results/pandda/"')\n'''
         )
 
-    
+    methodshort=proc[:2]+ref[:2]
     with open(path+"/fragmax/scripts/panddaRUN_"+method+".sh","w") as outp:
             outp.write('#!/bin/bash\n')
             outp.write('#!/bin/bash\n')
             outp.write('#SBATCH -t 99:55:00\n')
-            outp.write('#SBATCH -J PanDDA\n')
+            outp.write('#SBATCH -J PDD'+methodshort+'\n')
             outp.write('#SBATCH --exclusive\n')
             outp.write('#SBATCH -N1\n')
             outp.write('#SBATCH --cpus-per-task=48\n')
             outp.write('#SBATCH --mem=220000\n')
-            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_%j.out\n')
-            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_%j.err\n')
+            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+method+'_%j.out\n')
+            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+method+'_%j.err\n')
             outp.write('module purge\n')
             outp.write('module load PReSTO\n')
             outp.write('\n')
-            outp.write('python '+path+'/fragmax/scripts/pandda_worker.py '+path+' '+method+' '+acr+' '+fraglib+'\n')
+            outp.write('python '+path+'/fragmax/scripts/pandda_worker.py '+path+' '+method+' '+acr+' '+fraglib+' '+",".join(shiftList)+'\n')
     
     script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
     command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
@@ -3124,6 +3127,7 @@ def process2results(spacegroup, filters):
                 '''\npath="%s"'''
                 '''\nacr="%s"'''
                 '''\nspg="%s"'''
+                '''\nsubprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)'''
                 '''\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'''
                 '''\nfor dataset in datasetList:    '''
                 '''\n    if glob.glob(dataset+"autoproc/*mtz")!=[]:'''
@@ -3183,12 +3187,7 @@ def process2results(spacegroup, filters):
                 '''\n                    pass'''
                 '''\n                a=dataset.split("process/")[0]+"results/"+dataset+"/fastdp/"+dataset+"_fastdp_unmerged.mtz"'''
                 '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
-                '''\nfor srcmtz in glob.glob(path+"/fragmax/results/"+acr+"*/*/*merged.mtz"):'''
-                '''\n    dstmtz=srcmtz.replace("merged.mtz","truncate.mtz")'''
-                '''\n    if not os.path.exists(dstmtz):'''
-                '''\n        cmd='echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+srcmtz+' hklout '+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log"'''
-                '''\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''%(path,acr,spacegroup))
+                '''\n                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''%(path,acr,spacegroup))
                     
                 
 
@@ -3201,7 +3200,7 @@ def process2results(spacegroup, filters):
     proc2resOut+= """#!/bin/bash\n"""
     proc2resOut+= """#!/bin/bash\n"""
     proc2resOut+= """#SBATCH -t 99:55:00\n"""
-    proc2resOut+= """#SBATCH -J aimless\n"""
+    proc2resOut+= """#SBATCH -J Pro2Res\n"""
     proc2resOut+= """#SBATCH --exclusive\n"""
     proc2resOut+= """#SBATCH -N1\n"""
     proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
@@ -3591,7 +3590,6 @@ def get_project_status():
         for dataset_run,status in statusDict.items():    
             writer.writerow([dataset_run]+list(status.values()))
 
-  
 ###############################
 
 ###############################        

@@ -100,13 +100,16 @@
 
 
 <script>
-try{
-   fetch("/static/projectSettings/.settings")
+
+fetch("/static/projectSettings/.settings")
 .then( r => r.text() )
-.then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )}
-catch(err){
-   document.getElementById("userproposal").innerHTML ="Proposal: "
-}
+.then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )
+fetch("/static/projectSettings/.settings")
+.then( r => r.text() )
+.then( t => document.getElementById("usershift").innerHTML ="Shift: "+t.split(";")[2] )
+
+
+
 </script>
 
 <dmc-sidenav>
@@ -117,7 +120,8 @@ catch(err){
             </div>
             <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
             <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
-            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text ">Proposal: </span></a>
+            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text " style="line-height: 18px;font-size:11px">Proposal: </span></a><br>
+            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="usershift" class="white-text " style="line-height: 18px;font-size:11px">Shift: </span></a>
          </div>
       {% comment %}       
          <li>

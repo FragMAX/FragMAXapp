@@ -20,6 +20,11 @@
     .top-options {
         font-size: 15px !important;
     }
+    .flex-center {
+        margin-left:10px; 
+        max-width:750px;     
+        width: 33%
+    }
     .content {
         margin: auto !important;
         max-width: 100% !important;
@@ -37,13 +42,6 @@
         max-width: calc(100% - 50px)  !important;
         {% comment %} min-width: 1600px; {% endcomment %}
     }
-    .flexdiv {
-        display: flex;
-        padding-left: 300px;
-        max-width: calc(100% - 50px)  !important;
-
-        {% comment %} max-width: 2455px !important; {% endcomment %}
-    }
     .flexdiv_options {
         display: flex;
         padding-left: 40px;
@@ -57,36 +55,13 @@
         max-width:750px; 
         width: 33%
     }    
-    .flex-center {
-        margin-left:10px; 
-        max-width:750px;     
-        width: 33%
-    }
-
-    .flexdiv_snapshot {
-        display: flex;
-    }
-
 
     .selectbox {
         display: flex !important; 
     }
-    .datasetbox{
-        max-width: 350px;
-        margin-left: 16px;
-    }
     .optionstable {
         border-collapse: separate;
         border-spacing: 0;
-    }
-    .tableSoak {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100% !important;
-
-    }
-    .tableInfo {
-        width: 100% !important;
     }
     
     .bottom-right    {
@@ -103,12 +78,10 @@
     .custompar {
         background-color: #f0f0f0;
     }
-    .ligpng {
-        height: 95px;
-    }
     .card-title {
         display:inline-flex !important;
     }
+    
 </style>
 
 
@@ -185,8 +158,8 @@
                     <th class=" top-options">Complete results<sup>1</sup></th>
                     <td class=" top-options">
                         <select class="selectbox" name="compdatasets">
-                            <option disabled selected value="true"> -- select an option -- </option>
-                            <option value="true">Yes</option>
+                            <option disabled value="true"> -- select an option -- </option>
+                            <option selected value="true">Yes</option>
                             <option value="false">No</option>
                         </select>
                     </td>
@@ -198,20 +171,20 @@
                     <form id="groundstate" >
                             <div class="checkbox" id="groundStateModel">
                             <label>
-                                <input id="apoGS" name="apoGS" type="checkbox" class="filled-in dt-checkboxes" value="apoGS">
+                                <input id="apoGS" name="apoGS" type="checkbox" class="filled-in dt-checkboxes" value="apoGS" checked>
                                 <span for="apoGS">Use known Apo</span>
                             </label>
                             </div>
                             <div class="checkbox" id="dmsoGScheck" >
                             <label>
-                                <input id="dmsoGS" name="dmsoGS" type="checkbox" class="filled-in dt-checkboxes" value="dmsoGS">
+                                <input id="dmsoGS" name="dmsoGS" type="checkbox" class="filled-in dt-checkboxes" value="dmsoGS" checked>
                                 <span for="dmsoGS">Use DMSO datasets</span>
                             </label>
                             </div>
                             
                             <div class="checkbox" id="cryoGScheck">
                             <label>
-                                <input id="cryoGS" name="cryoGS" type="checkbox" class="filled-in dt-checkboxes" value="cryoGS">
+                                <input id="cryoGS" name="cryoGS" type="checkbox" class="filled-in dt-checkboxes" value="cryoGS" checked>
                                 <span for="cryoGS">Use cryo datasets</span>
                             </label>
                             </div>
@@ -246,8 +219,8 @@
                 <th class=" top-options">Fill missing reflections with CAD</th>
                 <td class=" top-options">
                    <select class="selectbox" id="use_CAD" name="use_CAD">
-                        <option disabled selected value="yes"> -- select an option -- </option>
-                        <option value="yes">Yes</option>
+                        <option disabled value="yes"> -- select an option -- </option>
+                        <option selected value="yes">Yes</option>
                         <option value="no">No</option>
                     </select>
                 </td>
@@ -256,8 +229,8 @@
                 <th class=" top-options">Refine populated MTZ</th>
                 <td class=" top-options">
                    <select class="selectbox" id="refine_popMTZ" name="refine_popMTZ">
-                        <option disabled selected value="no"> -- select an option -- </option>
-                        <option value="phenixRefine">Phenix.Refine</option>
+                        <option disabled value="no"> -- select an option -- </option>
+                        <option selected value="phenixRefine">Phenix.Refine</option>
                         <option value="refmac">Refmac</option>
                         <option value="no">No</option>
                     </select>
@@ -270,8 +243,8 @@
                     <form id="preprocessOptions" >
                             <div class="checkbox" id="ignoreErrcheck">
                             <label>
-                                <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr">
-                                <span for="ignoreErr">Ignore dataset problems</span>
+                                <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
+                                <span for="ignoreErr">Auto remove dataset with problems</span>
                             </label>
                             </div>
                             <div class="checkbox" id="keepupcheck" >
