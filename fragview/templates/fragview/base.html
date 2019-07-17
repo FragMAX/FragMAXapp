@@ -99,7 +99,15 @@
 
 
 
-
+<script>
+try{
+   fetch("/static/projectSettings/.settings")
+.then( r => r.text() )
+.then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )}
+catch(err){
+   document.getElementById("userproposal").innerHTML ="Proposal: "
+}
+</script>
 
 <dmc-sidenav>
    <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden" >
@@ -109,7 +117,7 @@
             </div>
             <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
             <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
-            <a href="https://duo.maxiv.lu.se" target="_blank" hidden><span class="white-text ">Prop: 20180489</span></a>
+            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text ">Proposal: </span></a>
          </div>
       {% comment %}       
          <li>
@@ -184,7 +192,7 @@
          <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">Home<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
       </li>
       <li >
-         <a href="/process_all" class="collapsible-header sidenav-links" data-turbolinks="false">Data Analysis<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
+         <a href="/data_analysis" class="collapsible-header sidenav-links" data-turbolinks="false">Data Analysis<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
       </li>
       <li>
          <a href="/pipedream" class="collapsible-header sidenav-links" data-turbolinks="false">Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
@@ -254,5 +262,6 @@
         </div>
         </div>
     </body>
+    
 </html>
 

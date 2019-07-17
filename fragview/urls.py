@@ -49,7 +49,7 @@ urlpatterns = [
     # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
 
     path('dataset_info/', views.dataset_info, name='dataset_info'),
-    path('process_all/', views.process_all, name='process_all'),
+    path('data_analysis/', views.data_analysis, name='data_analysis'),
     path('pipedream/', views.pipedream, name='pipedream'),
     path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
 

@@ -104,11 +104,11 @@ def index(request):
 def error_page(request):
     return render(request, "fragview/error.html")
 
-def process_all(request):
+def data_analysis(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     models=[x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]
     datasets=sorted([x.split("/")[-1].replace("_master.h5","") for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5")],key=lambda x: ("Apo" in x, x))
-    return render(request, "fragview/process_all.html",{"acronym":acr,"models":models,"datasets":datasets})
+    return render(request, "fragview/data_analysis.html",{"acronym":acr,"models":models,"datasets":datasets})
 
 def settings(request):
     allprc  = str(request.GET.get("updatedefinitions"))
