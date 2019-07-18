@@ -3001,6 +3001,11 @@ def resultSummary():
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
     plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
+    for s in shiftList:
+        try:
+            shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
+        except:
+            pass
     def maxList(search_list):
         size=[len(x) for x in search_list]
         return max(size)
