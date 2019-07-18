@@ -3005,8 +3005,8 @@ def resultSummary():
         size=[len(x) for x in search_list]
         return max(size)
     #Resolution plots
-    pdbList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb")
-    pdbList=sorted(pdbList, key=lambda x: ("Apo" in x, x))
+    #pdbList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb")
+    pdbList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
     resDict=dict()
     for pdb in pdbList:
         dataset=pdb.split("/")[8]
@@ -3039,8 +3039,13 @@ def resultSummary():
     ax.set(xticks=range(len([x for x in resDict.values()])), xticklabels= [x.split("-")[-1] for x in resDict])
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
+    
     plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
-
+    for s in shiftList:
+        try:
+            shutil.copyfile(path+'/fragmax/process/'+acr+'/Resolutions.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Resolutions.png')
+        except:
+            pass
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
