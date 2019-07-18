@@ -43,6 +43,37 @@
     max-width: 100% !important;
     width: calc(100% - 350px) !important;
   }
+  /* Style the tab */
+    .tab {
+        overflow: hidden;
+
+        background-color: #f1f1f1;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+        background-color: #82be00;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+    }
 
 </style>
 <div>
@@ -53,6 +84,57 @@
     </form>  
   </div>
 </div>       
+<div class=" card_options">
+    <div class="card tab">
+        <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
+        <button class="tablinks" onclick="openMethod(event, 'Resolution')" >Resolution</button>
+        <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')" disabled>Cell Parameters</button>
+        <button class="tablinks" onclick="openMethod(event, 'rworktab')" disabled>R<sub>work</sub></button>
+        <button class="tablinks" onclick="openMethod(event, 'rfreetab')" disabled>R<sub>free</sub></button>
+        {% comment %} <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
+        <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button> {% endcomment %}
+        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
+    </div>
+
+    <div id="ISa" class="card tabcontent">
+        <div class="card-title">ISa distribution</div>
+        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/ISas.png" style="width: 100%;"></img>
+    </div>
+    <div id="Resolution" class="card tabcontent">
+        <div class="card-title">Resolution distribution</div>
+        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Resolutions.png" style="width: 100%;"></img>
+        
+    </div>
+    <div id="Cell_Parameters" class="card tabcontent">
+        <div class="card-title">Cell Parameters distribution</div>
+        
+    </div>
+    <div id="rworktab" class="card tabcontent">
+        <div class="card-title">R<sub>work</sub> distribution</div>
+        
+    </div>
+    <div id="rfreetab" class="card tabcontent">
+        <div class="card-title">R<sub>free</sub> distribution</div>
+        
+    </div>
+    {% comment %} <div id="BUSTER" class="card tabcontent">
+        <div class="card-title">BUSTER Options</div>
+        
+    </div>
+    <div id="FSPipeline" class="card tabcontent">
+        <div class="card-title">FSPipeline Options</div>
+        
+    </div>
+    <div id="RhoFit" class="card tabcontent">
+        <div class="card-title">RhoFit Options</div>
+        
+    </div> {% endcomment %}
+    <div id="Hide" >
+        
+        
+    </div>
+</div>
 
 <div class="input-field col s12" id="searchDiv">
   <i class="material-icons prefix">search</i>
@@ -155,6 +237,21 @@ function searchDatasetName() {
             }       
         }
         }
+</script>
+<script>
+    function openMethod(evt, methodName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(methodName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
 </script>
 {% endblock %}
 

@@ -24,7 +24,9 @@ import xmltodict
 from subprocess import Popen, PIPE
 import datetime
 from collections import Counter
-
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 
 
@@ -502,7 +504,7 @@ def results(request):
         with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
-        return render(request, "fragview/results.html",{"csvfile":lines})    
+        return render(request, "fragview/results.html",{"csvfile":lines,"proposal":proposal,"shift":shift,"acr":acr})    
     except:
         return render_to_response('fragview/results_notready.html')
 
@@ -1796,6 +1798,7 @@ def submit_pandda(request):
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
     
     method=proc+"_"+ref
+    os.remove(path+"/fragmax/scripts/pandda_worker.py")
     with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
         outp.write('''import os \n'''
         '''import glob\n'''
@@ -1874,7 +1877,7 @@ def submit_pandda(request):
         '''            shutil.copyfile(src,dst)\n'''
         '''def pandda_run(method):\n'''
         '''    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''
-        '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=32"\n'''
+        '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=24" \n'''
         '''    subprocess.call(command, shell=True)\n'''
         '''    if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:\n'''
         '''        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]\n'''
@@ -2654,83 +2657,83 @@ def datacollectionSummary(acr, path):
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
                                                                     
-def get_results_info(entry):
-    usracr="_".join(entry.split("/")[8:11])
+# def get_results_info(entry):
+#     usracr="_".join(entry.split("/")[8:11])
 
-    if "dimple" in usracr:
-        with open(entry,"r") as inp:
-            dimple_log=inp.readlines()
-        blist=list()
-        for n,line in enumerate(dimple_log):
-            if "data_file: " in line:
-                usrpdbpath= line.replace("data_file: ","")
-            if "# MTZ " in line:
-                spg=line.split(")")[1].split("(")[0].replace(" ","")
-                a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-                alpha=str("{0:.2f}".format(float(alpha)))
-                beta=str("{0:.2f}".format(float(beta)))
-                gamma=str("{0:.2f}".format(float(gamma)))
+#     if "dimple" in usracr:
+#         with open(entry,"r") as inp:
+#             dimple_log=inp.readlines()
+#         blist=list()
+#         for n,line in enumerate(dimple_log):
+#             if "data_file: " in line:
+#                 usrpdbpath= line.replace("data_file: ","")
+#             if "# MTZ " in line:
+#                 spg=line.split(")")[1].split("(")[0].replace(" ","")
+#                 a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
+#                 alpha=str("{0:.2f}".format(float(alpha)))
+#                 beta=str("{0:.2f}".format(float(beta)))
+#                 gamma=str("{0:.2f}".format(float(gamma)))
 
-            if line.startswith("info:") and "R/Rfree" in line:
-                r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-                r_free=str("{0:.2f}".format(float(r_free)))
-                r_work=str("{0:.2f}".format(float(r_work)))
-            if line.startswith("blobs: "):            
-                blist=[x.replace(" ","")+"]" for x in line.split(":")[-1][2:-2].split("],")]
-            if line.startswith("#     RMS: "):
-                bonds,angles=line.split()[5],line.split()[9]
-            if line.startswith("info: resol. "):
-                res=line.split()[2]
-                res=str("{0:.2f}".format(float(res)))
+#             if line.startswith("info:") and "R/Rfree" in line:
+#                 r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
+#                 r_free=str("{0:.2f}".format(float(r_free)))
+#                 r_work=str("{0:.2f}".format(float(r_work)))
+#             if line.startswith("blobs: "):            
+#                 blist=[x.replace(" ","")+"]" for x in line.split(":")[-1][2:-2].split("],")]
+#             if line.startswith("#     RMS: "):
+#                 bonds,angles=line.split()[5],line.split()[9]
+#             if line.startswith("info: resol. "):
+#                 res=line.split()[2]
+#                 res=str("{0:.2f}".format(float(res)))
 
 
-        pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-        event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-        ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+#         pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
+#         event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
+#         ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
 
-    if "fspipeline" in usracr:
+#     if "fspipeline" in usracr:
 
-        with open(entry,"r") as inp:
-            pdb_file=inp.readlines()
+#         with open(entry,"r") as inp:
+#             pdb_file=inp.readlines()
 
-        for line in pdb_file:
-            if "REMARK Final:" in line:            
-                r_work=line.split()[4]
-                r_free=line.split()[7]
-                r_free=str("{0:.2f}".format(float(r_free)))
-                r_work=str("{0:.2f}".format(float(r_work)))
-                bonds=line.split()[10]
-                angles=line.split()[13]
-            if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-                res=line.split(":")[-1].replace(" ","").replace("\n","")
-                res=str("{0:.2f}".format(float(res)))
-            if "CRYST1" in line:
-                a=line[9:15]
-                b=line[18:24]
-                c=line[27:33]
-                alpha=line[34:40]
-                beta=line[41:47]
-                gamma=line[48:54]
-                a=str("{0:.2f}".format(float(a)))
-                b=str("{0:.2f}".format(float(b)))
-                c=str("{0:.2f}".format(float(c)))
-                spg="".join(line.split()[-4:])
+#         for line in pdb_file:
+#             if "REMARK Final:" in line:            
+#                 r_work=line.split()[4]
+#                 r_free=line.split()[7]
+#                 r_free=str("{0:.2f}".format(float(r_free)))
+#                 r_work=str("{0:.2f}".format(float(r_work)))
+#                 bonds=line.split()[10]
+#                 angles=line.split()[13]
+#             if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+#                 res=line.split(":")[-1].replace(" ","").replace("\n","")
+#                 res=str("{0:.2f}".format(float(res)))
+#             if "CRYST1" in line:
+#                 a=line[9:15]
+#                 b=line[18:24]
+#                 c=line[27:33]
+#                 alpha=line[34:40]
+#                 beta=line[41:47]
+#                 gamma=line[48:54]
+#                 a=str("{0:.2f}".format(float(a)))
+#                 b=str("{0:.2f}".format(float(b)))
+#                 c=str("{0:.2f}".format(float(c)))
+#                 spg="".join(line.split()[-4:])
 
-        with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:        
-            blist=list()
-            for line in inp.readlines():
-                if "INFO:: cluster at xyz = " in line:
-                    blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
-                    blob="["+blob+"]"
-                    blist.append(blob)
+#         with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:        
+#             blist=list()
+#             for line in inp.readlines():
+#                 if "INFO:: cluster at xyz = " in line:
+#                     blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
+#                     blob="["+blob+"]"
+#                     blist.append(blob)
                 
 
-        with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-            for mline in inp.readlines():
-                if "_2mFo-DFc.ccp4" in mline:
-                    pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
-                    event1  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
-                    ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
+#         with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
+#             for mline in inp.readlines():
+#                 if "_2mFo-DFc.ccp4" in mline:
+#                     pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
+#                     event1  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
+#                     ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
 
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -2910,6 +2913,133 @@ def resultSummary():
             
             if row.join() is not None:
                 writer.writerow(row.join())
+    
+    xdsappLogs    = list()
+    autoprocLogs  = list()
+    dialsLogs     = list()
+    xdsxscaleLogs = list()
+    fastdpLogs    = list()
+    EDNALogs      = list()
+    isaDict       = dict()
+    h5List        = list()
+    for s in shiftList:
+        xdsappLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsapp/results*txt")
+        autoprocLogs  += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/autoproc/process.log")
+        dialsLogs     += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/dials/LogFiles/*log")
+        xdsxscaleLogs += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsxscale/LogFiles/*XSCALE.log")
+        fastdpLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/fastdp/results/*.LP")
+        EDNALogs      += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/EDNA_proc/results/*.LP")
+
+
+    for s in shiftList:
+        h5List+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5")
+    h5List=sorted(h5List, key=lambda x: ("Apo" in x, x))
+    for dataset in [x.split("/")[-1].split("_master.h5")[0] for x in h5List]:
+            isaDict[dataset]={"xdsapp":"","autoproc":"","xdsxscale":"","dials":"","fastdp":"","EDNA":""}
+            
+    for log in xdsappLogs:
+        dataset=log.split("/")[10]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for line in logfile:
+            if "    ISa" in line:
+                isa=line.split()[-1]
+                isaDict[dataset].update({"xdsapp":isa})
+    for log in autoprocLogs:
+        dataset=log.split("/")[10]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for n,line in enumerate(logfile):
+            if "ISa" in line:           
+                isa=logfile[n+1].split()[-1]        
+        isaDict[dataset].update({"autoproc":isa})
+    for log in dialsLogs:
+        dataset=log.split("/")[10]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for n,line in enumerate(logfile):
+            if "ISa" in line:            
+                isa=logfile[n+1].split()[-1]            
+        isaDict[dataset].update({"dials":isa})
+    for log in xdsxscaleLogs:
+        dataset=log.split("/")[10]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for n,line in enumerate(logfile):
+            if "ISa" in line:             
+                if logfile[n+3].split()!=[]:                
+                    isa=logfile[n+3].split()[-2]            
+        isaDict[dataset].update({"xdsxscale":isa})
+    for log in fastdpLogs:
+        dataset=log.split("/")[9][4:-2]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for n,line in enumerate(logfile):
+            if "ISa" in line:            
+                isa=logfile[n+1].split()[-1]            
+        isaDict[dataset].update({"fastdp":isa})
+    for log in EDNALogs:
+        dataset=log.split("/")[9][4:-2]
+        with open(log,"r") as readFile:
+            logfile=readFile.readlines()
+        for n,line in enumerate(logfile):
+            if "ISa" in line:             
+                if logfile[n+3].split()!=[]:                
+                    isa=logfile[n+3].split()[-2]
+                    if isa=="b":
+                        isa=""
+        isaDict[dataset].update({"EDNA":isa})
+        
+    isas=np.array([[float(x["xdsapp"]) if x["xdsapp"]!="" else 0 for x in isaDict.values()],[float(x["autoproc"]) if x["autoproc"]!="" else 0 for x in isaDict.values()],[float(x["xdsxscale"]) if x["xdsxscale"]!="" else 0 for x in isaDict.values()],[float(x["dials"]) if x["dials"]!="" else 0 for x in isaDict.values()],[float(x["fastdp"]) if x["fastdp"]!="" else 0 for x in isaDict.values()],[float(x["EDNA"]) if x["EDNA"]!="" else 0 for x in isaDict.values()]])
+    sns.set(color_codes=True)
+    sns.set_context("paper")
+    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+    plt.figure(figsize=(28, 6), dpi=150)
+    plt.ylabel('ISa')
+    ax = sns.tsplot(data=isas, ci=[50, 90], color="#82be00")
+    ax.set(xticks=range(len([x for x in isaDict])), xticklabels= [x.split("-")[-1] for x in isaDict])
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
+    def maxList(search_list):
+        size=[len(x) for x in search_list]
+        return max(size)
+    #Resolution plots
+    pdbList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb")
+    pdbList=sorted(pdbList, key=lambda x: ("Apo" in x, x))
+    resDict=dict()
+    for pdb in pdbList:
+        dataset=pdb.split("/")[8]
+        proc=pdb.split("/")[9]
+        ref=pdb.split("/")[10]
+        with open(pdb,"r") as inp:
+            pdbfile=inp.readlines()
+            for n,line in enumerate(pdbfile):        
+                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS)" in line:
+                    reshigh=line.split()[-1]
+                if "REMARK   3   RESOLUTION RANGE LOW  (ANGSTROMS)" in line:
+                    reslow=line.split()[-1]
+                if "REMARK   3   R VALUE            (WORKING SET) :" in line:
+                    rwork=line.split()[-1]
+                if "REMARK   3   FREE R VALUE                     :" in line:
+                    rfree=line.split()[-1]
+        try:
+            resDict[dataset].append(float(reshigh))
+        except KeyError:
+            resDict[dataset]=[float(reshigh)]
+    for k,v in resDict.items():
+        resDict[k]+=((maxList(list(resDict.values()))-len(v))*[0])
+    res=np.array([x for x in resDict.values()])
+    sns.set(color_codes=True)
+    sns.set_context("paper")
+    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+    plt.figure(figsize=(28, 6), dpi=100)
+    plt.ylabel('Resolution (Å)')
+    ax = sns.tsplot(data=np.transpose(res), ci=[50, 90], color="#82be00")
+    ax.set(xticks=range(len([x for x in resDict.values()])), xticklabels= [x.split("-")[-1] for x in resDict])
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
