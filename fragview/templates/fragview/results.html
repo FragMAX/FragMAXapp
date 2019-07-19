@@ -75,12 +75,18 @@
         padding: 6px 12px;
     }
 
+    .top-right{
+      position: absolute;
+      right: 50px;
+      top: 25px;
+    }
 </style>
 <div>
   <h4>Results - Structure refinement </h4> 
+  
   <div style="display:flex;">
     <form action="/results/" method="get" id="syncButton"  >
-      <button class="btn" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
+      <button class="btn top-right" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
     </form>  
   </div>
 </div>       
@@ -88,9 +94,9 @@
     <div class="card tab">
         <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
         <button class="tablinks" onclick="openMethod(event, 'Resolution')" >Resolution</button>
-        <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')" disabled>Cell Parameters</button>
-        <button class="tablinks" onclick="openMethod(event, 'rworktab')" disabled>R<sub>work</sub></button>
-        <button class="tablinks" onclick="openMethod(event, 'rfreetab')" disabled>R<sub>free</sub></button>
+        <button class="tablinks" onclick="openMethod(event, 'rfactorstab')">R<sub>work/</sub>R<sub>free</sub></button>
+        <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')" disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
+        <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
         {% comment %} <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button> {% endcomment %}
@@ -108,15 +114,15 @@
     </div>
     <div id="Cell_Parameters" class="card tabcontent">
         <div class="card-title">Cell Parameters distribution</div>
-        
+        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Cellparameters.png" style="width: 100%;"></img>
     </div>
-    <div id="rworktab" class="card tabcontent">
-        <div class="card-title">R<sub>work</sub> distribution</div>
-        
+    <div id="rfactorstab" class="card tabcontent">
+        <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
+        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Rfactors.png" style="width: 100%;"></img>
     </div>
-    <div id="rfreetab" class="card tabcontent">
-        <div class="card-title">R<sub>free</sub> distribution</div>
-        
+    <div id="ccfactorstab" class="card tabcontent">
+        <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
+        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Rfrees.png" style="width: 100%;"></img>
     </div>
     {% comment %} <div id="BUSTER" class="card tabcontent">
         <div class="card-title">BUSTER Options</div>
@@ -151,6 +157,7 @@
    <th>Data set</th>
    <th>Space group</th>
    <th>Res. [&Aring;]</th>
+   <th>ISa</th>
    <th>R<sub>work</sub> [%]</th>
    <th>R<sub>free</sub> [%]</th>
    <th>RMS bonds [&Aring;]</th>
@@ -168,7 +175,7 @@
   <tbody>
     <tr>    
     </tr>
-    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
+    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
 
     <tr>    
       <td>
@@ -181,6 +188,7 @@
       <td>{{usracr}}</td>
       <td>{{spg}}</td>
       <td>{{resolution}}</td>
+      <td>{{isa}}</td>
       <td>{{r_work}}</td>
       <td>{{r_free}}</td>
       <td>{{bonds}}</td>

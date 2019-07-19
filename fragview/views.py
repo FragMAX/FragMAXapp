@@ -27,7 +27,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-
+import pandas as pd
 
 
 
@@ -2019,7 +2019,7 @@ def pandda_analyse(request):
         if os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
             with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+newestmethod+"/pandda/; pandda.inspect"
+                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/; pandda.inspect"
             return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
             running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/*running*")]    
@@ -2113,26 +2113,30 @@ def panddaEvents(filters):
 
 def fix_pandda_symlinks():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
-        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
-        for i in linksFolder:        
-            folder="/".join(i.split("/")[:-1])+"/"
-            pdbs=os.listdir(folder)
-            pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        
-            shutil.move(i,i+".bak")
-            shutil.copyfile(pdb,i)
-        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*")
-        for _file in linksFolder:       
-            dst=os.path.realpath(_file)    
-            if _file!=dst:  
-                if ".bak" not in _file:
-                    shutil.move(_file,_file+".bak")
+    
+    subprocess.call('''cd "+path+"/fragmax/results/pandda/"+acr+"/ ; find -type l -iname "*-pandda-input.*" -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;''')
+    subprocess.call('''cd "+path+"/fragmax/results/pandda/"+acr+"/ ; find -type l -iname "*pandda-model.pdb*" -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;''')
+    
+    # for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
+    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    #     for i in linksFolder:        
+    #         folder="/".join(i.split("/")[:-1])+"/"
+    #         pdbs=os.listdir(folder)
+    #         pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        
+    #         shutil.move(i,i+".bak")
+    #         shutil.copyfile(pdb,i)
+    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*")
+    #     for _file in linksFolder:       
+    #         dst=os.path.realpath(_file)    
+    #         if _file!=dst:  
+    #             if ".bak" not in _file:
+    #                 shutil.move(_file,_file+".bak")
             
-        linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*.bak")
-        for _file in linksFolder:       
-            dst=os.path.realpath(_file)    
-            if _file!=dst: 
-                shutil.copyfile(dst,_file.replace(".bak",""))
+    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*.bak")
+    #     for _file in linksFolder:       
+    #         dst=os.path.realpath(_file)    
+    #         if _file!=dst: 
+    #             shutil.copyfile(dst,_file.replace(".bak",""))
 
     os.system("chmod -R g+rw "+path+"/fragmax/results/pandda/")
 
@@ -2656,100 +2660,22 @@ def datacollectionSummary(acr, path):
                     ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+sample+"/"+sample+".svg"
                 
                 writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
-                                                                    
-# def get_results_info(entry):
-#     usracr="_".join(entry.split("/")[8:11])
-
-#     if "dimple" in usracr:
-#         with open(entry,"r") as inp:
-#             dimple_log=inp.readlines()
-#         blist=list()
-#         for n,line in enumerate(dimple_log):
-#             if "data_file: " in line:
-#                 usrpdbpath= line.replace("data_file: ","")
-#             if "# MTZ " in line:
-#                 spg=line.split(")")[1].split("(")[0].replace(" ","")
-#                 a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-#                 alpha=str("{0:.2f}".format(float(alpha)))
-#                 beta=str("{0:.2f}".format(float(beta)))
-#                 gamma=str("{0:.2f}".format(float(gamma)))
-
-#             if line.startswith("info:") and "R/Rfree" in line:
-#                 r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-#                 r_free=str("{0:.2f}".format(float(r_free)))
-#                 r_work=str("{0:.2f}".format(float(r_work)))
-#             if line.startswith("blobs: "):            
-#                 blist=[x.replace(" ","")+"]" for x in line.split(":")[-1][2:-2].split("],")]
-#             if line.startswith("#     RMS: "):
-#                 bonds,angles=line.split()[5],line.split()[9]
-#             if line.startswith("info: resol. "):
-#                 res=line.split()[2]
-#                 res=str("{0:.2f}".format(float(res)))
-
-
-#         pdbout="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-#         event1="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-#         ccp4_nat="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
-
-#     if "fspipeline" in usracr:
-
-#         with open(entry,"r") as inp:
-#             pdb_file=inp.readlines()
-
-#         for line in pdb_file:
-#             if "REMARK Final:" in line:            
-#                 r_work=line.split()[4]
-#                 r_free=line.split()[7]
-#                 r_free=str("{0:.2f}".format(float(r_free)))
-#                 r_work=str("{0:.2f}".format(float(r_work)))
-#                 bonds=line.split()[10]
-#                 angles=line.split()[13]
-#             if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-#                 res=line.split(":")[-1].replace(" ","").replace("\n","")
-#                 res=str("{0:.2f}".format(float(res)))
-#             if "CRYST1" in line:
-#                 a=line[9:15]
-#                 b=line[18:24]
-#                 c=line[27:33]
-#                 alpha=line[34:40]
-#                 beta=line[41:47]
-#                 gamma=line[48:54]
-#                 a=str("{0:.2f}".format(float(a)))
-#                 b=str("{0:.2f}".format(float(b)))
-#                 c=str("{0:.2f}".format(float(c)))
-#                 spg="".join(line.split()[-4:])
-
-#         with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:        
-#             blist=list()
-#             for line in inp.readlines():
-#                 if "INFO:: cluster at xyz = " in line:
-#                     blob=line.split("(")[-1].split(")")[0].replace("  ","").replace("\n","")
-#                     blob="["+blob+"]"
-#                     blist.append(blob)
-                
-
-#         with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
-#             for mline in inp.readlines():
-#                 if "_2mFo-DFc.ccp4" in mline:
-#                     pdbout  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4",".pdb")
-#                     event1  ="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","")
-#                     ccp4_nat="/".join(entry.split("/")[:-1])[15:]+"/"+mline.split("/")[-1].replace("\n","").replace("_2mFo-DFc.ccp4","_mFo-DFc.ccp4")
-
+                       
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
-    def info_func(entry):
-        usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""    ,""    ,""     ,     "","" ,""        ,""    ,""    ,""   ,""    ,"","","","","","","","","","","",""]
+    def info_func(entry,isaDict):
+        usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""]*23
         pdbout   = ""
         usracr   = "_".join(entry.split("/")[8:11])
         pipeline = "_".join(entry.split("/")[9:11])
-
+        isa      = isaDict[entry.split("/")[8]][entry.split("/")[9]]
 
         if "dimple" in usracr:
             entry=entry.replace("final.pdb","dimple.log")
             with open(entry,"r") as inp:
                 dimple_log=inp.readlines()
-            blist=list()
+            blist=[]
             for n,line in enumerate(dimple_log):
                 if "# MTZ " in line:
                     spg=line.split(")")[1].split("(")[0].replace(" ","")
@@ -2839,7 +2765,7 @@ def resultSummary():
 
                 with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:    
                     readFile=inp.readlines()
-                    blist=list()
+                    blist=[]
                     for line in readFile:
                         if "INFO:: cluster at xyz = " in line:
                             blob=line.split("(")[-1].split(")")[0].replace("  ","").rstrip()
@@ -2892,25 +2818,8 @@ def resultSummary():
 
         ligfit_dataset="_".join(usracr.split("_")[:-2])
         
-        return [usracr,pdbout,dif_map,nat_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]        
+        return [usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]        
     
-    #for s in shiftList:
-    #resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    resultsList=list()
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        resultsList+=glob.glob(p+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    
-    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
-        for entry in resultsList:
-            row = ThreadWithReturnValue(target=info_func, args=(entry,))
-            row.start()
-            
-            if row.join() is not None:
-                writer.writerow(row.join())
     
     xdsappLogs    = list()
     autoprocLogs  = list()
@@ -2934,7 +2843,7 @@ def resultSummary():
     h5List=sorted(h5List, key=lambda x: ("Apo" in x, x))
     for dataset in [x.split("/")[-1].split("_master.h5")[0] for x in h5List]:
             isaDict[dataset]={"xdsapp":"","autoproc":"","xdsxscale":"","dials":"","fastdp":"","EDNA":""}
-            
+
     for log in xdsappLogs:
         dataset=log.split("/")[10]
         with open(log,"r") as readFile:
@@ -2987,68 +2896,97 @@ def resultSummary():
                     if isa=="b":
                         isa=""
         isaDict[dataset].update({"EDNA":isa})
-        
-    isas=np.array([[float(x["xdsapp"]) if x["xdsapp"]!="" else 0 for x in isaDict.values()],[float(x["autoproc"]) if x["autoproc"]!="" else 0 for x in isaDict.values()],[float(x["xdsxscale"]) if x["xdsxscale"]!="" else 0 for x in isaDict.values()],[float(x["dials"]) if x["dials"]!="" else 0 for x in isaDict.values()],[float(x["fastdp"]) if x["fastdp"]!="" else 0 for x in isaDict.values()],[float(x["EDNA"]) if x["EDNA"]!="" else 0 for x in isaDict.values()]])
-    sns.set(color_codes=True)
-    sns.set_context("paper")
-    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
-    plt.figure(figsize=(28, 6), dpi=150)
-    plt.ylabel('ISa')
-    ax = sns.tsplot(data=isas, ci=[50, 90], color="#82be00")
-    ax.set(xticks=range(len([x for x in isaDict])), xticklabels= [x.split("-")[-1] for x in isaDict])
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)
-    plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
-    for s in shiftList:
-        try:
-            shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
-        except:
-            pass
-    def maxList(search_list):
-        size=[len(x) for x in search_list]
-        return max(size)
-    #Resolution plots
-    #pdbList=glob.glob(path+"/fragmax/results/"+acr+"*/*/*/final.pdb")
-    pdbList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    resDict=dict()
-    for pdb in pdbList:
-        dataset=pdb.split("/")[8]
-        proc=pdb.split("/")[9]
-        ref=pdb.split("/")[10]
-        with open(pdb,"r") as inp:
-            pdbfile=inp.readlines()
-            for n,line in enumerate(pdbfile):        
-                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS)" in line:
-                    reshigh=line.split()[-1]
-                if "REMARK   3   RESOLUTION RANGE LOW  (ANGSTROMS)" in line:
-                    reslow=line.split()[-1]
-                if "REMARK   3   R VALUE            (WORKING SET) :" in line:
-                    rwork=line.split()[-1]
-                if "REMARK   3   FREE R VALUE                     :" in line:
-                    rfree=line.split()[-1]
-        try:
-            resDict[dataset].append(float(reshigh))
-        except KeyError:
-            resDict[dataset]=[float(reshigh)]
-    for k,v in resDict.items():
-        resDict[k]+=((maxList(list(resDict.values()))-len(v))*[0])
-    res=np.array([x for x in resDict.values()])
-    sns.set(color_codes=True)
-    sns.set_context("paper")
-    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
-    plt.figure(figsize=(28, 6), dpi=100)
-    plt.ylabel('Resolution (Å)')
-    ax = sns.tsplot(data=np.transpose(res), ci=[50, 90], color="#82be00")
-    ax.set(xticks=range(len([x for x in resDict.values()])), xticklabels= [x.split("-")[-1] for x in resDict])
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)
+    #for s in shiftList:
+    #resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
     
+    resultsList=list()
+    for s in shiftList:
+        p="/data/visitors/biomax/"+proposal+"/"+s
+        resultsList+=glob.glob(p+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
+    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
+    
+    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","ISa","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
+        for entry in resultsList:
+            row = ThreadWithReturnValue(target=info_func, args=(entry,isaDict,))
+            row.start()
+            
+            if row.join() is not None:
+                writer.writerow(row.join())
+    
+    
+    #########################   
+
+    rst=pd.read_csv(path+"/fragmax/process/"+acr+"/results.csv")
+    unq=list()
+    nt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]
+ 
+    plt.figure(figsize=(30, 10), dpi=150)
+    ax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    ax.set_xlabel("Dataset")
+    ax.set_ylabel("ISa")
+    nt=ax.set_xticklabels(unq)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)    
+    plt.tight_layout()
+    plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
+
+
+    sns.set(color_codes=True)
+    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+
+    plt.figure(figsize=(30, 10), dpi=150)
+    ax=sns.lineplot(x="dataset",y="r_free",data=rst, ci=66,label="Rfree", color="#82be00")
+    ax=sns.lineplot(x="dataset",y="r_work",data=rst, ci=66,label="Rwork", color="#fea901")
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    ax.set_xlabel("Dataset")
+    ax.set_ylabel("Rfactor")
+    nt=ax.set_xticklabels(unq)
+    plt.tight_layout()
+    plt.savefig(path+'/fragmax/process/'+acr+'/Rfactors.png', bbox_inches='tight')
+
+
+
+    plt.figure(figsize=(30, 10), dpi=150)
+    ax=sns.lineplot(x="dataset",y="a",data=rst,ci="sd", label="a" )
+    ax=sns.lineplot(x="dataset",y="b",data=rst,ci="sd",label="b" )
+    ax=sns.lineplot(x="dataset",y="c",data=rst,ci="sd",label="c" )
+    ax=sns.lineplot(x="dataset",y="alpha",data=rst,ci="sd",label="alpha" )
+    ax=sns.lineplot(x="dataset",y="beta",data=rst,ci="sd",label="beta" )
+    ax=sns.lineplot(x="dataset",y="gamma",data=rst,ci="sd",label="gamma" )
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)    
+    ax.set_xlabel("Dataset")
+    ax.set_ylabel("Cell Parameter")
+    nt=ax.set_xticklabels(unq)
+    plt.savefig(path+'/fragmax/process/'+acr+'/Cellparameters.png', bbox_inches='tight')
+
+
+    plt.figure(figsize=(30, 10), dpi=150)
+    ax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    ax.set_xlabel("Dataset")
+    ax.set_ylabel("Resolution")
+    nt=ax.set_xticklabels(unq)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)    
+    plt.tight_layout()
     plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
     for s in shiftList:
         try:
             shutil.copyfile(path+'/fragmax/process/'+acr+'/Resolutions.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Resolutions.png')
+            shutil.copyfile(path+'/fragmax/process/'+acr+'/Rworks.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Rfactors.png')
+            shutil.copyfile(path+'/fragmax/process/'+acr+'/Cellparameters.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Cellparameters.png')
+            shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
+            
         except:
             pass
+
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
