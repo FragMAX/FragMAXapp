@@ -1877,7 +1877,7 @@ def submit_pandda(request):
         '''            shutil.copyfile(src,dst)\n'''
         '''def pandda_run(method):\n'''
         '''    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''
-        '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=24" \n'''
+        '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16" \n'''
         '''    subprocess.call(command, shell=True)\n'''
         '''    if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:\n'''
         '''        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]\n'''
@@ -2751,8 +2751,6 @@ def resultSummary():
                 dimple_log=inp.readlines()
             blist=list()
             for n,line in enumerate(dimple_log):
-                if "data_file: " in line:
-                    usrpdbpath= line.replace("data_file: ","")
                 if "# MTZ " in line:
                     spg=line.split(")")[1].split("(")[0].replace(" ","")
                     a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
@@ -2770,9 +2768,9 @@ def resultSummary():
                 if line.startswith("info: resol. "):
                     resolution=line.split()[2]
                     resolution=str("{0:.2f}".format(float(resolution)))
-            pdbout  ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final.pdb"
-            dif_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_2mFo-DFc.ccp4"
-            nat_map ="/".join(usrpdbpath.split("/")[3:-1])+"/dimple/final_mFo-DFc.ccp4"
+            pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
+            dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
+            nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
 
         if "buster" in usracr:
             with open(entry,"r") as inp:
