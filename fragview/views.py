@@ -2919,74 +2919,70 @@ def resultSummary():
     
     #########################   
 
-    # rst=pd.read_csv(path+"/fragmax/process/"+acr+"/results.csv")
-    # unq=list()
-    # nt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]
-    # sns.set(color_codes=True)
-    # sns.set_style("darkgrid", {"axes.facecolor": ".9"})
-    # plt.figure(figsize=(30, 10), dpi=150)
-    # ax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)
-    # ax.set_xlabel("Dataset")
-    # ax.set_ylabel("ISa")
-    # nt=ax.set_xticklabels(unq)
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)    
-    # plt.tight_layout()
-    # plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
+    acr="AR"
+    with open(path+"/fragmax/scripts/plots.py","w") as writeFile:
+        writeFile.write('''#!/mxn/home/guslim/anaconda2/envs/Python36/bin/python'''
+                        '''\nimport pandas as pd'''
+                        '''\nimport seaborn as sns'''
+                        '''\nimport matplotlib.pyplot as plt'''
+                        '''\nimport shutil'''
+                        '''\nrst=pd.read_csv("'''+path+'''/fragmax/process/'''+acr+'''/results.csv")'''
+                        '''\nunq=list()'''
+                        '''\nnt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]'''
+                        '''\nsns.set(color_codes=True)'''
+                        '''\nsns.set_style("darkgrid", {"axes.facecolor": ".9"})'''
+                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
+                        '''\nax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)'''
+                        '''\nax.set_xlabel("Dataset")'''
+                        '''\nax.set_ylabel("ISa")'''
+                        '''\nnt=ax.set_xticklabels(unq)'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)    '''
+                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png", bbox_inches='tight')'''
+                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
+                        '''\nax=sns.lineplot(x="dataset", y="r_free",data=rst, ci=66,  label="Rfree", color="#82be00")'''
+                        '''\nax=sns.lineplot(x="dataset", y="r_work",data=rst, ci=66,  label="Rwork", color="#fea901")'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)'''
+                        '''\nax.set_xlabel("Dataset")'''
+                        '''\nax.set_ylabel("Rfactor")'''
+                        '''\nnt=ax.set_xticklabels(unq)'''
+                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png", bbox_inches='tight')'''
+                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
+                        '''\nax=sns.lineplot(x="dataset", y="a"    , data=rst, ci="sd", label="a" )'''
+                        '''\nax=sns.lineplot(x="dataset", y="b"    , data=rst, ci="sd", label="b" )'''
+                        '''\nax=sns.lineplot(x="dataset", y="c"    , data=rst, ci="sd", label="c" )'''
+                        '''\nax=sns.lineplot(x="dataset", y="alpha", data=rst, ci="sd", label="alpha" )'''
+                        '''\nax=sns.lineplot(x="dataset", y="beta" , data=rst, ci="sd", label="beta" )'''
+                        '''\nax=sns.lineplot(x="dataset", y="gamma", data=rst, ci="sd", label="gamma" )'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)    '''
+                        '''\nax.set_xlabel("Dataset")'''
+                        '''\nax.set_ylabel("Cell Parameter")'''
+                        '''\nnt=ax.set_xticklabels(unq)'''
+                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png", bbox_inches='tight')'''
+                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
+                        '''\nax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)'''
+                        '''\nax.set_xlabel("Dataset")'''
+                        '''\nax.set_ylabel("Resolution")'''
+                        '''\nnt=ax.set_xticklabels(unq)'''
+                        '''\nfor tick in ax.get_xticklabels():'''
+                        '''\n    tick.set_rotation(90)    '''
+                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png", bbox_inches='tight')'''
+                        '''\nfor s in ['''+",".join(shiftList)+''']:'''
+                        '''\n    try:'''
+                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Resolutions.png")'''
+                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Rfactors.png")'''
+                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Cellparameters.png")'''
+                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/ISas.png")'''
+                        '''\n    except:'''
+                        '''\n        pass''')
+    subprocess.call("/mxn/home/guslim/anaconda2/envs/Python36/bin/python /data/visitors/biomax/20180479/20190622/fragmax/scripts/plots.py",shell=True)
 
-
-    
-
-    # plt.figure(figsize=(30, 10), dpi=150)
-    # ax=sns.lineplot(x="dataset",y="r_free",data=rst, ci=66,label="Rfree", color="#82be00")
-    # ax=sns.lineplot(x="dataset",y="r_work",data=rst, ci=66,label="Rwork", color="#fea901")
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)
-    # ax.set_xlabel("Dataset")
-    # ax.set_ylabel("Rfactor")
-    # nt=ax.set_xticklabels(unq)
-    # plt.tight_layout()
-    # plt.savefig(path+'/fragmax/process/'+acr+'/Rfactors.png', bbox_inches='tight')
-
-
-
-    # plt.figure(figsize=(30, 10), dpi=150)
-    # ax=sns.lineplot(x="dataset",y="a",data=rst,ci="sd", label="a" )
-    # ax=sns.lineplot(x="dataset",y="b",data=rst,ci="sd",label="b" )
-    # ax=sns.lineplot(x="dataset",y="c",data=rst,ci="sd",label="c" )
-    # ax=sns.lineplot(x="dataset",y="alpha",data=rst,ci="sd",label="alpha" )
-    # ax=sns.lineplot(x="dataset",y="beta",data=rst,ci="sd",label="beta" )
-    # ax=sns.lineplot(x="dataset",y="gamma",data=rst,ci="sd",label="gamma" )
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)    
-    # ax.set_xlabel("Dataset")
-    # ax.set_ylabel("Cell Parameter")
-    # nt=ax.set_xticklabels(unq)
-    # plt.savefig(path+'/fragmax/process/'+acr+'/Cellparameters.png', bbox_inches='tight')
-
-
-    # plt.figure(figsize=(30, 10), dpi=150)
-    # ax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)
-    # ax.set_xlabel("Dataset")
-    # ax.set_ylabel("Resolution")
-    # nt=ax.set_xticklabels(unq)
-    # for tick in ax.get_xticklabels():
-    #     tick.set_rotation(90)    
-    # plt.tight_layout()
-    # plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
-    # for s in shiftList:
-    #     try:
-    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Resolutions.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Resolutions.png')
-    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Rworks.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Rfactors.png')
-    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Cellparameters.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Cellparameters.png')
-    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
-            
-    #     except:
-    #         pass
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()

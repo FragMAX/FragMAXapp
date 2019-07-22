@@ -117,7 +117,7 @@
 
 <script>
 
-function readTextFile(file)
+{% comment %} function readTextFile(file)
 {
   var myWindow = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800");
   myWindow.document.write('<title>'+file+'</title>');
@@ -126,7 +126,7 @@ function readTextFile(file)
    .then( r => r.text() )
    .then( t => myWindow.document.write(t.split("\n").join('<br>')) )  ;
    
-}
+} {% endcomment %}
 
 </script>
 {% endblock %}
