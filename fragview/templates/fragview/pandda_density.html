@@ -8,10 +8,14 @@
   <meta name="viewport" content="width=device-width, user-scalable=no">
   <meta name="theme-color" content="#333333">
   <style>
-   body { font-family: sans-serif; }
+  body { font-family: sans-serif; }
    canvas { 
      display: flex; 
      }
+  .side-table{
+    font-size: 15px;
+    line-height: 3px;
+  }
    #viewer {
      position: absolute;
      left: 550px;
@@ -61,8 +65,22 @@
      display: none;
    }
    a { color: #59C; }
-   #viewer b { color: #FCFCFC; }
-   #viewer b { position: absolute; top: 20px; left: 20px; }
+   
+   #viewer b { 
+    color: #FCFCFC; 
+    position: absolute; 
+    top: 20px; 
+    left: 20px; }
+   .svg {
+    -webkit-filter: contrast(0.5);
+    filter: contrast(0.5);
+    }
+    .navbt{
+      width: 110px;
+      font-size: 11px;
+
+
+    }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -71,8 +89,6 @@
 <body style="background-color: white">
 
   
-     <div id="viewer" ><b><h6 style="padding-left:20px">{{dataset }}_{{method}}</h6></b></div>
-
     
     
     <div id="left-controlpanel" >
@@ -206,27 +222,21 @@
           </label></div>
         </div> 
       </div> 
-
-      <div style="padding-left:15px !important; padding-top:90px !important;">    
-          <div>
-            <h6>Expected ligand</h6>
-          </div>
-      <img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
-      </div>
     </div>
 
 
 
     <div style="display:flex;">
-    {% comment %} <div ><input class="btn " type="button" value="Previous blob" onclick="return previousblob()" ></input> </div>
-    <div style="padding-left:20px !important;"><input class="btn" type="button" value="Next blob" onclick="return nextblob()" ></input> </div> {% endcomment %}
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+      <img class="ligpng svg" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" >
+      <b><h6 >{{dataset }}_{{method}}</h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>
 
     
-    <div id="viewer"></div>
+
+    <div id="viewer" ></div>
 
     <footer id="help"></footer>
     <div id="inset"></div>

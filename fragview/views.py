@@ -516,7 +516,7 @@ def results_density(request):
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     result_info=list(filter(lambda x:x[0]==value,lines))[0]
-    usracr,pdbout,nat_map,dif_map,spg,resolution,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
+    usracr,pdbout,nat_map,dif_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
     
     if os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
         if not os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final_2mFo-DFc.ccp4"):
@@ -1196,7 +1196,7 @@ def pandda_density(request):
     if len(panddaInput.split(";"))==3:
         method,dataset,nav=panddaInput.split(";")
     
-    mdl=[x.split("/")[-3] for x in sorted(glob.glob(path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
+    mdl=[x.split("/")[-3] for x in sorted(glob.glob(path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
     if len(mdl)!=0:
         indices = [i for i, s in enumerate(mdl) if dataset in s][0]
         
@@ -1216,7 +1216,7 @@ def pandda_density(request):
 
 
         ligand=dataset.split("-")[-1].split("_")[0]
-        modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
+        modelledDir=path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
         pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
         
         center="[0,0,0]"
@@ -1267,8 +1267,8 @@ def pandda_density(request):
         
 
         pdb=pdb.replace("/data/visitors/","")
-        map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
-        map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+        map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
+        map2=glob.glob('/data/visitors/biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+'/*BDC*ccp4')[0].replace("/data/visitors/","")
         summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/"+dataset+"/html/"+dataset+".html")
         return render(request,'fragview/pandda_density.html', {
             "siten":site,
@@ -1311,8 +1311,8 @@ def pandda_densityC(request):
     dataset,site_idx,event_idx,method,ddtag,run=panddaInput.split(";")
     
     
-    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
-    map2=glob.glob(path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
+    map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
+    map2=glob.glob(path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
     summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
 
     allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents([])
@@ -1322,7 +1322,7 @@ def pandda_densityC(request):
 
 
     ligand=dataset.split("-")[-1].split("_")[0]+ddtag
-    modelledDir=path+'/fragmax/results/pandda/'+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/modelled_structures/'
+    modelledDir=path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/modelled_structures/'
     pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
     pdb=pdb.replace("/data/visitors/","")
     center="[0,0,0]"
@@ -2114,8 +2114,9 @@ def panddaEvents(filters):
 def fix_pandda_symlinks():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     
-    subprocess.call('''cd "+path+"/fragmax/results/pandda/"+acr+"/ ; find -type l -iname "*-pandda-input.*" -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;''')
-    subprocess.call('''cd "+path+"/fragmax/results/pandda/"+acr+"/ ; find -type l -iname "*pandda-model.pdb*" -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;''')
+    subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
+    subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
+    subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; chmod -R 770 .""",shell=True)
     
     # for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
     #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
@@ -2918,74 +2919,74 @@ def resultSummary():
     
     #########################   
 
-    rst=pd.read_csv(path+"/fragmax/process/"+acr+"/results.csv")
-    unq=list()
-    nt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]
- 
-    plt.figure(figsize=(30, 10), dpi=150)
-    ax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)
-    ax.set_xlabel("Dataset")
-    ax.set_ylabel("ISa")
-    nt=ax.set_xticklabels(unq)
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)    
-    plt.tight_layout()
-    plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
+    # rst=pd.read_csv(path+"/fragmax/process/"+acr+"/results.csv")
+    # unq=list()
+    # nt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]
+    # sns.set(color_codes=True)
+    # sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+    # plt.figure(figsize=(30, 10), dpi=150)
+    # ax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)
+    # ax.set_xlabel("Dataset")
+    # ax.set_ylabel("ISa")
+    # nt=ax.set_xticklabels(unq)
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)    
+    # plt.tight_layout()
+    # plt.savefig(path+'/fragmax/process/'+acr+'/ISas.png', bbox_inches='tight')
 
 
-    sns.set(color_codes=True)
-    sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+    
 
-    plt.figure(figsize=(30, 10), dpi=150)
-    ax=sns.lineplot(x="dataset",y="r_free",data=rst, ci=66,label="Rfree", color="#82be00")
-    ax=sns.lineplot(x="dataset",y="r_work",data=rst, ci=66,label="Rwork", color="#fea901")
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)
-    ax.set_xlabel("Dataset")
-    ax.set_ylabel("Rfactor")
-    nt=ax.set_xticklabels(unq)
-    plt.tight_layout()
-    plt.savefig(path+'/fragmax/process/'+acr+'/Rfactors.png', bbox_inches='tight')
-
+    # plt.figure(figsize=(30, 10), dpi=150)
+    # ax=sns.lineplot(x="dataset",y="r_free",data=rst, ci=66,label="Rfree", color="#82be00")
+    # ax=sns.lineplot(x="dataset",y="r_work",data=rst, ci=66,label="Rwork", color="#fea901")
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)
+    # ax.set_xlabel("Dataset")
+    # ax.set_ylabel("Rfactor")
+    # nt=ax.set_xticklabels(unq)
+    # plt.tight_layout()
+    # plt.savefig(path+'/fragmax/process/'+acr+'/Rfactors.png', bbox_inches='tight')
 
 
-    plt.figure(figsize=(30, 10), dpi=150)
-    ax=sns.lineplot(x="dataset",y="a",data=rst,ci="sd", label="a" )
-    ax=sns.lineplot(x="dataset",y="b",data=rst,ci="sd",label="b" )
-    ax=sns.lineplot(x="dataset",y="c",data=rst,ci="sd",label="c" )
-    ax=sns.lineplot(x="dataset",y="alpha",data=rst,ci="sd",label="alpha" )
-    ax=sns.lineplot(x="dataset",y="beta",data=rst,ci="sd",label="beta" )
-    ax=sns.lineplot(x="dataset",y="gamma",data=rst,ci="sd",label="gamma" )
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)    
-    ax.set_xlabel("Dataset")
-    ax.set_ylabel("Cell Parameter")
-    nt=ax.set_xticklabels(unq)
-    plt.savefig(path+'/fragmax/process/'+acr+'/Cellparameters.png', bbox_inches='tight')
+
+    # plt.figure(figsize=(30, 10), dpi=150)
+    # ax=sns.lineplot(x="dataset",y="a",data=rst,ci="sd", label="a" )
+    # ax=sns.lineplot(x="dataset",y="b",data=rst,ci="sd",label="b" )
+    # ax=sns.lineplot(x="dataset",y="c",data=rst,ci="sd",label="c" )
+    # ax=sns.lineplot(x="dataset",y="alpha",data=rst,ci="sd",label="alpha" )
+    # ax=sns.lineplot(x="dataset",y="beta",data=rst,ci="sd",label="beta" )
+    # ax=sns.lineplot(x="dataset",y="gamma",data=rst,ci="sd",label="gamma" )
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)    
+    # ax.set_xlabel("Dataset")
+    # ax.set_ylabel("Cell Parameter")
+    # nt=ax.set_xticklabels(unq)
+    # plt.savefig(path+'/fragmax/process/'+acr+'/Cellparameters.png', bbox_inches='tight')
 
 
-    plt.figure(figsize=(30, 10), dpi=150)
-    ax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)
-    ax.set_xlabel("Dataset")
-    ax.set_ylabel("Resolution")
-    nt=ax.set_xticklabels(unq)
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(90)    
-    plt.tight_layout()
-    plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
-    for s in shiftList:
-        try:
-            shutil.copyfile(path+'/fragmax/process/'+acr+'/Resolutions.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Resolutions.png')
-            shutil.copyfile(path+'/fragmax/process/'+acr+'/Rworks.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Rfactors.png')
-            shutil.copyfile(path+'/fragmax/process/'+acr+'/Cellparameters.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Cellparameters.png')
-            shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
+    # plt.figure(figsize=(30, 10), dpi=150)
+    # ax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)
+    # ax.set_xlabel("Dataset")
+    # ax.set_ylabel("Resolution")
+    # nt=ax.set_xticklabels(unq)
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(90)    
+    # plt.tight_layout()
+    # plt.savefig(path+'/fragmax/process/'+acr+'/Resolutions.png', bbox_inches='tight')
+    # for s in shiftList:
+    #     try:
+    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Resolutions.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Resolutions.png')
+    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Rworks.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Rfactors.png')
+    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/Cellparameters.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/Cellparameters.png')
+    #         shutil.copyfile(path+'/fragmax/process/'+acr+'/ISas.png',"/data/visitors/biomax/"+proposal+"/"+s+'/fragmax/process/'+acr+'/ISas.png')
             
-        except:
-            pass
+    #     except:
+    #         pass
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
