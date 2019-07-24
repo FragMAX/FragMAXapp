@@ -32,7 +32,6 @@ import pandas as pd
 
 
 ################################
-#User specific data
 #Changing this parameters for different projects based on user credentials
 
 
@@ -3200,7 +3199,7 @@ def process2results(spacegroup, filters):
                 '''\npath="%s"'''
                 '''\nacr="%s"'''
                 '''\nspg="%s"'''
-                '''\nsubprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)'''
+                '''\n#subprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)'''
                 '''\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'''
                 '''\nfor dataset in datasetList:    '''
                 '''\n    if glob.glob(dataset+"autoproc/*mtz")!=[]:'''
