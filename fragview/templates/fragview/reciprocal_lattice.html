@@ -72,20 +72,25 @@
   <div id="viewer"></div>
   <header id="hud" onmousedown="event.stopPropagation();"
                    ondblclick="event.stopPropagation();"
-             >This is reciprocal UM. <a href="#"
+             >Data is loading. <a href="#"
                          onclick="V.toggle_help(); return false;"
                          >H shows help.</a></header>
       <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 300px">      
-        <b><h6 >DIALS rlp.json file. Example data {{dataset}}</h6></b>        
+        <b><h6 >DIALS rlp.json of {{dataset}}</h6></b>        
         </div>
   <footer id="help"></footer>
   <div id="inset"></div>
   <script>
+  var loadReciprocal = function(){
     V = new UM.ReciprocalViewer({viewer: "viewer", hud: "hud", help: "help"});
-    
-    
-    V.load_data("{{rlp}}");
-    
+    V.load_data("{{rlp}}");}
+    var waittime=5000
+    {% if state == "none" %}
+        waittime=10
+    {% endif %}
+    window.onload = function() {
+      setTimeout(loadReciprocal, waittime);
+      }
   </script>
 </body>
 

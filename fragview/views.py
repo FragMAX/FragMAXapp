@@ -654,12 +654,13 @@ def reciprocal_lattice(request):
     
     dataset=str(request.GET.get('dataHeader')) 
     flatlist=[y for x in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/"+dataset+"/dials/DEFAULT/NATIVE/*/index/2_SWEEP*") for s in shiftList] for y in x]
+    state="new"
     if flatlist != []:
         rlpdir="/".join(flatlist[0].split("/")[:-1])
         if os.path.exists(rlpdir+"/rlp.json"):
             rlpdir="/".join(flatlist[0].split("/")[:-1])
             rlp=rlpdir+"/rlp.json"
-            
+            state="none"
         else:
             
             cmd='echo "module load DIALS;cd '+rlpdir+'; dials.export 2_SWEEP1_datablock.json 2_SWEEP1_strong.pickle format=json" | ssh -F ~/.ssh/ clu0-fe-1'
@@ -668,7 +669,7 @@ def reciprocal_lattice(request):
     else:
         rlp="none2"
     rlp=rlp.replace("/data/visitors/","/static/")
-    return render(request,'fragview/reciprocal_lattice.html', {'dataset': dataset, "rlp":rlp})
+    return render(request,'fragview/reciprocal_lattice.html', {'dataset': dataset, "rlp":rlp,"state":state})
     
 
 def compare_poses(request):   
