@@ -100,10 +100,10 @@
         <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{nextstr}}" name="structure" size="1" >Next event</button></form>
         </div>
 
-        {% comment %} <div style="display:flex" >        
-        <form action="/pandda_densityC/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{prevstr}}" name="structure" size="1" >Prev  site</button></form>        
-        <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{nextstr}}" name="structure" size="1" >Next  site</button></form>
-        </div> {% endcomment %}
+         <div style="display:flex" >        
+        <form action="/pandda_densityC/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{prevstr}}" name="structure" size="1" disabled>Prev  site</button></form>        
+        <form action="/pandda_densityC/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{nextstr}}" name="structure" size="1" disabled>Next  site</button></form>
+        </div> 
       </div>
       <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
         <table class="side-table">
@@ -164,12 +164,12 @@
         <h6>Load dataset or mtz</h6>
 
         <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Next mdld"  ></input> </div>
-          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Avg  map"  ></input> </div>
+          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Next mdld"  disabled></input> </div>
+          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Avg  map"  disabled></input> </div>
         </div>
         <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  ></input> </div>
-          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Unfitted"  ></input> </div>
+          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  disabled></input> </div>
+          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Unfitted"  disabled></input> </div>
         </div>
       </div>
 

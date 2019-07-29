@@ -38,8 +38,8 @@ urlpatterns = [
 
 
     path('ugly/', views.ugly, name='ugly'),
-    path('dual_ligand/', views.dual_ligand, name='dual_ligand'),
-    path('dual_ligand_notready/', views.dual_ligand, name='dual_ligand_notready'),
+    path('reciprocal_lattice/', views.reciprocal_lattice, name='reciprocal_lattice'),
+    path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
     path('dual_density/', views.compare_poses, name='dual_density'),
 
     path('ligfit_results/', views.ligfit_results, name='ligfit_results'),

@@ -25,7 +25,7 @@ SECRET_KEY = 'xcra)=3kh9#*39o=cj-bdw^rfukhgemgo^hh(k%uvu_@g3dcs#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["w-guslim-cc-0"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition

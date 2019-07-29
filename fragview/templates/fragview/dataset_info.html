@@ -4,6 +4,8 @@
 {% block title %}FragMAX - Dataset info{% endblock %}
 {% block content %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<meta name="theme-color" content="#333333">
 
 <style>
     td, th {
@@ -164,14 +166,50 @@
         display: block;
         max-height: 960px;
     }
+
+
+    /* Style the tab */
+    .tab {
+        overflow: hidden;
+
+        background-color: #f1f1f1;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+        background-color: #fea901;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+    }
 </style>
 
+
+<body >
 
 <div >
     <h5 style="padding-left:310px;" > {{imgprf}}_{{run}} Dataset information </h5>
     {{new_proc_run | safe}}
     <div style="display:flex; padding-left:310px; ">
         <h6 >Open processing report</h6>
+        
         {% if dialsOK == "ready" %}
         <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
             <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader" size="1">DIALS</button>
@@ -212,7 +250,6 @@
     <img class="modal-content" id="img01">
     <div id="caption"></div>
 </div>
-
 <div class="card_options">
     <div class=" card " style="min-width:925px">
         <div >
@@ -259,7 +296,7 @@
                             <td style="text-align:center">{{r_work}}</td>
                             <td style="text-align:center">{{r_free}}</td>
                             <td style="text-align:center">{{bonds}}</td>
-                            <td style="text-align:center">{{angles}}</td>
+                            <td class="rms" style="text-align:center">{{angles}}</td>
                             <td style="text-align:center">{{a}}</td>
                             <td style="text-align:center">{{b}}</td>
                             <td style="text-align:center">{{c}}</td>
@@ -286,9 +323,14 @@
 
 </div>
 </div>
+        
+
+
 <div class="flexdiv">
     <div id="snaps">
-        
+                <form action="/reciprocal_lattice/" method="get"  size="1" style="padding-left:25%; " target="_blank">
+                    <button class="btn-large" type="submit" value="{{imgprf}}_{{run}}" name="dataHeader" size="1">Open Reciprocal Lattice Viewer</button>
+                </form>
                 <img class="myImg diffsnap" id="diff1" src="{{diffraction1}}" >
         
                 <img class="myImg diffsnap" id="diff2" src="{{diffraction2}}" >
@@ -513,46 +555,12 @@
     </div>
 </div>
 
+
+
+</body>
+
 <script>
-    {% comment %} var f = document.getElementById("procB");
     
-    f.onsubmit = function dataproc() {
-        var procSW   = document.getElementsByName("procSW")[0].value;
-        var spg      = document.getElementsByName("spacegroup")[0].value;
-        var CellPar  = document.getElementsByName("cellparameters")[0].value;
-        var Friedel  = document.getElementsByName("friedel")[0].value;
-        var DRange   = document.getElementsByName("datarange")[0].value;
-        var ResCutoff= document.getElementsByName("rescutoff")[0].value;
-        var CCCutoff = document.getElementsByName("cccutoff")[0].value;
-        var Isigma   = document.getElementsByName("isigmacutoff")[0].value;
-        var custom   = document.getElementsByName("customdataproc")[0].value;
-        var imgdir   = document.getElementsByName("imgdirNAME")[0].innerHTML;
-        imgdir=imgdir.replace('<p style="word-break: break-all;">',"").replace("</p>","");
-        
-        
-        document.getElementsByName("submitProc")[0].value = "runProc;"+procSW+";"+spg+";"+CellPar+";"+Friedel+";"+DRange+";"+"{{numberOfImages}}"+";"+ResCutoff+";"+CCCutoff+";"+Isigma+";"+custom+";"+imgdir+";"+"{{imgprf}}_{{run}}"
-
-    }
-
-    var f2 = document.getElementById("refineB");
-    
-    f2.onsubmit = function refine() {
-        var procSW   = document.getElementsByName("procSW")[0].value;
-
-        var refineSW   = document.getElementsByName("refineSW")[0].value;
-        var refineMode = document.getElementsByName("refineMode")[0].value;
-        var spg        = document.getElementsByName("spacegroup")[0].value;
-        var ResCutoff  = document.getElementsByName("refrescutoff")[0].value;
-        var mrthresh   = document.getElementsByName("mrthresh")[0].value;        
-        var pdbmodel   = document.getElementsByName("pdbmodel")[0].value;
-        var custom     = document.getElementsByName("customrefine")[0].value;
-        var imgdir     = document.getElementsByName("imgdirNAME")[0].innerHTML;
-        imgdir=imgdir.replace('<p style="word-break: break-all;">',"").replace("</p>","");
-        
-        
-        document.getElementsByName("submitRefine")[0].value = "runRefine;"+procSW+";"+refineSW+";"+refineMode+";"+spg+";"+ResCutoff+";"+mrthresh+";"+pdbmodel+";"+custom+";"+imgdir+";"+"{{imgprf}}_{{run}}"
-
-    } {% endcomment %}
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -605,4 +613,23 @@
     })));
     
 </script>
+
+
+<script>
+    function openMethod(evt, methodName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(methodName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+
 {% endblock %}

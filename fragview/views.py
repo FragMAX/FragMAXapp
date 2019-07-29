@@ -649,13 +649,27 @@ def testfunc(request):
 def ugly(request):
     return render(request,'fragview/ugly.html')
 
-def dual_ligand(request):
-    #NOT USED ANYMORE
-    try:
-        a="load maps and pdb"
-        return render(request,'fragview/dual_ligand.html', {'Report': a})
-    except:
-        return render(request,'fragview/dual_ligand_notready.html', {'Report': a})
+def reciprocal_lattice(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    
+    dataset=str(request.GET.get('dataHeader')) 
+    flatlist=[y for x in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/"+dataset+"/dials/DEFAULT/NATIVE/*/index/2_SWEEP*") for s in shiftList] for y in x]
+    if flatlist != []:
+        rlpdir="/".join(flatlist[0].split("/")[:-1])
+        if os.path.exists(rlpdir+"/rlp.json"):
+            rlpdir="/".join(flatlist[0].split("/")[:-1])
+            rlp=rlpdir+"/rlp.json"
+            
+        else:
+            
+            cmd='echo "module load DIALS;cd '+rlpdir+'; dials.export 2_SWEEP1_datablock.json 2_SWEEP1_strong.pickle format=json" | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(cmd,shell=True)
+            rlp=rlpdir+"/rlp.json"
+    else:
+        rlp="none2"
+    rlp=rlp.replace("/data/visitors/","/static/")
+    return render(request,'fragview/reciprocal_lattice.html', {'dataset': dataset, "rlp":rlp})
+    
 
 def compare_poses(request):   
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -2116,7 +2130,13 @@ def fix_pandda_symlinks():
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; chmod -R 770 .""",shell=True)
-    
+    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    for dst in linksFolder:    
+        folder="/".join(i.split("/")[:-1])+"/"
+        pdbs=os.listdir(folder)
+        src=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
+        shutil.copyfile(src,dst)
+        
     # for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
     #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
     #     for i in linksFolder:        
