@@ -668,6 +668,13 @@ def reciprocal_lattice(request):
             rlp=rlpdir+"/rlp.json"
     else:
         rlp="none2"
+    if dataset in rlp:
+        timer=0
+        while os.path.exists(rlp)==False: 
+            if timer==20:
+                break
+            time.sleep(1)
+            timer+=1
     rlp=rlp.replace("/data/visitors/","/static/")
     return render(request,'fragview/reciprocal_lattice.html', {'dataset': dataset, "rlp":rlp,"state":state})
     
@@ -2369,7 +2376,7 @@ def reproc_web(request):
 
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
-    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe=userInput.split(";;")
+    empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt=userInput.split(";;")
     if "false" in dimpleSW:
         useDIMPLE=False
     else:
@@ -2404,7 +2411,7 @@ def refine_datasets(request):
             pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
     pdbmodel.replace(".pdb.pdb",".pdb")
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe)
+    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
@@ -3206,7 +3213,7 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def process2results(spacegroup, filters):
+def process2results(spacegroup, filters, aimlessopt):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     for dp in ["xdsapp","autoproc","xdsxscale","EDNA","fastdp","dials"]:
         #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
@@ -3220,7 +3227,8 @@ def process2results(spacegroup, filters):
                 '''\npath="%s"'''
                 '''\nacr="%s"'''
                 '''\nspg="%s"'''
-                '''\n#subprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)'''
+                '''\naimless="%s"'''
+                '''\nsubprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)'''
                 '''\ndatasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")'''
                 '''\nfor dataset in datasetList:    '''
                 '''\n    if glob.glob(dataset+"autoproc/*mtz")!=[]:'''
@@ -3235,21 +3243,24 @@ def process2results(spacegroup, filters):
                 '''\n    if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n        shutil.copyfile(srcmtz,dstmtz)'''
                 '''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    srcmtz=dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"'''
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    srcmtz=dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"'''
                 '''\n    if os.path.exists(srcmtz):'''
                 '''\n        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"'''
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):            '''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)            '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    mtzoutList=glob.glob(dataset+"xdsapp/*F.mtz")'''
                 '''\n    if mtzoutList!=[]:'''
                 '''\n        srcmtz=mtzoutList[0]    '''
@@ -3258,7 +3269,8 @@ def process2results(spacegroup, filters):
                 '''\n        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n            shutil.copyfile(srcmtz,dstmtz)        '''
                 '''\n            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)    '''
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    mtzoutList=glob.glob(path+"/process/"+acr+"/"+dataset.split("/")[-3]+"/*"+dataset.split("/")[-2]+"*/EDNA_proc/results/*_noanom_aimless.mtz")'''
                 '''\n    if mtzoutList!=[]:'''
                 '''\n        srcmtz=mtzoutList[0]    '''
@@ -3266,7 +3278,8 @@ def process2results(spacegroup, filters):
                 '''\n    if not os.path.exists(dstmtz) and os.path.exists(srcmtz):'''
                 '''\n        shutil.copyfile(srcmtz,dstmtz)        '''
                 '''\n        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n        subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)        '''
                 '''\n    mtzoutList=glob.glob(path+"/process/"+acr+"/"+dataset.split("/")[-3]+"/*"+dataset.split("/")[-2]+"*/fastdp/results/*_noanom_fast_dp.mtz.gz")'''
                 '''\n    if mtzoutList!=[]:'''
                 '''\n        srcmtz=mtzoutList[0]        '''
@@ -3280,7 +3293,8 @@ def process2results(spacegroup, filters):
                 '''\n                    pass'''
                 '''\n                a=dataset.split("process/")[0]+"results/"+dataset+"/fastdp/"+dataset+"_fastdp_unmerged.mtz"'''
                 '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
-                '''\n                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''%(path,acr,spacegroup))
+                '''\n        if aimless=="true":'''
+                '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''%(path,acr,spacegroup,aimlessopt))
                     
                 
 
@@ -3311,17 +3325,18 @@ def process2results(spacegroup, filters):
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
     
-def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe):
+def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    customreffspipe=customreffspipe.split("customrefinefspipe:")[-1]    
-    customrefbuster=customrefbuster.split("customrefinebuster:")[-1]
-    customrefdimple=customrefdimple.split("customrefinedimple:")[-1]
+    customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]    
+    customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
+    customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
+    aimlessopt      = aimlessopt.split("aimlessopt:")[-1]
     argsfit="none"
     if "filters:" in filters:
         filters=filters.split(":")[-1]
     if filters=="ALL":
         filters=""
-    process2results(spacegroup, filters) 
+    process2results(spacegroup, filters,aimlessopt) 
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
         writeFile.write('''\nimport commands, os, sys, glob, time, subprocess'''
                         '''\nargsfit=sys.argv[1]'''

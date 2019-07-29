@@ -339,7 +339,18 @@
                                 <tr>
                                     <th class=" top-options">Space group</th>
                                     <td class=" top-options">
-                                        <input class="refineform selectbox" name="refspacegroup" placeholder="P43212"></input>
+                                        
+                                        
+                                        <label>
+                                        <input class="refineform selectbox" name="refspacegroup" placeholder="P43212" ></input>   
+                                        </label>
+                                        <div class="checkbox" id="aimless">
+                                            <label>
+                                                <input id="aimlesscheckboxinput" name="aimlesscheckboxname"
+                                                    type="checkbox" class="filled-in dt-checkboxes" value="aimless">
+                                                <span for="aimlesscheckboxinput">Run aimless </span>
+                                            </label>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1156,9 +1167,9 @@
         } else {
             var dtsfilters = ";;filters:" + document.getElementsByName("dropdownDataset")[0].value
         }
-
+        var aimlessopt = ";;aimlessopt:" + document.getElementById("aimlesscheckboxinput").checked.toString()
         var refinecmd = dimpleSW + fspSW + busterSW + refinemode + mrthreshold + refinerescutoff + pdbmodel +
-            refspacegroup + dtsfilters + customrefdimple + customrefbuster + customreffspipe
+            refspacegroup + dtsfilters + customrefdimple + customrefbuster + customreffspipe + aimlessopt
         document.getElementsByName("submitrfProc")[0].value = refinecmd
 
     }
