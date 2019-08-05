@@ -30,6 +30,7 @@ urlpatterns = [
     path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
 
     path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
+    path('pandda_giant/', views.pandda_giant, name='pandda_giant'),
 
     path('pandda_notready/', views.pandda, name='pandda_notready'),
     path('pandda_running/', views.pandda, name='pandda_running'),

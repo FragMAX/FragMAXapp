@@ -2168,6 +2168,21 @@ def fix_pandda_symlinks():
 
     os.system("chmod -R g+rw "+path+"/fragmax/results/pandda/")
 
+def pandda_giant(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    scoreDict=dict()
+    available_scores=glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda-scores/residue_scores.html")
+    if available_scores!=[]:
+        for score in available_scores:
+            with open(score,"r") as readFile:
+                htmlcontent="".join(readFile.readlines())
+                
+            htmlcontent=htmlcontent.replace('src="./residue_plots','src="/static/'+'/'.join(score.split('/')[3:-1])+'/residue_plots')
+            scoreDict[score.split('/')[-3]]=htmlcontent
+        return render(request,'fragview/pandda_giant.html', {'scores_plots': scoreDict})
+    else:
+        return render(request, "fragview/index.html")
+
 #############################################
 
 def procReport(request):

@@ -326,11 +326,172 @@
 
 </div>
 </div>
-<h6>More information can be found at: <a href="https://pandda.bitbucket.io/manual.html" target="_blank">PanDDA Manual</a></h6>
-<h7><sup>1</sup>This option will take datasets from other pipeline combinations to fill the missing results, e.g. No processing with autoproc_dimple is available for the dataset X. The webapp will try to find results for dataset X from xdsapp_dimple, dials_fspipeline or other.</h7> 
 
 </div>
 
+<div >
+    <h5 style="padding-left:310px;" > Giant PanDDA </h5>
+    
+</div>
+
+
+<div class="card_options">
+    <div class="flexdiv_options card ">
+        <div class="flex-left">
+            <div>
+                <div class="card-content card-content-left">
+                    <table class="optionstable" > 
+                        <col width="8%">
+                        <col width="17%">
+                        <tbody>
+                        
+                <tr>
+                    <th class=" top-options">Available inspects</th>
+                    <td class=" top-options">
+                    <select class="selectbox" id="use_CAD" name="use_CAD">
+                            <option disabled value="yes"> -- select an option -- </option>
+                            <option value="method1">method1</option>
+                            <option value="method2">method2</option>
+                            <option value="method3">method3</option>
+                            <option value="no">No</option>
+                        </select>
+                    </td>
+                </tr>  
+
+                <tr>
+                    <th class=" top-options">Make restraints</sup></th>
+                    <td class=" top-options">
+                        <form id="groundstate" >
+                            <div class="checkbox" id="makerestraints">
+                            <label>
+                                <input id="allRestraint" name="allRestraint" type="checkbox" class="filled-in dt-checkboxes" value="allRestraint" checked>
+                                <span for="allRestraint">Create all restraints</span>
+                            </label>
+                            </div>
+                            <div class="checkbox" id="resnames" >
+                            <label>
+                                <input class="selectbox" name="resnames" placeholder="default: XXX"></input>
+                            </label>
+                            </div>
+                            
+                    </form> 
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th class=" top-options">Quick refine</sup></th>
+                    <td class=" top-options">
+                        <div style="display:flex">
+                            <select class="selectbox" name="compdatasets">
+                                <option selected disabled value="true"> -- PDB1 -- </option>
+                                <option value="true">pdbmodel</option>
+                                <option value="false">None</option>
+                            </select>
+                            <select class="selectbox" name="compdatasets">
+                                <option selected disabled value="true"> -- MTZ1 -- </option>
+                                <option value="true">mtzfile</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div style="display:flex">
+                            <select class="selectbox" name="compdatasets">
+                                <option selected disabled value="true"> -- PDB2 -- </option>
+                                <option value="true">pdbmodel</option>
+                                <option value="false">No</option>
+                            </select>
+                            <select class="selectbox" name="compdatasets">
+                                <option selected disabled value="true"> -- MTZ2 -- </option>
+                                <option value="true">mtzfile</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                
+                
+
+                </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex-center">
+        <div>
+
+            <div class="card-content card-content-left">
+                <table class="optionstable">
+                    <col width="8%">
+                    <col width="17%">
+                    <tbody>
+            
+            <tr>
+                <th class=" top-options">Split conformations</th>
+                <td class=" top-options">
+                   <div class="col s12 required inline" id="splitConfs">                            
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="autoproc_radio" name="proc_type" type="radio" value="refmac">
+                                <span class="item-label" for="autoproc_radio">Refmac refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="dials_radio" name="proc_type" type="radio" value="phenix">
+                                <span class="item-label" for="dials_radio">Phenix refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="manual">
+                                <span class="item-label" for="xdsxscale_radio">Manual refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="none" checked="checked">
+                                <span class="item-label" for="edna_proc_radio">No refine</span>
+                            </label></div>                             
+                        </div>
+                </td>
+            </tr>   
+            <tr>
+                <th class=" top-options">Dataset cluster</th>
+                <td class=" top-options">
+                   <select class="selectbox" id="datasetCluster" name="datasetCluster">
+                        <option selected disabled value="no"> -- select an option -- </option>
+                        <option value="Yes">Yes</option>                        
+                        <option value="no">No</option>
+                    </select>
+                </td>
+            </tr>  
+              
+            <tr>
+            <th class=" top-options">Score models</th>
+            <td class=" top-options">
+                <select class="selectbox" name="giantscore">                    
+                    <option selected value="Yes">Yes</option>             
+                    <option value="No">No</option>
+                </select>
+            </td>
+        <tr>
+            
+            </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="bottom-right">
+     <form action="/submit_pandda/" method="get" id="sendpandda" name="sendpandda" size="1" target="_blank">
+        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="pipedreamInput" name="panddaform" size="1" disabled>Run Giant PanDDA</button>
+    </form> 
+    
+
+</div>
+</div>
+
+<h6>More information can be found at: <a href="https://pandda.bitbucket.io/manual.html" target="_blank">PanDDA Manual</a></h6>
+<h7><sup>1</sup>This option will take datasets from other pipeline combinations to fill the missing results, e.g. No processing with autoproc_dimple is available for the dataset X. The webapp will try to find results for dataset X from xdsapp_dimple, dials_fspipeline or other.</h7> 
 
 <script>
 
