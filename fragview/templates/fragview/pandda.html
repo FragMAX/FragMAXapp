@@ -349,11 +349,10 @@
                     <th class=" top-options">Available inspects</th>
                     <td class=" top-options">
                     <select class="selectbox" id="use_CAD" name="use_CAD">
-                            <option disabled value="yes"> -- select an option -- </option>
-                            <option value="method1">method1</option>
-                            <option value="method2">method2</option>
-                            <option value="method3">method3</option>
-                            <option value="no">No</option>
+                            <option disabled selected value="yes"> -- select an option -- </option>
+                            {% for method in methods %}
+                            <option value="{{method}}">{{method}}</option>
+                            {% endfor %}
                         </select>
                     </td>
                 </tr>  
@@ -382,24 +381,24 @@
                     <th class=" top-options">Quick refine</sup></th>
                     <td class=" top-options">
                         <div style="display:flex">
-                            <select class="selectbox" name="compdatasets">
+                            <select class="selectbox" name="compdatasets" disabled>
                                 <option selected disabled value="true"> -- PDB1 -- </option>
                                 <option value="true">pdbmodel</option>
                                 <option value="false">None</option>
                             </select>
-                            <select class="selectbox" name="compdatasets">
+                            <select class="selectbox" name="compdatasets" disabled>
                                 <option selected disabled value="true"> -- MTZ1 -- </option>
                                 <option value="true">mtzfile</option>
                                 <option value="false">No</option>
                             </select>
                         </div>
                         <div style="display:flex">
-                            <select class="selectbox" name="compdatasets">
+                            <select class="selectbox" name="compdatasets" disabled>
                                 <option selected disabled value="true"> -- PDB2 -- </option>
                                 <option value="true">pdbmodel</option>
                                 <option value="false">No</option>
                             </select>
-                            <select class="selectbox" name="compdatasets">
+                            <select class="selectbox" name="compdatasets" disabled>
                                 <option selected disabled value="true"> -- MTZ2 -- </option>
                                 <option value="true">mtzfile</option>
                                 <option value="false">No</option>
@@ -432,20 +431,20 @@
                 <td class=" top-options">
                    <div class="col s12 required inline" id="splitConfs">                            
                             <div class="radio" id="confref_type"><label>
-                                <input class="with-gap" id="autoproc_radio" name="proc_type" type="radio" value="refmac">
-                                <span class="item-label" for="autoproc_radio">Refmac refine</span>
+                                <input class="with-gap" id="refmacradio" name="confproc_type" type="radio" value="refmac">
+                                <span class="item-label" for="refmacradio">Refmac refine</span>
                             </label></div>
                             <div class="radio" id="confref_type"><label>
-                                <input class="with-gap" id="dials_radio" name="proc_type" type="radio" value="phenix">
-                                <span class="item-label" for="dials_radio">Phenix refine</span>
+                                <input class="with-gap" id="phenixradio" name="confproc_type" type="radio" value="phenix">
+                                <span class="item-label" for="phenixradio">Phenix refine</span>
                             </label></div>
                             <div class="radio" id="confref_type"><label>
-                                <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="manual">
-                                <span class="item-label" for="xdsxscale_radio">Manual refine</span>
+                                <input class="with-gap" id="manualradio" name="confproc_type" type="radio" value="manual">
+                                <span class="item-label" for="manualradio">Manual refine</span>
                             </label></div>
                             <div class="radio" id="confref_type"><label>
-                                <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="none" checked="checked">
-                                <span class="item-label" for="edna_proc_radio">No refine</span>
+                                <input class="with-gap" id="norefineradio" name="confproc_type" type="radio" value="none" checked="checked">
+                                <span class="item-label" for="norefineradio">No refine</span>
                             </label></div>                             
                         </div>
                 </td>
@@ -453,7 +452,7 @@
             <tr>
                 <th class=" top-options">Dataset cluster</th>
                 <td class=" top-options">
-                   <select class="selectbox" id="datasetCluster" name="datasetCluster">
+                   <select class="selectbox" id="datasetCluster" name="datasetCluster" disabled>
                         <option selected disabled value="no"> -- select an option -- </option>
                         <option value="Yes">Yes</option>                        
                         <option value="no">No</option>

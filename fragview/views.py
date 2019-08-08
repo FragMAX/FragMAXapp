@@ -517,6 +517,13 @@ def results_density(request):
     result_info=list(filter(lambda x:x[0]==value,lines))[0]
     usracr,pdbout,nat_map,dif_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
     
+    if os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.pdb"):
+        if not os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
+            if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")!=[]:
+                mtzf=glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")[0]
+                mtzfd=path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"
+                shutil.copyfile(mtzf,mtzfd)
+
     if os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
         if not os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final_2mFo-DFc.ccp4"):
             cmd="cd "+path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/ ;"
@@ -1808,7 +1815,8 @@ def pandda_inspect(request):
             'buster':0})
 
 def pandda(request):
-    return render(request, "fragview/pandda.html")
+    methods=[x.split("/")[10] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/*inspect_events*")]
+    return render(request, "fragview/pandda.html",{"methods":methods})
 
 def submit_pandda(request):
 
@@ -1838,64 +1846,7 @@ def submit_pandda(request):
         '''else:\n'''
         '''    for i in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*"):\n'''
         '''        if i.split("/")[-1]!="pandda":\n'''
-        '''            shutil.rmtree(i)  \n'''
-        '''def prepare_pandda_files(method):\n'''        
-        '''    proc,ref=method.split("_")\n'''
-        '''    missing=list()\n'''
-        '''    optionsDict=dict()\n'''
-        '''    copypdb=dict()\n'''
-        '''    copymtz=dict()\n'''
-        '''    copylig=dict()\n'''
-        '''    copycif=dict()\n'''
-        '''    datasets=sorted([x.split("/")[-2] for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])\n'''
-        '''    refresults=sorted([item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/*/*/final.pdb") for s in shiftList] for item in it])\n'''
-        '''    selected=sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/*/*/final.pdb") for s in shiftList] for item in it] if method.replace("_","/") in x])\n'''
-        '''    for i in datasets:\n'''
-        '''        for j in selected:\n'''
-        '''            if i in j:\n'''
-        '''                missing.append(i)\n'''
-        '''    missing=list(set(datasets)-set(missing))\n'''
-        '''    for i in missing:\n'''
-        '''        options=list()\n'''
-        '''        for j in refresults:\n'''
-        '''            if i in j:\n'''
-        '''                options.append(j)\n'''
-        '''        if len(options)>0:\n'''
-        '''            optionsDict[i]=options\n'''
-        '''    for key,value in optionsDict.items():  \n'''
-        '''        opt=[x for x in value if ref in x or proc in x]\n'''
-        '''        if opt==[]:\n'''
-        '''            opt=value        \n'''
-        '''        if opt!=[]:\n'''
-        '''            selected.append(opt[0])\n'''
-        '''    for i in selected:\n'''
-        '''        a=path+"/fragmax/results/pandda/"+acr+"/"+"_".join(i.split("/")[-3:-1])+"/"+i.split("/")[8]+"/final.pdb"\n'''
-        '''        copypdb[i]=a\n'''
-        '''        copymtz[i.replace(".pdb",".mtz")]=a.replace(".pdb",".mtz")\n'''
-        '''        b=i.split("/")[8].split("-")[-1].split("_")[0]\n'''
-        '''        if "Apo" not in b:\n'''
-        '''            copylig[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".pdb"]="/".join(a.split("/")[:-1])+"/"+b+".pdb"\n'''
-        '''            copycif[path+"/fragmax/process/fragment/"+fraglib+"/"+b+"/"+b+".cif"]="/".join(a.split("/")[:-1])+"/"+b+".cif"\n'''
-        '''    for src,dst in copypdb.items():\n'''
-        '''        if not os.path.exists(dst):\n'''
-        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
-        '''                os.makedirs("/".join(dst.split("/")[:-1]))            \n'''
-        '''            shutil.copyfile(src,dst)\n'''
-        '''    for src,dst in copymtz.items():\n'''
-        '''        if not os.path.exists(dst):\n'''
-        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
-        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
-        '''            shutil.copyfile(src,dst)\n'''
-        '''    for src,dst in copylig.items():\n'''
-        '''        if not os.path.exists(dst):\n'''
-        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
-        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
-        '''            shutil.copyfile(src,dst)\n'''
-        '''    for src,dst in copycif.items():\n'''
-        '''        if not os.path.exists(dst):\n'''
-        '''            if not os.path.exists("/".join(dst.split("/")[:-1])):\n'''
-        '''                os.makedirs("/".join(dst.split("/")[:-1]))\n'''
-        '''            shutil.copyfile(src,dst)\n'''
+        '''            shutil.rmtree(i)  \n'''        
         '''def pandda_run(method):\n'''
         '''    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''
         '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16" \n'''
@@ -1920,60 +1871,56 @@ def submit_pandda(request):
         '''                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n'''
         '''                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n'''
         '''                        shutil.rmtree(v[0])\n'''
-        '''                pandda_run(method)\n'''
-        '''def fix_symlinks(method):\n'''
-        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")\n'''
-        '''    for i in linksFolder:        \n'''
-        '''        folder="/".join(i.split("/")[:-1])+"/"\n'''
-        '''        pdbs=os.listdir(folder)\n'''
-        '''        pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        \n'''
-        '''        shutil.move(i,i+".bak")\n'''
-        '''        shutil.copyfile(pdb,i)\n'''
-        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*")\n'''
-        '''    for _file in linksFolder:       \n'''
-        '''        dst=os.path.realpath(_file)    \n'''
-        '''        if _file!=dst:  \n'''
-        '''            shutil.move(_file,_file+".bak")\n'''
-        '''        \n'''
-        '''    linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*.bak")\n'''
-        '''    for _file in linksFolder:       \n'''
-        '''        dst=os.path.realpath(_file)    \n'''
-        '''        if _file!=dst: \n'''
-        '''            shutil.copyfile(dst,_file.replace(".bak",""))\n'''
-        '''def CAD_worker(mtzfile):\n'''
-        '''    stdout = subprocess.Popen('phenix.mtz.dump '+mtzfile, shell=True, stdout=subprocess.PIPE).stdout\n'''
-        '''    output = stdout.read().decode("utf-8")\n'''
-        '''    for line in output.split("\\n"):\n'''
-        '''        if "Resolution range" in line:\n'''
-        '''            highres=line.split()[-1]\n'''
-        '''    if "free" in "".join(output).lower():\n'''
-        '''        for line in output.split("\\n"):\n'''
-        '''            if "free" in line.lower():\n'''
-        '''                freeRflag=line.split()[0]\n'''
-        '''    else:  \n'''
-        '''        freeRflag="R-free-flags"        \n'''
-        '''    outmtz=mtzfile.split("final.mtz")[0]+"final.mtz"    \n'''
-        '''    os.chdir(mtzfile.replace("/results/","/process/").replace("final.mtz",""))       \n'''
-        '''    subprocess.call("uniqueify -f "+freeRflag+" "+mtzfile+" "+mtzfile.replace("/results/","/process/"),shell=True)\n'''
-        '''    cadCommand="""cad hklin1 """+mtzfile+ """ hklout """ +outmtz+ """ <<eof\n'''
-        ''' monitor BRIEF\n'''
-        ''' labin _file 1 - \n'''
-        '''  ALL"\n'''
-        ''' resolution _file 1 999.0 """+ highres+"""\n'''
-        '''eof"""\n'''
-        '''    subprocess.call(cadCommand,shell=True)\n'''
-        '''    subprocess.call("phenix.maps "+mtzfile.replace(".mtz",".pdb")+" "+mtzfile,shell=True    )\n'''
-        '''    subprocess.call("mv -f "+mtzfile.replace("final.mtz","final_2mFo-DFc_map.ccp4 ")+" "+mtzfile.replace(".mtz",".ccp4"),shell=True)\n'''
-        '''    subprocess.call("mv -f "+mtzfile.replace("final.mtz","final_map_coeffs.mtz"    )+" "+mtzfile,shell=True)\n'''
-        '''    return mtzfile, highres, freeRflag\n'''
+        '''                pandda_run(method)\n'''                
         '''def run_CAD():    \n'''
-        '''    dataPaths=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*/final.mtz")\n'''
-        '''    for key in dataPaths:\n'''
-        '''        if not os.path.exists(key.replace("/results/","/process/").replace("final.mtz","")):\n'''
-        '''            os.makedirs(key.replace("/results/","/process/").replace("final.mtz",""))            \n'''
-        '''    nproc=multiprocessing.cpu_count()\n'''
-        '''    multiprocessing.Pool(nproc).map(CAD_worker, dataPaths)    \n'''
-        '''prepare_pandda_files(method)\n'''
+        """    fragDict=dict()\n"""
+        """    datasetDict=dict()\n"""
+        """    for _dir in glob.glob(path+"/fragmax/process/fragment/"+fraglib+"/*"):\n"""
+        """        fragDict[_dir.split("/")[-1]]=_dir\n"""
+        """        \n"""
+        """    datasetDict ={dt.split("/")[-1].split("_master.h5")[0]:dt for dt in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])}\n"""
+        """    selectedDict={ x.split("/")[-4]:x for x in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/"+method.replace("_","/")+"/final.pdb") for s in shiftList] for item in it]]) }\n"""
+        """    missingDict ={ k : datasetDict[k] for k in set(datasetDict) - set(selectedDict) }\n"""
+        """    for dataset in missingDict:\n"""
+        """        optionList=[item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+dataset+"/*/*/final.pdb") for s in shiftList] for item in it ]\n"""
+        """        if optionList==[]:\n"""
+        """            selectedDict[dataset]=""\n"""
+        """        else:\n"""
+        """            prefered= sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s], reverse=True)    \n"""
+        """            if prefered ==[] and optionList!=[]:  \n"""
+        """                prefered=sorted([s for s in optionList if "dials" in s or "xdsapp" in s or "autoproc" in s], reverse=True)\n"""
+        """                if prefered ==[]:                  \n"""
+        """                    sub = optionList[0]            \n"""
+        """                elif prefered!=[]:\n"""
+        """                    sub = prefered[0]\n"""
+        """            elif prefered!=[]:\n"""
+        """                sub = prefered[0]\n"""
+        """            selectedDict[dataset]=sub\n"""
+        """    for dataset,pdb in selectedDict.items():\n"""
+        """        if os.path.exists(pdb):\n"""
+        """            proc,ref= method.split("_")        \n"""
+        """            frag=dataset.split("-")[-1].split("_")[0]\n"""
+        """            hklin=pdb.replace(".pdb",".mtz")\n"""
+        """            if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"):\n"""
+        """                os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/")\n"""
+        """            hklout=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
+        """            cmdcp1="cp "+pdb+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.pdb"\n"""
+        """            cmdcp2="cp "+hklin+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
+        """            cmd =  '''echo "RUN" | mtzdump HKLIN '''+hklin\n"""
+        """            output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")\n"""
+        """            for i in output.splitlines():\n"""
+        """                if "A )" in i:\n"""
+        """                    resHigh=i.split()[-3]\n"""
+        """                if "free" in i.lower():\n"""
+        """                    freeRflag=i.split()[-1]\n"""
+        """            cmd1 = '''echo "RUN" | echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout\n"""
+        """            cmd2 = '''uniqueify -f '''+freeRflag+''' '''+hklin+''' '''+hklout\n"""
+        """            subprocess.call(cmdcp1,shell=True)\n"""
+        """            subprocess.call(cmd1,shell=True)\n"""
+        """            subprocess.call(cmd2,shell=True)\n"""
+        """            if "Apo" not in dataset:        \n"""
+        """                cmdcp3="cp "+fragDict[frag]+"/"+frag+".cif "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".cif"\n"""
+        """                subprocess.call(cmdcp3,shell=True)\n"""
         '''run_CAD()\n'''
         '''pandda_run(method)\n'''        
         '''os.system('chmod -R g+rwx path+"/fragmax/results/pandda/"')\n'''
@@ -2715,28 +2662,44 @@ def resultSummary():
         isa      = isaDict[entry.split("/")[8]][entry.split("/")[9]]
 
         if "dimple" in usracr:
+            with open(entry,"r") as inp:
+                pdb_file=inp.readlines()
+            for line in pdb_file:
+                if "REMARK   3   FREE R VALUE                     :" in line:            
+                    r_free=line.split()[-1]
+                    r_free=str("{0:.2f}".format(float(r_free)))        
+                    #bonds=line.split()[10]
+                    #angles=line.split()[13]
+                if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
+                    r_work=line.split()[-1]
+                    r_work=str("{0:.2f}".format(float(r_work)))
+                if "REMARK   3   BOND LENGTHS REFINED ATOMS        (A):" in line:
+                    bonds=line.split()[-3]
+                if "REMARK   3   BOND ANGLES REFINED ATOMS   (DEGREES):" in line:
+                    angles=line.split()[-3]
+                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                    resolution=line.split(":")[-1].replace(" ","").replace("\n","")
+                    resolution=str("{0:.2f}".format(float(resolution)))
+                if "CRYST1" in line:
+                    a=line[9:15]
+                    b=line[18:24]
+                    c=line[27:33]
+                    alpha=line[34:40].replace(" ","")
+                    beta=line[41:47].replace(" ","")
+                    gamma=line[48:54].replace(" ","")
+                    a=str("{0:.2f}".format(float(a)))
+                    b=str("{0:.2f}".format(float(b)))
+                    c=str("{0:.2f}".format(float(c)))
+                    spg="".join(line.split()[-4:])
+
             entry=entry.replace("final.pdb","dimple.log")
             with open(entry,"r") as inp:
                 dimple_log=inp.readlines()
             blist=[]
-            for n,line in enumerate(dimple_log):
-                if "# MTZ " in line:
-                    spg=line.split(")")[1].split("(")[0].replace(" ","")
-                    a,b,c,alpha,beta,gamma=line.split(")")[1].split("(")[-1].replace(" ","").split(",")
-                    alpha=str("{0:.2f}".format(float(alpha)))
-                    beta=str("{0:.2f}".format(float(beta)))
-                    gamma=str("{0:.2f}".format(float(gamma)))
-                if line.startswith("info:") and "R/Rfree" in line:
-                    r_work,r_free=line.split("->")[-1].replace("\n","").replace(" ","").split("/")
-                    r_free=str("{0:.2f}".format(float(r_free)))
-                    r_work=str("{0:.2f}".format(float(r_work)))
+            for n,line in enumerate(dimple_log):                
                 if line.startswith("blobs: "):                     
                     blist=line.split(":")[-1].rstrip()
-                if line.startswith("#     RMS: "):
-                    bonds,angles=line.split()[5],line.split()[9]
-                if line.startswith("info: resol. "):
-                    resolution=line.split()[2]
-                    resolution=str("{0:.2f}".format(float(resolution)))
+                
             pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
             dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
             nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
@@ -2961,7 +2924,7 @@ def resultSummary():
     
     #########################   
 
-    acr="AR"
+    
     with open(path+"/fragmax/scripts/plots.py","w") as writeFile:
         writeFile.write('''#!/mxn/home/guslim/anaconda2/envs/Python36/bin/python'''
                         '''\nimport pandas as pd'''
@@ -2974,7 +2937,7 @@ def resultSummary():
                         '''\nsns.set(color_codes=True)'''
                         '''\nsns.set_style("darkgrid", {"axes.facecolor": ".9"})'''
                         '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="Resolution", color="#82be00")'''
+                        '''\nax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="ISa", color="#82be00")'''
                         '''\nfor tick in ax.get_xticklabels():'''
                         '''\n    tick.set_rotation(90)'''
                         '''\nax.set_xlabel("Dataset")'''
@@ -3023,7 +2986,7 @@ def resultSummary():
                         '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/ISas.png")'''
                         '''\n    except:'''
                         '''\n        pass''')
-    subprocess.call("/mxn/home/guslim/anaconda2/envs/Python36/bin/python /data/visitors/biomax/20180479/20190622/fragmax/scripts/plots.py",shell=True)
+    subprocess.call("/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py",shell=True)
 
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):

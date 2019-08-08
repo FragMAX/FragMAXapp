@@ -7,7 +7,24 @@
 {% block content %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
-<div style="padding-left:200px"><h4 align="center">Welcome to <br>FragMAX Project Manager WebApp</h4><div>
+<style>
+.center {
+    display: block;
+    padding-top: 150px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 65%;
+}
+.text-head{
+    position: absolute;
+    bottom: 20px;
+    left: 300px;
+}
+</style>
+<div style="padding-left:200px">
+<h4 class="text-head">FragMAX Project Manager WebApp</h4>
+<img src="{% static 'img/logo.svg' %}" class="center"></img>
+<div>
 
 
 
