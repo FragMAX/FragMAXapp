@@ -1827,7 +1827,7 @@ def submit_pandda(request):
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
     
     method=proc+"_"+ref
-    os.remove(path+"/fragmax/scripts/pandda_worker.py")
+    
     with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
         outp.write('''import os \n'''
         '''import glob\n'''
@@ -2690,7 +2690,7 @@ def resultSummary():
                     a=str("{0:.2f}".format(float(a)))
                     b=str("{0:.2f}".format(float(b)))
                     c=str("{0:.2f}".format(float(c)))
-                    spg="".join(line.split()[-4:])
+                    spg="".join(line.split()[7:])
 
             entry=entry.replace("final.pdb","dimple.log")
             with open(entry,"r") as inp:
@@ -2986,7 +2986,8 @@ def resultSummary():
                         '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/ISas.png")'''
                         '''\n    except:'''
                         '''\n        pass''')
-    subprocess.call("/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py",shell=True)
+    plotcmd="""echo '"""+"/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py"+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
+    subprocess.call(plotcmd,shell=True)
 
 
 def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
