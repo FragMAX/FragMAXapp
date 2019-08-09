@@ -1913,7 +1913,7 @@ def submit_pandda(request):
         """                if "free" in i.lower():\n"""
         """                    freeRflag=i.split()[-1]\n"""
         """            cmd1 = '''source /mxn/home/guslim/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; echo "RUN" | echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout\n"""
-        """            cmd2 = '''echo 'source $HOME/Apps/phenix/phenix-1.13-2998/phenix_env.sh; phenix.maps '''+hklout.replace(".mtz",".pdb")+''' '''+hklout+''' ' | ssh -F ~/.ssh/ w-guslim-cc-0'''\n"""  
+        """            cmd2 = '''echo 'source /mxn/home/guslim/Apps/phenix/phenix-1.13-2998/phenix_env.sh; phenix.maps '''+hklout.replace(".mtz",".pdb")+''' '''+hklout+''' ' | ssh -F ~/.ssh/ w-guslim-cc-0'''\n"""  
         """            cmd3 = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout\n"""
         """            subprocess.call(cmdcp1,shell=True)\n"""
         """            subprocess.call(cmd1,shell=True)\n"""
