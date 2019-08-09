@@ -918,8 +918,8 @@ def submit_pipedream(request):
         singlePipedreamOut+= """#SBATCH -N1\n"""
         singlePipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
         singlePipedreamOut+= """#SBATCH --mem=220000\n""" 
-        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.out\n"""
-        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j.err\n"""    
+        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j_out.txt\n"""
+        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j_err.txt\n"""    
         singlePipedreamOut+= """module purge\n"""
         singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
         
@@ -1039,8 +1039,8 @@ def submit_pipedream(request):
         header+= """#SBATCH -N1\n"""
         header+= """#SBATCH --cpus-per-task=40\n"""
         #header+= """#SBATCH --mem=220000\n""" 
-        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j.out\n"""
-        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j.err\n"""    
+        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
+        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""    
         header+= """module purge\n"""
         header+= """module load autoPROC BUSTER\n\n"""
         scriptList=list()
@@ -1115,7 +1115,7 @@ def get_pipedream_results():
                 if "ligand" not in xmlDict:
                     xmlDict["ligand"]="Apo"
                 if "resolution" in xmlDict:
-                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml",".out"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
+                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml","_out.txt"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
         
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -1827,7 +1827,6 @@ def submit_pandda(request):
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
     
     method=proc+"_"+ref
-    
     with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
         outp.write('''import os \n'''
         '''import glob\n'''
@@ -1906,18 +1905,22 @@ def submit_pandda(request):
         """            hklout=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
         """            cmdcp1="cp "+pdb+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.pdb"\n"""
         """            cmdcp2="cp "+hklin+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
-        """            cmd =  '''echo "RUN" | mtzdump HKLIN '''+hklin\n"""
+        """            cmd =  '''source /mxn/home/guslim/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; echo "RUN" | mtzdump HKLIN '''+hklin\n"""
         """            output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")\n"""
         """            for i in output.splitlines():\n"""
         """                if "A )" in i:\n"""
-        """                    resHigh=i.split()[-3]\n"""
+        """                    resHigh=i.split()[-3]\n""" 
         """                if "free" in i.lower():\n"""
         """                    freeRflag=i.split()[-1]\n"""
-        """            cmd1 = '''echo "RUN" | echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout\n"""
-        """            cmd2 = '''uniqueify -f '''+freeRflag+''' '''+hklin+''' '''+hklout\n"""
+        """            cmd1 = '''source /mxn/home/guslim/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; echo "RUN" | echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout\n"""
+        """            cmd2 = '''echo 'source $HOME/Apps/phenix/phenix-1.13-2998/phenix_env.sh; phenix.maps '''+hklout.replace(".mtz",".pdb")+''' '''+hklout+''' ' | ssh -F ~/.ssh/ w-guslim-cc-0'''\n"""  
+        """            cmd3 = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout\n"""
         """            subprocess.call(cmdcp1,shell=True)\n"""
         """            subprocess.call(cmd1,shell=True)\n"""
         """            subprocess.call(cmd2,shell=True)\n"""
+        """            coef_cmd = "mv "+hklout.replace("final.mtz","final_map_coeffs.mtz")+" "+hklout\n"""
+        """            os.system(coef_cmd)\n"""
+        """            subprocess.call(cmd3,shell=True)\n"""
         """            if "Apo" not in dataset:        \n"""
         """                cmdcp3="cp "+fragDict[frag]+"/"+frag+".cif "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".cif"\n"""
         """                subprocess.call(cmdcp3,shell=True)\n"""
@@ -1936,8 +1939,8 @@ def submit_pandda(request):
             outp.write('#SBATCH -N1\n')
             outp.write('#SBATCH --cpus-per-task=48\n')
             outp.write('#SBATCH --mem=220000\n')
-            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+method+'_%j.out\n')
-            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+method+'_%j.err\n')
+            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+method+'_%j_out.txt\n')
+            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+method+'_%j_err.txt\n')
             outp.write('module purge\n')
             outp.write('module load PReSTO\n')
             outp.write('\n')
@@ -2218,8 +2221,8 @@ def reproc_web(request):
             outp.write('\n#SBATCH --exclusive')
             outp.write('\n#SBATCH -N1')
             outp.write('\n#SBATCH --cpus-per-task=40')            
-            outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.out')
-            outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j.err')
+            outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j_out.txt')
+            outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_proc_'+procSW+'_%j_err.txt')
             outp.write('\n\nmodule purge')
             outp.write('\nmodule load CCP4 XDSAPP autoPROC Phenix BUSTER XDS')
 
@@ -2304,8 +2307,8 @@ def reproc_web(request):
                 outp.write('\n#SBATCH --exclusive')
                 outp.write('\n#SBATCH -N1')
                 outp.write('\n#SBATCH --cpus-per-task=40')            
-                outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j.out')
-                outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j.err')
+                outp.write('\n#SBATCH -o '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j_out.txt')
+                outp.write('\n#SBATCH -e '+path+'/fragmax/logs/manual_refine_'+procSW+'_'+refineSW+'_%j_err.txt')
                 outp.write('\n\nmodule purge')
                 outp.write('\nmodule load CCP4 Phenix BUSTER')
                 
@@ -2435,8 +2438,8 @@ def dataproc_datasets(request):
                     """#SBATCH --exclusive \n"""
                     """#SBATCH -N1 \n"""
                     """#SBATCH --cpus-per-task=40 \n"""
-                    """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j.out \n"""
-                    """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j.err \n"""
+                    """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j_out.txt \n"""
+                    """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j_err.txt \n"""
                     """module purge \n"""
                     """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
                     """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
@@ -2517,7 +2520,7 @@ def kill_HPC_job(request):
             prosw=      [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
         except:
             prosw="Unkown"
-        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+".out</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+""".err</a></td><td>
+        output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+"_out.txt</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+"""_err.txt</a></td><td>
            
         <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
             <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
@@ -3006,8 +3009,8 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
     #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsapp_fragmax_%j.out\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsapp_fragmax_%j.err\n"""    
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsapp_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsapp_fragmax_%j_err.txt\n"""    
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDSAPP\n\n"""
 
@@ -3054,8 +3057,8 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
     #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/autoproc_fragmax_%j.out\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/autoproc_fragmax_%j.err\n"""    
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/autoproc_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/autoproc_fragmax_%j_err.txt\n"""    
     header+= """module purge\n\n"""
     header+= """module load CCP4 autoPROC\n\n"""
 
@@ -3102,8 +3105,8 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
     header+= """#SBATCH --cpus-per-task=40\n"""       
     #header+= """#SBATCH --mem=220000\n""" 
     header+= """#SBATCH --mem-per-cpu=2000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.out\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j.err\n"""    
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""    
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDS\n\n"""
 
@@ -3157,8 +3160,8 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     #header+= """#SBATCH --mem=220000\n""" 
     header+= """#SBATCH --mem-per-cpu=2000\n""" 
 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j.out\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j.err\n"""    
+    header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j_err.txt\n"""    
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDS DIALS/1.12.3-PReSTO\n\n"""
 
@@ -3291,8 +3294,8 @@ def process2results(spacegroup, filters, aimlessopt):
     proc2resOut+= """#SBATCH -N1\n"""
     proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
     proc2resOut+= """#SBATCH --mem=220000\n""" 
-    proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j.out\n"""
-    proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j.err\n"""    
+    proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j_out.txt\n"""
+    proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j_err.txt\n"""    
     proc2resOut+= """module purge\n"""
     proc2resOut+= """module load CCP4 Phenix\n\n"""
 
@@ -3365,8 +3368,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
             header+='''#SBATCH --nice=25\n'''
             header+='''#SBATCH --cpus-per-task=2\n'''    
             header+='''#SBATCH --mem=5000\n'''
-            header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j.out\n'''
-            header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j.err\n\n'''
+            header+='''#SBATCH -o '''+path+'''/fragmax/logs/fsp_fragmax_%j_out.txt\n'''
+            header+='''#SBATCH -e '''+path+'''/fragmax/logs/fsp_fragmax_%j_err.txt\n\n'''
             header+='''module purge\n'''
             header+='''module load CCP4 Phenix\n'''
             header+='''echo export TMPDIR='''+path+'''/fragmax/logs/\n\n'''
@@ -3379,7 +3382,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                             """#!/bin/bash\n"""
                             """#SBATCH -t 01:00:00\n"""
                             """#SBATCH -J FSPmaster\n\n"""
-                            """#SBATCH -o """+path+"""/fragmax/logs/fspipeline_master_%j.out\n"""
+                            """#SBATCH -o """+path+"""/fragmax/logs/fspipeline_master_%j_out.txt\n"""
                             """for file in """+path+"/fragmax/scripts"+"""/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
                             """rm fspipeline_worker*sh""")
 
@@ -3411,8 +3414,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
             header+='''#SBATCH --mem=5000\n'''
             header+='''#SBATCH --nice=25\n'''
             header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
-            header+='''#SBATCH -o '''+path+'''/fragmax/logs/buster_fragmax_%j.out\n'''
-            header+='''#SBATCH -e '''+path+'''/fragmax/logs/buster_fragmax_%j.err\n\n'''
+            header+='''#SBATCH -o '''+path+'''/fragmax/logs/buster_fragmax_%j_out.txt\n'''
+            header+='''#SBATCH -e '''+path+'''/fragmax/logs/buster_fragmax_%j_err.txt\n\n'''
             header+='''module purge\n'''
             header+='''module load autoPROC BUSTER\n'''
             header+='''echo export TMPDIR='''+path+'''/fragmax/logs/\n\n'''
@@ -3425,7 +3428,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
                             """#!/bin/bash\n"""
                             """#SBATCH -t 01:00:00\n"""
                             """#SBATCH -J BSTRmaster\n\n"""
-                            """#SBATCH -o """+path+"""/fragmax/logs/buster_master_%j.out\n"""
+                            """#SBATCH -o """+path+"""/fragmax/logs/buster_master_%j_out.txt\n"""
                             """for file in """+path+"/fragmax/scripts"+"""/buster_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
                             """rm buster_worker*sh""")
 
@@ -3451,8 +3454,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
         dimpleOut+= """#SBATCH -N1\n"""
         dimpleOut+= """#SBATCH --cpus-per-task=48\n"""
         dimpleOut+= """#SBATCH --mem=220000\n""" 
-        dimpleOut+= """#SBATCH -o """+path+"""/fragmax/logs/dimple_fragmax_%j.out\n"""
-        dimpleOut+= """#SBATCH -e """+path+"""/fragmax/logs/dimple_fragmax_%j.err\n"""    
+        dimpleOut+= """#SBATCH -o """+path+"""/fragmax/logs/dimple_fragmax_%j_out.txt\n"""
+        dimpleOut+= """#SBATCH -e """+path+"""/fragmax/logs/dimple_fragmax_%j_err.txt\n"""    
         dimpleOut+= """module purge\n"""
         dimpleOut+= """module load CCP4 Phenix \n\n"""
         
@@ -3510,7 +3513,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
     
     command ='echo "python '+path+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+path+' '+acr+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call("rm "+path+"/fragmax/scripts/*.setvar.lis",shell=True)
-    subprocess.call("rm "+path+"/fragmax/scripts/slurm*.out",shell=True)
+    subprocess.call("rm "+path+"/fragmax/scripts/slurm*_out.txt",shell=True)
     subprocess.call(command,shell=True)
     
 def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
@@ -3583,8 +3586,8 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
                     '''#SBATCH --exclusive\n'''
                     '''#SBATCH -N1\n'''
                     '''#SBATCH --cpus-per-task=48\n'''
-                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_rhofit_%j.out\n'''
-                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_rhofit_%j.err\n'''
+                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_rhofit_%j_out.txt\n'''
+                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_rhofit_%j_err.txt\n'''
                     '''module purge\n'''
                     '''module load autoPROC BUSTER Phenix CCP4\n'''
                     '''python '''+path+'''/fragmax/scripts/autoligand.py '''+path+''' '''+fraglib+''' '''+acr+''' rhofit\n''')
@@ -3599,8 +3602,8 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
                     '''#SBATCH --exclusive\n'''
                     '''#SBATCH -N1\n'''
                     '''#SBATCH --cpus-per-task=48\n'''
-                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_ligfit_%j.out\n'''
-                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_ligfit_%j.err\n'''
+                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_ligfit_%j_out.txt\n'''
+                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_ligfit_%j_err.txt\n'''
                     '''module purge\n'''
                     '''module load autoPROC BUSTER Phenix CCP4\n'''
                     '''python '''+path+'''/fragmax/scripts/autoligand.py '''+path+''' '''+fraglib+''' '''+acr+''' ligfit\n''')

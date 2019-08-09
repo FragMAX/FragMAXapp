@@ -127,6 +127,9 @@
    .then( t => myWindow.document.write(t.split("\n").join('<br>')) )  ;
    
 } {% endcomment %}
-
+function readTextFile(file){
+    var win = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800")
+    win.document.write('<iframe src='+file+' frameborder="0" height="100%"width="100%"></iframe>')
+}
 </script>
 {% endblock %}
