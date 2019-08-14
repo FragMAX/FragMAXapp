@@ -93,43 +93,18 @@
   </div>
 </div>
 
-{% comment %} <div class="card">
-  <div class="card-content">      
-    <div class="card-title">HPC Job history for user: guslim </div>
-      <br>
-      <table class="table bordered">
-          <thead>
-            <tr>
-              <th>JOB ID</th>                    
-              <th>RUN TIME</th>
-              <th>ACCOUNT</th>                    
-              <th>Output file</th>             
-              <th>Error file</th>   
-              <th>EXIT CODE</th>
-            </tr>
-          </thead>
-          <tbody>
-              {{history | safe}}                
-          </tbody>
-      </table>
-  </div>
-</div> {% endcomment %}
 
 <script>
 
-{% comment %} function readTextFile(file)
-{
-  var myWindow = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800");
-  myWindow.document.write('<title>'+file+'</title>');
-  myWindow.document.write("<style>font-size: 15px;font-family: monospace;line-height: 18px;</style>")
-  fetch(file)
-   .then( r => r.text() )
-   .then( t => myWindow.document.write(t.split("\n").join('<br>')) )  ;
-   
-} {% endcomment %}
 function readTextFile(file){
-    var win = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800")
-    win.document.write('<iframe src='+file+' frameborder="0" height="100%"width="100%"></iframe>')
+    var win = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800")   
+    if (file=="-"){
+      win.document.write('This job does not belong to your proposal or experiment ')
+      }
+    else {
+      win.document.write('<iframe src='+file+' frameborder="0" height="100%"width="100%"></iframe>')
+      }
+    
 }
 </script>
 {% endblock %}

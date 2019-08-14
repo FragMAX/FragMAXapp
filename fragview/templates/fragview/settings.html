@@ -84,9 +84,19 @@
                 <button class="btn-large" type="submit" onsubmit="return update_experiment()" value="NoneUpdate" name="updatedefinitions" size="1" style="margin-top: 20px;">Update definitions</button>
             </form>
             
-            <div class="prechoice" >
-            
+            <div class="prechoice" >            
                 <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
+                    <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180489;20190127;hCAII;visitors;JBS;20190127" name="updatedefinitions" size="1">hCAII: 20180489/20190127</button>
+                </form>  
+                <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" style="padding-left: 20px;">
+                    <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190323;ProteinaseK;visitors;JBS;20190323" name="updatedefinitions" size="1">PrtK: 20180479/20190323</button>
+                </form>  
+            </div>
+            <div class="prechoice" >            
+                <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
+                    <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190330;EPF2XEntry;visitors;F2XEntry;20190330" name="updatedefinitions" size="1">EP: 20180479/20190330</button>
+                </form>
+                <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" style="padding-left: 20px;">
                     <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190622;EP;visitors;F2XEntry;20190622" name="updatedefinitions" size="1">EP: 20180479/20190622</button>
                 </form>
                 <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" style="padding-left: 20px;">
@@ -95,12 +105,6 @@
                 <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" style="padding-left: 20px;">
                     <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190629;AR;visitors;F2XEntry;20190622,20190629" name="updatedefinitions" size="1">AR: 20180479/20190629</button>
                 </form>
-             <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" style="padding-left: 20px;">
-                <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190330;EPF2XEntry;visitors;F2XEntry;20190330" name="updatedefinitions" size="1">EP: 20180479/20190330</button>
-            </form>
-            {% comment %} <form action="/settings/" method="get" id="updatedefinitionsBtn" name="updatedefinitionsBtn" size="1" >
-                <button class="btn-large" type="submit" onsubmit="return update_experiment()" value=";20180479;20190323;ProteinaseK;visitors;JBS" name="updatedefinitions" size="1">20180479/20190323</button>
-            </form>  {% endcomment %}
             </div>            
         </div>
     </div>

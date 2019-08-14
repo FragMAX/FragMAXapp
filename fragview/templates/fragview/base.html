@@ -100,13 +100,13 @@
 
 
 <script>
-
+{% comment %} 
 fetch("/static/projectSettings/.settings")
 .then( r => r.text() )
 .then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )
 fetch("/static/projectSettings/.settings")
 .then( r => r.text() )
-.then( t => document.getElementById("usershift").innerHTML ="Shift: "+t.split(";")[2] )
+.then( t => document.getElementById("usershift").innerHTML ="Shift: "+t.split(";")[2] ) {% endcomment %}
 
 
 
@@ -120,8 +120,8 @@ fetch("/static/projectSettings/.settings")
             </div>
             <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
             <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
-            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text " style="line-height: 18px;font-size:11px">Proposal: </span></a><br>
-            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="usershift" class="white-text " style="line-height: 18px;font-size:11px">Shift: </span></a>
+            {% comment %} <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text " style="line-height: 18px;font-size:11px">Proposal: </span></a><br>
+            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="usershift" class="white-text " style="line-height: 18px;font-size:11px">Shift: </span></a> {% endcomment %}
          </div>
       {% comment %}       
          <li>

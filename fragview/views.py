@@ -28,8 +28,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-
-
+from random import randint
 
 ################################
 #Changing this parameters for different projects based on user credentials
@@ -1827,6 +1826,9 @@ def submit_pandda(request):
     proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
     
     method=proc+"_"+ref
+    if os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/"):
+        shutil.move(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/",path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda_backup/")    
+    
     with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
         outp.write('''import os \n'''
         '''import glob\n'''
@@ -1836,16 +1838,10 @@ def submit_pandda(request):
         '''import multiprocessing \n'''
         '''path=sys.argv[1]\n'''
         '''method=sys.argv[2]\n'''
-        '''acr=sys.argv[3]\n'''
+        '''acr=sys.argv[3]\n''' 
         '''fraglib=sys.argv[4]\n'''
         '''shiftList=sys.argv[5].split(",")\n'''  
         '''proposal=path.split("/")[4]\n'''           
-        '''if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method):\n'''    
-        '''    os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''  
-        '''else:\n'''
-        '''    for i in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*"):\n'''
-        '''        if i.split("/")[-1]!="pandda":\n'''
-        '''            shutil.rmtree(i)  \n'''        
         '''def pandda_run(method):\n'''
         '''    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''
         '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16" \n'''
@@ -1870,67 +1866,12 @@ def submit_pandda(request):
         '''                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n'''
         '''                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n'''
         '''                        shutil.rmtree(v[0])\n'''
-        '''                pandda_run(method)\n'''                
-        '''def run_CAD():    \n'''
-        """    fragDict=dict()\n"""
-        """    datasetDict=dict()\n"""
-        """    for _dir in glob.glob(path+"/fragmax/process/fragment/"+fraglib+"/*"):\n"""
-        """        fragDict[_dir.split("/")[-1]]=_dir\n"""
-        """        \n"""
-        """    datasetDict ={dt.split("/")[-1].split("_master.h5")[0]:dt for dt in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])}\n"""
-        """    selectedDict={ x.split("/")[-4]:x for x in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/"+method.replace("_","/")+"/final.pdb") for s in shiftList] for item in it]]) }\n"""
-        """    missingDict ={ k : datasetDict[k] for k in set(datasetDict) - set(selectedDict) }\n"""
-        """    for dataset in missingDict:\n"""
-        """        optionList=[item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+dataset+"/*/*/final.pdb") for s in shiftList] for item in it ]\n"""
-        """        if optionList==[]:\n"""
-        """            selectedDict[dataset]=""\n"""
-        """        else:\n"""
-        """            prefered= sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s], reverse=True)    \n"""
-        """            if prefered ==[] and optionList!=[]:  \n"""
-        """                prefered=sorted([s for s in optionList if "dials" in s or "xdsapp" in s or "autoproc" in s], reverse=True)\n"""
-        """                if prefered ==[]:                  \n"""
-        """                    sub = optionList[0]            \n"""
-        """                elif prefered!=[]:\n"""
-        """                    sub = prefered[0]\n"""
-        """            elif prefered!=[]:\n"""
-        """                sub = prefered[0]\n"""
-        """            selectedDict[dataset]=sub\n"""
-        """    for dataset,pdb in selectedDict.items():\n"""
-        """        if os.path.exists(pdb):\n"""
-        """            proc,ref= method.split("_")        \n"""
-        """            frag=dataset.split("-")[-1].split("_")[0]\n"""
-        """            hklin=pdb.replace(".pdb",".mtz")\n"""
-        """            if not os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"):\n"""
-        """                os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/")\n"""
-        """            hklout=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
-        """            cmdcp1="cp "+pdb+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.pdb"\n"""
-        """            cmdcp2="cp "+hklin+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"\n"""
-        """            cmd =  '''source /mxn/home/guslim/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; echo "RUN" | mtzdump HKLIN '''+hklin\n"""
-        """            output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")\n"""
-        """            for i in output.splitlines():\n"""
-        """                if "A )" in i:\n"""
-        """                    resHigh=i.split()[-3]\n""" 
-        """                if "free" in i.lower():\n"""
-        """                    freeRflag=i.split()[-1]\n"""
-        """            cmd1 = '''source /mxn/home/guslim/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; echo "RUN" | echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout\n"""
-        """            cmd2 = '''echo 'source /mxn/home/guslim/Apps/phenix/phenix-1.13-2998/phenix_env.sh; phenix.maps '''+hklout.replace(".mtz",".pdb")+''' '''+hklout+''' ' | ssh -F ~/.ssh/ w-guslim-cc-0'''\n"""  
-        """            cmd3 = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout\n"""
-        """            subprocess.call(cmdcp1,shell=True)\n"""
-        """            subprocess.call(cmd1,shell=True)\n"""
-        """            subprocess.call(cmd2,shell=True)\n"""
-        """            coef_cmd = "mv "+hklout.replace("final.mtz","final_map_coeffs.mtz")+" "+hklout\n"""
-        """            os.system(coef_cmd)\n"""
-        """            subprocess.call(cmd3,shell=True)\n"""
-        """            if "Apo" not in dataset:        \n"""
-        """                cmdcp3="cp "+fragDict[frag]+"/"+frag+".cif "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".cif"\n"""
-        """                subprocess.call(cmdcp3,shell=True)\n"""
-        '''run_CAD()\n'''
+        '''                pandda_run(method)\n'''    
         '''pandda_run(method)\n'''        
-        '''os.system('chmod -R g+rwx path+"/fragmax/results/pandda/"')\n'''
-        )
+        '''os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')\n''')
 
     methodshort=proc[:2]+ref[:2]
-    with open(path+"/fragmax/scripts/panddaRUN_"+method+".sh","w") as outp:
+    with open(path+"/fragmax/scripts/panddaRUN_"+acr+method+".sh","w") as outp:
             outp.write('#!/bin/bash\n')
             outp.write('#!/bin/bash\n')
             outp.write('#SBATCH -t 99:55:00\n')
@@ -1939,16 +1880,19 @@ def submit_pandda(request):
             outp.write('#SBATCH -N1\n')
             outp.write('#SBATCH --cpus-per-task=48\n')
             outp.write('#SBATCH --mem=220000\n')
-            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+method+'_%j_out.txt\n')
-            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+method+'_%j_err.txt\n')
+            outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+acr+method+'_%j_out.txt\n')
+            outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+acr+method+'_%j_err.txt\n')
             outp.write('module purge\n')
             outp.write('module load PReSTO\n')
             outp.write('\n')
             outp.write('python '+path+'/fragmax/scripts/pandda_worker.py '+path+' '+method+' '+acr+' '+fraglib+' '+",".join(shiftList)+'\n')
     
-    script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
-    command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(command,shell=True)
+    #script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
+    #command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    #subprocess.call(command,shell=True)
+    t1 = threading.Thread(target=pandda_worker,args=(method,))
+    t1.daemon = True
+    t1.start()
     
     return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
 
@@ -2084,7 +2028,8 @@ def panddaEvents(filters):
 
 def fix_pandda_symlinks():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    
+    os.system("chmod -R 775 "+path+"/fragmax/results/pandda/")
+
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; chmod -R 770 .""",shell=True)
@@ -2095,29 +2040,6 @@ def fix_pandda_symlinks():
         src=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
         shutil.copyfile(src,dst)
         
-    # for method in [x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/*")]:
-    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
-    #     for i in linksFolder:        
-    #         folder="/".join(i.split("/")[:-1])+"/"
-    #         pdbs=os.listdir(folder)
-    #         pdb=folder+sorted([x for x in pdbs if "fitted" in x])[-1]        
-    #         shutil.move(i,i+".bak")
-    #         shutil.copyfile(pdb,i)
-    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*")
-    #     for _file in linksFolder:       
-    #         dst=os.path.realpath(_file)    
-    #         if _file!=dst:  
-    #             if ".bak" not in _file:
-    #                 shutil.move(_file,_file+".bak")
-            
-    #     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")+glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/*/*.bak")
-    #     for _file in linksFolder:       
-    #         dst=os.path.realpath(_file)    
-    #         if _file!=dst: 
-    #             shutil.copyfile(dst,_file.replace(".bak",""))
-
-    os.system("chmod -R g+rw "+path+"/fragmax/results/pandda/")
-
 def pandda_giant(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     scoreDict=dict()
@@ -2133,6 +2055,91 @@ def pandda_giant(request):
     else:
         return render(request, "fragview/index.html")
 
+def pandda_worker(method):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+    rn=str(randint(10000, 99999))
+
+    
+    header= '''#!/bin/bash\n'''
+    header+='''#!/bin/bash\n'''
+    header+='''#SBATCH -t 00:15:00\n'''
+    header+='''#SBATCH -J PnD'''+rn+'''\n'''
+    header+='''#SBATCH --nice=25\n'''
+    header+='''#SBATCH --cpus-per-task=1\n'''
+    header+='''#SBATCH --mem=2500\n'''
+    header+='''#SBATCH -o '''+path+'''/fragmax/logs/pandda_prepare_'''+acr+'''_%j_out.txt\n'''
+    header+='''#SBATCH -e '''+path+'''/fragmax/logs/pandda_prepare_'''+acr+'''_%j_err.txt\n'''
+    header+='''module purge\n'''
+    header+='''module load CCP4 Phenix\n'''
+
+    fragDict=dict()
+    datasetDict=dict()
+    for _dir in glob.glob(path+"/fragmax/process/fragment/"+fraglib+"/*"):
+        fragDict[_dir.split("/")[-1]]=_dir
+
+    datasetDict ={dt.split("/")[-1].split("_master.h5")[0]:dt for dt in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])}
+    selectedDict={ x.split("/")[-4]:x for x in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/"+method.replace("_","/")+"/final.pdb") for s in shiftList] for item in it]]) }
+    missingDict ={ k : datasetDict[k] for k in set(datasetDict) - set(selectedDict) }
+
+    for dataset in missingDict:
+        optionList=[item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+dataset+"/*/*/final.pdb") for s in shiftList] for item in it ]
+        if optionList==[]:
+            selectedDict[dataset]=""
+        else:
+            prefered= sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s], reverse=True)    
+            if prefered ==[] and optionList!=[]:  
+                prefered=sorted([s for s in optionList if "dials" in s or "xdsapp" in s or "autoproc" in s], reverse=True)
+                if prefered ==[]:                  
+                    sub = optionList[0]            
+                elif prefered!=[]:
+                    sub = prefered[0]
+            elif prefered!=[]:
+                sub = prefered[0]
+            selectedDict[dataset]=sub
+
+
+    for dataset,pdb in selectedDict.items():
+        if os.path.exists(pdb):
+            with open(path+"/fragmax/scripts/pandda_prepare_"+acr+dataset.split("-")[-1]+".sh","w") as writeFile:
+                writeFile.write(header)
+                proc,ref= method.split("_")        
+                frag=dataset.split("-")[-1].split("_")[0]
+                hklin=pdb.replace(".pdb",".mtz")
+                os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/",exist_ok=True)
+                hklout=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"
+                cmdcp1="cp "+pdb+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.pdb"
+                cmdcp2="cp "+hklin+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"
+                cmd =  """echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; cd /tmp; mtzdmp """+hklin+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
+                output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")
+                for i in output.splitlines():
+                    if "A )" in i:
+                        resHigh=i.split()[-3]
+                    if "free" in i.lower() and "flag" in i.lower():
+                        freeRflag=i.split()[-1]
+                cmd1 = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklout+''' hklout '''+hklout
+                cmd2 = '''uniqueify -f '''+freeRflag+''' '''+hklin+''' '''+hklout
+                cmd3 = "phenix.maps "+hklout+" "+hklout.replace(".mtz",".pdb")+"; mv "+hklout+" "+hklout.replace(".mtz","_original.mtz")+"; mv "+hklout.replace(".mtz","_map_coeffs.mtz")+" "+hklout
+ 
+                writeFile.write(cmdcp1+"\n")
+                writeFile.write(cmd2+"\n")
+                writeFile.write(cmd1+"\n")
+                writeFile.write(cmd3+"\n")
+                if "Apo" not in dataset:        
+                    cmdcp3="cp "+fragDict[frag]+"/"+frag+".cif "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".cif"                
+                    cmdcp4="cp "+fragDict[frag]+"/"+frag+".pdb "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".pdb"                
+                    writeFile.write(cmdcp3+"\n")
+                    writeFile.write(cmdcp4+"\n")
+            script=path+"/fragmax/scripts/pandda_prepare_"+acr+dataset.split("-")[-1]+".sh"
+            cmd='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(cmd,shell=True)
+            
+            
+
+    cmd='echo "module purge | module load CCP4 | '+"sbatch --dependency=singleton --job-name=PnD"+rn+" "+path+"/fragmax/scripts/panddaRUN_"+acr+method+".sh"+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    subprocess.call(cmd,shell=True)
+            
+            
 #############################################
 
 def procReport(request):
@@ -2498,6 +2505,8 @@ def dataproc_datasets(request):
     
     return render(request,'fragview/dataproc_datasets.html', {'allproc': ""})
 
+
+########### HPC JOBS CONTROL #################
 def kill_HPC_job(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
@@ -2565,6 +2574,7 @@ def hpcstatus(request):
             hpcList.append([jobid,partition,name,user,ST,TIME,NODE,NODEn,stdErr,stdOut])
     
     return render(request,'fragview/hpcstatus.html', {'hpcList':hpcList, "proposal":proposal, "user":user})
+##############################################
 
 def retrieveParameters(xmlfile):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
