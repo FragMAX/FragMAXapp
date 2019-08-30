@@ -348,7 +348,7 @@
                 <tr>
                     <th class=" top-options">Available inspects</th>
                     <td class=" top-options">
-                    <select class="selectbox" id="use_CAD" name="use_CAD">
+                    <select class="selectbox" id="inspects" name="inspects">
                             <option disabled selected value="yes"> -- select an option -- </option>
                             {% for method in methods %}
                             <option value="{{method}}">{{method}}</option>
@@ -481,8 +481,8 @@
 
 
 <div class="bottom-right">
-     <form action="/submit_pandda/" method="get" id="sendpandda" name="sendpandda" size="1" target="_blank">
-        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="pipedreamInput" name="panddaform" size="1" disabled>Run Giant PanDDA</button>
+     <form action="/submit_pandda/" method="get" id="sendgiant" name="sendgiant" size="1" target="_blank">
+        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="giantinput" name="giantform" size="1" >Run Giant PanDDA</button>
     </form> 
     
 
@@ -514,10 +514,23 @@ var f = document.getElementById("sendpandda");
         var keepup_last  = document.getElementById("keepup").checked
         var ign_symlink  = document.getElementById("fixsym").checked        
         
-        var out = proc_type+";"+ref_type+";"+complete+";"+use_apo+";"+use_dmso+";"+use_cryo+";"+use_CAD+";"+ref_CAD+";"+ign_errordts+";"+keepup_last+";"+ign_symlink
+        var out = "analyse;"+proc_type+";"+ref_type+";"+complete+";"+use_apo+";"+use_dmso+";"+use_cryo+";"+use_CAD+";"+ref_CAD+";"+ign_errordts+";"+keepup_last+";"+ign_symlink
         document.getElementsByName("panddaform")[0].value = out
 
 }
+
+var f2 = document.getElementById("sendgiant");
+    
+    f2.onsubmit = function giantsetup(){
+
+        var method = document.getElementById("inspects").value;
+             
+        
+        var out = "giantscore;"+method
+        document.getElementsByName("giantform")[0].value = out
+
+}
+
 
 </script>
 {% endblock %}
