@@ -15,3 +15,11 @@ Uses CCP4, XDS, Phenix packages for data processing and analysis
 - Ligand fitting: RhoFit, Phenix LigFit
 
 Dataset analysis with Pandda
+
+
+
+## Dependencies
+
+Python 3.6+
+Django for python 3.6+
+django-material 
