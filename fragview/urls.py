@@ -45,6 +45,8 @@ urlpatterns = [
 
     path('ligfit_results/', views.ligfit_results, name='ligfit_results'),
     path('procReport/', views.procReport, name='procReport'),
+    path('results_download/', views.results_download, name='results_download'),
+    
 
     path('project_summary/', views.load_project_summary, name='project_summary'),
     # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
