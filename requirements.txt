@@ -1,0 +1,4 @@
+django-material == 1.5.8
+django-static-jquery == 2.1.4
+pyfastcopy == 1.0.3
+pypdb == 1.300
