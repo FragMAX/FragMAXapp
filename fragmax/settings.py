@@ -103,6 +103,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "fragview.auth.ISPyBBackend"
+]
+
+# ISPyBBackend authentication settings
+ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
+ISPYB_AUTH_SITE = "MAXIV"
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
