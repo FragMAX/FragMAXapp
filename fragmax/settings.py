@@ -111,6 +111,9 @@ AUTHENTICATION_BACKENDS = [
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
 ISPYB_AUTH_SITE = "MAXIV"
 
+# Goto the 'front page' after logging out
+LOGOUT_REDIRECT_URL = "index"
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
