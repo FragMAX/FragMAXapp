@@ -16,3 +16,11 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Project(models.Model):
+    protein = models.TextField()
+    library = models.TextField()
+    proposal = models.TextField()
+    shift = models.TextField()
+    shift_list = models.TextField(blank=True)

@@ -1,11 +1,7 @@
 {% load static %}
 <html>
     <head>
-
-        <title>    
-         {% block title %}{% endblock %}
-         
-        </title>
+        <title>{% block title %}{% endblock %}</title>
 
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
 
@@ -17,7 +13,6 @@
 
         <link rel="icon" href="{% static 'img/favicon.png' %}? type="image/x-icon"">
 
-         
         <style>
             .user-view {
                    padding: 0px 32px 0 !important;
@@ -93,40 +88,110 @@
                   line-height: 48px !important;
                   padding: 0 32px;
                }
+
+                .projects-menu {
+                    top: -45px !important;
+                    left: 5px !important;
+                    min-width: 240px;
+                    background-color: #dddddd;
+                    border: 1px solid grey;
+                }
+
+                .project-entry {
+                    border-bottom: 1px solid grey;
+                }
+
+                .project-cell {
+                    display: inline-block;
+                    color: black;
+                    padding: 5px;
+                    vertical-align: middle;
+                }
+
+                .projects-button-box {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 15px;
+                }
+
         </style>
-
     </head>
-    
-    <body>    
 
-
-
-<script>
-{% comment %} 
-fetch("/static/projectSettings/.settings")
-.then( r => r.text() )
-.then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )
-fetch("/static/projectSettings/.settings")
-.then( r => r.text() )
-.then( t => document.getElementById("usershift").innerHTML ="Shift: "+t.split(";")[2] ) {% endcomment %}
-
-
-
-</script>
-
+<body>
 {% block sidenav %}
 <dmc-sidenav>
-   <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden" >
-      <li>
-         <div class="user-view">
-            <div class="background">
+    <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden">
+
+    <dmc-dropdown>
+        <div class="user-view">
+            <a style="margin-top:54px" class="dropdown-button" href="#!" data-target="pick-project-menu">
+                <img class="circle" src="/static/shape.png">
+                <span class="white-text name" style="font-size: 20px; font-weight: bold;">
+                    hCAII - JBS<i class="material-icons right">arrow_drop_down</i>
+                </span>
+            </a>
+        </div>
+
+        <div id="pick-project-menu" class="projects-menu dropdown-content">
+            <a href="bar1">
+                <div class="project-entry">
+                    <div class="project-cell">
+                        <img class="circle" src="/static/shape.png">
+                    </div>
+                    <div class="project-cell">
+                        <div style="font-size: 20px; font-weight: bold;">hCAII</div>
+                        <div>JBS</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="bar2">
+                <div class="project-entry">
+                    <div class="project-cell">
+                        <img class="circle" src="/static/shape.png">
+                    </div>
+                    <div class="project-cell">
+                        <div style="font-size: 20px; font-weight: bold;">AR</div>
+                        <div>F2XEntry</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="bar3">
+                <div class="project-entry">
+                    <div class="project-cell">
+                        <img class="circle" src="/static/shape.png">
+                    </div>
+                    <div class="project-cell">
+                        <div style="font-size: 20px; font-weight: bold;">ProteinaseK</div>
+                        <div>JBS</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="bar4">
+                <div class="project-entry">
+                    <div class="project-cell">
+                        <img class="circle" src="/static/shape.png">
+                    </div>
+                    <div class="project-cell">
+                        <div style="font-size: 20px; font-weight: bold;">EPF2XEntry</div>
+                        <div>F2XEntry</div>
+                    </div>
+                </div>
+            </a>
+
+            <div class="projects-button-box">
+                <a class="btn" href="/projects">
+                    Manage projects
+                </a>
             </div>
-            <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
-            <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
-            {% comment %} <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text " style="line-height: 18px;font-size:11px">Proposal: </span></a><br>
-            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="usershift" class="white-text " style="line-height: 18px;font-size:11px">Shift: </span></a> {% endcomment %}
-         </div>
-      {% comment %}       
+
+        </div>
+    </dmc-dropdown>
+
+      {% comment %}
          <li>
                <input type="radio" name="menuopt" id="drop1" />
                <label class="opener collapsible-header headli" for="drop1"><i class="material-icons" style="font-size:22px;color:white">bubble_chart</i>Sample Prep +</label>
@@ -239,8 +304,15 @@ fetch("/static/projectSettings/.settings")
       <li >
          <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
       </li>
-      <li class="last">
-         <a href="/settings" class="collapsible-header sidenav-links" data-turbolinks="false">Settings<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
+      <li>
+         <a href="/project_summary" class="collapsible-header sidenav-links" data-turbolinks="false">
+             Summary<i class="material-icons" style="font-size:22px;color:white">dashboard</i>
+         </a>
+      </li>
+      <li>
+         <a href="/settings" class="collapsible-header sidenav-links" data-turbolinks="false">
+             Settings<i class="material-icons" style="font-size:22px;color:white">settings_applications</i>
+         </a>
       </li>
        <li class="last">
          <a href="{% url 'logout' %}" class="collapsible-header sidenav-links" data-turbolinks="false">

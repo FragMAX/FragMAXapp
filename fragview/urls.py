@@ -47,7 +47,11 @@ urlpatterns = [
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
     
+    path('projects/', views.projects),
+    path('project/<int:id>/', views.project),
+    path('project/new', views.project_new),
 
+    # TODO remove view below
     path('project_summary/', views.load_project_summary, name='project_summary'),
     # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
 

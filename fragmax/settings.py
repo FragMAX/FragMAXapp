@@ -112,6 +112,10 @@ AUTHENTICATION_BACKENDS = [
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
 ISPYB_AUTH_SITE = "MAXIV"
 
+
+# root path to where proposals data is stored
+PROPOSALS_DIR = "/data/visitors/biomax"
+
 # Goto the 'front page' after logging out
 LOGOUT_REDIRECT_URL = "index"
 

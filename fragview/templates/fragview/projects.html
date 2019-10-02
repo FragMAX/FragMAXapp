@@ -1,0 +1,94 @@
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - Projects{% endblock %}
+{% block content %}
+
+<style>
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: center;
+}
+
+td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+    height: 60px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #e2e2e2;
+}
+
+.container {
+    padding-left: 250px;
+    max-width: 1240 !important;
+    width: calc(100% - 75px) !important;
+}
+
+.btn-right {
+    float:right !important;
+}
+
+.project-desc {
+    display: table;
+}
+
+.project-elm {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 8px;
+}
+
+.project-icon
+{
+    border-radius: 50%;
+    width: 48px;
+}
+</style>
+
+<h4>FragMAX Projects</h4>
+
+<div class="card">
+    <div class="card-content">
+        <div class="card-title">
+            {{user}}'s project(s)
+            <button class="btn btn-right" onclick="location.href='/project/new'">New Project</button>
+        </div>
+
+        <br>
+
+        <table class="table bordered">
+            <thead>
+            <tr>
+                <th>Protein - Library</th>
+                <th>Proposal</th>
+                <th>Shift</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            {% for proj in projects %}
+            <tr>
+                <td>
+                    <a href="/project/{{ proj.id }}" class="project-desc">
+                        <div class="project-elm"><img class="project-icon" src="/static/shape.png"></div>
+                        <div class="project-elm">{{ proj.protein }} - {{ proj.library }}</div>
+                    </a>
+                </td>
+                <td>{{ proj.proposal }}</td>
+                <td>{{ proj.shift }}</td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+      </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
+from django.http import HttpResponseBadRequest
 from django.utils import timezone
-from .models import Post
-from .forms import PostForm
-from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
+from .models import Post, Project
+from .forms import PostForm, ProjectForm
 from difflib import SequenceMatcher
 
 import glob
@@ -125,6 +125,60 @@ def settings(request):
         status="No update"
     return render(request, "fragview/settings.html",{"upd":status})
 
+
+def projects(request):
+    """
+    projects list page, aka 'manage projects' page
+    """
+    return render(request,
+                  "fragview/projects.html",
+                  dict(projects=Project.objects.all()))
+
+
+def project(request, id):
+    """
+    GET requests show the 'Edit Project' page
+    POST requests will update or delete the project
+    """
+    proj = get_object_or_404(Project, pk=id)
+    form = ProjectForm(request.POST or None, instance=proj)
+
+    if request.method == "POST":
+        action = request.POST["action"]
+        if action == "modify":
+            if form.is_valid():
+                form.save()
+                return redirect("/projects/")
+        elif action == "delete":
+            proj.delete()
+            return redirect("/projects/")
+        else:
+            return HttpResponseBadRequest(f"unexpected action '{action}'")
+
+    return render(
+        request,
+        "fragview/project.html",
+        {"form": form, "project_id": proj.id})
+
+
+def project_new(request):
+    """
+    GET requests show the 'Create new Project' page
+    POST requests will try to create a new project
+    """
+    if request.method == "GET":
+        return render(request, "fragview/project.html")
+
+    form = ProjectForm(request.POST)
+    if not form.is_valid():
+        return render(request, "fragview/project.html", {"form": form})
+
+    form.save()
+
+    return redirect("/projects/")
+
+
+#TODO: remove this view
 def load_project_summary(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
