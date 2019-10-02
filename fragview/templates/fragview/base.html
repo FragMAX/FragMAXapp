@@ -8,11 +8,13 @@
         </title>
 
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-        
         {% include 'material/includes/material_css.html' %}
-        {% include 'material/includes/material_js.html' %}
+
+        <script src="{% static 'material/js/jquery.js' %}"></script>
+        <script src="{% static 'material/js/materialize.js' %}"></script>
+        <script src="{% static 'material/js/materialize.frontend.min.js' %}"></script>
+
         <link rel="icon" href="{% static 'img/favicon.png' %}? type="image/x-icon"">
 
          
