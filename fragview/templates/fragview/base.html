@@ -134,53 +134,19 @@
         </div>
 
         <div id="pick-project-menu" class="projects-menu dropdown-content">
-            <a href="bar1">
-                <div class="project-entry">
-                    <div class="project-cell">
-                        <img class="circle" src="/static/shape.png">
+            {% for proj in projects %}
+                <a href="/dummy/{{ proj.id }}">
+                    <div class="project-entry">
+                        <div class="project-cell">
+                            <img class="circle" src="/static/shape.png">
+                        </div>
+                        <div class="project-cell">
+                            <div style="font-size: 20px; font-weight: bold;">{{ proj.protein }}</div>
+                            <div>{{ proj.library }}</div>
+                        </div>
                     </div>
-                    <div class="project-cell">
-                        <div style="font-size: 20px; font-weight: bold;">hCAII</div>
-                        <div>JBS</div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="bar2">
-                <div class="project-entry">
-                    <div class="project-cell">
-                        <img class="circle" src="/static/shape.png">
-                    </div>
-                    <div class="project-cell">
-                        <div style="font-size: 20px; font-weight: bold;">AR</div>
-                        <div>F2XEntry</div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="bar3">
-                <div class="project-entry">
-                    <div class="project-cell">
-                        <img class="circle" src="/static/shape.png">
-                    </div>
-                    <div class="project-cell">
-                        <div style="font-size: 20px; font-weight: bold;">ProteinaseK</div>
-                        <div>JBS</div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="bar4">
-                <div class="project-entry">
-                    <div class="project-cell">
-                        <img class="circle" src="/static/shape.png">
-                    </div>
-                    <div class="project-cell">
-                        <div style="font-size: 20px; font-weight: bold;">EPF2XEntry</div>
-                        <div>F2XEntry</div>
-                    </div>
-                </div>
-            </a>
+                </a>
+            {% endfor %}
 
             <div class="projects-button-box">
                 <a class="btn" href="/projects">

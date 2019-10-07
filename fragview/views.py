@@ -130,9 +130,7 @@ def projects(request):
     """
     projects list page, aka 'manage projects' page
     """
-    return render(request,
-                  "fragview/projects.html",
-                  dict(projects=Project.objects.all()))
+    return render(request, "fragview/projects.html")
 
 
 def project(request, id):
@@ -831,7 +829,7 @@ def pipedream_results(request):
         with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
-        return render_to_response('fragview/pipedream_results.html', {'files': lines})
+        return render("fragview/pipedream_results.html", {"files": lines})
     except:
         #return render_to_response('fragview/index.html')
         pass
