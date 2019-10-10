@@ -1,14 +1,7 @@
 from os import path
 from django import forms
 from . import proj_paths
-from .models import Post, Project
-
-# TODO: remove this!?
-class PostForm(forms.ModelForm):
-
-    class Meta:
-        model = Post
-        fields = ('title', 'text',)
+from .models import Project
 
 
 class ProjectForm(forms.ModelForm):
