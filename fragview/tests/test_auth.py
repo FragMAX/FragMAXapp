@@ -14,6 +14,7 @@ ISPYB_ERR_MSG = \
 USER = "user1"
 PASS = "pass1"
 TOKEN = "token1234"
+PROPOSALS = ["20190586", "20180488"]
 
 
 class TestExpectedErrMsgFunc(unittest.TestCase):
@@ -109,32 +110,59 @@ class TestISPyBBackendAuthenticate(test.TestCase):
         self.backend = auth.ISPyBBackend()
         self.auth_mock = Mock(return_value=TOKEN)
 
-    def test_first_time_valid(self):
+        self.request_mock = Mock()
+        self.request_mock.session = dict()
 
+    def _assert_proposals(self):
+        self.assertListEqual(PROPOSALS, self.request_mock.session["proposals"])
+
+    @patch("fragview.auth._ispyb_authenticate")
+    @patch("fragview.auth._ispyb_get_proposals")
+    def test_first_time_valid(self, ispyb_get_props_mock, ispyb_auth_mock):
         # check that user does not exist in the database
         self.assertFalse(User.objects.filter(username=USER).exists())
 
-        with patch("fragview.auth._ispyb_authenticate", self.auth_mock):
-            user_obj = self.backend.authenticate(None, USER, PASS)
+        # set-up mocks
+        ispyb_auth_mock.return_value = TOKEN
+        ispyb_get_props_mock.return_value = PROPOSALS
 
-            # smoke tests created user object
-            self.assertEqual(user_obj.username, USER)
+        #
+        # perform the authentication
+        #
+        user_obj = self.backend.authenticate(self.request_mock, USER, PASS)
 
-            # check that user have been added to the database
-            self.assertTrue(User.objects.filter(username=USER).exists())
+        # smoke tests created user object
+        self.assertEqual(user_obj.username, USER)
 
-    def test_existing_user_login(self):
+        # check that user have been added to the database
+        self.assertTrue(User.objects.filter(username=USER).exists())
+
+        # check sessions proposals list
+        self._assert_proposals()
+
+    @patch("fragview.auth._ispyb_authenticate")
+    @patch("fragview.auth._ispyb_get_proposals")
+    def test_existing_user_login(self, ispyb_get_props_mock, ispyb_auth_mock):
         # add test user to the database
         User(username=USER).save()
 
-        with patch("fragview.auth._ispyb_authenticate", self.auth_mock):
-            user_obj = self.backend.authenticate(None, USER, PASS)
+        # set-up mocks
+        ispyb_auth_mock.return_value = TOKEN
+        ispyb_get_props_mock.return_value = PROPOSALS
 
-            # smoke tests returned user object
-            self.assertEqual(user_obj.username, USER)
+        #
+        # perform the authentication
+        #
+        user_obj = self.backend.authenticate(self.request_mock, USER, PASS)
 
-            # the user still should be in the database
-            self.assertTrue(User.objects.filter(username=USER).exists())
+        # smoke tests returned user object
+        self.assertEqual(user_obj.username, USER)
+
+        # the user still should be in the database
+        self.assertTrue(User.objects.filter(username=USER).exists())
+
+        # check sessions proposals list
+        self._assert_proposals()
 
 
 class TestISPyBBackendGetUser(test.TestCase):
