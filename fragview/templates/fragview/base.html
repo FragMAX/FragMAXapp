@@ -128,14 +128,15 @@
             <a style="margin-top:54px" class="dropdown-button" href="#!" data-target="pick-project-menu">
                 <img class="circle" src="/static/shape.png">
                 <span class="white-text name" style="font-size: 20px; font-weight: bold;">
-                    hCAII - JBS<i class="material-icons right">arrow_drop_down</i>
+                    {{project.protein}} - {{project.library}}
+                    <i class="material-icons right">arrow_drop_down</i>
                 </span>
             </a>
         </div>
 
         <div id="pick-project-menu" class="projects-menu dropdown-content">
             {% for proj in projects %}
-                <a href="/dummy/{{ proj.id }}">
+                <a href="/project/current/{{ proj.id }}/">
                     <div class="project-entry">
                         <div class="project-cell">
                             <img class="circle" src="/static/shape.png">

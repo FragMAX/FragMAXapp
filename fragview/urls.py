@@ -39,10 +39,11 @@ urlpatterns = [
     path('ligfit_results/', views.ligfit_results, name='ligfit_results'),
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
-    
+
     path('projects/', views.projects),
     path('project/<int:id>/', views.project),
     path('project/new', views.project_new),
+    path('project/current/<int:id>/', views.project_set_current),
 
     # TODO remove view below
     path('project_summary/', views.load_project_summary, name='project_summary'),
@@ -62,10 +63,8 @@ urlpatterns = [
     path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
     path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
     path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
-    
+
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
     path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
     path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
-
-
 ]

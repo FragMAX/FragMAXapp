@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseNotFound
 from .models import Project
 from .forms import ProjectForm
+from .proposals import get_proposals
 from difflib import SequenceMatcher
 
 import glob
@@ -173,6 +174,18 @@ def project_new(request):
     form.save()
 
     return redirect("/projects/")
+
+
+def project_set_current(request, id):
+    proj = Project.get_project(get_proposals(request), id)
+    if proj is None:
+        return HttpResponseNotFound()
+
+    request.user.set_current_project(proj)
+
+    # go back to original URL, or site root if we
+    # don't know referring page
+    return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 #TODO: remove this view

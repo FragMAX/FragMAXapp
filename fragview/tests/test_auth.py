@@ -3,7 +3,7 @@ from unittest.mock import patch, Mock
 from json.decoder import JSONDecodeError
 from django import test
 from django.conf import settings
-from django.contrib.auth.models import User
+from fragview.models import User
 from fragview import auth
 
 ISPYB_ERR_MSG = \

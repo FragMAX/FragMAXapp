@@ -112,6 +112,7 @@ AUTHENTICATION_BACKENDS = [
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
 ISPYB_AUTH_SITE = "MAXIV"
 
+AUTH_USER_MODEL = "fragview.User"
 
 # root path to where proposals data is stored
 PROPOSALS_DIR = "/data/visitors/biomax"
