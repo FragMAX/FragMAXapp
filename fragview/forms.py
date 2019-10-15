@@ -1,6 +1,6 @@
 from os import path
 from django import forms
-from . import proj_paths
+from . import projects
 from .models import Project
 
 
@@ -13,7 +13,7 @@ class ProjectForm(forms.ModelForm):
         shift_list = self.cleaned_data["shift_list"]
 
         for shift in shift_list.split(","):
-            if not path.isdir(proj_paths.shift_dir(proposal, shift)):
+            if not path.isdir(projects.shift_dir(proposal, shift)):
                 # bail on first incorrect shift ID
                 return dict(shift_list=f"shift '{shift}' not found")
 
@@ -28,7 +28,7 @@ class ProjectForm(forms.ModelForm):
 
         # check that proposal directory exists
         proposal = self.cleaned_data["proposal"]
-        if not path.isdir(proj_paths.proposal_dir(proposal)):
+        if not path.isdir(projects.proposal_dir(proposal)):
             # if the proposal is wrong, we can't validate other fields
             # just tell the user that proposal is wrong
             raise forms.ValidationError(
@@ -36,11 +36,11 @@ class ProjectForm(forms.ModelForm):
 
         # check that shift directory exists
         shift = self.cleaned_data["shift"]
-        if not path.isdir(proj_paths.shift_dir(proposal, shift)):
+        if not path.isdir(projects.shift_dir(proposal, shift)):
             errors["shift"] = f"shift '{shift}' not found"
         else:  # only validate protein dir, if the shift dir is good
             protein = self.cleaned_data["protein"]
-            if not path.isdir(proj_paths.protein_dir(proposal, shift, protein)):
+            if not path.isdir(projects.protein_dir(proposal, shift, protein)):
                 errors["protein"] = f"data for protein '{protein}' not found"
 
         shift_list_errors = self._validate_shift_list(proposal)

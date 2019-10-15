@@ -3,6 +3,9 @@ from django.http import HttpResponseBadRequest, HttpResponseNotFound
 from .models import Project
 from .forms import ProjectForm
 from .proposals import get_proposals
+from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
+from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
+from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif
 from difflib import SequenceMatcher
 
 import glob
@@ -107,11 +110,26 @@ def results_download(request):
 def error_page(request):
     return render(request, "fragview/error.html")
 
+
 def data_analysis(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    models=[x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]
-    datasets=sorted([x.split("/")[-1].replace("_master.h5","") for x in glob.glob(path+"/raw/"+acr+"/*/*master.h5")],key=lambda x: ("Apo" in x, x))
-    return render(request, "fragview/data_analysis.html",{"acronym":acr,"models":models,"datasets":datasets})
+    proj = current_project(request)
+
+    models = [
+        x.split("/")[-1].split(".pdb")[0]
+        for x in glob.glob(proj.data_path() + "/fragmax/models/*.pdb")
+    ]
+
+    datasets = sorted(
+        [
+            x.split("/")[-1].replace("_master.h5","")
+            for x in glob.glob(proj.data_path()+"/raw/"+proj.protein+"/*/*master.h5")
+        ],
+        key=lambda x: ("Apo" in x, x))
+
+    return render(request,
+                  "fragview/data_analysis.html",
+                  {"models": models, "datasets": datasets})
+
 
 def settings(request):
     allprc  = str(request.GET.get("updatedefinitions"))
@@ -188,58 +206,64 @@ def project_set_current(request, id):
     return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
-#TODO: remove this view
-def load_project_summary(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def project_summary(request):
+    proj = current_project(request)
 
-    number_known_apo=len(glob.glob(path+"/raw/"+acr+"/*Apo*"))
-    number_datasets=len(glob.glob(path+"/raw/"+acr+"/*"))
-    totalapo=0
-    totaldata=0
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        totalapo+=len(glob.glob(p+"/raw/"+acr+"/*Apo*"))
-        totaldata+=len(glob.glob(p+"/raw/"+acr+"/*"))
-    if "JBS" in fraglib:
+    number_known_apo = len(glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*Apo*"))
+    number_datasets = len(glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*"))
+
+    totalapo = 0
+    totaldata = 0
+
+    for shift_dir in project_shift_dirs(proj):
+        totalapo += len(glob.glob(shift_dir + "/raw/" + proj.protein + "/*Apo*"))
+        totaldata += len(glob.glob(shift_dir + "/raw/" + proj.protein + "/*"))
+
+    if "JBS" in proj.library:
         libname="JBS Xtal Screen"
-    elif "F2XEntry" in fraglib:
+    elif "F2XEntry" in proj.library:
         libname="F2X Entry Screen"
     else:
         libname="Custom library"
-    months={"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"}
-    natdate=shift[0:4]+" "+months[shift[4:6]]+" "+shift[6:8]
-    
-    return render(request,'fragview/project_summary.html', {
-        'acronym':acr,
-        "proposal":proposal,
-        "shiftList":"<br>".join(shiftList),
-        "proposal_type":proposal_type,
-        "shift":shift,
-        "known_apo":number_known_apo,
-        "num_dataset":number_datasets,
-        "totalapo":totalapo,
-        "totaldata":totaldata,
-        "fraglib":libname,
-        "exp_date":natdate})
-    
-def dataset_info(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-    dataset=str(request.GET.get('proteinPrefix'))     
+    months = {
+        "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
+        "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
+    }
+
+    natdate = proj.shift[0:4] + " " + months[proj.shift[4:6]] + " " + proj.shift[6:8]
+
+    return render(
+        request,
+        "fragview/project_summary.html",
+        {
+            "known_apo": number_known_apo,
+            "num_dataset": number_datasets,
+            "totalapo": totalapo,
+            "totaldata": totaldata,
+            "fraglib": libname,
+            "exp_date": natdate
+        })
+
+
+def dataset_info(request):
+    proj = current_project(request)
+
+    dataset = str(request.GET["proteinPrefix"])
     prefix=dataset.split(";")[0]
     images=dataset.split(";")[1]
     run=dataset.split(";")[2]
 
     images=str(int(images)/2)
-    #xmlfile=path+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
-    xmlfile=""
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        if os.path.exists(p+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"):
-            xmlfile=p+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+".xml"
-            curp=p
 
-    datainfo=retrieveParameters(xmlfile)    
+    xmlfile=""
+    for shift_dir in project_shift_dirs(proj):
+        xpath = os.path.join(shift_dir, "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
+        if os.path.exists(xpath):
+            xmlfile = xpath
+            curp = shift_dir
+
+    datainfo = retrieveParameters(xmlfile)
 
     energy=format(12.4/float(datainfo["wavelength"]),".2f")
     totalExposure=format(float(datainfo["exposureTime"])*float(datainfo["numberOfImages"]),".2f")
@@ -258,31 +282,31 @@ def dataset_info(request):
     else:
         snapshot2=datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/","/static/")
 
-    diffraction1=curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
+    diffraction1=curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
     diffraction1=diffraction1.replace("/data/visitors/","/static/")
     if not os.path.exists(diffraction1):    
-        h5data=curp+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
         cmd="adxv -sa "+h5data+"01.h5 "+diffraction1.replace("/static/","/data/visitors/")
         subprocess.call(cmd,shell=True)
     
-    diffraction2=curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
+    diffraction2=curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
     diffraction2=diffraction2.replace("/data/visitors/","/static/")
     if not os.path.exists(diffraction2):    
         half=int(float(images)/200)
         if half<10:
             half="0"+str(half)
-        h5data=curp+"/raw/"+acr+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
+        h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
         cmd="adxv -sa "+h5data+half+".h5 "+diffraction2.replace("/static/","/data/visitors/")
         subprocess.call(cmd,shell=True)
 
     #getreports
     scurp=curp.replace("/data/visitors/","/static/")
-    xdsappreport    = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"
-    dialsreport     = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"  
-    xdsreport       = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"
-    autoprocreport  = scurp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"
-    ednareport      = scurp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"
-    fastdpreport    = scurp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"
+    xdsappreport    = scurp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"
+    dialsreport     = scurp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"
+    xdsreport       = scurp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"
+    autoprocreport  = scurp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"
+    ednareport      = scurp+"/process/"+proj.protein+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"
+    fastdpreport    = scurp+"/process/"+proj.protein+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"
 
     xdsappOK="no"
     dialsOK="no"
@@ -290,34 +314,35 @@ def dataset_info(request):
     autoprocOK="no"
     ednaOK="no"
     fastdpOK="no"
-    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"):
-        xdsappOK="ready"
-    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"  ):
-        dialsOK="ready"
-    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"):
-        xdsOK="ready"
-    if os.path.exists(curp+"/fragmax/process/"+acr+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"):
-        autoprocOK="ready"
-    if os.path.exists(curp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"):
-        ednaOK="ready"
-    if os.path.exists(curp+"/process/"+acr+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"):
-        fastdpOK="ready"
 
-    
+    if os.path.exists(curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"):
+        xdsappOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/dials/xia2.html"  ):
+        dialsOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/xdsxscale/xia2.html"):
+        xdsOK="ready"
+    if os.path.exists(curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/autoproc/summary.html"):
+        autoprocOK="ready"
+    if os.path.exists(curp+"/process/"+proj.protein+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/EDNA_proc/results/ep_"+prefix+"_"+run+"_phenix_xtriage_noanom.log"):
+        ednaOK="ready"
+    if os.path.exists(curp+"/process/"+proj.protein+"/"+prefix+"/xds_"+prefix+"_"+run+"_1/fastdp/results/ap_"+prefix+"_run"+run+"_noanom_fast_dp.log"):
+        fastdpOK="ready"
 
     if "Apo" in prefix:
         soakTime="Soaking not performed"
         fragConc="-"
         solventConc="-"
-    if os.path.exists(path+"/fragmax/process/"+acr+"/results.csv"):
-        with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
+
+    results_file = project_results_file(proj)
+    if os.path.exists(results_file):
+        with open(results_file) as readFile:
             reader = csv.reader(readFile)
             lines = [line for line in list(reader)[1:] if prefix+"_"+run in line[0]]
     else:
         lines=[]
+
     return render(request,'fragview/dataset_info.html', {
         "csvfile":lines,
-        "proposal":proposal,
         "shift":curp.split("/")[-1],
         "run":run,
         'imgprf': prefix, 
@@ -361,7 +386,6 @@ def dataset_info(request):
         "totalExposure":totalExposure,
         "edgeResolution":edgeResolution,
         "acr":prefix.split("-")[0],
-        "fraglib":fraglib,
         "xdsappreport":xdsappreport,
         "dialsreport":dialsreport,
         "xdsreport":xdsreport,
@@ -375,25 +399,26 @@ def dataset_info(request):
         "ednaOK":ednaOK,
         "fastdpOK":fastdpOK,
         })
-  
+
 
 def datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
     resyncAction=str(request.GET.get("resyncdsButton"))
     resyncStatus=str(request.GET.get("resyncstButton"))
-    datacollectionSummary(acr,path) 
+
+    datacollectionSummary(proj)
 
     if "resyncDataset" in resyncAction:        
-        datacollectionSummary(acr,path)
+        datacollectionSummary(proj)
     
     if "resyncStatus" in resyncStatus:
-        os.remove(path+"/fragmax/process/"+acr+"/datacollections.csv")
+        os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
         get_project_status()
-        datacollectionSummary(acr,path)
+        datacollectionSummary(proj)
         resultSummary()
     
-    with open(path+"/fragmax/process/"+acr+"/datacollections.csv","r") as readFile:
+    with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)
         acr_list=[x[3] for x in lines[1:]]
@@ -410,12 +435,12 @@ def datasets(request):
     lgentry=list()
 
 
-    if not os.path.exists(path+"/fragmax/process/"+acr+"/allstatus.csv"):
+    if not os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
         get_project_status()
 
     ##Proc status
-    if os.path.exists(path+"/fragmax/process/"+acr+"/allstatus.csv"):
-        with open(path+"/fragmax/process/"+acr+"/allstatus.csv","r") as csvFile:
+    if os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
+        with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv","r") as csvFile:
             reader = csv.reader(csvFile)
             lines = list(reader)[1:]
         for i,j in zip(prf_list,run_list):
@@ -524,52 +549,51 @@ def datasets(request):
             lge+='<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p></td>'
             lgentry.append(lge)
     ##Ref status
-    
-        
-    
-    
+
     results = zip(img_list,prf_list,res_list,path_list,snap_list,acr_list,png_list,run_list,smp_list,dpentry,rfentry,lgentry)
     return render(request,'fragview/datasets.html', {'files': results})
-    # except:
-    #     return render_to_response('fragview/datasets_notready.html')    
-    
+
+
 def results(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    
+    proj = current_project(request)
+    results_file = project_results_file(proj)
+
     resync=str(request.GET.get("resync"))
+
     if "resyncresults" in resync:
         resultSummary()
-    if not os.path.exists(path+"/fragmax/process/"+acr+"/results.csv"):
+    if not os.path.exists(results_file):
         resultSummary()
     try:
-        with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
+        with open(results_file, "r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
-        return render(request, "fragview/results.html",{"csvfile":lines,"proposal":proposal,"shift":shift,"acr":acr})    
+        return render(request, "fragview/results.html", {"csvfile": lines})
     except:
         return render_to_response('fragview/results_notready.html')
 
+
 def results_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    
-    value=str(request.GET.get('structure'))     
-    with open(path+"/fragmax/process/"+acr+"/results.csv","r") as readFile:
+    proj = current_project(request)
+
+    value = str(request.GET.get("structure"))
+    with open(project_results_file(proj), "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     result_info=list(filter(lambda x:x[0]==value,lines))[0]
     usracr,pdbout,nat_map,dif_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
     
-    if os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.pdb"):
-        if not os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
-            if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")!=[]:
-                mtzf=glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")[0]
-                mtzfd=path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"
+    if os.path.exists(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.pdb"):
+        if not os.path.exists(proj.data_path() + "/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
+            if glob.glob(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")!=[]:
+                mtzf=glob.glob(proj.data_path() + "/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")[0]
+                mtzfd=proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"
                 shutil.copyfile(mtzf,mtzfd)
 
-    if os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
-        if not os.path.exists(path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final_2mFo-DFc.ccp4"):
-            cmd="cd "+path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/ ;"
-            cmd+="phenix.mtz2map "+path+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"
+    if os.path.exists(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
+        if not os.path.exists(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final_2mFo-DFc.ccp4"):
+            cmd="cd "+proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/ ;"
+            cmd+="phenix.mtz2map "+proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"
             subprocess.call(cmd,shell=True)
 
 
@@ -584,9 +608,9 @@ def results_density(request):
         rpos      = 0
         lpos      = 0
         lig       = usracr.split("-")[-1].split("_")[0]
-        ligsvg    = path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"    
-        if os.path.exists(path+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"):
-            rhofit=path+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"
+        ligsvg    = project_static_url(proj)+"/fragmax/process/fragment/"+proj.library+"/"+lig+"/"+lig+".svg"
+        if os.path.exists(proj.data_path()+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"):
+            rhofit=proj.data_path()+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"
             lpos=1        
             with open(rhofit,"r") as rhofitfile:
                 for line in rhofitfile.readlines():
@@ -598,7 +622,7 @@ def results_density(request):
             rhocenter="[0,0,0]"
             rhofitbox="none"
         try:
-            ligfit=sorted(glob.glob(path+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/ligfit/LigandFit_run_*/ligand*.pdb"))[-1]
+            ligfit=sorted(glob.glob(proj.data_path()+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/ligfit/LigandFit_run_*/ligand*.pdb"))[-1]
             with open(ligfit,"r") as ligfitfile:
                 for line in ligfitfile.readlines():
                     if line.startswith("HETATM"):
@@ -642,8 +666,6 @@ def results_density(request):
         prevstr=usracr
         nextstr=usracr
 
-    ##fix paths
-    rpath=path.replace("/data/visitors/","")
     pdbout=pdbout.replace("/data/visitors/","/static/")
     ligfit=ligfit.replace("/data/visitors/","/static/")
     rhofit=rhofit.replace("/data/visitors/","/static/")
@@ -674,7 +696,6 @@ def results_density(request):
         "process":processM,
         "refine":refineM,
         'blob': ligblob, 
-        "path":rpath,
         "rhofitcenter":rhocenter,
         "ligfitcenter":ligcenter, 
         "ligbox":ligbox,
@@ -689,20 +710,28 @@ def results_density(request):
         "rhofitpdb":rhofit
         })
 
+
 def testfunc(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    
-    
-    return render(request, "fragview/testpage.html",{"files":"results"})    
-    
+    return render(request, "fragview/testpage.html", {"files": "results"})
+
+
 def ugly(request):
     return render(request,'fragview/ugly.html')
 
+
 def reciprocal_lattice(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-    
-    dataset=str(request.GET.get('dataHeader')) 
-    flatlist=[y for x in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/"+dataset+"/dials/DEFAULT/NATIVE/*/index/2_SWEEP*") for s in shiftList] for y in x]
+    proj = current_project(request)
+    dataset = str(request.GET.get('dataHeader'))
+
+    flatlist = [
+        y for x in
+        [
+            glob.glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dataset}/dials/DEFAULT/NATIVE/*/index/2_SWEEP*")
+            for shift_dir in project_shift_dirs(proj)
+        ]
+        for y in x]
+
+
     state="new"
     if flatlist != []:
         rlpdir="/".join(flatlist[0].split("/")[:-1])
@@ -726,22 +755,24 @@ def reciprocal_lattice(request):
             timer+=1
     rlp=rlp.replace("/data/visitors/","/static/")
     return render(request,'fragview/reciprocal_lattice.html', {'dataset': dataset, "rlp":rlp,"state":state})
-    
 
-def compare_poses(request):   
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+def compare_poses(request):
+    proj = current_project(request)
+    static_url = project_static_url(proj)
+
     a=str(request.GET.get('ligfit_dataset')) 
     data=a.split(";")[0]
     blob=a.split(";")[1]
     lig=data.split("-")[-1].split("_")[0]
-    ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"    
+    ligpng = static_url + "/fragmax/process/fragment/" + proj.library + "/" + lig + "/" + lig + ".svg"
     
 
-    rhofit=path+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/rhofit/best.pdb"
-    ligfit=sorted(glob.glob(path+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
-    pdb   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final.pdb"
-    nat   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_mFo-DFc.ccp4"
-    dif   =path.replace("/data/visitors/","/static/")+"/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_2mFo-DFc.ccp4"
+    rhofit = proj.data_path() + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/rhofit/best.pdb"
+    ligfit=sorted(glob.glob(proj.data_path() + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
+    pdb = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final.pdb"
+    nat = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_mFo-DFc.ccp4"
+    dif = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_2mFo-DFc.ccp4"
  
     ligcenter="[]"
     rhocenter="[]"
@@ -757,17 +788,16 @@ def compare_poses(request):
                 if line.startswith("HETATM"):
                     rhocenter="["+",".join(line[32:54].split())+"]"
                     break
-    path=path.replace("/data/visitors/","")        
+
     rhofit=rhofit.replace("/data/visitors/","/static/")
     ligfit=ligfit.replace("/data/visitors/","/static/")
     return render(request,'fragview/dual_density.html', {
         'ligfit_dataset': data,
         'blob': blob, 
         'png':ligpng, 
-        "path":path,
         "rhofitcenter":rhocenter,
         "ligandfitcenter":ligcenter, 
-        "ligand":fraglib+"_"+lig,
+        "ligand": proj.library + "_" + lig,
         "pdb":pdb,
         "dif":dif,
         "nat":nat,
@@ -796,36 +826,39 @@ def ligfit_results(request):
 ################ PIPEDREAM #####################
 
 def pipedream(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()   
+    proj = current_project(request)
 
-    datasetPathList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
+    datasetPathList=glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
     datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i] 
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
-def pipedream_results(request):
 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()   
+def pipedream_results(request):
+    proj = current_project(request)
+    pipedream_csv = os.path.join(project_process_protein_dir(proj), "pipedream.csv")
 
     resync=str(request.GET.get("resync"))
     if "resyncresults" in resync:
-        get_pipedream_results()
-    if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
-            get_pipedream_results()
-    if os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
-        with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+        get_pipedream_results(proj, pipedream_csv)
+
+    if not os.path.exists(pipedream_csv):
+        get_pipedream_results(proj, pipedream_csv)
+    if os.path.exists(pipedream_csv):
+        with open(pipedream_csv,"r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
         return render(request,'fragview/pipedream_results.html', {'lines': lines})
     else:
         return render(request,'fragview/pipedream_results.html')
 
+
 def submit_pipedream(request):
     def get_user_pdb_path():
         if len(b_userPDBcode.replace("b_userPDBcode:", "")) == 4:
             userPDB = b_userPDBcode.replace("b_userPDBcode:", "")
-            userPDBpath = path + "/fragmax/models/" + userPDB + ".pdb"
+            userPDBpath = project_model_path(proj, f"{userPDB}.pdb")
 
             ## Download and prepare PDB _file - remove waters and HETATM
             with open(userPDBpath, "w") as pdb:
@@ -836,15 +869,15 @@ def submit_pipedream(request):
             subprocess.call(preparePDB, shell=True)
         else:
             if len(b_userPDBcode.split("b_userPDBcode:")) == 2:
-                if path in b_userPDBcode.split("b_userPDBcode:")[1]:
+                if proj.data_path() in b_userPDBcode.split("b_userPDBcode:")[1]:
                     userPDBpath = b_userPDBcode.split("b_userPDBcode:")[1]
                 else:
-                    userPDBpath = path + "/fragmax/models/" + b_userPDBcode.split("b_userPDBcode:")[1]
+                    userPDBpath = project_model_path(proj, b_userPDBcode.split("b_userPDBcode:")[1])
+
 
         return userPDBpath
 
-    #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
     ppdCMD=str(request.GET.get("ppdform"))
     empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
@@ -859,9 +892,15 @@ def submit_pipedream(request):
     #Select one dataset or entire project
     if "alldatasets" not in input_data:
         input_data=input_data.replace("input_data:","")
-        ppdoutdir=path+"/fragmax/process/"+acr+"/"+input_data.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream"
-
+        ppdoutdir = os.path.join(
+            project_process_protein_dir(proj),
+            input_data.split(proj.protein + "/")[-1].replace("_master.h5", ""),
+            "pipedream")
         os.makedirs("/".join(ppdoutdir.split("/")[:-1]),mode=0o760, exist_ok=True)
+
+        # we need to make sure that pipedream output directory does
+        # not exist before invoking pipedream, as pipedream can potentionally
+        # refuse to run if the directory already exists
         if os.path.exists(ppdoutdir):
             shutil.rmtree(ppdoutdir)
         #     try:
@@ -912,8 +951,8 @@ def submit_pipedream(request):
             elif len(rho_ligandsmiles)>17:
                 ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
         
-        rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif"
-        
+        rhofitINPUT = f" -rhofit {project_ligand_cif(proj, ligand)}"
+
         #Keep Hydrogen RhoFit
         keepH=""
         if "true" in rho_keepH:
@@ -969,9 +1008,9 @@ def submit_pipedream(request):
         singlePipedreamOut+= """#SBATCH --exclusive\n"""
         singlePipedreamOut+= """#SBATCH -N1\n"""
         singlePipedreamOut+= """#SBATCH --cpus-per-task=48\n"""
-        singlePipedreamOut+= """#SBATCH --mem=220000\n""" 
-        singlePipedreamOut+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j_out.txt\n"""
-        singlePipedreamOut+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_"""+ligand+"""_%j_err.txt\n"""    
+        singlePipedreamOut+= """#SBATCH --mem=220000\n"""
+        singlePipedreamOut+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_"""+ligand+"""_%j_out.txt\n"""
+        singlePipedreamOut+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_"""+ligand+"""_%j_err.txt\n"""
         singlePipedreamOut+= """module purge\n"""
         singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
         
@@ -981,16 +1020,19 @@ def submit_pipedream(request):
         singlePipedreamOut+=chdir+"\n"
         singlePipedreamOut+=ppd
 
-        with open(path+"/fragmax/scripts/pipedream_"+ligand+".sh","w") as ppdsh:
+        script = project_script(proj, f"pipedream_{ligand}.sh")
+        with open(script, "w") as ppdsh:
             ppdsh.write(singlePipedreamOut)
 
-        script=path+"/fragmax/scripts/pipedream_"+ligand+".sh"
         command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
     if "alldatasets" in input_data:
-        ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
-        ppdoutdirList=[path+"/fragmax/process/"+acr+"/"+x.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream" for x in ppddatasetList]
+        ppddatasetList = list(project_raw_master_h5_files(proj))
+
+        ppdoutdirList = [
+            f"{project_process_protein_dir(proj)}/" + x.split(proj.protein + "/")[-1].replace("_master.h5", "") + "/pipedream"
+            for x in ppddatasetList]
 
         userPDBpath = get_user_pdb_path()
 
@@ -1081,8 +1123,8 @@ def submit_pipedream(request):
         header+= """#SBATCH -N1\n"""
         header+= """#SBATCH --cpus-per-task=40\n"""
         #header+= """#SBATCH --mem=220000\n""" 
-        header+= """#SBATCH -o """+path+"""/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
-        header+= """#SBATCH -e """+path+"""/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""    
+        header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
+        header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""
         header+= """module purge\n"""
         header+= """module load autoPROC BUSTER\n\n"""
         scriptList=list()
@@ -1091,7 +1133,8 @@ def submit_pipedream(request):
             chdir="cd "+"/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
                 ligand = ppddata.split("/")[8].split("-")[-1]
-                rhofitINPUT=" -rhofit "+path+"/fragmax/process/fragment/"+fraglib+"/"+ligand+"/"+ligand+".cif "+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef
+                rhofitINPUT = f" -rhofit {project_ligand_cif(proj, ligand)} {keepH}{clusterSearch}" \
+                              f"{fitrefineMode}{postrefineMode}{scanChirals}{occRef}"
             if "apo" in ppddata.lower():
                 rhofitINPUT=""
             ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
@@ -1105,29 +1148,29 @@ def submit_pipedream(request):
 
         for num,chunk in enumerate(chunkScripts):
             time.sleep(0.2)
-            with open(path+"/fragmax/scripts/pipedream_part"+str(num)+".sh", "w") as outfile:
+            script = project_script(proj, f"pipedream_part{num}.sh")
+            with open(script, "w") as outfile:
                 outfile.write(chunk)
-                    
-            script=path+"/fragmax/scripts/pipedream_part"+str(num)+".sh"
+
             command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command,shell=True)
+
 
     return render(request,
                   "fragview/jobs_submitted.html",
                   {"command":"<br>".join(ppdCMD.split(";;"))})
 
 
-def get_pipedream_results():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
+def get_pipedream_results(proj, pipedream_csv):
+    with open(pipedream_csv, "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma","ligsvg"])
 
         pipedreamXML=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s
-            pipedreamXML+=glob.glob(p+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml")
+        for shift_dir in project_shift_dirs(proj):
+            xml_glob = f"{shift_dir}/fragmax/process/{proj.protein}/*/*/pipedream/summary.xml"
+            pipedreamXML += glob.glob(xml_glob)
+
         for summary in pipedreamXML:
             try:
                 with open(summary,"r") as fd:
@@ -1147,18 +1190,22 @@ def get_pipedream_results():
                 R=doc['GPhL-pipedream']['refinement']['Cycle'][-1]["R"]
                 Rfree=doc['GPhL-pipedream']['refinement']['Cycle'][-1]["Rfree"]
                 resolution=doc['GPhL-pipedream']['inputdata']['table1']['shellstats'][0]['reshigh']
-                ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+ligandID+"/"+ligandID+".svg"
-                writer.writerow([sample,summary.replace("/data/visitors/","/static/").replace(".xml","_out.txt"),ligandID,fraglib,symm,resolution,R,Rfree,rhofitscore,a,b,c,alpha,beta,gamma,ligsvg])
-                
+                ligsvg = f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{ligandID}/{ligandID}.svg"
+                print(summary.replace("/data/visitors/","/static/").replace(".xml","_out.txt"))
+                writer.writerow([
+                    sample, summary.replace("/data/visitors/","/static/").replace(".xml",".out"), ligandID,
+                    proj.library, symm, resolution, R, Rfree, rhofitscore, a, b, c, alpha, beta, gamma, ligsvg])
+
             except:
                 pass
-        
+
+
 def load_pipedream_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
-    sample=str(request.GET.get('structure')) 
+    sample=str(request.GET.get('structure'))
 
-    with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
+    with open(os.path.join(project_process_protein_dir(proj), "pipedream.csv"), "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     
@@ -1182,11 +1229,9 @@ def load_pipedream_density(request):
             else:
                 prevstr=lines[currentpos-1][0]
                 nextstr=lines[currentpos+1][0]
-            
-    
 
     if "Apo" not in sample:
-        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/rhofit*/")
+        files = glob.glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/rhofit*/")
         files.sort(key=lambda x: os.path.getmtime(x))
         if files!=[]:
             pdb=files[-1]+"refine.pdb"
@@ -1201,7 +1246,7 @@ def load_pipedream_density(request):
         cE="true"
 
     else:
-        files = glob.glob(path+"/fragmax/process/"+acr+"/*/"+sample+"/pipedream/refine*/")
+        files = glob.glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/refine*/")
         files.sort(key=lambda x: os.path.getmtime(x))
         if files!=[]:
             pdb=files[-1]+"refine.pdb"
@@ -1853,15 +1898,17 @@ def pandda_inspect(request):
             'buster':0})
 
 def pandda(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
-    methods=[x.split("/")[10] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/*inspect_events*")]
+    methods = [
+        x.split("/")[10]
+        for x in glob.glob(f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda/analyses/*inspect_events*")
+    ]
+
     return render(request, "fragview/pandda.html",{"methods":methods})
 
 def submit_pandda(request):
-
-    #Function definitions
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
     panddaCMD=str(request.GET.get("panddaform"))
     giantCMD=str(request.GET.get("giantform"))
@@ -1875,10 +1922,14 @@ def submit_pandda(request):
         function,proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
         
         method=proc+"_"+ref
-        if os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/"):
-            shutil.move(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/",path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda_backup/")    
-        
-        with open(path+"/fragmax/scripts/pandda_worker.py","w") as outp:
+
+        res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
+        res_pandda = os.path.join(res_dir, "pandda")
+        if os.path.exists(res_pandda):
+            shutil.move(res_pandda, os.path.join(res_dir, "pandda_backup"))
+
+        py_script = project_script(proj, "pandda_worker.py")
+        with open(py_script, "w") as outp:
             outp.write('''import os \n'''
             '''import glob\n'''
             '''import sys\n'''
@@ -1919,8 +1970,10 @@ def submit_pandda(request):
             '''pandda_run(method)\n'''        
             '''os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')\n''')
 
+        script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
         methodshort=proc[:2]+ref[:2]
-        with open(path+"/fragmax/scripts/panddaRUN_"+acr+method+".sh","w") as outp:
+        log_prefix = os.path.join(proj.data_path(), "fragmax", "logs", f"panddarun_{proj.protein}{method}_%j_")
+        with open(script, "w") as outp:
                 outp.write('#!/bin/bash\n')
                 outp.write('#!/bin/bash\n')
                 outp.write('#SBATCH -t 99:55:00\n')
@@ -1929,17 +1982,18 @@ def submit_pandda(request):
                 outp.write('#SBATCH -N1\n')
                 outp.write('#SBATCH --cpus-per-task=48\n')
                 outp.write('#SBATCH --mem=220000\n')
-                outp.write('#SBATCH -o '+path+'/fragmax/logs/panddarun_'+acr+method+'_%j_out.txt\n')
-                outp.write('#SBATCH -e '+path+'/fragmax/logs/panddarun_'+acr+method+'_%j_err.txt\n')
+                outp.write('#SBATCH -o ' + log_prefix + 'out.txt\n')
+                outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
                 outp.write('module purge\n')
                 outp.write('module load PReSTO\n')
                 outp.write('\n')
-                outp.write('python '+path+'/fragmax/scripts/pandda_worker.py '+path+' '+method+' '+acr+' '+fraglib+' '+",".join(shiftList)+'\n')
+                outp.write('python ' + py_script +' ' + proj.data_path() + ' ' + method + ' '
+                           + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
         
         #script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
         #command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         #subprocess.call(command,shell=True)
-        t1 = threading.Thread(target=pandda_worker,args=(method,))
+        t1 = threading.Thread(target=pandda_worker,args=(method,proj))
         t1.daemon = True
         t1.start()
         
@@ -1947,20 +2001,23 @@ def submit_pandda(request):
                       "fragview/jobs_submitted.html",
                       {"command": panddaCMD})
 
-def pandda_analyse(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+def pandda_analyse(request):
+    proj = current_project(request)
+    panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
+
     fixsl=request.GET.get("fixsymlinks")
     if not fixsl is None and "FixSymlinks" in fixsl:
         t1 = threading.Thread(target=fix_pandda_symlinks,args=())
         t1.daemon = True
         t1.start()
-    proc_methods=[x.split("/")[-2] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda")]
+    proc_methods=[x.split("/")[-2] for x in glob.glob(panda_results_path + "/*/pandda")]
     newest=datetime.datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
     newestpath=""
     newestmethod=""
     for methods in proc_methods:
-        if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+methods+"/pandda/analyses-*"))>0:
-            last=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+methods+"/pandda/analyses-*"))[-1]
+        if len(glob.glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))>0:
+            last=sorted(glob.glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
             if os.path.exists(last+"/html_summaries/pandda_analyse.html"):
                 time = datetime.datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
                 if time>newest:
@@ -1974,22 +2031,23 @@ def pandda_analyse(request):
         if os.path.exists(newestpath+"/html_summaries/pandda_analyse.html"):
             with open(newestpath+"/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+newestmethod+"/pandda/; pandda.inspect"
+                localcmd="cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
                 return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+newestmethod)})
         else:
-            running=[x.split("/")[10] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/*running*")]    
+            running=[x.split("/")[10] for x in glob.glob(panda_results_path + "/*/pandda/*running*")]
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
     else:
-        if os.path.exists(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
+        if os.path.exists(panda_results_path + "/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html"):
+            with open(panda_results_path + "/"+method+"/pandda/analyses/html_summaries/pandda_analyse.html","r") as inp:
                 a="".join(inp.readlines())
-                localcmd="cd "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/; pandda.inspect"
+                localcmd="cd " + panda_results_path + "/"+method+"/pandda/; pandda.inspect"
             return render(request,'fragview/pandda_analyse.html', {"opencmd":localcmd,'proc_methods':proc_methods, 'Report': a.replace("PANDDA Processing Output","PANDDA Processing Output for "+method)})
         else:
-            running=[x.split("/")[9] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/*running*")]    
+            running=[x.split("/")[9] for x in glob.glob(panda_results_path + "/*/pandda/*running*")]
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
 
 def datasetDetails(dataset,site_idx,method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -2091,11 +2149,15 @@ def fix_pandda_symlinks():
         src=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
         os.remove(dst)
         shutil.copyfile(src,dst)
-        
+
+
 def pandda_giant(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
+
     scoreDict=dict()
-    available_scores=glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda-scores/residue_scores.html")
+    available_scores = glob.glob(
+        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda-scores/residue_scores.html")
+
     if available_scores!=[]:
         for score in available_scores:
             with open(score,"r") as readFile:
@@ -2107,9 +2169,8 @@ def pandda_giant(request):
     else:
         return render(request, "fragview/index.html")
 
-def pandda_worker(method):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
+def pandda_worker(method, proj):
     rn=str(randint(10000, 99999))
 
     
@@ -2120,22 +2181,40 @@ def pandda_worker(method):
     #header+='''#SBATCH --nice=25\n'''
     header+='''#SBATCH --cpus-per-task=1\n'''
     header+='''#SBATCH --mem=2500\n'''
-    header+='''#SBATCH -o '''+path+'''/fragmax/logs/pandda_prepare_'''+acr+'''_%j_out.txt\n'''
-    header+='''#SBATCH -e '''+path+'''/fragmax/logs/pandda_prepare_'''+acr+'''_%j_err.txt\n'''
+    header+='''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_prepare_''' + proj.protein + '''_%j_out.txt\n'''
+    header+='''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_prepare_''' + proj.protein + '''_%j_err.txt\n'''
     header+='''module purge\n'''
     header+='''module load CCP4 Phenix\n'''
 
     fragDict=dict()
-    datasetDict=dict()
-    for _dir in glob.glob(path+"/fragmax/process/fragment/"+fraglib+"/*"):
+    for _dir in glob.glob(f"{project_process_dir(proj)}/fragment/{proj.library}/*"):
         fragDict[_dir.split("/")[-1]]=_dir
 
-    datasetDict ={dt.split("/")[-1].split("_master.h5")[0]:dt for dt in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5") for s in shiftList] for item in it] if "ref-" not in x])}
-    selectedDict={ x.split("/")[-4]:x for x in sorted([x for x in [item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+acr+"*/"+method.replace("_","/")+"/final.pdb") for s in shiftList] for item in it]]) }
+    datasetDict = {
+        dt.split("/")[-1].split("_master.h5")[0]: dt
+        for dt in sorted(
+            [x for x in project_raw_master_h5_files(proj) if "ref-" not in x])
+    }
+
+    method_dir = method.replace("_", "/")
+
+    selectedDict = {
+        x.split("/")[-4]: x
+        for x in sorted([
+            x for x in
+            [item for it in
+             [glob.glob(f"{s}/fragmax/results/{proj.protein}*/{method_dir}/final.pdb") for s in project_shift_dirs(proj)]
+             for item in it]])
+    }
+
     missingDict ={ k : datasetDict[k] for k in set(datasetDict) - set(selectedDict) }
 
     for dataset in missingDict:
-        optionList=[item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/results/"+dataset+"/*/*/final.pdb") for s in shiftList] for item in it ]
+        optionList = [
+            item for it in
+            [glob.glob(f"{s}/fragmax/results/{dataset}/*/*/final.pdb") for s in project_shift_dirs(proj)]
+            for item in it ]
+
         if optionList==[]:
             selectedDict[dataset]=""
         else:
@@ -2153,16 +2232,21 @@ def pandda_worker(method):
 
     for dataset,pdb in selectedDict.items():
         if os.path.exists(pdb):
-            with open(path+"/fragmax/scripts/pandda_prepare_"+acr+dataset.split("-")[-1]+".sh","w") as writeFile:
+            fset = dataset.split("-")[-1]
+            script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
+            with open(script, "w") as writeFile:
                 writeFile.write(header)
                 proc,ref= method.split("_")        
                 frag=dataset.split("-")[-1].split("_")[0]
                 hklin=pdb.replace(".pdb",".mtz")
-                os.makedirs(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/",exist_ok=True)
-                hklout=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"
-                cmdcp1="cp "+pdb+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.pdb"
-                cmdcp2="cp "+hklin+" "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final.mtz"
-                cmd =  """echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh; cd /tmp; mtzdmp """+hklin+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
+                output_dir = os.path.join(proj.data_path(), "fragmax", "results",
+                                          "pandda", proj.protein, method, dataset)
+                os.makedirs(output_dir, exist_ok=True)
+                hklout = os.path.join(output_dir, "final.mtz")
+
+                cmdcp1=f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
+
+                cmd = """mtzdmp """ + hklin
                 output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")
                 
                 for i in output.splitlines():
@@ -2193,19 +2277,25 @@ def pandda_worker(method):
                 writeFile.write(phenix_maps+"\n")
                 #writeFile.write(cad_copyflag+"\n")
 
-                if "Apo" not in dataset:        
-                    cmdcp3="cp "+fragDict[frag]+"/"+frag+".cif "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".cif"                
-                    cmdcp4="cp "+fragDict[frag]+"/"+frag+".pdb "+path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/"+frag+".pdb"                
-                    writeFile.write(cmdcp3+"\n")
-                    writeFile.write(cmdcp4+"\n")
-            script=path+"/fragmax/scripts/pandda_prepare_"+acr+dataset.split("-")[-1]+".sh"
+                if "Apo" not in dataset:
+                    frag_cif = f"{frag}.cif"
+                    frag_pdb = f"{frag}.pdb"
+                    dest_dir = os.path.join(
+                        proj.data_path(), "fragmax", "results", "pandda", proj.protein, method, dataset)
+
+                    writeFile.write(
+                        f"cp {os.path.join(fragDict[frag], frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
+                        f"cp {os.path.join(fragDict[frag], frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
+
             cmd='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(cmd,shell=True)
-            
-            
 
-    cmd='echo "module purge | module load CCP4 | '+"sbatch --dependency=singleton --job-name=PnD"+rn+" "+path+"/fragmax/scripts/panddaRUN_"+acr+method+".sh"+' " | ssh -F ~/.ssh/ clu0-fe-1'
+    script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
+    cmd='echo "module purge | module load CCP4 | ' + "sbatch --dependency=singleton --job-name=PnD" + rn + \
+            " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+
     subprocess.call(cmd,shell=True)
+
             
 def giant_score(method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -2333,7 +2423,6 @@ def giant_score(method):
 #############################################
 
 def procReport(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     method=""
     report=str(request.GET.get('dataHeader')) 
     if "fastdp" in report or "EDNA" in report:
@@ -2548,8 +2637,9 @@ def ligfit_datasets(request):
     t1.start()
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
 
+
 def dataproc_datasets(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
     allprc  = str(request.GET.get("submitallProc"))
     dtprc   = str(request.GET.get("submitdtProc"))
@@ -2580,7 +2670,8 @@ def dataproc_datasets(request):
 
         spg=userinputs[5].split(":")[-1]
         pnodes=30
-        with open(path+"/fragmax/scripts/processALL.sh","w") as outp:
+        shell_script = project_script(proj, "processALL.sh")
+        with open(shell_script, "w") as outp:
             outp.write("""#!/bin/bash \n"""
                     """#!/bin/bash \n"""
                     """#SBATCH -t 99:55:00 \n"""
@@ -2588,14 +2679,16 @@ def dataproc_datasets(request):
                     """#SBATCH --exclusive \n"""
                     """#SBATCH -N1 \n"""
                     """#SBATCH --cpus-per-task=40 \n"""
-                    """#SBATCH -o """+path+"""/fragmax/logs/analysis_workflow_%j_out.txt \n"""
-                    """#SBATCH -e """+path+"""/fragmax/logs/analysis_workflow_%j_err.txt \n"""
+                    """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_out.txt \n"""
+                    """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
                     """module purge \n"""
                     """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                    """python """+path+"/fragmax/scripts/processALL.py"+""" '"""+path+"""' '"""+fraglib+"""' '"""+PDBID+"""' '"""+spg+"""' $1 $2 '"""+",".join(dpSW)+"""' '"""+",".join(rfSW)+"""' '"""+",".join(lfSW)+"""' \n""")
+                    """python """ + project_script(proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" + \
+                       proj.library + """' '""" + PDBID+"""' '""" + spg+"""' $1 $2 '""" + ",".join(dpSW) + \
+                       """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
         for node in range(pnodes):
-            script=path+"/fragmax/scripts/processALL.sh"
-            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch '+script+" "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
+            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch ' + \
+                     shell_script + " "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command,shell=True)
             time.sleep(0.2)
         return render(request,'fragview/testpage.html', {
@@ -2624,21 +2717,21 @@ def dataproc_datasets(request):
         if filters!="ALL":
             nodes=1
         if usexdsapp=="true":
-            t = threading.Thread(target=run_xdsapp, args=(nodes, filters))
+            t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
         if usedials=="true":
-            t = threading.Thread(target=run_dials, args=(nodes, filters))
+            t = threading.Thread(target=run_dials, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
             
         if useautproc=="true":
-            t = threading.Thread(target=run_autoproc, args=(nodes, filters))
+            t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
           
         if usexdsxscale=="true":
-            t = threading.Thread(target=run_xdsxscale, args=(nodes, filters))
+            t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
             
@@ -2651,8 +2744,6 @@ def dataproc_datasets(request):
 
 ########### HPC JOBS CONTROL #################
 def kill_HPC_job(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
     jobid_k=str(request.GET.get('jobid_kill'))     
 
     subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -2688,7 +2779,7 @@ def kill_HPC_job(request):
 
 
 def hpcstatus(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proj = current_project(request)
 
     proc = subprocess.Popen(
         ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
@@ -2696,6 +2787,7 @@ def hpcstatus(request):
         stderr=subprocess.PIPE)
 
     out, err = proc.communicate()
+
     #output=""
     hpcList=list()
     for j in out.decode("UTF-8").split("\n")[1:-1]:
@@ -2706,20 +2798,30 @@ def hpcstatus(request):
                 jobid,partition,name,user,ST,TIME,NODE,NODEn1,NODEn2=j.split()
                 NODEn=NODEn1+NODEn2
             try:
-                stdErr,stdOut=sorted(list(item for it in [glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/logs/*"+jobid+"*") for s in shiftList] for item in it))
+                log_pairs = [
+                    item for it in
+                    [
+                        glob.glob(f"{shift_dir}/fragmax/logs/*{jobid}*")
+                        for shift_dir in project_shift_dirs(proj)
+                    ]
+                    for item in it
+                ]
+
+                stdErr, stdOut = sorted(log_pairs)
                 stdErr=stdErr.replace("/data/visitors/","/static/")
                 stdOut=stdOut.replace("/data/visitors/","/static/")
             except:
                 stdErr,stdOut=["-","-"]
                 
             hpcList.append([jobid,partition,name,user,ST,TIME,NODE,NODEn,stdErr,stdOut])
-    
-    return render(request,'fragview/hpcstatus.html', {'hpcList':hpcList, "proposal":proposal, "user":user})
+
+    return render(request,
+                  "fragview/hpcstatus.html",
+                  {"hpcList": hpcList, "proposal": proj.proposal})
+
 ##############################################
 
 def retrieveParameters(xmlfile):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
     #Dictionary with parameters for dataset info template page
     
     with open(xmlfile,"r") as inp:
@@ -2760,20 +2862,21 @@ def retrieveParameters(xmlfile):
     
     return paramDict
 
-def datacollectionSummary(acr, path):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def datacollectionSummary(proj):
+    lists = list()
+    for s in proj.shifts():
+        lists += glob.glob(
+            "/data/visitors/biomax/" + proj.proposal + "/" + s + "/process/" + proj.protein +
+            "/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
 
-    
-    lists=list()
-    for s in shiftList:
-        lists+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+    data_collections_dir = os.path.join(proj.data_path(), "fragmax", "process", proj.protein)
+    data_collections_file = os.path.join(data_collections_dir, "datacollections.csv")
 
-
-    if os.path.exists(path+"/fragmax/process/"+acr+"/datacollections.csv"):
+    if os.path.exists(data_collections_file):
         return
     else:        
-        os.makedirs(path+"/fragmax/process/"+acr,mode=0o760, exist_ok=True)
-        with open(path+"/fragmax/process/"+acr+"/datacollections.csv","w") as csvFile:
+        os.makedirs(data_collections_dir, mode=0o760, exist_ok=True)
+        with open(data_collections_file, "w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
             
@@ -2801,9 +2904,10 @@ def datacollectionSummary(acr, path):
                 if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
                     ligsvg="/static/img/apo.png"                
                 else:
-                    ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+sample+"/"+sample+".svg"
-                
-                writer.writerow([dataset,sample,colPath,acr,run,nIMG,resolution,snaps,ligsvg])
+                    ligsvg = f"{project_static_url(proj)}/fragmax/process/fragment/" \
+                             f"{proj.library}/{sample}/{sample}.svg"
+
+                writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
                        
 def resultSummary():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -3144,8 +3248,7 @@ def resultSummary():
     subprocess.call(plotcmd,shell=True)
 
 
-def run_xdsapp(nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def run_xdsapp(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3160,16 +3263,20 @@ def run_xdsapp(nodes, filters):
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
     #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsapp_fragmax_%j_out.txt\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsapp_fragmax_%j_err.txt\n"""    
+    header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDSAPP\n\n"""
 
     scriptList=list()
 
+    xml_files = sorted(
+        x for x in glob.glob(
+            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
+            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        if filters in x)
 
-    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
@@ -3187,15 +3294,17 @@ def run_xdsapp(nodes, filters):
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
     for num,chunk in enumerate(chunkScripts):
         time.sleep(0.2)
-        with open(path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh", "w") as outfile:
+
+        script = project_script(proj, f"xdsapp_fragmax_part{num}.sh")
+        with open(script, "w") as outfile:
             outfile.write(chunk)
                 
-        script=path+"/fragmax/scripts/xdsapp_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
+        print(f"running command '{command}'")
 
-def run_autoproc(nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+def run_autoproc(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3210,16 +3319,20 @@ def run_autoproc(nodes, filters):
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
     #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/autoproc_fragmax_%j_out.txt\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/autoproc_fragmax_%j_err.txt\n"""    
+    header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
     header+= """module load CCP4 autoPROC\n\n"""
 
     scriptList=list()
 
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(
+        x for x in glob.glob(
+            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
+            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        if filters in x)
 
-    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
+    for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
@@ -3236,14 +3349,15 @@ def run_autoproc(nodes, filters):
 
     for num,chunk in enumerate(chunkScripts):
         time.sleep(0.2)
-        with open(path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh", "w") as outfile:
+
+        script = project_script(proj, f"autoproc_fragmax_part{num}.sh")
+        with open(script, "w") as outfile:
             outfile.write(chunk)
-        script=path+"/fragmax/scripts/autoproc_fragmax_part"+str(num)+".sh"
         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_xdsxscale(nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+def run_xdsxscale(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3260,18 +3374,23 @@ def run_xdsxscale(nodes, filters):
     header+= """#SBATCH --cpus-per-task=40\n"""       
     #header+= """#SBATCH --mem=220000\n""" 
     header+= """#SBATCH --mem-per-cpu=2000\n""" 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""    
+    header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDS\n\n"""
 
     scriptList=list()
 
-    with open(path+"/fragmax/scripts/filter.txt","w") as inp:
-        inp.write(filters)    
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    with open(project_script(proj, "filter.txt"), "w") as inp:
+        inp.write(filters)
 
-    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
+    xml_files = sorted(
+        x for x in glob.glob(
+            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
+            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        if filters in x)
+
+    for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
@@ -3292,15 +3411,16 @@ def run_xdsxscale(nodes, filters):
 
     for num,chunk in enumerate(chunkScripts):
         time.sleep(0.2)
-        with open(path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh", "w") as outfile:
+
+        script = project_script(proj, f"xdsxscale_fragmax_part{num}.sh")
+        with open(script, "w") as outfile:
             outfile.write(chunk)
-        script=path+"/fragmax/scripts/xdsxscale_fragmax_part"+str(num)+".sh"
+
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_dials(nodes, filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
+def run_dials(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
 
@@ -3317,17 +3437,20 @@ def run_dials(nodes, filters):
     #header+= """#SBATCH --mem=220000\n""" 
     header+= """#SBATCH --mem-per-cpu=2000\n""" 
 
-    header+= """#SBATCH -o """+path+"""/fragmax/logs/dials_fragmax_%j_out.txt\n"""
-    header+= """#SBATCH -e """+path+"""/fragmax/logs/dials_fragmax_%j_err.txt\n"""    
+    header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
+    header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
     header+= """module load CCP4 XDS DIALS/1.12.3-PReSTO\n\n"""
 
     scriptList=list()
 
-    
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(
+        x for x in glob.glob(
+            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
+            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
+        if filters in x)
 
-    for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
+    for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
@@ -3348,11 +3471,14 @@ def run_dials(nodes, filters):
 
     for num,chunk in enumerate(chunkScripts):
         time.sleep(0.2)
-        with open(path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh", "w") as outfile:
+
+        script = project_script(proj, f"dials_fragmax_part{num}.sh")
+        with open(script, "w") as outfile:
             outfile.write(chunk)
-        script=path+"/fragmax/scripts/dials_fragmax_part"+str(num)+".sh"
+
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
+
 
 def process2results(spacegroup, filters, aimlessopt):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()

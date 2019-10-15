@@ -353,7 +353,11 @@
                     <tbody>
                         <tr>
                             <th>Img directory</th>
-                            <td name="imgdirNAME" id="imgdirID"><p style="word-break: break-all;">/data/visitors/biomax/{{proposal}}/{{shift}}/raw/{{acr}}/{{imgprf}}/</p></td>
+                            <td name="imgdirNAME" id="imgdirID">
+                                <p style="word-break: break-all;">
+                                    /data/visitors/biomax/{{project.proposal}}/{{shift}}/raw/{{acr}}/{{imgprf}}/
+                                </p>
+                            </td>
                         </tr>
                         <tr>
                             <th>Img prefix</th>
@@ -533,7 +537,12 @@
                         <tr>
                             <th>Soaking time</td>
                             <td>{{soakTime}} </td>
-                            <td rowspan="3" ><img class="ligpng" id="ligand" src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/fragment/{{fraglib}}/{{ligand}}/{{ligand}}.svg" onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';"></td>
+                            <td rowspan="3" >
+                                <img class="ligpng"
+                                     id="ligand"
+                                     src="/static/biomax/{{project.proposal}}/{{shift}}/fragmax/process/fragment/{{project.library}}/{{ligand}}/{{ligand}}.svg"
+                                     onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
+                            </td>
                         </tr>
                         <tr>
                             <th>Fragment Concentration</th>

@@ -39,29 +39,29 @@
 <div class="card">
         <div class="card-content">
             
-            <div class="card-title">Proposal name: Fragment screening of {{acronym}}</div><br>
+            <div class="card-title">Proposal name: Fragment screening of {{project.protein}}</div><br>
             <table class="table bordered">
                 
                 <tbody>
                 <tr>
                     <th>Proposal Number</th>
-                    <td>{{proposal}}</td>                    
+                    <td>{{project.proposal}}</td>
                 </tr>
                 <tr>
                     <th>Shift</th>
-                    <td>{{shift}}</td>                    
+                    <td>{{project.shift}}</td>
                 </tr>
                 <tr>
                     <th>Related Data Collections</th>
-                    <td>{{shiftList | safe}}</td>                    
+                    <td>
+                        {% for shift in project.shifts %}
+                            {{shift}}<br>
+                        {% endfor %}
+                    </td>
                 </tr>
                 <tr>
                     <th>Protein</th>
-                    <td>{{acronym}}</td>                    
-                </tr>
-                <tr>
-                    <th>User type</th>
-                    <td>Academic visitor</td>                    
+                    <td>{{project.protein}}</td>
                 </tr>
                 <tr>
                     <th>Datasets collected (combined)</th>

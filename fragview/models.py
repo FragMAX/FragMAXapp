@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
+from .projects import shift_dir
 
 
 class Project(models.Model):
@@ -42,6 +43,7 @@ class Project(models.Model):
         all_shifts = set(aditional_shifts).union([self.shift])
 
         return list(all_shifts)
+
 
 class User(AbstractBaseUser):
     username = models.CharField(

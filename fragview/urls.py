@@ -45,9 +45,7 @@ urlpatterns = [
     path('project/new', views.project_new),
     path('project/current/<int:id>/', views.project_set_current),
 
-    # TODO remove view below
-    path('project_summary/', views.load_project_summary, name='project_summary'),
-    # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
+    path('project_summary/', views.project_summary, name='project_summary'),
 
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('data_analysis/', views.data_analysis, name='data_analysis'),
