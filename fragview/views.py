@@ -882,7 +882,7 @@ def submit_pipedream(request):
         else:
             ncluster=rho_xclusters.split(":")[-1]
             if ncluster=="":
-                    ncluster=1
+                    ncluster="1"
             clusterSearch=" -xcluster "+ncluster
 
         #Search mode for RhoFit
@@ -1003,7 +1003,7 @@ def submit_pipedream(request):
         else:
             ncluster=rho_xclusters.split(":")[-1]
             if ncluster=="":
-                    ncluster=1
+                    ncluster="1"
             clusterSearch=" -xcluster "+ncluster
 
         #Search mode for RhoFit
