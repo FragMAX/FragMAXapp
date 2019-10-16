@@ -2630,21 +2630,21 @@ def dataproc_datasets(request):
         if filters!="ALL":
             nodes=1
         if usexdsapp=="true":
-            t = threading.Thread(target=run_xdsapp,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t = threading.Thread(target=run_xdsapp, args=(nodes, filters))
             t.daemon = True
             t.start()
         if usedials=="true":
-            t = threading.Thread(target=run_dials,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t = threading.Thread(target=run_dials, args=(nodes, filters))
             t.daemon = True
             t.start()
             
         if useautproc=="true":
-            t = threading.Thread(target=run_autoproc,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t = threading.Thread(target=run_autoproc, args=(nodes, filters))
             t.daemon = True
             t.start()
           
         if usexdsxscale=="true":
-            t = threading.Thread(target=run_xdsxscale,args=(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes,filters))
+            t = threading.Thread(target=run_xdsxscale, args=(nodes, filters))
             t.daemon = True
             t.start()
             
@@ -3149,7 +3149,8 @@ def resultSummary():
     plotcmd="""echo '"""+"/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py"+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
     subprocess.call(plotcmd,shell=True)
 
-def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
+
+def run_xdsapp(nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3199,7 +3200,7 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
+def run_autoproc(nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3247,7 +3248,7 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
         command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
+def run_xdsxscale(nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3303,7 +3304,7 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
         command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,friedel,datarange,rescutoff,cccutoff,isigicutoff,nodes, filters):
+def run_dials(nodes, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     if "filters:" in filters:
