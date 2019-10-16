@@ -824,12 +824,33 @@ def pipedream_results(request):
     return render(request, "fragview/pipedream_results.html")
 
 def submit_pipedream(request):
+    def get_user_pdb_path():
+        if len(b_userPDBcode.replace("b_userPDBcode:", "")) == 4:
+            userPDB = b_userPDBcode.replace("b_userPDBcode:", "")
+            userPDBpath = path + "/fragmax/models/" + userPDB + ".pdb"
+
+            ## Download and prepare PDB _file - remove waters and HETATM
+            with open(userPDBpath, "w") as pdb:
+                pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
+
+            preparePDB = "pdb_selchain -" + pdbchains + " " + userPDBpath + " | pdb_delhetatm | pdb_tidy > " + userPDBpath.replace(
+                ".pdb", "_tidy.pdb")
+            subprocess.call(preparePDB, shell=True)
+        else:
+            if len(b_userPDBcode.split("b_userPDBcode:")) == 2:
+                if path in b_userPDBcode.split("b_userPDBcode:")[1]:
+                    userPDBpath = b_userPDBcode.split("b_userPDBcode:")[1]
+                else:
+                    userPDBpath = path + "/fragmax/models/" + b_userPDBcode.split("b_userPDBcode:")[1]
+
+        return userPDBpath
 
     #Function definitions
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
     ppdCMD=str(request.GET.get("ppdform"))
     empty,input_data, ap_spacegroup, ap_cellparam,ap_staraniso,ap_xbeamcent,ap_ybeamcent,ap_datarange,ap_rescutoff,ap_highreslim,ap_maxrpim,ap_mincomplet,ap_cchalfcut,ap_isigicut,ap_custompar,b_userPDBfile,b_userPDBcode,b_userMTZfile,b_refinemode,b_MRthreshold,b_chainsgroup,b_bruteforcetf,b_reslimits,b_angularrf,b_sideaiderefit,b_sideaiderebuild,b_pepflip,b_custompar,rho_ligandsmiles,rho_ligandcode,rho_ligandfromname,rho_copiestosearch,rho_keepH,rho_allclusters,rho_xclusters,rho_postrefine,rho_occuprefine,rho_fittingproc,rho_scanchirals,rho_custompar,extras = ppdCMD.split(";;")
 
+    nodes=10
     #variables init
     ligand="none"
     ppdoutdir="none"
@@ -854,17 +875,8 @@ def submit_pipedream(request):
             
 
         #     ppdoutdir=ppdoutdir+"_run"+run
-        
-        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
-            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
-            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
-            
-            ## Download and prepare PDB _file - remove waters and HETATM
-            with open(userPDBpath,"w") as pdb:
-               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
-            
-            #preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
-            #subprocess.call(preparePDB,shell=True)
+
+        userPDBpath = get_user_pdb_path()
 
         #STARANISO setting    
         if "true" in ap_staraniso:
@@ -981,20 +993,10 @@ def submit_pipedream(request):
     if "alldatasets" in input_data:
         ppddatasetList=glob.glob(path+"/raw/"+acr+"/*/*master.h5")
         ppdoutdirList=[path+"/fragmax/process/"+acr+"/"+x.split(acr+"/")[-1].replace("_master.h5","")+"/pipedream" for x in ppddatasetList]
-        
-        
-        if len(b_userPDBcode.replace("b_userPDBcode:",""))==4:
-            userPDB=b_userPDBcode.replace("b_userPDBcode:","")
-            userPDBpath=path+"/fragmax/process/"+userPDB+".pdb"
-            
-            ## Download and prepare PDB _file - remove waters and HETATM
-            with open(userPDBpath,"w") as pdb:
-               pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
-            
-            preparePDB="pdb_selchain -"+pdbchains+" "+userPDBpath+" | pdb_delhetatm | pdb_tidy > "+userPDBpath.replace(".pdb","_tidy.pdb")
-            subprocess.call(preparePDB,shell=True)
 
-        #STARANISO setting    
+        userPDBpath = get_user_pdb_path()
+
+        #STARANISO setting
         if "true" in ap_staraniso:
             useANISO=" -useaniso"
         else:
@@ -1039,7 +1041,7 @@ def submit_pipedream(request):
             else:
                 ncluster=rho_xclusters.split(":")[-1]
                 if ncluster=="":
-                    ncluster=1
+                    ncluster="1"
                 clusterSearch=" -xcluster "+ncluster
         else:
             ncluster=rho_xclusters.split(":")[-1]
@@ -1097,10 +1099,11 @@ def submit_pipedream(request):
             ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
         
             allPipedreamOut=chdir+"\n"
+            allPipedreamOut+=chdir.replace("cd ","rm -rf ")+"/pipedream/"+"\n"
             allPipedreamOut+=ppd+"\n\n"
             
             scriptList.append(allPipedreamOut)
-        chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,35) )]
+        chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
 
         for num,chunk in enumerate(chunkScripts):
             time.sleep(0.2)
