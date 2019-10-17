@@ -813,15 +813,13 @@ def pipedream_results(request):
         get_pipedream_results()
     if not os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
             get_pipedream_results()
-    try:       
+    if os.path.exists(path+"/fragmax/process/"+acr+"/pipedream.csv"):
         with open(path+"/fragmax/process/"+acr+"/pipedream.csv","r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
-        return render("fragview/pipedream_results.html", {"files": lines})
-    except:
-        #return render_to_response('fragview/index.html')
-        pass
-    return render(request, "fragview/pipedream_results.html")
+        return render(request,'fragview/pipedream_results.html', {'lines': lines})
+    else:
+        return render(request,'fragview/pipedream_results.html')
 
 def submit_pipedream(request):
     def get_user_pdb_path():
@@ -1124,45 +1122,36 @@ def get_pipedream_results():
 
     with open(path+"/fragmax/process/"+acr+"/pipedream.csv","w") as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma"])
-        
+        writer.writerow(["sample","summaryFile","fragment","fragmentLibrary","symmetry","resolution","rwork","rfree","rhofitscore","a","b","c","alpha","beta","gamma","ligsvg"])
+
         pipedreamXML=list()
         for s in shiftList:
             p="/data/visitors/biomax/"+proposal+"/"+s
             pipedreamXML+=glob.glob(p+"/fragmax/process/"+acr+"/*/*/pipedream/summary.xml")
         for summary in pipedreamXML:
-            xmlDict=dict()
-            with open(summary) as fd:
-                doc=fd.read()
+            try:
+                with open(summary,"r") as fd:
+                    doc=xmltodict.parse(fd.read())
 
-            for p in pList:
-                try:
-                    for i in doc[doc.index("<"+p+">")+len("<"+p+">"):doc.index("</"+p+">")].split():
-                        key=i.split(">")[0][1:]
-                        value=i.split(">")[1].split("<")[0]
-                        if value != "":
-                            xmlDict[key]=value
-                except:
-                    pass
-            for n,i in enumerate(doc.split()):
-                if "<R>" in i:            
-                    xmlDict["R"]=i[3:9]
-                if "<Rfree>" in i:
-                    xmlDict["Rfree"]=i[7:13]
-                if "id=" in i:
-                    xmlDict["ligand"]=i.split('"')[1]               
-                if "correlationcoefficient" in i:    
-                    xmlDict["rhofitscore"]=i[24:30]                
-                if "reshigh" in i:            
-                    xmlDict["resolution"]=i[9:13]
-            xmlDict["sample"]=summary.replace("/data/visitors/","/static/").split("/")[-3]
-            if xmlDict!={}:        
-                if "rhofitscore" not in xmlDict:
-                    xmlDict["rhofitscore"]="-"
-                if "ligand" not in xmlDict:
-                    xmlDict["ligand"]="Apo"
-                if "resolution" in xmlDict:
-                    writer.writerow([xmlDict["sample"],summary.replace("/data/visitors/","/static/").replace(".xml","_out.txt"),xmlDict["ligand"],fraglib,xmlDict["symm"],xmlDict["resolution"],xmlDict["R"],xmlDict["Rfree"],xmlDict["rhofitscore"],xmlDict["a"],xmlDict["b"],xmlDict["c"],xmlDict["alpha"],xmlDict["beta"],xmlDict["gamma"]])
+
+                sample=doc['GPhL-pipedream']['setup']["runfrom"].split("/")[-1]
+                a=doc['GPhL-pipedream']['refdata']["cell"]["a"]
+                b=doc['GPhL-pipedream']['refdata']["cell"]["b"]
+                c=doc['GPhL-pipedream']['refdata']["cell"]["c"]
+                alpha=doc['GPhL-pipedream']['refdata']["cell"]["alpha"]
+                beta=doc['GPhL-pipedream']['refdata']["cell"]["beta"]
+                gamma=doc['GPhL-pipedream']['refdata']["cell"]["gamma"]
+                ligandID=doc['GPhL-pipedream']['ligandfitting']["ligand"]["@id"]
+                symm=doc['GPhL-pipedream']['refdata']["symm"]
+                rhofitscore=doc['GPhL-pipedream']['ligandfitting']["ligand"]["rhofitsolution"]["correlationcoefficient"]
+                R=doc['GPhL-pipedream']['refinement']['Cycle'][-1]["R"]
+                Rfree=doc['GPhL-pipedream']['refinement']['Cycle'][-1]["Rfree"]
+                resolution=doc['GPhL-pipedream']['inputdata']['table1']['shellstats'][0]['reshigh']
+                ligsvg=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+ligandID+"/"+ligandID+".svg"
+                writer.writerow([sample,summary.replace("/data/visitors/","/static/").replace(".xml","_out.txt"),ligandID,fraglib,symm,resolution,R,Rfree,rhofitscore,a,b,c,alpha,beta,gamma,ligsvg])
+                
+            except:
+                pass
         
 def load_pipedream_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
