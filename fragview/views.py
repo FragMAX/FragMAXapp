@@ -1111,9 +1111,11 @@ def submit_pipedream(request):
             command ='echo "module purge | module load autoPROC BUSTER | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command,shell=True)
 
-        
-    return render(request, "fragview/submit_pipedream.html",{"command":"<br>".join(ppdCMD.split(";;"))})
-    
+    return render(request,
+                  "fragview/jobs_submitted.html",
+                  {"command":"<br>".join(ppdCMD.split(";;"))})
+
+
 def get_pipedream_results():
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
@@ -1947,7 +1949,9 @@ def submit_pandda(request):
         t1.daemon = True
         t1.start()
         
-        return render(request, "fragview/submit_pandda.html",{"command":panddaCMD})
+        return render(request,
+                      "fragview/jobs_submitted.html",
+                      {"command": panddaCMD})
 
 def pandda_analyse(request):    
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
@@ -2660,7 +2664,9 @@ def kill_HPC_job(request):
     subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     sleep(5)
-    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     output=""   
 
@@ -2686,11 +2692,15 @@ def kill_HPC_job(request):
     
     return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
+
 def hpcstatus(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
-    user=""
-    proc = subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'squeue','-u','guslim'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+
     out, err = proc.communicate()
     #output=""
     hpcList=list()
