@@ -1164,12 +1164,13 @@ def load_pipedream_density(request):
     
     for n,line in enumerate(lines):
         if line[0]==sample:
-            ligand      =line[4]
-            symmetry    =sym2spg(line[5])
-            resolution  =line[6]
-            rwork       =line[7]
-            rfree       =line[8]
-            rhofitscore =line[10]
+            ligand      =line[2]
+            symmetry    =sym2spg(line[4])
+            resolution  =line[5]
+            rwork       =line[6]
+            rfree       =line[7]
+            rhofitscore =line[8]
+            ligsvg      =line[-1]
             currentpos=n
             if currentpos==len(lines)-1:
                 prevstr=lines[currentpos-1][0]
@@ -1240,6 +1241,7 @@ def load_pipedream_density(request):
             "prevstr":prevstr,
             "nextstr":nextstr,
             "cE":cE,
+            "ligsvg":ligsvg,
             # "name":name,
 
             # "frag":frag,
