@@ -66,3 +66,25 @@ class TestUser(test.TestCase):
 
         proj = self.user.get_current_project([self.OTHER_PROP])
         self.assertIsNone(proj)
+
+
+class TestProject(test.TestCase):
+    def test_icon_num(self):
+        """
+        test Project.icon_num() method
+        """
+        proj1 = Project()
+        proj1.save()
+        proj2 = Project()
+        proj2.save()
+
+        # check that project icon number's are in [0..PROJ_ICONS_NUMBER) range
+        self.assertLessEqual(0, proj1.icon_num())
+        self.assertGreater(Project.PROJ_ICONS_NUMBER, proj1.icon_num())
+
+        self.assertLessEqual(0, proj2.icon_num())
+        self.assertGreater(Project.PROJ_ICONS_NUMBER, proj2.icon_num())
+
+        # check that two project, created right after each other,
+        # have unique icon numbers
+        self.assertNotEqual(proj2.icon_num(), proj1.icon_num())

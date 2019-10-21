@@ -90,7 +90,7 @@
                }
 
                 .projects-menu {
-                    top: -45px !important;
+                    top: -25px !important;
                     left: 5px !important;
                     min-width: 240px;
                     background-color: #dddddd;
@@ -121,12 +121,12 @@
 <body>
 {% block sidenav %}
 <dmc-sidenav>
-    <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden">
+    <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="padding-top: 30px; transform: translateX(0px); overflow-y:hidden">
 
     <dmc-dropdown>
         <div class="user-view">
-            <a style="margin-top:54px" class="dropdown-button" href="#!" data-target="pick-project-menu">
-                <img class="circle" src="/static/shape.png">
+            <a class="dropdown-button" href="#!" data-target="pick-project-menu">
+                <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
                 <span class="white-text name" style="font-size: 20px; font-weight: bold;">
                     {{project.protein}} - {{project.library}}
                     <i class="material-icons right">arrow_drop_down</i>
@@ -139,7 +139,7 @@
                 <a href="/project/current/{{ proj.id }}/">
                     <div class="project-entry">
                         <div class="project-cell">
-                            <img class="circle" src="/static/shape.png">
+                            <img class="circle" src="/static/projIcons/{{proj.icon_num}}.svg">
                         </div>
                         <div class="project-cell">
                             <div style="font-size: 20px; font-weight: bold;">{{ proj.protein }}</div>

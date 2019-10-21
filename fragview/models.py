@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractBaseUser
 
 
 class Project(models.Model):
+    # number of unique project icons available
+    PROJ_ICONS_NUMBER = 10
+
     protein = models.TextField()
     library = models.TextField()
     proposal = models.TextField()
@@ -18,6 +21,27 @@ class Project(models.Model):
         usr_proj = Project.user_projects(user_proposals)
         return usr_proj.filter(id=project_id).first()
 
+    def icon_num(self):
+        return self.id % self.PROJ_ICONS_NUMBER
+
+    def data_path(self):
+        return shift_dir(self.proposal, self.shift)
+
+    def shifts(self):
+        """
+        get all shifts for this project, both the 'main' shift
+        and any additional shifts if specified
+        """
+
+        # split the shift list on ',' and filter our any
+        # potentially empty string that split generates
+        aditional_shifts = [s for s in self.shift_list.split(",") if s]
+
+        # create a union set between main shift and additional shifts,
+        # to handle the case where same shift is listed multiple times
+        all_shifts = set(aditional_shifts).union([self.shift])
+
+        return list(all_shifts)
 
 class User(AbstractBaseUser):
     username = models.CharField(
