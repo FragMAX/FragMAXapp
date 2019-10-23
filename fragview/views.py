@@ -5,7 +5,7 @@ from .forms import ProjectForm
 from .proposals import get_proposals
 from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
 from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
-from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif
+from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions
 from difflib import SequenceMatcher
 
 import glob
@@ -36,10 +36,6 @@ from random import randint
 ################################
 #Changing this parameters for different projects based on user credentials
 
-
-
-setfile="/mxn/home/guslim/Projects/webapp/static/projectSettings/.settings"
-
 class ThreadWithReturnValue(threading.Thread):
         def __init__(self, group=None, target=None, name=None,
                     args=(), kwargs={}, Verbose=None):
@@ -53,51 +49,6 @@ class ThreadWithReturnValue(threading.Thread):
         def join(self, *args):
             threading.Thread.join(self, *args)
             return self._return
-
-
-def project_definitions():
-    proposal = ""
-    shift    = ""
-    acronym  = ""
-    proposal_type = ""
-    with open(setfile,"r") as inp:
-        prjset=inp.readlines()[0]
-
-    proposal      = prjset.split(";")[1].split(":")[-1]
-    shift         = prjset.split(";")[2].split(":")[-1]    
-    acronym       = prjset.split(";")[3].split(":")[-1]    
-    proposal_type = prjset.split(";")[4].split(":")[-1]
-    fraglib       = prjset.split(";")[5].split(":")[-1].replace("\n","") 
-    shiftList     = prjset.split(";")[6].split(":")[-1].split(",")
-
-    path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
-    static_datapath="/static/biomax/"+proposal+"/"+shift
-    #fraglib="F2XEntry"
-    #fraglib="JBS"
-    os.makedirs(path+"/fragmax/process/",mode=0o760, exist_ok=True)
-    os.makedirs(path+"/fragmax/scripts/",mode=0o760, exist_ok=True)
-    os.makedirs(path+"/fragmax/results/",mode=0o760, exist_ok=True)
-    os.makedirs(path+"/fragmax/logs/",mode=0o760, exist_ok=True)
-
-    
-
-    
-    return proposal, shift, acronym, proposal_type, path, subpath, static_datapath,fraglib, shiftList
-
-
-proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
-
-if len(proposal)<7 or len(shift)<7 or len(acr)<1 or len(proposal_type)<5:
-
-    acr="ProteinaseK"
-    proposal="20180479"
-    shift="20190323"
-    proposal_type="visitors"
-    path="/data/"+proposal_type+"/biomax/"+proposal+"/"+shift
-    subpath="/data/"+proposal_type+"/biomax/"+proposal+"/"
-    static_datapath="/static/biomax/"+proposal+"/"+shift
-    shiftList=["20190323"]
 
 ################################
 
@@ -414,9 +365,9 @@ def datasets(request):
     
     if "resyncStatus" in resyncStatus:
         os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
-        get_project_status()
+        get_project_status(request)
         datacollectionSummary(proj)
-        resultSummary()
+        resultSummary(request)
     
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
@@ -436,7 +387,7 @@ def datasets(request):
 
 
     if not os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
-        get_project_status()
+        get_project_status(request)
 
     ##Proc status
     if os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
@@ -561,9 +512,9 @@ def results(request):
     resync=str(request.GET.get("resync"))
 
     if "resyncresults" in resync:
-        resultSummary()
+        resultSummary(request)
     if not os.path.exists(results_file):
-        resultSummary()
+        resultSummary(request)
     try:
         with open(results_file, "r") as readFile:
             reader = csv.reader(readFile)
@@ -807,7 +758,7 @@ def compare_poses(request):
 
 def ligfit_results(request):
     #NOT USED ANYMORE
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     resyncLigFits=str(request.GET.get("resyncligfit"))
 
     if "resyncligfit" in resyncLigFits:
@@ -1298,7 +1249,7 @@ def load_pipedream_density(request):
 ################ PANDDA #####################
 
 def pandda_density(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1412,7 +1363,7 @@ def pandda_density(request):
         return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_densityC(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
     panddaInput=str(request.GET.get('structure'))     
     
@@ -1426,8 +1377,7 @@ def pandda_densityC(request):
     map2=glob.glob(path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
     summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
 
-    allEventDict, eventDict,low_conf, medium_conf, high_conf = panddaEvents([])
-          
+
 
 
 
@@ -1534,7 +1484,7 @@ def pandda_densityC(request):
     #    return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
 def pandda_inspect(request):    
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/html_summaries/*inspect.html")]
     if proc_methods==[]:
         localcmd="cd "+path+"/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
@@ -1611,7 +1561,7 @@ def pandda_inspect(request):
                 filters.append("dimple"    )  if DP=="true" else ""
                 filters.append("fspipeline")  if FS=="true" else ""
                 filters.append("buster"    )  if BU=="true" else ""
-            allEventDict,eventDict,low_conf, medium_conf, high_conf =panddaEvents(filters)
+            allEventDict, eventDict, low_conf, medium_conf, high_conf = panddaEvents(request, filters)
 
                     
             sitesL=list() 
@@ -1779,7 +1729,7 @@ def pandda_inspect(request):
             for k,v in natsort.natsorted(eventDict.items()):
                 for k1,v1 in v.items():
                     #print(k,k1,v1[0][:-2])
-                    detailsDict=datasetDetails(k,k1,v1[0][:-4])
+                    detailsDict = datasetDetails(request, k, k1, v1[0][:-4])
                     #ds=method;dataset;event_id;site_id
                     
                     dataset=k
@@ -1914,7 +1864,7 @@ def submit_pandda(request):
     giantCMD=str(request.GET.get("giantform"))
     if "giantscore" in giantCMD:
         function,method=giantCMD.split(";")
-        t2 = threading.Thread(target=giant_score,args=(method,))
+        t2 = threading.Thread(target=giant_score, args=(request, method))
         t2.daemon = True
         t2.start()
         return render(request, "fragview/submit_pandda.html",{"command":giantCMD})
@@ -2008,7 +1958,7 @@ def pandda_analyse(request):
 
     fixsl=request.GET.get("fixsymlinks")
     if not fixsl is None and "FixSymlinks" in fixsl:
-        t1 = threading.Thread(target=fix_pandda_symlinks,args=())
+        t1 = threading.Thread(target=fix_pandda_symlinks, args=(request,))
         t1.daemon = True
         t1.start()
     proc_methods=[x.split("/")[-2] for x in glob.glob(panda_results_path + "/*/pandda")]
@@ -2049,8 +1999,8 @@ def pandda_analyse(request):
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 
-def datasetDetails(dataset,site_idx,method):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def datasetDetails(request, dataset, site_idx, method):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
     detailsDict=dict()
     with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
@@ -2081,8 +2031,9 @@ def datasetDetails(dataset,site_idx,method):
     detailsDict['viewed']=k[headers.index("Viewed\n")]  
     return detailsDict
 
-def panddaEvents(filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+
+def panddaEvents(request, filters):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     
     eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/pandda_inspect_events.csv") ]
     if len(filters)!=0:
@@ -2135,8 +2086,8 @@ def panddaEvents(filters):
             v[k1]=sorted(v1.items(), key=lambda t:t[1])[0]
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
-def fix_pandda_symlinks():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def fix_pandda_symlinks(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     os.system("chmod -R 775 "+path+"/fragmax/results/pandda/")
 
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
@@ -2297,8 +2248,8 @@ def pandda_worker(method, proj):
     subprocess.call(cmd,shell=True)
 
             
-def giant_score(method):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def giant_score(request, method):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     
     header='''#!/bin/bash\n'''
     header+='''#!/bin/bash\n'''
@@ -2434,7 +2385,6 @@ def procReport(request):
 
 def dataproc_merge(request):    
     #NEEDS UPDATE 
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
 
     outinfo=str(request.GET.get("mergeprocinput")).replace("static","data/visitors")
     
@@ -2443,7 +2393,7 @@ def dataproc_merge(request):
     return render(request,'fragview/dataproc_merge.html', {'datasetsRuns': runList})
 
 def reproc_web(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     
     dataproc = str(request.GET.get("submitProc"))
     strcrefine=str(request.GET.get("submitRefine"))
@@ -2615,7 +2565,7 @@ def refine_datasets(request):
             pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
     pdbmodel.replace(".pdb.pdb",".pdb")
     spacegroup=refspacegroup.replace("refspacegroup:","")
-    run_structure_solving(useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt)
+    run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
@@ -2632,7 +2582,7 @@ def ligfit_datasets(request):
     if "true" in ligfitSW:
         useLigFit="True"
   
-    t1 = threading.Thread(target=autoLigandFit,args=(useLigFit,useRhoFit,fraglib,filters))
+    t1 = threading.Thread(target=autoLigandFit, args=(request, useLigFit, useRhoFit, fraglib, filters))
     t1.daemon = True
     t1.start()
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
@@ -2909,8 +2859,8 @@ def datacollectionSummary(proj):
 
                 writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
                        
-def resultSummary():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def resultSummary(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     
     def info_func(entry,isaDict):
         usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""]*23
@@ -3480,8 +3430,8 @@ def run_dials(proj, nodes, filters):
         subprocess.call(command,shell=True)
 
 
-def process2results(spacegroup, filters, aimlessopt):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def process2results(request, spacegroup, filters, aimlessopt):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     for dp in ["xdsapp","autoproc","xdsxscale","EDNA","fastdp","dials"]:
         #[os.makedirs("/".join(x.split("/")[:9]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/AR/*/*/")]
         [os.makedirs("/".join(x.split("/")[:8]+x.split("/")[10:]).replace("/process/","/results/")+dp, mode=0o760, exist_ok=True) for x in glob.glob(path+"/fragmax/process/"+acr+"/*/*/")]
@@ -3592,8 +3542,8 @@ def process2results(spacegroup, filters, aimlessopt):
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
     
-def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]    
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
@@ -3603,7 +3553,7 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
         filters=filters.split(":")[-1]
     if filters=="ALL":
         filters=""
-    process2results(spacegroup, filters,aimlessopt) 
+    process2results(request, spacegroup, filters,aimlessopt)
     with open(path+'/fragmax/scripts/run_queueREF.py',"w") as writeFile:
         writeFile.write('''\nimport commands, os, sys, glob, time, subprocess'''
                         '''\nargsfit=sys.argv[1]'''
@@ -3801,8 +3751,8 @@ def run_structure_solving(useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, fil
     subprocess.call("rm "+path+"/fragmax/scripts/slurm*_out.txt",shell=True)
     subprocess.call(command,shell=True)
     
-def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     if "filters:" in filters:
         filters=filters.split(":")[-1]
     if filters=="ALL":
@@ -3895,8 +3845,8 @@ def autoLigandFit(useLigFit,useRhoFit,fraglib,filters):
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def get_project_status():
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions()
+def get_project_status(request):
+    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
     statusDict=dict()
     procList=list()

@@ -66,3 +66,12 @@ def project_model_path(project, pdb_file):
 
 def project_static_url(project):
     return path.join("/", "static", "biomax", project.proposal, project.shift)
+
+
+def project_definitions(request):
+    proj = current_project(request)
+
+    return \
+        proj.proposal, proj.shift, proj.protein, \
+        "visitors", proj.data_path(), None, \
+        project_static_url(proj), proj.library, list(proj.shifts())
