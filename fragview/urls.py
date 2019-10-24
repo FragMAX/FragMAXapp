@@ -9,8 +9,6 @@ urlpatterns = [
     path('datasets/', views.datasets, name='datasets'),
     path('datasets_notready/', views.datasets, name='datasets_notready'),
 
-
-    path('settings/', views.settings, name='settings'),
     path('results/', views.results, name='results'),
     path('results_notready/', views.results, name='results_notready'),
 

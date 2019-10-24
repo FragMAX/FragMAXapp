@@ -82,19 +82,6 @@ def data_analysis(request):
                   {"models": models, "datasets": datasets})
 
 
-def settings(request):
-    allprc  = str(request.GET.get("updatedefinitions"))
-    status = "not updated"
-    if ";" in allprc:  
-    
-        with open(setfile,"w") as outsettings:
-            outsettings.write(allprc)
-        status="updated"
-    else:
-        status="No update"
-    return render(request, "fragview/settings.html",{"upd":status})
-
-
 def projects(request):
     """
     projects list page, aka 'manage projects' page
