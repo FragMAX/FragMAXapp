@@ -237,7 +237,7 @@ def dataset_info(request):
     diffraction1=diffraction1.replace("/data/visitors/","/static/")
     if not os.path.exists(diffraction1):    
         h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
-        cmd="adxv -sa "+h5data+"01.h5 "+diffraction1.replace("/static/","/data/visitors/")
+        cmd = "adxv -sa -slabs 10 -weak_data " + h5data + "01.h5 " + diffraction1.replace("/static/", "/data/visitors/")
         subprocess.call(cmd,shell=True)
     
     diffraction2=curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
@@ -247,7 +247,7 @@ def dataset_info(request):
         if half<10:
             half="0"+str(half)
         h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
-        cmd="adxv -sa "+h5data+half+".h5 "+diffraction2.replace("/static/","/data/visitors/")
+        cmd="adxv -sa -slabs 10 -weak_data " + h5data + half + ".h5 " + diffraction2.replace("/static/","/data/visitors/")
         subprocess.call(cmd,shell=True)
 
     #getreports
