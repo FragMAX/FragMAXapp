@@ -4,8 +4,6 @@
 
 {% block title %}FragMAX - Results{% endblock %}
 {% block content %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-
 <style>
   table {
     font-family: arial, sans-serif;
@@ -105,24 +103,24 @@
 
     <div id="ISa" class="card tabcontent">
         <div class="card-title">ISa distribution</div>
-        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/ISas.png" style="width: 100%;"></img>
+        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/ISas.png" style="width: 100%;"></img>
     </div>
     <div id="Resolution" class="card tabcontent">
         <div class="card-title">Resolution distribution</div>
-        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Resolutions.png" style="width: 100%;"></img>
+        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png" style="width: 100%;"></img>
         
     </div>
     <div id="Cell_Parameters" class="card tabcontent">
         <div class="card-title">Cell Parameters distribution</div>
-        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Cellparameters.png" style="width: 100%;"></img>
+        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png" style="width: 100%;"></img>
     </div>
     <div id="rfactorstab" class="card tabcontent">
         <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Rfactors.png" style="width: 100%;"></img>
+        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfactors.png" style="width: 100%;"></img>
     </div>
     <div id="ccfactorstab" class="card tabcontent">
         <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{proposal}}/{{shift}}/fragmax/process/{{acr}}/Rfrees.png" style="width: 100%;"></img>
+        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png" style="width: 100%;"></img>
     </div>
     <div id="Hide" >
     </div>

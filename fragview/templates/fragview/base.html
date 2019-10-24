@@ -1,21 +1,18 @@
 {% load static %}
 <html>
     <head>
-
-        <title>    
-         {% block title %}{% endblock %}
-         
-        </title>
+        <title>{% block title %}{% endblock %}</title>
 
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-        
         {% include 'material/includes/material_css.html' %}
-        {% include 'material/includes/material_js.html' %}
+
+        <script src="{% static 'material/js/jquery.js' %}"></script>
+        <script src="{% static 'material/js/materialize.js' %}"></script>
+        <script src="{% static 'material/js/materialize.frontend.min.js' %}"></script>
+
         <link rel="icon" href="{% static 'img/favicon.png' %}? type="image/x-icon"">
 
-         
         <style>
             .user-view {
                    padding: 0px 32px 0 !important;
@@ -91,39 +88,77 @@
                   line-height: 48px !important;
                   padding: 0 32px;
                }
+
+                .projects-menu {
+                    top: -25px !important;
+                    left: 5px !important;
+                    min-width: 240px;
+                    background-color: #dddddd;
+                    border: 1px solid grey;
+                }
+
+                .project-entry {
+                    border-bottom: 1px solid grey;
+                }
+
+                .project-cell {
+                    display: inline-block;
+                    color: black;
+                    padding: 5px;
+                    vertical-align: middle;
+                }
+
+                .projects-button-box {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 15px;
+                }
+
         </style>
-
     </head>
-    
-    <body>    
 
-
-
-<script>
-{% comment %} 
-fetch("/static/projectSettings/.settings")
-.then( r => r.text() )
-.then( t => document.getElementById("userproposal").innerHTML ="Proposal: "+t.split(";")[1] )
-fetch("/static/projectSettings/.settings")
-.then( r => r.text() )
-.then( t => document.getElementById("usershift").innerHTML ="Shift: "+t.split(";")[2] ) {% endcomment %}
-
-
-
-</script>
-
+<body>
+{% block sidenav %}
 <dmc-sidenav>
-   <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="transform: translateX(0px); overflow-y:hidden" >
-      <li>
-         <div class="user-view">
-            <div class="background">
+    <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="padding-top: 30px; transform: translateX(0px); overflow-y:hidden">
+
+    <dmc-dropdown>
+        <div class="user-view">
+            <a class="dropdown-button" href="#!" data-target="pick-project-menu">
+                <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
+                <span class="white-text name" style="font-size: 20px; font-weight: bold;">
+                    {{project.protein}} - {{project.library}}
+                    <i class="material-icons right">arrow_drop_down</i>
+                </span>
+            </a>
+        </div>
+
+        <div id="pick-project-menu" class="projects-menu dropdown-content">
+            {% for proj in projects %}
+                <a href="/project/current/{{ proj.id }}/">
+                    <div class="project-entry">
+                        <div class="project-cell">
+                            <img class="circle" src="/static/projIcons/{{proj.icon_num}}.svg">
+                        </div>
+                        <div class="project-cell">
+                            <div style="font-size: 20px; font-weight: bold;">{{ proj.protein }}</div>
+                            <div>{{ proj.library }}</div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+
+            <div class="projects-button-box">
+                <a class="btn" href="/projects">
+                    Manage projects
+                </a>
             </div>
-            <a href="/project_summary"><img class="circle" src="/static/userPics/guslim.jpg" ></a> 
-            <a href="/project_summary"><span class="white-text name">Gustavo Lima</span></a>            
-            {% comment %} <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="userproposal" class="white-text " style="line-height: 18px;font-size:11px">Proposal: </span></a><br>
-            <a href="https://duo.maxiv.lu.se" target="_blank" ><span id="usershift" class="white-text " style="line-height: 18px;font-size:11px">Shift: </span></a> {% endcomment %}
-         </div>
-      {% comment %}       
+
+        </div>
+    </dmc-dropdown>
+
+      {% comment %}
          <li>
                <input type="radio" name="menuopt" id="drop1" />
                <label class="opener collapsible-header headli" for="drop1"><i class="material-icons" style="font-size:22px;color:white">bubble_chart</i>Sample Prep +</label>
@@ -236,12 +271,17 @@ fetch("/static/projectSettings/.settings")
       <li >
          <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
       </li>
-      <li class="last">
-         <a href="/settings" class="collapsible-header sidenav-links" data-turbolinks="false">Settings<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
+      <li>
+         <a href="/project_summary" class="collapsible-header sidenav-links" data-turbolinks="false">
+             Summary<i class="material-icons" style="font-size:22px;color:white">dashboard</i>
+         </a>
       </li>
-      {% comment %} <li class="last">
-         <a href="/admin" class="collapsible-header sidenav-links" data-turbolinks="false">Admin<i class="material-icons" style="font-size:22px;color:white">dashboard</i></a>
-      </li> {% endcomment %}
+      <li class="last">
+         <a href="{% url 'logout' %}" class="collapsible-header sidenav-links" data-turbolinks="false">
+             Logout<i class="material-icons" style="font-size:22px;color:white">input</i>
+         </a>
+      </li>
+
       <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px; position: absolute;bottom: 30px;">
 
       <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
@@ -253,6 +293,7 @@ fetch("/static/projectSettings/.settings")
    </ul>
 </dmc-sidenav>
 
+{% endblock %}
 
 
         <div class="main_local">    

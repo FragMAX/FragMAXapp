@@ -3,21 +3,12 @@ from . import views
 
 
 urlpatterns = [
-    #path('', views.post_list, name='post_list'),
     path('', views.index, name='index'),
-
-
-    path('post/<int:pk>/', views.post_detail, name='post_detail'),
-    path('post/new/', views.post_new, name='post_new'),
-    path('error/', views.error_page, name="error page"),
-
 
     path('testpage/', views.testfunc, name='pandda_analyse'),
     path('datasets/', views.datasets, name='datasets'),
     path('datasets_notready/', views.datasets, name='datasets_notready'),
 
-
-    path('settings/', views.settings, name='settings'),
     path('results/', views.results, name='results'),
     path('results_notready/', views.results, name='results_notready'),
 
@@ -46,10 +37,13 @@ urlpatterns = [
     path('ligfit_results/', views.ligfit_results, name='ligfit_results'),
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
-    
 
-    path('project_summary/', views.load_project_summary, name='project_summary'),
-    # path('project_summary_load/', views.project_summary_load, name='project_summary_load'),
+    path('projects/', views.projects),
+    path('project/<int:id>/', views.project),
+    path('project/new', views.project_new),
+    path('project/current/<int:id>/', views.project_set_current),
+
+    path('project_summary/', views.project_summary, name='project_summary'),
 
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('data_analysis/', views.data_analysis, name='data_analysis'),
@@ -65,10 +59,8 @@ urlpatterns = [
     path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
     path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
     path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
-    
+
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
     path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
     path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
-
-
 ]

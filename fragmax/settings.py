@@ -31,7 +31,6 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -51,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'fragview.reqlogin.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'fragmax.urls'
@@ -66,6 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'fragview.context_processors.projects',
             ],
         },
     },
@@ -103,6 +104,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "fragview.auth.ISPyBBackend"
+]
+
+# ISPyBBackend authentication settings
+ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
+ISPYB_AUTH_SITE = "MAXIV"
+
+AUTH_USER_MODEL = "fragview.User"
+
+# root path to where proposals data is stored
+PROPOSALS_DIR = "/data/visitors/biomax"
+
+# Goto the 'front page' after logging out
+LOGOUT_REDIRECT_URL = "index"
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

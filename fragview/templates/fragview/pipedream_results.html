@@ -1,9 +1,7 @@
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - Pipedream Results{% endblock %}
 {% block content %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 <style>
   table {
@@ -52,7 +50,6 @@
       </form>  
       </div>
   </div>       
-
 <div class="input-field col s12" id="searchDiv">
         <i class="material-icons prefix">search</i>
         <input type="text" id="searchDataset" onkeyup="searchDatasetName()"  title="Type in a dataset name">
@@ -86,7 +83,7 @@
     <tr>
     
     </tr>
-    {% for dataset,DIR,fragment,fraglib,ligsvg,spacegroup,resolution,rwork,rfree,rhofitscore,a,b,c,alpha,beta,gamma in files %}
+    {% for dataset,summaryFile,fragment,fraglib,spacegroup,resolution,rwork,rfree,rhofitscore,a,b,c,alpha,beta,gamma,ligsvg in lines %}
 
     <tr>
       <td>
@@ -96,7 +93,7 @@
       
       </td>
       <td>{{dataset}}</td>
-      <td><a href="{{DIR}}/summary.out">Summary</a></td>
+      <td><a href="{{summaryFile}}">Summary</a></td>
       <td>{{spacegroup}}</td>
       <td>{{resolution}}</td>
       <td>{{rwork}}</td>

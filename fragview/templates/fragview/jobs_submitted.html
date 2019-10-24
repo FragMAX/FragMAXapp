@@ -1,46 +1,44 @@
-
 {% extends 'fragview/base.html' %}
-
+{% block title %}FragMAX - Manual data processing{% endblock %}
 
 {% block content %}
 
-
-
 <style>
-  table {
+table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
+}
 
-  }
-  th {
+th {
     text-align: center;
+}
 
-  }
-
-  td, th {
+td, th {
     border: 1px solid #f0f0f0;
     padding: 8px;
     height: 60px;
     text-align: center;
-  }
+}
 
-  tr:nth-child(even) {
+tr:nth-child(even) {
     background-color: #e2e2e2;
-  }
+}
 
+th {
+    cursor: pointer;
+}
 
-  th {
-      cursor: pointer;
-  }
-  .container {
+.container {
     padding-left: 200px;
     max-width: 1280 !important;
     width: calc(100% - 75px) !important;
-  }
-    .btn-right {
-            float:right !important;
-  }
+}
+
+.btn-right {
+    float:right !important;
+}
 </style>
+
 <h4>Your jobs were submitted!</h4>
 
 <div class="card">
@@ -49,11 +47,8 @@
         <br>
         <p>You will be redirected to HPC status page in 15 seconds automatically. If not, <a href="/hpcstatus/">click here</a></p>
         <br>
-        <p>It may take up to a few minutes to submit your jobs based on server load. Do not submit again!</p>
-        <br>
-        <p>Submitted command:</p>
-        <p>Dataprocessing</p>
-        {{allproc}}
+        <h4>User input variables:</h4>
+        {{command | safe}}
     </div>
 </div>
 
