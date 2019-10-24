@@ -5,7 +5,7 @@ from .forms import ProjectForm
 from .proposals import get_proposals
 from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
 from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
-from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions
+from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
 from difflib import SequenceMatcher
 
 import glob
@@ -2619,7 +2619,7 @@ def dataproc_datasets(request):
         PDBID=userinputs[18].split(":")[-1]
 
         spg=userinputs[5].split(":")[-1]
-        pnodes=30
+        pnodes=10
         shell_script = project_script(proj, "processALL.sh")
         with open(shell_script, "w") as outp:
             outp.write("""#!/bin/bash \n"""
@@ -2632,12 +2632,12 @@ def dataproc_datasets(request):
                     """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_out.txt \n"""
                     """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
                     """module purge \n"""
-                    """module load DIALS/1.12.3-PReSTO	CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
+                    """module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
                     """python """ + project_script(proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" + \
                        proj.library + """' '""" + PDBID+"""' '""" + spg+"""' $1 $2 '""" + ",".join(dpSW) + \
                        """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
         for node in range(pnodes):
-            command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO XDSAPP | sbatch ' + \
+            command ='echo "module purge | module load CCP4 autoPROC DIALS XDSAPP | sbatch ' + \
                      shell_script + " "+str(node)+" "+str(pnodes)+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command,shell=True)
             time.sleep(0.2)
@@ -2663,7 +2663,7 @@ def dataproc_datasets(request):
         isigicutoff=dtprc_inp[11].split(":")[-1]
         filters=dtprc_inp[-1].split(":")[-1]
         sbatch_script_list=list()
-        nodes=12
+        nodes=3
         if filters!="ALL":
             nodes=1
         if usexdsapp=="true":
@@ -3220,17 +3220,12 @@ def run_xdsapp(proj, nodes, filters):
 
     scriptList=list()
 
-    xml_files = sorted(
-        x for x in glob.glob(
-            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
-            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
-        if filters in x)
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
@@ -3249,7 +3244,7 @@ def run_xdsapp(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
                 
-        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
         print(f"running command '{command}'")
 
@@ -3276,17 +3271,12 @@ def run_autoproc(proj, nodes, filters):
 
     scriptList=list()
 
-    xml_files = sorted(
-        x for x in glob.glob(
-            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
-            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
-        if filters in x)
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
@@ -3303,7 +3293,7 @@ def run_autoproc(proj, nodes, filters):
         script = project_script(proj, f"autoproc_fragmax_part{num}.sh")
         with open(script, "w") as outfile:
             outfile.write(chunk)
-        command ='echo "module purge | module load CCP4 autoPROC DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        command ='echo "module purge | module load CCP4 autoPROC DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
 
@@ -3334,17 +3324,12 @@ def run_xdsxscale(proj, nodes, filters):
     with open(project_script(proj, "filter.txt"), "w") as inp:
         inp.write(filters)
 
-    xml_files = sorted(
-        x for x in glob.glob(
-            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
-            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
-        if filters in x)
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
@@ -3366,7 +3351,7 @@ def run_xdsxscale(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
 
@@ -3390,21 +3375,16 @@ def run_dials(proj, nodes, filters):
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
-    header+= """module load CCP4 XDS DIALS/1.12.3-PReSTO\n\n"""
+    header+= """module load CCP4 XDS DIALS\n\n"""
 
     scriptList=list()
 
-    xml_files = sorted(
-        x for x in glob.glob(
-            f"{proj.data_path()}**/process/{proj.protein}/**/**/fastdp/cn**/"
-            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
-        if filters in x)
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in xml_files:
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
         outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
@@ -3426,7 +3406,7 @@ def run_dials(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command ='echo "module purge | module load CCP4 XDSAPP DIALS/1.12.3-PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
+        command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
 

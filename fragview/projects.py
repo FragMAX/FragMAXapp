@@ -55,6 +55,14 @@ def project_raw_master_h5_files(project):
             yield file
 
 
+def project_xml_files(project):
+    for shift_dir in project_shift_dirs(project):
+        for file in glob.glob(
+                f"{shift_dir}**/process/{project.protein}/**/**/fastdp/cn**/"
+                f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
+            yield file
+
+
 def project_ligand_cif(project, ligand):
     return path.join(
         project.data_path(), "fragmax", "process", "fragment", project.library, ligand, f"{ligand}.cif")
