@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect, render_to_resp
 from django.utils import timezone
 from .models import Post
 from .forms import PostForm
+from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
 from difflib import SequenceMatcher
 
 import glob
@@ -3123,10 +3124,12 @@ def run_xdsapp(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,f
 
 
     for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
 
@@ -3169,12 +3172,14 @@ def run_autoproc(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam
 
     scriptList=list()
 
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,mode=0o760, exist_ok=True)
@@ -3219,12 +3224,14 @@ def run_xdsxscale(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellpara
 
     with open(path+"/fragmax/scripts/filter.txt","w") as inp:
         inp.write(filters)    
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,mode=0o760, exist_ok=True)
@@ -3273,12 +3280,14 @@ def run_dials(usedials,usexdsxscale,usexdsapp,useautproc,spacegroup,cellparam,fr
     scriptList=list()
 
     
+    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
 
     for xml in sorted(x for x in glob.glob(path+"**/process/"+acr+"/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml") if filters in x):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc=doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir=dtc["imageDirectory"].replace("/raw/","/fragmax/process/")+"/"+dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"]
+        outdir=os.path.join(proj.data_path(),"fragmax","process",proj.protein,dtc["imagePrefix"],dtc["imagePrefix"]+"_"+dtc["dataCollectionNumber"])
         h5master=dtc["imageDirectory"]+"/"+dtc["fileTemplate"].replace("%06d.h5","")+"master.h5"
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,mode=0o760, exist_ok=True)
