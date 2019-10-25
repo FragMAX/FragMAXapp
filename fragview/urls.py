@@ -34,7 +34,6 @@ urlpatterns = [
     path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
     path('dual_density/', views.compare_poses, name='dual_density'),
 
-    path('ligfit_results/', views.ligfit_results, name='ligfit_results'),
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
 
@@ -51,14 +50,10 @@ urlpatterns = [
     path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
 
     path('pipedream_results_notready/', views.pipedream_results, name='pipedream_results'),
-
-
     path('submit_pipedream/', views.submit_pipedream, name='submit_pipedream'),
-    path('reproc_web/', views.reproc_web, name='reproc_web'),
 
     path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
     path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
-    path('dataproc_merge/', views.dataproc_merge, name='dataproc_merge'),
 
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
     path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
