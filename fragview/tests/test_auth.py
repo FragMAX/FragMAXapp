@@ -88,6 +88,70 @@ class TestIspubAuthenticateFunc(unittest.TestCase):
                 headers={"content-type": "application/x-www-form-urlencoded"})
 
 
+class TestGetMXProposalsFunc(unittest.TestCase):
+    """
+    test auth._get_mx_proposals()
+    """
+    def test_mixed(self):
+        props = [
+            {"Proposal_personId": 37,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 13,
+             "Proposal_proposalNumber": "20170044",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Protein crystallography at Ume? University"},
+            {"Proposal_personId": 123,
+             "Proposal_proposalCode": "Oranges",
+             "Proposal_proposalId": 14,
+             "Proposal_proposalNumber": "19840049",
+             "Proposal_proposalType": "Oranges",
+             "Proposal_title": "It was a bright cold day in April"},
+            {"Proposal_personId": 38,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 14,
+             "Proposal_proposalNumber": "20170049",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Structural Biology of Molecular Machines involved in Cell "
+                               "Cycle Progression"},
+            {"Proposal_personId": 39,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 15,
+             "Proposal_proposalNumber": "20170050",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Selective Inhibitors of Mosquito Acetylcholinesterase ? "
+                               "New Possibilities for Control of Vector Borne Diseases"},
+        ]
+
+        prop_nums = auth._get_mx_proposals(props)
+        self.assertListEqual(prop_nums, ["20170044", "20170049", "20170050"])
+
+    def test_only_mx(self):
+        props = [
+            {"Proposal_personId": 131,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 33,
+             "Proposal_proposalNumber": "20180008",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Industry - NovoNordisk BioMAX - SAMV 2017/352"},
+            {"Proposal_personId": 135,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 34,
+             "Proposal_proposalNumber": "20170103",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Rubisco activase"},
+        ]
+
+        prop_nums = auth._get_mx_proposals(props)
+        self.assertListEqual(prop_nums, ["20180008", "20170103"])
+
+    def test_empty(self):
+        """
+        test the case when we get an empty list from ISPyB
+        """
+        prop_nums = auth._get_mx_proposals([])
+        self.assertListEqual(prop_nums, [])
+
+
 class TestISPyBBackendInvalidCreds(unittest.TestCase):
     def test_invalid_creds(self):
         backend = auth.ISPyBBackend()
