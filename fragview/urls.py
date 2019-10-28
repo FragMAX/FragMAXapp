@@ -39,7 +39,7 @@ urlpatterns = [
 
     path('projects/', views.projects),
     path('project/<int:id>/', views.project),
-    path('project/new', views.project_new),
+    path('project/new', views.project_new, name='new_project'),
     path('project/current/<int:id>/', views.project_set_current),
 
     path('project_summary/', views.project_summary, name='project_summary'),
