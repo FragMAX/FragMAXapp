@@ -152,6 +152,57 @@ class TestGetMXProposalsFunc(unittest.TestCase):
         self.assertListEqual(prop_nums, [])
 
 
+class TestIspybGetProposals(unittest.TestCase):
+    """
+    test auth._ispyb_get_proposals()
+    """
+    def test_happy_path(self):
+        """
+        the case when everything is fine, and successfully get a list of proposals from ISPyB
+        """
+        resp_mock = Mock()
+        resp_mock.status_code = 200
+        resp_mock.json.return_value = [
+            dict(Proposal_proposalCode="MX", Proposal_proposalNumber="20170103")]
+
+        get_mock = Mock()
+        get_mock.return_value = resp_mock
+
+        with patch("requests.get", get_mock):
+            props = auth._ispyb_get_proposals("host", "token")
+
+        self.assertListEqual(props, ["20170103"])
+        get_mock.assert_called_once_with("https://host/ispyb/ispyb-ws/rest/token/proposal/list")
+
+    def test_non_200_resp(self):
+        """
+        case when we don't get '200 OK' response from ISPyB
+        """
+        with patch("requests.get") as get_mock:
+            resp = Mock()
+            resp.status_code = 500
+            resp.reason = "test"
+            get_mock.return_value = resp
+
+            self.assertRaisesRegex(
+                Exception, "500 test",
+                lambda: auth._ispyb_get_proposals("host", "token"))
+
+    def test_json_decode_error(self):
+        """
+        case when we get unparsable JSON response from ISPyB
+        """
+        with patch("requests.get") as get_mock:
+            resp = Mock()
+            resp.status_code = 200
+            resp.json.side_effect = JSONDecodeError(None, "", 0)
+            get_mock.return_value = resp
+
+            self.assertRaisesRegex(
+                Exception, ".*invalid json reply",
+                lambda: auth._ispyb_get_proposals("host", "token"))
+
+
 class TestISPyBBackendInvalidCreds(unittest.TestCase):
     def test_invalid_creds(self):
         backend = auth.ISPyBBackend()
