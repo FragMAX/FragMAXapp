@@ -124,15 +124,24 @@
     <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu" style="padding-top: 30px; transform: translateX(0px); overflow-y:hidden">
 
     <dmc-dropdown>
-        <div class="user-view">
-            <a class="dropdown-button" href="#!" data-target="pick-project-menu">
-                <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
-                <span class="white-text name" style="font-size: 20px; font-weight: bold;">
-                    {{project.protein}} - {{project.library}}
-                    <i class="material-icons right">arrow_drop_down</i>
-                </span>
-            </a>
-        </div>
+        {% if project %}
+            <div class="user-view">
+                <a class="dropdown-button" href="#!" data-target="pick-project-menu">
+                    <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
+                    <span class="white-text name" style="font-size: 20px; font-weight: bold;">
+                        {{project.protein}} - {{project.library}}
+                        <i class="material-icons right">arrow_drop_down</i>
+                    </span>
+                </a>
+            </div>
+        {% else %}
+        {% comment %} handle the case when user don't have any projects yet {% endcomment %}
+            <div class="user-view">
+                <a class="dropdown-button" href="#!" data-target="pick-project-menu">
+                    <img style="height: 104px;" src="/static/img/symbol_logo.svg">
+                </a>
+            </div>
+        {% endif %}
 
         <div id="pick-project-menu" class="projects-menu dropdown-content">
             {% for proj in projects %}
@@ -205,9 +214,6 @@
                      <a href="/ugly" class="collapsible-header" data-turbolinks="false">Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
                   </li>
                   <li>
-                     <a href="/ligfit_results" class="collapsible-header" data-turbolinks="false">LigaFit Results<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
-                  </li>     
-                  <li>
                      <a href="/results" class="collapsible-header" data-turbolinks="false">Ref Results<i class="material-icons" style="font-size:22px;color:white">polymer</i></a>
                   </li>
 
@@ -258,10 +264,7 @@
       <li>
          <a href="/results" class="collapsible-header sidenav-links" data-turbolinks="false">Results<i class="material-icons" style="font-size:22px;color:white">polymer</i></a>
       </li>
-      {% comment %} <li>
-         <a href="/ligfit_results" class="collapsible-header sidenav-links" data-turbolinks="false">LigaFit Results<i class="material-icons" style="font-size:22px;color:white">select_all</i></a>
-      </li>  {% endcomment %}
-      
+
       {% comment %} <li>
          <a href="/ugly" class="collapsible-header sidenav-links" data-turbolinks="false">UglyMOL<i class="material-icons" style="font-size:22px;color:white">art_track</i></a>
       </li> {% endcomment %}

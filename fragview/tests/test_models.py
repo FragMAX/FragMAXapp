@@ -1,17 +1,24 @@
+import unittest
 from django import test
+from django.conf import settings
 from fragview.models import User, Project
+
+
+PROPOSAL = "20200912"
+SHIFT = "87654321"
+SHIFT_1 = "99999990"
+SHIFT_2 = "88888880"
 
 
 class TestUser(test.TestCase):
     USERNAME = "muser"
-    PROJ_PROP = "20200912"
     OTHER_PROP = "20150000"
 
     def setUp(self):
         self.user = User(username=self.USERNAME)
         self.user.save()
 
-        self.project = Project(proposal=self.PROJ_PROP)
+        self.project = Project(proposal=PROPOSAL)
         self.project.save()
 
     def test_set_current_project(self):
@@ -44,7 +51,7 @@ class TestUser(test.TestCase):
         """
         self.user.set_current_project(self.project)
 
-        proj = self.user.get_current_project([self.PROJ_PROP])
+        proj = self.user.get_current_project([PROPOSAL])
         self.assertEqual(proj.id, self.project.id)
 
     def test_get_current_project_implicitly(self):
@@ -55,7 +62,7 @@ class TestUser(test.TestCase):
         # make sure no explicit current project is set
         self.assertIsNone(self.user.current_project)
 
-        proj = self.user.get_current_project([self.PROJ_PROP])
+        proj = self.user.get_current_project([PROPOSAL])
         self.assertEqual(proj.id, self.project.id)
 
     def test_get_current_project_no_access(self):
@@ -88,3 +95,52 @@ class TestProject(test.TestCase):
         # check that two project, created right after each other,
         # have unique icon numbers
         self.assertNotEqual(proj2.icon_num(), proj1.icon_num())
+
+    def test_data_path(self):
+        """
+        test Project.data_path() method
+        """
+        dpath = Project(proposal=PROPOSAL, shift=SHIFT).data_path()
+
+        #
+        # smoke test the data path
+        #
+
+        # should start with the configured 'proposals dir
+        self.assertTrue(dpath.startswith(settings.PROPOSALS_DIR))
+
+        # proposal and main shift should be parts in the data path
+        self.assertIn(PROPOSAL, dpath)
+        self.assertIn(SHIFT, dpath)
+
+
+class TestProjectShifts(unittest.TestCase):
+    """
+    test Project.shifts() method
+    """
+
+    def test_only_main_shift(self):
+        proj = Project(shift=SHIFT)
+
+        self.assertListEqual(proj.shifts(), [SHIFT])
+
+    def test_one_extra_shift(self):
+        proj = Project(shift=SHIFT, shift_list=f"{SHIFT_1}")
+
+        self.assertListEqual(sorted(proj.shifts()), [SHIFT, SHIFT_1])
+
+    def test_two_extra_shift(self):
+        proj = Project(shift=SHIFT, shift_list=f"{SHIFT_1},{SHIFT_2}")
+
+        self.assertListEqual(sorted(proj.shifts()),
+                             [SHIFT, SHIFT_2, SHIFT_1])
+
+    def test_main_and_extra_same(self):
+        proj = Project(shift=SHIFT, shift_list=f"{SHIFT}")
+
+        self.assertListEqual(proj.shifts(), [SHIFT])
+
+    def test_main_in_extra(self):
+        proj = Project(shift=SHIFT, shift_list=f"{SHIFT},{SHIFT_1}")
+
+        self.assertListEqual(sorted(proj.shifts()), [SHIFT, SHIFT_1])

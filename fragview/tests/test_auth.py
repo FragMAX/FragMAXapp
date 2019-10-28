@@ -88,6 +88,121 @@ class TestIspubAuthenticateFunc(unittest.TestCase):
                 headers={"content-type": "application/x-www-form-urlencoded"})
 
 
+class TestGetMXProposalsFunc(unittest.TestCase):
+    """
+    test auth._get_mx_proposals()
+    """
+    def test_mixed(self):
+        props = [
+            {"Proposal_personId": 37,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 13,
+             "Proposal_proposalNumber": "20170044",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Protein crystallography at Ume? University"},
+            {"Proposal_personId": 123,
+             "Proposal_proposalCode": "Oranges",
+             "Proposal_proposalId": 14,
+             "Proposal_proposalNumber": "19840049",
+             "Proposal_proposalType": "Oranges",
+             "Proposal_title": "It was a bright cold day in April"},
+            {"Proposal_personId": 38,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 14,
+             "Proposal_proposalNumber": "20170049",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Structural Biology of Molecular Machines involved in Cell "
+                               "Cycle Progression"},
+            {"Proposal_personId": 39,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 15,
+             "Proposal_proposalNumber": "20170050",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Selective Inhibitors of Mosquito Acetylcholinesterase ? "
+                               "New Possibilities for Control of Vector Borne Diseases"},
+        ]
+
+        prop_nums = auth._get_mx_proposals(props)
+        self.assertListEqual(prop_nums, ["20170044", "20170049", "20170050"])
+
+    def test_only_mx(self):
+        props = [
+            {"Proposal_personId": 131,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 33,
+             "Proposal_proposalNumber": "20180008",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Industry - NovoNordisk BioMAX - SAMV 2017/352"},
+            {"Proposal_personId": 135,
+             "Proposal_proposalCode": "MX",
+             "Proposal_proposalId": 34,
+             "Proposal_proposalNumber": "20170103",
+             "Proposal_proposalType": "MX",
+             "Proposal_title": "Rubisco activase"},
+        ]
+
+        prop_nums = auth._get_mx_proposals(props)
+        self.assertListEqual(prop_nums, ["20180008", "20170103"])
+
+    def test_empty(self):
+        """
+        test the case when we get an empty list from ISPyB
+        """
+        prop_nums = auth._get_mx_proposals([])
+        self.assertListEqual(prop_nums, [])
+
+
+class TestIspybGetProposals(unittest.TestCase):
+    """
+    test auth._ispyb_get_proposals()
+    """
+    def test_happy_path(self):
+        """
+        the case when everything is fine, and successfully get a list of proposals from ISPyB
+        """
+        resp_mock = Mock()
+        resp_mock.status_code = 200
+        resp_mock.json.return_value = [
+            dict(Proposal_proposalCode="MX", Proposal_proposalNumber="20170103")]
+
+        get_mock = Mock()
+        get_mock.return_value = resp_mock
+
+        with patch("requests.get", get_mock):
+            props = auth._ispyb_get_proposals("host", "token")
+
+        self.assertListEqual(props, ["20170103"])
+        get_mock.assert_called_once_with("https://host/ispyb/ispyb-ws/rest/token/proposal/list")
+
+    def test_non_200_resp(self):
+        """
+        case when we don't get '200 OK' response from ISPyB
+        """
+        with patch("requests.get") as get_mock:
+            resp = Mock()
+            resp.status_code = 500
+            resp.reason = "test"
+            get_mock.return_value = resp
+
+            self.assertRaisesRegex(
+                Exception, "500 test",
+                lambda: auth._ispyb_get_proposals("host", "token"))
+
+    def test_json_decode_error(self):
+        """
+        case when we get unparsable JSON response from ISPyB
+        """
+        with patch("requests.get") as get_mock:
+            resp = Mock()
+            resp.status_code = 200
+            resp.json.side_effect = JSONDecodeError(None, "", 0)
+            get_mock.return_value = resp
+
+            self.assertRaisesRegex(
+                Exception, ".*invalid json reply",
+                lambda: auth._ispyb_get_proposals("host", "token"))
+
+
 class TestISPyBBackendInvalidCreds(unittest.TestCase):
     def test_invalid_creds(self):
         backend = auth.ISPyBBackend()
