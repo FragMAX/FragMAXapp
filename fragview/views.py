@@ -195,12 +195,13 @@ def dataset_info(request):
     images=str(int(images)/2)
 
     xmlfile=""
-    for shift_dir in project_shift_dirs(proj):
-        xpath = os.path.join(shift_dir, "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
-        if os.path.exists(xpath):
-            xmlfile = xpath
-            curp = shift_dir
-
+    # for shift_dir in project_shift_dirs(proj):
+    #     xpath = os.path.join(shift_dir, "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
+    #     if os.path.exists(xpath):
+    #         xmlfile = xpath
+    #         curp = shift_dir
+    curp=proj.data_path()
+    xmlfile=os.path.join(proj.data_path(), "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
     datainfo = retrieveParameters(xmlfile)
 
     energy=format(12.4/float(datainfo["wavelength"]),".2f")
@@ -210,9 +211,9 @@ def dataset_info(request):
     if "Apo" not in prefix.split("-"):
         ligpng=prefix.split("-")[-1]
 
-    fragConc="100 mM"
-    solventConc="15%"
-    soakTime="24h"
+    fragConc="10 mM"
+    solventConc="10%"
+    soakTime="2h"
 
     snapshot1=datainfo["snapshot1"].replace("/mxn/groups/ispybstorage/","/static/")
     if datainfo["snapshot2"]=="None":
@@ -220,23 +221,24 @@ def dataset_info(request):
     else:
         snapshot2=datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/","/static/")
 
-    diffraction1=curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
-    diffraction1=diffraction1.replace("/data/visitors/","/static/")
-    if not os.path.exists(diffraction1):    
-        h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
-        cmd = "adxv -sa -slabs 10 -weak_data " + h5data + "01.h5 " + diffraction1.replace("/static/", "/data/visitors/")
+    diffraction1=proj.data_path()+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
+    if not os.path.exists(diffraction1):            
+        h5data=datainfo["imageDirectory"]+"/"+prefix+"_"+run+"_data_0000"
+        cmd = "adxv -sa -slabs 10 -weak_data " + h5data + "01.h5 " + diffraction1
         subprocess.call(cmd,shell=True)
+    diffraction1=diffraction1.replace("/data/visitors/","/static/")
     
-    diffraction2=curp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
-    diffraction2=diffraction2.replace("/data/visitors/","/static/")
+    diffraction2=proj.data_path()+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
+
     if not os.path.exists(diffraction2):    
         half=int(float(images)/200)
         if half<10:
             half="0"+str(half)
-        h5data=curp+"/raw/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_data_0000"
-        cmd="adxv -sa -slabs 10 -weak_data " + h5data + half + ".h5 " + diffraction2.replace("/static/","/data/visitors/")
+    
+        h5data=datainfo["imageDirectory"]+"/"+prefix+"_"+run+"_data_0000"
+        cmd="adxv -sa -slabs 10 -weak_data " + h5data + half + ".h5 " + diffraction2
         subprocess.call(cmd,shell=True)
-
+    diffraction2=diffraction2.replace("/data/visitors/","/static/")
     #getreports
     scurp=curp.replace("/data/visitors/","/static/")
     xdsappreport    = scurp+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"/xdsapp/results_"+prefix+"_"+run+"_data.txt"
