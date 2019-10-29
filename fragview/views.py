@@ -6,6 +6,7 @@ from .proposals import get_proposals
 from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
 from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
 from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
+from .projects import project_all_status_file
 from difflib import SequenceMatcher
 
 import glob
@@ -354,7 +355,7 @@ def datasets(request):
     
     if "resyncStatus" in resyncStatus:
         os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
-        get_project_status(request)
+        get_project_status(proj)
         datacollectionSummary(proj)
         resultSummary(request)
     
@@ -374,9 +375,8 @@ def datasets(request):
     rfentry=list()
     lgentry=list()
 
-
-    if not os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
-        get_project_status(request)
+    if not os.path.exists(project_all_status_file(proj)):
+        get_project_status(proj)
 
     ##Proc status
     if os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
@@ -3644,18 +3644,19 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def get_project_status(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
+def get_project_status(proj):
     statusDict=dict()
     procList=list()
     resList =list()
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        procList+=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(p+"/fragmax/process/"+acr+"/*/*/")]
-        resList+=glob.glob(p+"/fragmax/results/"+acr+"*/")
-    
-    
+
+    for shift_dir in project_shift_dirs(proj):
+        procList += [
+            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
+            glob.glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
+        resList += glob.glob(f"{shift_dir}/fragmax/results/{proj.protein}*/")
+
+
     for i in procList:
         dataset_run=i.split("/")[-2]
         statusDict[dataset_run]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
@@ -3666,7 +3667,6 @@ def get_project_status(request):
             statusDict[dts]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
     
         for j in glob.glob(result+"*"):
-            dp=j.split("/")[-1]
             if os.path.exists(j+"/dimple/final.pdb"):
                 statusDict[dts].update({"dimple":"full"})
             if os.path.exists(j+"/fspipeline/final.pdb"):
@@ -3681,10 +3681,10 @@ def get_project_status(request):
     for process in procList:
         dts=process.split("/")[-2]
         j=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s
-            j+=glob.glob(p+"/fragmax/process/"+acr+"/*/"+dts+"/")
-        #j=glob.glob(path+"/fragmax/process/"+acr+"/*/"+dts+"/")
+
+        for shift_dir in project_shift_dirs(proj):
+            j+=glob.glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dts}/")
+
         if j!=[]:
             j=j[0]
         if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:            
@@ -3692,15 +3692,17 @@ def get_project_status(request):
         if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:            
             statusDict[dts].update({"dials":"full"})
         ej=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s            
-            ej+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/EDNA_proc/results/*mtz")
+
+        for shift_dir in project_shift_dirs(proj):
+            ej+=glob.glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/EDNA_proc/results/*mtz")
+
         if ej!=[]:
             statusDict[dts].update({"EDNA":"full"})
         fj=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s            
-            fj+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/fastdp/results/*mtz.gz")    
+
+        for shift_dir in project_shift_dirs(proj):
+            fj+=glob.glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/fastdp/results/*mtz.gz")
+
         if fj!=[]:
             statusDict[dts].update({"fastdp":"full"})
         if glob.glob(j+"/xdsapp/*mtz")!=[]:            
@@ -3708,7 +3710,7 @@ def get_project_status(request):
         if glob.glob(j+"/xdsxscale/DataFiles/*mtz")!=[]:            
             statusDict[dts].update({"xdsxscale":"full"})    
 
-    with open(path+"/fragmax/process/"+acr+"/allstatus.csv","w") as csvFile:
+    with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["dataset","run","autoproc","dials","EDNA","fastdp","xdsapp","xdsxscale","dimple","fspipeline","buster","ligfit","rhofit"])    
         for dataset_run,status in statusDict.items():    
