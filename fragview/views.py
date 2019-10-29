@@ -1922,7 +1922,6 @@ def submit_pandda(request):
                       "fragview/jobs_submitted.html",
                       {"command": panddaCMD})
 
-
 def pandda_analyse(request):
     proj = current_project(request)
     panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
@@ -1969,7 +1968,6 @@ def pandda_analyse(request):
             running=[x.split("/")[9] for x in glob.glob(panda_results_path + "/*/pandda/*running*")]
             return render(request,'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
-
 def datasetDetails(request, dataset, site_idx, method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
@@ -2001,7 +1999,6 @@ def datasetDetails(request, dataset, site_idx, method):
     detailsDict['comment']=k[headers.index("Comment")]     
     detailsDict['viewed']=k[headers.index("Viewed\n")]  
     return detailsDict
-
 
 def panddaEvents(request, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
@@ -2072,7 +2069,6 @@ def fix_pandda_symlinks(request):
         os.remove(dst)
         shutil.copyfile(src,dst)
 
-
 def pandda_giant(request):
     proj = current_project(request)
 
@@ -2090,7 +2086,6 @@ def pandda_giant(request):
         return render(request,'fragview/pandda_giant.html', {'scores_plots': scoreDict})
     else:
         return render(request, "fragview/index.html")
-
 
 def pandda_worker(method, proj):
     rn=str(randint(10000, 99999))
@@ -2217,8 +2212,7 @@ def pandda_worker(method, proj):
             " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
 
     subprocess.call(cmd,shell=True)
-
-            
+    
 def giant_score(request, method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     
@@ -2354,7 +2348,6 @@ def procReport(request):
         report="<br>".join(report)
     return render(request,'fragview/procReport.html', {'reportHTML': report, "method":method})
 
-
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
     empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt=userInput.split(";;")
@@ -2402,6 +2395,7 @@ def refine_datasets(request):
 def ligfit_datasets(request):
     #MAYBE NO USE ANYMORE
     userInput=str(request.GET.get("submitligProc"))
+    proj=current_project(request)
     empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname,filters=userInput.split(";;")
     useRhoFit="False"
     useLigFit="False"
@@ -2411,11 +2405,10 @@ def ligfit_datasets(request):
     if "true" in ligfitSW:
         useLigFit="True"
   
-    t1 = threading.Thread(target=autoLigandFit, args=(request, useLigFit, useRhoFit, fraglib, filters))
+    t1 = threading.Thread(target=autoLigandFit, args=(request, useLigFit, useRhoFit, proj.library, filters))
     t1.daemon = True
     t1.start()
     return render(request,'fragview/ligfit_datasets.html', {'allproc': "<br>".join(userInput.split(";;"))})
-
 
 def dataproc_datasets(request):
     proj = current_project(request)
@@ -3026,7 +3019,6 @@ def resultSummary(request):
     plotcmd="""echo '"""+"/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py"+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
     subprocess.call(plotcmd,shell=True)
 
-
 def run_xdsapp(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3077,7 +3069,6 @@ def run_xdsapp(proj, nodes, filters):
         subprocess.call(command,shell=True)
         print(f"running command '{command}'")
 
-
 def run_autoproc(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3124,7 +3115,6 @@ def run_autoproc(proj, nodes, filters):
             outfile.write(chunk)
         command ='echo "module purge | module load CCP4 autoPROC DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-
 
 def run_xdsxscale(proj, nodes, filters):
     if "filters:" in filters:
@@ -3183,7 +3173,6 @@ def run_xdsxscale(proj, nodes, filters):
         command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-
 def run_dials(proj, nodes, filters):
     if "filters:" in filters:
         filters=filters.split(":")[-1]
@@ -3237,7 +3226,6 @@ def run_dials(proj, nodes, filters):
 
         command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
-
 
 def process2results(request, spacegroup, filters, aimlessopt):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
@@ -3562,27 +3550,29 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
     subprocess.call(command,shell=True)
     
 def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
+    #proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
+    proj = current_project(request)
+
     if "filters:" in filters:
         filters=filters.split(":")[-1]
     if filters=="ALL":
         filters=""
-    with open(path+"/fragmax/scripts/autoligand.py","w") as writeFile:
+    with open(proj.data_path()+"/fragmax/scripts/autoligand.py","w") as writeFile:
         writeFile.write('''import multiprocessing\n'''
                 '''import time\n'''
                 '''import subprocess\n'''
                 '''import sys\n'''
                 '''import glob\n'''
                 '''import os\n'''
-                '''path="'''+path+'''"\n'''
-                '''fraglib="'''+fraglib+'''"\n'''
-                '''acr="'''+acr+'''"\n'''
-                '''shiftList="'''+",".join(shiftList)+'''"\n'''
+                '''path="'''+proj.data_path()+'''"\n'''
+                '''fraglib="'''+proj.library+'''"\n'''
+                '''acr="'''+proj.protein+'''"\n'''
+                '''shiftList="'''+proj.shift_list+'''"\n'''
                 '''fitmethod=sys.argv[4]\n'''
                 '''pdbList=list()\n'''
                 '''shiftList=shiftList.split(",")\n'''
                 '''for s in shiftList:\n'''
-                '''    p="/data/visitors/biomax/'''+proposal+'''/"+s\n'''
+                '''    p="/data/visitors/biomax/'''+proj.proposal+'''/"+s\n'''
                 '''    pdbList+=glob.glob(p+"/fragmax/results/"+acr+"*/*/*/final.pdb")\n'''
                 '''pdbList=[x for x in pdbList if "Apo" not in x and "'''+filters+'''" in x]\n'''
                 '''cifList=list()\n'''
@@ -3621,9 +3611,9 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
 
 
     
-    script=path+"/fragmax/scripts/autoligand.sh"
+    script=proj.data_path()+"/fragmax/scripts/autoligand.sh"
     if "True" in useRhoFit:
-        with open(path+"/fragmax/scripts/autoligand.sh","w") as writeFile:
+        with open(proj.data_path()+"/fragmax/scripts/autoligand.sh","w") as writeFile:
             writeFile.write('''#!/bin/bash\n'''
                     '''#!/bin/bash\n'''
                     '''#SBATCH -t 99:55:00\n'''
@@ -3631,15 +3621,15 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
                     '''#SBATCH --exclusive\n'''
                     '''#SBATCH -N1\n'''
                     '''#SBATCH --cpus-per-task=48\n'''
-                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_rhofit_%j_out.txt\n'''
-                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_rhofit_%j_err.txt\n'''
+                    '''#SBATCH -o '''+proj.data_path()+'''/fragmax/logs/auto_rhofit_%j_out.txt\n'''
+                    '''#SBATCH -e '''+proj.data_path()+'''/fragmax/logs/auto_rhofit_%j_err.txt\n'''
                     '''module purge\n'''
                     '''module load autoPROC BUSTER Phenix CCP4\n'''
-                    '''python '''+path+'''/fragmax/scripts/autoligand.py '''+path+''' '''+fraglib+''' '''+acr+''' rhofit\n''')
+                    '''python '''+proj.data_path()+'''/fragmax/scripts/autoligand.py '''+proj.data_path()+''' '''+proj.library+''' '''+proj.protein+''' rhofit\n''')
         command ='echo "module purge | module load BUSTER CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
     if "True" in useLigFit:
-        with open(path+"/fragmax/scripts/autoligand.sh","w") as writeFile:
+        with open(proj.data_path()+"/fragmax/scripts/autoligand.sh","w") as writeFile:
             writeFile.write('''#!/bin/bash\n'''
                     '''#!/bin/bash\n'''
                     '''#SBATCH -t 3:00:00\n'''
@@ -3647,11 +3637,11 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
                     '''#SBATCH --exclusive\n'''
                     '''#SBATCH -N1\n'''
                     '''#SBATCH --cpus-per-task=48\n'''
-                    '''#SBATCH -o '''+path+'''/fragmax/logs/auto_ligfit_%j_out.txt\n'''
-                    '''#SBATCH -e '''+path+'''/fragmax/logs/auto_ligfit_%j_err.txt\n'''
+                    '''#SBATCH -o '''+proj.data_path()+'''/fragmax/logs/auto_ligfit_%j_out.txt\n'''
+                    '''#SBATCH -e '''+proj.data_path()+'''/fragmax/logs/auto_ligfit_%j_err.txt\n'''
                     '''module purge\n'''
                     '''module load autoPROC BUSTER Phenix CCP4\n'''
-                    '''python '''+path+'''/fragmax/scripts/autoligand.py '''+path+''' '''+fraglib+''' '''+acr+''' ligfit\n''')
+                    '''python '''+proj.data_path()+'''/fragmax/scripts/autoligand.py '''+proj.data_path()+''' '''+proj.library+''' '''+proj.protein+''' ligfit\n''')
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
