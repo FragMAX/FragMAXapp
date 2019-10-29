@@ -4,3 +4,6 @@ __pycache__
 myvenv
 db.sqlite3
 .DS_Store
+*.DS_Store
+static/libs/._uglymol.js
+static/libs/._.DS_Store
