@@ -2358,6 +2358,8 @@ def procReport(request):
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
     empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt=userInput.split(";;")
+    proj = current_project(request)
+
     if "false" in dimpleSW:
         useDIMPLE=False
     else:
@@ -2372,24 +2374,24 @@ def refine_datasets(request):
         useBUSTER=True
     #if len(userPDB)<20:
     pdbmodel=userPDB.replace("pdbmodel:","")
-    os.makedirs(path+"/fragmax/models/",mode=0o777, exist_ok=True)
+    os.makedirs(proj.data_path()+"/fragmax/models/",mode=0o777, exist_ok=True)
     if pdbmodel!="":
-        if pdbmodel in [x.split("/")[-1].split(".pdb")[0] for x in glob.glob(path+"/fragmax/models/*.pdb")]:
+        if pdbmodel in [x.split("/")[-1].split(".pdb")[0] for x in glob.glob(proj.data_path()+"/fragmax/models/*.pdb")]:
             if ".pdb" not in pdbmodel:
-                pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
+                pdbmodel=proj.data_path()+"/fragmax/models/"+pdbmodel+".pdb"
             else:
-                pdbmodel=path+"/fragmax/models/"+pdbmodel
+                pdbmodel=proj.data_path()+"/fragmax/models/"+pdbmodel
         elif "/data/visitors/biomax/" in pdbmodel:
 
-            if not os.path.exists(path+"/fragmax/models/"+pdbmodel.split("/")[-1]):
-                shutil.copyfile(pdbmodel,path+"/fragmax/models/"+pdbmodel.split("/")[-1])
-                pdbmodel=path+"/fragmax/models/"+pdbmodel.split("/")[-1]
+            if not os.path.exists(proj.data_path()+"/fragmax/models/"+pdbmodel.split("/")[-1]):
+                shutil.copyfile(pdbmodel,proj.data_path()+"/fragmax/models/"+pdbmodel.split("/")[-1])
+                pdbmodel=proj.data_path()+"/fragmax/models/"+pdbmodel.split("/")[-1]
         else:
             if ".pdb" in pdbmodel:
                 pdbmodel=pdbmodel.split(".pdb")[0]
-            with open(path+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
+            with open(proj.data_path()+"/fragmax/models/"+pdbmodel+".pdb","w") as pdb:
                 pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
-            pdbmodel=path+"/fragmax/models/"+pdbmodel+".pdb"
+            pdbmodel=proj.data_path()+"/fragmax/models/"+pdbmodel+".pdb"
     pdbmodel.replace(".pdb.pdb",".pdb")
     spacegroup=refspacegroup.replace("refspacegroup:","")
     run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt)
@@ -3144,7 +3146,7 @@ def run_xdsxscale(proj, nodes, filters):
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
-    header+= """module load CCP4 XDS\n\n"""
+    header+= """module load PReSTO\n\n"""
 
     scriptList=list()
 
