@@ -2393,7 +2393,6 @@ def refine_datasets(request):
     return render(request,'fragview/refine_datasets.html', {'allproc': outinfo})
 
 def ligfit_datasets(request):
-    #MAYBE NO USE ANYMORE
     userInput=str(request.GET.get("submitligProc"))
     proj=current_project(request)
     empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname,filters=userInput.split(";;")
@@ -3102,7 +3101,7 @@ def run_autoproc(proj, nodes, filters):
         nImg=dtc["numberOfImages"]
         os.makedirs(outdir,mode=0o760, exist_ok=True)
         script="cd "+outdir+"\n"
-        script+='''process -h5 '''+h5master+''' -noANO autoPROC_XdsKeyword_LIB=\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\ '''+nImg+''' autoPROC_XdsKeyword_SPOT_RANGE=1\ '''+nImg+''' -d '''+outdir+'''/autoproc\n\n'''
+        script+='''process -h5 '''+h5master+''' -noANO autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" autoPROC_XdsKeyword_LIB=\$EBROOTNEGGIA/lib/dectris-neggia.so autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\ '''+nImg+''' autoPROC_XdsKeyword_SPOT_RANGE=1\ '''+nImg+''' -d '''+outdir+'''/autoproc\n\n'''
         scriptList.append(script)
 
     chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
