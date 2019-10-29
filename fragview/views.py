@@ -2572,9 +2572,9 @@ def hpcstatus(request):
     for j in out.decode("UTF-8").split("\n")[1:-1]:
         if j.split()!=[]:
             try:
-                jobid,partition,name,user,ST,TIME,NODE,NODEn=j.split()
+                jobid,partition,name,user,ST,TIME,NODE,NODEn=j.split()[:8]
             except ValueError:
-                jobid,partition,name,user,ST,TIME,NODE,NODEn1,NODEn2=j.split()
+                jobid,partition,name,user,ST,TIME,NODE,NODEn1,NODEn2=j.split()[:9]
                 NODEn=NODEn1+NODEn2
             try:
                 log_pairs = [
@@ -3429,7 +3429,7 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
                             """#SBATCH -J FSPmaster\n\n"""
                             """#SBATCH -o """+proj.data_path()+"""/fragmax/logs/fspipeline_master_%j_out.txt\n"""
                             """for file in """+proj.data_path()+"/fragmax/scripts"+"""/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
-                            """rm fspipeline_worker*sh""")
+                            """""")
 
     def buster_hpc(PDB):
         inputData=list()
