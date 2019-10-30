@@ -7,6 +7,7 @@ from .projects import current_project, project_shift_dirs, project_results_file,
 from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
 from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
 from .projects import project_all_status_file
+from . import result_plots
 from difflib import SequenceMatcher
 
 import glob
@@ -352,12 +353,12 @@ def datasets(request):
 
     if "resyncDataset" in resyncAction:        
         datacollectionSummary(proj)
-    
+
     if "resyncStatus" in resyncStatus:
         os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
         get_project_status(proj)
         datacollectionSummary(proj)
-        resultSummary(request)
+        resultSummary(proj, request)
     
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
@@ -501,9 +502,9 @@ def results(request):
     resync=str(request.GET.get("resync"))
 
     if "resyncresults" in resync:
-        resultSummary(request)
+        resultSummary(proj, request)
     if not os.path.exists(results_file):
-        resultSummary(request)
+        resultSummary(proj, request)
     try:
         with open(results_file, "r") as readFile:
             reader = csv.reader(readFile)
@@ -2679,10 +2680,11 @@ def datacollectionSummary(proj):
                              f"{proj.library}/{sample}/{sample}.svg"
 
                 writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
-                       
-def resultSummary(request):
+
+
+def resultSummary(proj, request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
-    
+
     def info_func(entry,isaDict):
         usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""]*23
         pdbout   = ""
@@ -2950,73 +2952,7 @@ def resultSummary(request):
             if row.join() is not None:
                 writer.writerow(row.join())
     
-    
-    #########################   
-
-    
-    with open(path+"/fragmax/scripts/plots.py","w") as writeFile:
-        writeFile.write('''#!/mxn/home/guslim/anaconda2/envs/Python36/bin/python'''
-                        '''\nimport pandas as pd'''
-                        '''\nimport seaborn as sns'''
-                        '''\nimport matplotlib.pyplot as plt'''
-                        '''\nimport shutil'''
-                        '''\nrst=pd.read_csv("'''+path+'''/fragmax/process/'''+acr+'''/results.csv")'''
-                        '''\nunq=list()'''
-                        '''\nnt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]'''
-                        '''\nsns.set(color_codes=True)'''
-                        '''\nsns.set_style("darkgrid", {"axes.facecolor": ".9"})'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="ISa", color="#82be00")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("ISa")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset", y="r_free",data=rst, ci=66,  label="Rfree", color="#82be00")'''
-                        '''\nax=sns.lineplot(x="dataset", y="r_work",data=rst, ci=66,  label="Rwork", color="#fea901")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Rfactor")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset", y="a"    , data=rst, ci="sd", label="a" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="b"    , data=rst, ci="sd", label="b" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="c"    , data=rst, ci="sd", label="c" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="alpha", data=rst, ci="sd", label="alpha" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="beta" , data=rst, ci="sd", label="beta" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="gamma", data=rst, ci="sd", label="gamma" )'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Cell Parameter")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Resolution")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png", bbox_inches='tight')'''
-                        '''\nfor s in ['''+",".join(shiftList)+''']:'''
-                        '''\n    try:'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Resolutions.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Rfactors.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Cellparameters.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/ISas.png")'''
-                        '''\n    except:'''
-                        '''\n        pass''')
-    plotcmd="""echo '"""+"/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py"+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
-    subprocess.call(plotcmd,shell=True)
+    result_plots.generate(project_results_file(proj), project_process_protein_dir(proj))
 
 def run_xdsapp(proj, nodes, filters):
     if "filters:" in filters:
