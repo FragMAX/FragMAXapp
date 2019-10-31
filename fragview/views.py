@@ -358,7 +358,7 @@ def datasets(request):
         os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
         get_project_status(proj)
         datacollectionSummary(proj)
-        resultSummary(proj, request)
+        resultSummary(proj)
     
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
@@ -502,9 +502,9 @@ def results(request):
     resync=str(request.GET.get("resync"))
 
     if "resyncresults" in resync:
-        resultSummary(proj, request)
+        resultSummary(proj)
     if not os.path.exists(results_file):
-        resultSummary(proj, request)
+        resultSummary(proj)
     try:
         with open(results_file, "r") as readFile:
             reader = csv.reader(readFile)
@@ -2682,8 +2682,7 @@ def datacollectionSummary(proj):
                 writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
 
 
-def resultSummary(proj, request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
+def resultSummary(proj):
 
     def info_func(entry,isaDict):
         usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""]*23
@@ -2824,21 +2823,26 @@ def resultSummary(proj, request):
         rhofitscore="-"
         ligfitscore="-"
         ligblob=[0,0,0]
-        if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout: 
-            lig=usracr.split("_")[0].split("-")[-1]            
-            ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"            
-            ligfitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/"            
-            rhofitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/rhofit/"            
 
+        res_dir = os.path.join(
+            project_results_dir(proj),
+            "_".join(usracr.split("_")[0:2]) + "/" + "/".join(pipeline.split("_")))
+
+        if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout:
+            ligfitPath = os.path.join(res_dir, "ligfit")
+            rhofitPath = os.path.join(res_dir, "rhofit")
 
             if os.path.exists(rhofitPath):
-                if os.path.exists(rhofitPath+"Hit_corr.log"):
-                    with open(rhofitPath+"Hit_corr.log","r") as inp:
-                        rhofitscore=inp.readlines()[0].split()[1]   
+                hit_corr_log = os.path.join(rhofitPath, "Hit_corr.log")
+                if os.path.exists(hit_corr_log):
+                    with open(hit_corr_log, "r") as inp:
+                        rhofitscore=inp.readlines()[0].split()[1]
+
             if os.path.exists(ligfitPath):
                 try:
-                    ligfitRUNPath=sorted(glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*"))[-1]                
-                    if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*")!=[]:
+                    ligfitRUNPath=sorted(glob.glob(f"{res_dir}/ligfit/LigandFit*"))[-1]
+
+                    if glob.glob(f"{res_dir}/ligfit/LigandFit*")!=[]:
                         if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:                        
                             if os.path.exists(ligfitRUNPath+"/LigandFit_summary.dat"):
                                 with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:                    
@@ -2866,20 +2870,29 @@ def resultSummary(proj, request):
     EDNALogs      = list()
     isaDict       = dict()
     h5List        = list()
-    for s in shiftList:
-        xdsappLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsapp/results*txt")
-        autoprocLogs  += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/autoproc/process.log")
-        dialsLogs     += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/dials/LogFiles/*log")
-        xdsxscaleLogs += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsxscale/LogFiles/*XSCALE.log")
-        fastdpLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/fastdp/results/*.LP")
-        EDNALogs      += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/EDNA_proc/results/*.LP")
+    resultsList   = list()
 
+    for shift_dir in project_shift_dirs(proj):
+        fmax_proc_dir = os.path.join(shift_dir, "fragmax", "process", proj.protein)
+        proc_dir = os.path.join(shift_dir, "process", proj.protein)
+        res_dir = os.path.join(shift_dir, "fragmax", "results", proj.protein)
 
-    for s in shiftList:
-        h5List+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5")
+        xdsappLogs += glob.glob(f"{fmax_proc_dir}/*/*/xdsapp/results*txt")
+        autoprocLogs += glob.glob(f"{fmax_proc_dir}/*/*/autoproc/process.log")
+        dialsLogs += glob.glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
+        xdsxscaleLogs += glob.glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
+        fastdpLogs += glob.glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
+        EDNALogs += glob.glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
+        h5List += glob.glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
+        resultsList += glob.glob(f"{res_dir}**/*/dimple/final.pdb") + \
+                       glob.glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
+                       glob.glob(f"{res_dir}**/*/buster/refine.pdb")
+
     h5List=sorted(h5List, key=lambda x: ("Apo" in x, x))
     for dataset in [x.split("/")[-1].split("_master.h5")[0] for x in h5List]:
             isaDict[dataset]={"xdsapp":"","autoproc":"","xdsxscale":"","dials":"","fastdp":"","EDNA":""}
+
+    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
 
     for log in xdsappLogs:
         dataset=log.split("/")[10]
@@ -2933,16 +2946,9 @@ def resultSummary(proj, request):
                     if isa=="b":
                         isa=""
         isaDict[dataset].update({"EDNA":isa})
-    #for s in shiftList:
-    #resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    
-    resultsList=list()
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        resultsList+=glob.glob(p+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    
-    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
+
+
+    with open(project_results_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","ISa","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
         for entry in resultsList:
