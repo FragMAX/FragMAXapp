@@ -42,6 +42,10 @@ def project_results_file(project):
     return path.join(project_process_protein_dir(project), "results.csv")
 
 
+def project_all_status_file(project):
+    return path.join(project_process_protein_dir(project), "allstatus.csv")
+
+
 def project_script(project, script_file):
     """
     generate full path to a file named 'script_file' inside project's script directory

@@ -6,6 +6,8 @@ from .proposals import get_proposals
 from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
 from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
 from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
+from .projects import project_all_status_file
+from . import result_plots
 from difflib import SequenceMatcher
 
 import glob
@@ -351,12 +353,12 @@ def datasets(request):
 
     if "resyncDataset" in resyncAction:        
         datacollectionSummary(proj)
-    
+
     if "resyncStatus" in resyncStatus:
         os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
-        get_project_status(request)
+        get_project_status(proj)
         datacollectionSummary(proj)
-        resultSummary(request)
+        resultSummary(proj)
     
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
@@ -374,9 +376,8 @@ def datasets(request):
     rfentry=list()
     lgentry=list()
 
-
-    if not os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
-        get_project_status(request)
+    if not os.path.exists(project_all_status_file(proj)):
+        get_project_status(proj)
 
     ##Proc status
     if os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
@@ -501,9 +502,9 @@ def results(request):
     resync=str(request.GET.get("resync"))
 
     if "resyncresults" in resync:
-        resultSummary(request)
+        resultSummary(proj)
     if not os.path.exists(results_file):
-        resultSummary(request)
+        resultSummary(proj)
     try:
         with open(results_file, "r") as readFile:
             reader = csv.reader(readFile)
@@ -2679,10 +2680,10 @@ def datacollectionSummary(proj):
                              f"{proj.library}/{sample}/{sample}.svg"
 
                 writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
-                       
-def resultSummary(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
-    
+
+
+def resultSummary(proj):
+
     def info_func(entry,isaDict):
         usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=[""]*23
         pdbout   = ""
@@ -2822,21 +2823,26 @@ def resultSummary(request):
         rhofitscore="-"
         ligfitscore="-"
         ligblob=[0,0,0]
-        if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout: 
-            lig=usracr.split("_")[0].split("-")[-1]            
-            ligpng=path.replace("/data/visitors/","/static/")+"/fragmax/process/fragment/"+fraglib+"/"+lig+"/"+lig+".svg"            
-            ligfitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/"            
-            rhofitPath=path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/rhofit/"            
 
+        res_dir = os.path.join(
+            project_results_dir(proj),
+            "_".join(usracr.split("_")[0:2]) + "/" + "/".join(pipeline.split("_")))
+
+        if os.path.exists("/data/visitors/"+pdbout) and "Apo" not in pdbout:
+            ligfitPath = os.path.join(res_dir, "ligfit")
+            rhofitPath = os.path.join(res_dir, "rhofit")
 
             if os.path.exists(rhofitPath):
-                if os.path.exists(rhofitPath+"Hit_corr.log"):
-                    with open(rhofitPath+"Hit_corr.log","r") as inp:
-                        rhofitscore=inp.readlines()[0].split()[1]   
+                hit_corr_log = os.path.join(rhofitPath, "Hit_corr.log")
+                if os.path.exists(hit_corr_log):
+                    with open(hit_corr_log, "r") as inp:
+                        rhofitscore=inp.readlines()[0].split()[1]
+
             if os.path.exists(ligfitPath):
                 try:
-                    ligfitRUNPath=sorted(glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*"))[-1]                
-                    if glob.glob(path+"/fragmax/results/"+"_".join(usracr.split("_")[0:2])+"/"+"/".join(pipeline.split("_"))+"/ligfit/LigandFit*")!=[]:
+                    ligfitRUNPath=sorted(glob.glob(f"{res_dir}/ligfit/LigandFit*"))[-1]
+
+                    if glob.glob(f"{res_dir}/ligfit/LigandFit*")!=[]:
                         if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:                        
                             if os.path.exists(ligfitRUNPath+"/LigandFit_summary.dat"):
                                 with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:                    
@@ -2864,20 +2870,29 @@ def resultSummary(request):
     EDNALogs      = list()
     isaDict       = dict()
     h5List        = list()
-    for s in shiftList:
-        xdsappLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsapp/results*txt")
-        autoprocLogs  += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/autoproc/process.log")
-        dialsLogs     += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/dials/LogFiles/*log")
-        xdsxscaleLogs += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/fragmax/process/"+acr+"/*/*/xdsxscale/LogFiles/*XSCALE.log")
-        fastdpLogs    += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/fastdp/results/*.LP")
-        EDNALogs      += glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/process/"+acr+"/*/*/EDNA_proc/results/*.LP")
+    resultsList   = list()
 
+    for shift_dir in project_shift_dirs(proj):
+        fmax_proc_dir = os.path.join(shift_dir, "fragmax", "process", proj.protein)
+        proc_dir = os.path.join(shift_dir, "process", proj.protein)
+        res_dir = os.path.join(shift_dir, "fragmax", "results", proj.protein)
 
-    for s in shiftList:
-        h5List+=glob.glob("/data/visitors/biomax/"+proposal+"/"+s+"/raw/"+acr+"/*/*master.h5")
+        xdsappLogs += glob.glob(f"{fmax_proc_dir}/*/*/xdsapp/results*txt")
+        autoprocLogs += glob.glob(f"{fmax_proc_dir}/*/*/autoproc/process.log")
+        dialsLogs += glob.glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
+        xdsxscaleLogs += glob.glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
+        fastdpLogs += glob.glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
+        EDNALogs += glob.glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
+        h5List += glob.glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
+        resultsList += glob.glob(f"{res_dir}**/*/dimple/final.pdb") + \
+                       glob.glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
+                       glob.glob(f"{res_dir}**/*/buster/refine.pdb")
+
     h5List=sorted(h5List, key=lambda x: ("Apo" in x, x))
     for dataset in [x.split("/")[-1].split("_master.h5")[0] for x in h5List]:
             isaDict[dataset]={"xdsapp":"","autoproc":"","xdsxscale":"","dials":"","fastdp":"","EDNA":""}
+
+    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
 
     for log in xdsappLogs:
         dataset=log.split("/")[10]
@@ -2931,16 +2946,9 @@ def resultSummary(request):
                     if isa=="b":
                         isa=""
         isaDict[dataset].update({"EDNA":isa})
-    #for s in shiftList:
-    #resultsList=glob.glob(path+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(path+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    
-    resultsList=list()
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        resultsList+=glob.glob(p+"*/fragmax/results/"+acr+"**/*/dimple/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/fspipeline/final.pdb")+glob.glob(p+"*/fragmax/results/"+acr+"**/*/buster/refine.pdb")
-    resultsList=sorted(resultsList, key=lambda x: ("Apo" in x, x))
-    
-    with open(path+"/fragmax/process/"+acr+"/results.csv","w") as csvFile:
+
+
+    with open(project_results_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","ISa","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
         for entry in resultsList:
@@ -2950,73 +2958,7 @@ def resultSummary(request):
             if row.join() is not None:
                 writer.writerow(row.join())
     
-    
-    #########################   
-
-    
-    with open(path+"/fragmax/scripts/plots.py","w") as writeFile:
-        writeFile.write('''#!/mxn/home/guslim/anaconda2/envs/Python36/bin/python'''
-                        '''\nimport pandas as pd'''
-                        '''\nimport seaborn as sns'''
-                        '''\nimport matplotlib.pyplot as plt'''
-                        '''\nimport shutil'''
-                        '''\nrst=pd.read_csv("'''+path+'''/fragmax/process/'''+acr+'''/results.csv")'''
-                        '''\nunq=list()'''
-                        '''\nnt=[unq.append(x) for x in sorted([x.split("-")[-1] for x in rst["dataset"]]) if x not in unq]'''
-                        '''\nsns.set(color_codes=True)'''
-                        '''\nsns.set_style("darkgrid", {"axes.facecolor": ".9"})'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset",y="ISa",data=rst, ci="sd",label="ISa", color="#82be00")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("ISa")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset", y="r_free",data=rst, ci=66,  label="Rfree", color="#82be00")'''
-                        '''\nax=sns.lineplot(x="dataset", y="r_work",data=rst, ci=66,  label="Rwork", color="#fea901")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Rfactor")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset", y="a"    , data=rst, ci="sd", label="a" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="b"    , data=rst, ci="sd", label="b" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="c"    , data=rst, ci="sd", label="c" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="alpha", data=rst, ci="sd", label="alpha" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="beta" , data=rst, ci="sd", label="beta" )'''
-                        '''\nax=sns.lineplot(x="dataset", y="gamma", data=rst, ci="sd", label="gamma" )'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Cell Parameter")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png", bbox_inches='tight')'''
-                        '''\nplt.figure(figsize=(30, 10), dpi=150)'''
-                        '''\nax=sns.lineplot(x="dataset",y="resolution",data=rst, ci="sd",label="Resolution", color="#82be00")'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)'''
-                        '''\nax.set_xlabel("Dataset")'''
-                        '''\nax.set_ylabel("Resolution")'''
-                        '''\nnt=ax.set_xticklabels(unq)'''
-                        '''\nfor tick in ax.get_xticklabels():'''
-                        '''\n    tick.set_rotation(90)    '''
-                        '''\nplt.savefig("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png", bbox_inches='tight')'''
-                        '''\nfor s in ['''+",".join(shiftList)+''']:'''
-                        '''\n    try:'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Resolutions.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Resolutions.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Rfactors.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Rfactors.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/Cellparameters.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/Cellparameters.png")'''
-                        '''\n        shutil.copyfile("'''+path+'''/fragmax/process/'''+acr+'''/ISas.png","/data/visitors/biomax/'''+proposal+'''/"+str(s)+"/fragmax/process/'''+acr+'''/ISas.png")'''
-                        '''\n    except:'''
-                        '''\n        pass''')
-    plotcmd="""echo '"""+"/mxn/home/guslim/anaconda2/envs/Python36/bin/python "+path+"/fragmax/scripts/plots.py"+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
-    subprocess.call(plotcmd,shell=True)
+    result_plots.generate(project_results_file(proj), project_process_protein_dir(proj))
 
 def run_xdsapp(proj, nodes, filters):
     if "filters:" in filters:
@@ -3644,18 +3586,19 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
         command ='echo "module purge | module load CCP4 Phenix | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
 
-def get_project_status(request):
-    proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
+def get_project_status(proj):
     statusDict=dict()
     procList=list()
     resList =list()
-    for s in shiftList:
-        p="/data/visitors/biomax/"+proposal+"/"+s
-        procList+=["/".join(x.split("/")[:8])+"/"+x.split("/")[-2]+"/" for x in glob.glob(p+"/fragmax/process/"+acr+"/*/*/")]
-        resList+=glob.glob(p+"/fragmax/results/"+acr+"*/")
-    
-    
+
+    for shift_dir in project_shift_dirs(proj):
+        procList += [
+            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
+            glob.glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
+        resList += glob.glob(f"{shift_dir}/fragmax/results/{proj.protein}*/")
+
+
     for i in procList:
         dataset_run=i.split("/")[-2]
         statusDict[dataset_run]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
@@ -3666,7 +3609,6 @@ def get_project_status(request):
             statusDict[dts]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
     
         for j in glob.glob(result+"*"):
-            dp=j.split("/")[-1]
             if os.path.exists(j+"/dimple/final.pdb"):
                 statusDict[dts].update({"dimple":"full"})
             if os.path.exists(j+"/fspipeline/final.pdb"):
@@ -3681,10 +3623,10 @@ def get_project_status(request):
     for process in procList:
         dts=process.split("/")[-2]
         j=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s
-            j+=glob.glob(p+"/fragmax/process/"+acr+"/*/"+dts+"/")
-        #j=glob.glob(path+"/fragmax/process/"+acr+"/*/"+dts+"/")
+
+        for shift_dir in project_shift_dirs(proj):
+            j+=glob.glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dts}/")
+
         if j!=[]:
             j=j[0]
         if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:            
@@ -3692,15 +3634,17 @@ def get_project_status(request):
         if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:            
             statusDict[dts].update({"dials":"full"})
         ej=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s            
-            ej+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/EDNA_proc/results/*mtz")
+
+        for shift_dir in project_shift_dirs(proj):
+            ej+=glob.glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/EDNA_proc/results/*mtz")
+
         if ej!=[]:
             statusDict[dts].update({"EDNA":"full"})
         fj=list()
-        for s in shiftList:
-            p="/data/visitors/biomax/"+proposal+"/"+s            
-            fj+=glob.glob(p+"/process/"+acr+"/*/*"+dts+"*/fastdp/results/*mtz.gz")    
+
+        for shift_dir in project_shift_dirs(proj):
+            fj+=glob.glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/fastdp/results/*mtz.gz")
+
         if fj!=[]:
             statusDict[dts].update({"fastdp":"full"})
         if glob.glob(j+"/xdsapp/*mtz")!=[]:            
@@ -3708,7 +3652,7 @@ def get_project_status(request):
         if glob.glob(j+"/xdsxscale/DataFiles/*mtz")!=[]:            
             statusDict[dts].update({"xdsxscale":"full"})    
 
-    with open(path+"/fragmax/process/"+acr+"/allstatus.csv","w") as csvFile:
+    with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["dataset","run","autoproc","dials","EDNA","fastdp","xdsapp","xdsxscale","dimple","fspipeline","buster","ligfit","rhofit"])    
         for dataset_run,status in statusDict.items():    
