@@ -1,5 +1,6 @@
 from django.urls import path
-from . import views
+from fragview import views
+from fragview.views import projects
 
 
 urlpatterns = [
@@ -37,12 +38,11 @@ urlpatterns = [
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
 
-    path('projects/', views.projects),
-    path('project/<int:id>/', views.project),
-    path('project/new', views.project_new, name='new_project'),
-    path('project/current/<int:id>/', views.project_set_current),
-
-    path('project_summary/', views.project_summary, name='project_summary'),
+    path('projects/', projects.list),
+    path('project/<int:id>/', projects.edit),
+    path('project/new', projects.new, name='new_project'),
+    path('project/current/<int:id>/', projects.set_current),
+    path('project_summary/', projects.project_summary, name='project_summary'),
 
     path('dataset_info/', views.dataset_info, name='dataset_info'),
     path('data_analysis/', views.data_analysis, name='data_analysis'),

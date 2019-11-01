@@ -1,13 +1,9 @@
-from django.shortcuts import render, get_object_or_404, redirect, render_to_response
-from django.http import HttpResponseBadRequest, HttpResponseNotFound
-from .models import Project
-from .forms import ProjectForm
-from .proposals import get_proposals
-from .projects import current_project, project_shift_dirs, project_results_file, project_static_url
-from .projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
-from .projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
-from .projects import project_all_status_file
-from . import result_plots
+from django.shortcuts import render, render_to_response
+from fragview.projects import current_project, project_shift_dirs, project_results_file, project_static_url
+from fragview.projects import project_script, project_process_protein_dir, project_model_path, project_process_dir
+from fragview.projects import project_results_dir, project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
+from fragview.projects import project_all_status_file
+from fragview import result_plots
 from difflib import SequenceMatcher
 
 import glob
@@ -24,7 +20,7 @@ import time
 import threading
 import pypdb
 import ast
-import sys 
+import sys
 import xmltodict
 from subprocess import Popen, PIPE
 import datetime
@@ -36,7 +32,6 @@ import pandas as pd
 from random import randint
 
 ################################
-#Changing this parameters for different projects based on user credentials
 
 class ThreadWithReturnValue(threading.Thread):
         def __init__(self, group=None, target=None, name=None,
@@ -85,108 +80,6 @@ def data_analysis(request):
                   {"models": models, "datasets": datasets})
 
 
-def projects(request):
-    """
-    projects list page, aka 'manage projects' page
-    """
-    return render(request, "fragview/projects.html")
-
-
-def project(request, id):
-    """
-    GET requests show the 'Edit Project' page
-    POST requests will update or delete the project
-    """
-    proj = get_object_or_404(Project, pk=id)
-    form = ProjectForm(request.POST or None, instance=proj)
-
-    if request.method == "POST":
-        action = request.POST["action"]
-        if action == "modify":
-            if form.is_valid():
-                form.save()
-                return redirect("/projects/")
-        elif action == "delete":
-            proj.delete()
-            return redirect("/projects/")
-        else:
-            return HttpResponseBadRequest(f"unexpected action '{action}'")
-
-    return render(
-        request,
-        "fragview/project.html",
-        {"form": form, "project_id": proj.id})
-
-
-def project_new(request):
-    """
-    GET requests show the 'Create new Project' page
-    POST requests will try to create a new project
-    """
-    if request.method == "GET":
-        return render(request, "fragview/project.html")
-
-    form = ProjectForm(request.POST)
-    if not form.is_valid():
-        return render(request, "fragview/project.html", {"form": form})
-
-    form.save()
-
-    return redirect("/projects/")
-
-
-def project_set_current(request, id):
-    proj = Project.get_project(get_proposals(request), id)
-    if proj is None:
-        return HttpResponseNotFound()
-
-    request.user.set_current_project(proj)
-
-    # go back to original URL, or site root if we
-    # don't know referring page
-    return redirect(request.META.get("HTTP_REFERER", "/"))
-
-
-def project_summary(request):
-    proj = current_project(request)
-
-    number_known_apo = len(glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*Apo*"))
-    number_datasets = len(glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*"))
-
-    totalapo = 0
-    totaldata = 0
-
-    for shift_dir in project_shift_dirs(proj):
-        totalapo += len(glob.glob(shift_dir + "/raw/" + proj.protein + "/*Apo*"))
-        totaldata += len(glob.glob(shift_dir + "/raw/" + proj.protein + "/*"))
-
-    if "JBS" in proj.library:
-        libname="JBS Xtal Screen"
-    elif "F2XEntry" in proj.library:
-        libname="F2X Entry Screen"
-    else:
-        libname="Custom library"
-
-    months = {
-        "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
-        "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
-    }
-
-    natdate = proj.shift[0:4] + " " + months[proj.shift[4:6]] + " " + proj.shift[6:8]
-
-    return render(
-        request,
-        "fragview/project_summary.html",
-        {
-            "known_apo": number_known_apo,
-            "num_dataset": number_datasets,
-            "totalapo": totalapo,
-            "totaldata": totaldata,
-            "fraglib": libname,
-            "exp_date": natdate
-        })
-
-
 def dataset_info(request):
     proj = current_project(request)
 
@@ -225,19 +118,19 @@ def dataset_info(request):
         snapshot2=datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/","/static/")
 
     diffraction1=proj.data_path()+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_1.jpeg"
-    if not os.path.exists(diffraction1):            
+    if not os.path.exists(diffraction1):
         h5data=datainfo["imageDirectory"]+"/"+prefix+"_"+run+"_data_0000"
         cmd = "adxv -sa -slabs 10 -weak_data " + h5data + "01.h5 " + diffraction1
         subprocess.call(cmd,shell=True)
     diffraction1=diffraction1.replace("/data/visitors/","/static/")
-    
+
     diffraction2=proj.data_path()+"/fragmax/process/"+proj.protein+"/"+prefix+"/"+prefix+"_"+run+"_2.jpeg"
 
-    if not os.path.exists(diffraction2):    
+    if not os.path.exists(diffraction2):
         half=int(float(images)/200)
         if half<10:
             half="0"+str(half)
-    
+
         h5data=datainfo["imageDirectory"]+"/"+prefix+"_"+run+"_data_0000"
         cmd="adxv -sa -slabs 10 -weak_data " + h5data + half + ".h5 " + diffraction2
         subprocess.call(cmd,shell=True)
@@ -288,7 +181,7 @@ def dataset_info(request):
         "csvfile":lines,
         "shift":curp.split("/")[-1],
         "run":run,
-        'imgprf': prefix, 
+        'imgprf': prefix,
         'imgs': images,
         "ligand": ligpng,
         "fragConc": fragConc,
@@ -321,10 +214,10 @@ def dataset_info(request):
         "wavelength":datainfo["wavelength"],
         "xbeampos":datainfo["xbeampos"],
         "snapshot1":snapshot1,
-        "snapshot2":snapshot2,    
+        "snapshot2":snapshot2,
         "diffraction1":diffraction1,
-        "diffraction2":diffraction2,    
-        "ybeampos":datainfo["ybeampos"],        
+        "diffraction2":diffraction2,
+        "ybeampos":datainfo["ybeampos"],
         "energy":energy,
         "totalExposure":totalExposure,
         "edgeResolution":edgeResolution,
@@ -352,7 +245,7 @@ def datasets(request):
 
     datacollectionSummary(proj)
 
-    if "resyncDataset" in resyncAction:        
+    if "resyncDataset" in resyncAction:
         datacollectionSummary(proj)
 
     if "resyncStatus" in resyncStatus:
@@ -360,7 +253,7 @@ def datasets(request):
         get_project_status(proj)
         datacollectionSummary(proj)
         resultSummary(proj)
-    
+
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)
@@ -389,7 +282,7 @@ def datasets(request):
             dictEntry=i+"_"+j
             status=[line for line in lines if line[0]==dictEntry]
             if status!=[]:
-                
+
                 da="<td>"
                 if status[0][1]=="full":
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> autoPROC</font></p>""")
@@ -398,7 +291,6 @@ def datasets(request):
                 else:
                     da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>""")
 
-            
                 if status[0][2]=="full":
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> DIALS</font></p>""")
                 elif status[0][2]=="partial":
@@ -412,7 +304,6 @@ def datasets(request):
                     da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> EDNA_proc</font></p>""")
                 else:
                     da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>""")
-
 
                 if status[0][4]=="full" :
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Fastdp</font></p>""")
@@ -428,48 +319,42 @@ def datasets(request):
                 else:
                     da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>""")
 
-
                 if status[0][6]=="full":
                     da+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> XDS/XSCALE</font></p>""")
                 elif status[0][6]=="partial":
                     da+=("""<p align="left"><font size="2" color="yellow">&#9679;</font><font size="2"> XDS/XSCALE</font></p>""")
                 else:
                     da+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDS/XSCALE</font></p></td>""")
-                
-                
+
                 dpentry.append(da)
-                re="<td>"  
+                re="<td>"
                 if status[0][9]=="full":
                     re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> BUSTER</font></p>""")
                 else:
                     re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>""")
-                
-                
+
                 if status[0][7]=="full":
                     re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> Dimple</font></p>""")
                 else:
                     re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>""")
-
 
                 if status[0][8]=="full":
                     re+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> FSpipeline</font></p></td>""")
                 else:
                     re+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p></td>""")
                 rfentry.append(re)
-            
 
-                lge="<td>"  
+                lge="<td>"
                 if status[0][10]=="full":
                     lge+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> LigFit</font></p>""")
                 else:
                     lge+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> LigFit</font></p>""")
-                
+
                 if status[0][11]=="full":
                     lge+=("""<p align="left"><font size="2" color="green">&#9679;</font><font size="2"> RhoFit</font></p></td>""")
                 else:
                     lge+=("""<p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p></td>""")
                 lgentry.append(lge)
-            
     else:
         for i in prf_list:
             dpentry.append("""<td>
@@ -478,12 +363,12 @@ def datasets(request):
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>
                     <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
-                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>    
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>
                 </td>""")
             rfentry.append("""<td>
                         <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
                         <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
-                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>    
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>
                     </td>""")
         for i,j in zip(prf_list,run_list):
             lge="<td>"
@@ -523,8 +408,8 @@ def results_density(request):
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     result_info=list(filter(lambda x:x[0]==value,lines))[0]
-    usracr,pdbout,nat_map,dif_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info        
-    
+    usracr,pdbout,nat_map,dif_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob=result_info
+
     if os.path.exists(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.pdb"):
         if not os.path.exists(proj.data_path() + "/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final.mtz"):
             if glob.glob(proj.data_path()+"/fragmax/results/"+"_".join(usracr.split("_")[:-2])+"/"+"/".join(pipeline.split("_"))+"/final*.mtz")!=[]:
@@ -553,7 +438,7 @@ def results_density(request):
         ligsvg    = project_static_url(proj)+"/fragmax/process/fragment/"+proj.library+"/"+lig+"/"+lig+".svg"
         if os.path.exists(proj.data_path()+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"):
             rhofit=proj.data_path()+"/fragmax/results/"+ligfit_dataset+"/"+processM+"/"+refineM+"/rhofit/best.pdb"
-            lpos=1        
+            lpos=1
             with open(rhofit,"r") as rhofitfile:
                 for line in rhofitfile.readlines():
                     if line.startswith("HETATM"):
@@ -581,8 +466,6 @@ def results_density(request):
             ligfit=""
             ligcenter="[0,0,0]"
             ligfitbox="none"
-        
-        
     else:
         ligfit=""
         rhofit=""
@@ -644,9 +527,9 @@ def results_density(request):
         'ligfit_dataset': ligfit_dataset,
         "process":processM,
         "refine":refineM,
-        'blob': ligblob, 
+        'blob': ligblob,
         "rhofitcenter":rhocenter,
-        "ligfitcenter":ligcenter, 
+        "ligfitcenter":ligcenter,
         "ligbox":ligbox,
         "prevstr":prevstr,
         "nextstr":nextstr,
@@ -689,7 +572,6 @@ def reciprocal_lattice(request):
             rlp=rlpdir+"/rlp.json"
             state="none"
         else:
-            
             cmd='echo "module load DIALS;cd '+rlpdir+'; dials.export 2_SWEEP1_datablock.json 2_SWEEP1_strong.pickle format=json" | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(cmd,shell=True)
             rlp=rlpdir+"/rlp.json"
@@ -697,7 +579,7 @@ def reciprocal_lattice(request):
         rlp="none2"
     if dataset in rlp:
         timer=0
-        while os.path.exists(rlp)==False: 
+        while os.path.exists(rlp)==False:
             if timer==20:
                 break
             time.sleep(1)
@@ -710,19 +592,18 @@ def compare_poses(request):
     proj = current_project(request)
     static_url = project_static_url(proj)
 
-    a=str(request.GET.get('ligfit_dataset')) 
+    a=str(request.GET.get('ligfit_dataset'))
     data=a.split(";")[0]
     blob=a.split(";")[1]
     lig=data.split("-")[-1].split("_")[0]
     ligpng = static_url + "/fragmax/process/fragment/" + proj.library + "/" + lig + "/" + lig + ".svg"
-    
 
     rhofit = proj.data_path() + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/rhofit/best.pdb"
     ligfit=sorted(glob.glob(proj.data_path() + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
     pdb = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final.pdb"
     nat = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_mFo-DFc.ccp4"
     dif = static_url + "/fragmax/results/"+"_".join(data.split("_")[:2])+"/"+data.split("_")[2]+"/"+data.split("_")[3]+"/final_2mFo-DFc.ccp4"
- 
+
     ligcenter="[]"
     rhocenter="[]"
     if os.path.exists(ligfit):
@@ -731,7 +612,7 @@ def compare_poses(request):
                 if line.startswith("HETATM"):
                     ligcenter="["+",".join(line[32:54].split())+"]"
                     break
-    if os.path.exists(rhofit):                    
+    if os.path.exists(rhofit):
         with open(rhofit,"r") as rhofitfile:
             for line in rhofitfile.readlines():
                 if line.startswith("HETATM"):
@@ -742,10 +623,10 @@ def compare_poses(request):
     ligfit=ligfit.replace("/data/visitors/","/static/")
     return render(request,'fragview/dual_density.html', {
         'ligfit_dataset': data,
-        'blob': blob, 
-        'png':ligpng, 
+        'blob': blob,
+        'png':ligpng,
         "rhofitcenter":rhocenter,
-        "ligandfitcenter":ligcenter, 
+        "ligandfitcenter":ligcenter,
         "ligand": proj.library + "_" + lig,
         "pdb":pdb,
         "dif":dif,
@@ -761,7 +642,7 @@ def pipedream(request):
 
     datasetPathList=glob.glob(proj.data_path() + "/raw/" + proj.protein + "/*/*master.h5")
     datasetPathList=natsort.natsorted(datasetPathList)
-    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i] 
+    datasetNameList= [i.split("/")[-1].replace("_master.h5","") for i in datasetPathList if "ref-" not in i]
     datasetList=zip(datasetPathList,datasetNameList)
     return render(request, "fragview/pipedream.html",{"data":datasetList})
 
@@ -834,24 +715,15 @@ def submit_pipedream(request):
         # refuse to run if the directory already exists
         if os.path.exists(ppdoutdir):
             shutil.rmtree(ppdoutdir)
-        #     try:
-        #         int(ppdoutdir[-1])
-        #     except ValueError:
-        #         run="1"
-        #     else:
-        #         run=str(int(ppdoutdir[-1])+1)
-            
-
-        #     ppdoutdir=ppdoutdir+"_run"+run
 
         userPDBpath = get_user_pdb_path()
 
-        #STARANISO setting    
+        #STARANISO setting
         if "true" in ap_staraniso:
             useANISO=" -useaniso"
         else:
             useANISO=""
-        
+
         #BUSTER refinement mode
         if "thorough" in b_refinemode:
             refineMode=" -thorough"
@@ -875,13 +747,13 @@ def submit_pipedream(request):
         #Rhofit ligand
         if "true" in rho_ligandfromname:
             ligand = input_data.split("/")[8].split("-")[-1]
-                            
+
         elif "false" in rho_ligandfromname:
             if len(rho_ligandcode)>15:
                 ligand=rho_ligandcode.replace("rho_ligandcode:","")
             elif len(rho_ligandsmiles)>17:
                 ligand=rho_ligandsmiles.replace("rho_ligandsmiles:","")
-        
+
         rhofitINPUT = f" -rhofit {project_ligand_cif(proj, ligand)}"
 
         #Keep Hydrogen RhoFit
@@ -893,7 +765,7 @@ def submit_pipedream(request):
         clusterSearch=""
         ncluster="1"
         if len(rho_allclusters)>16:
-            if "true" in rho_allclusters.split(":")[-1].lower(): 
+            if "true" in rho_allclusters.split(":")[-1].lower():
                 clusterSearch=" -allclusters"
             else:
                 ncluster=rho_xclusters.split(":")[-1]
@@ -922,15 +794,15 @@ def submit_pipedream(request):
             postrefineMode=" -postquick"
         else:
             postrefineMode=" "
-        
+
         scanChirals=""
         if "false" in rho_scanchirals:
             scanChirals=" -nochirals"
-        
+
         occRef=""
         if "false" in rho_occuprefine:
             occRef=" -nooccref"
-        
+
         singlePipedreamOut=""
         singlePipedreamOut+= """#!/bin/bash\n"""
         singlePipedreamOut+= """#!/bin/bash\n"""
@@ -944,10 +816,10 @@ def submit_pipedream(request):
         singlePipedreamOut+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_"""+ligand+"""_%j_err.txt\n"""
         singlePipedreamOut+= """module purge\n"""
         singlePipedreamOut+= """module load autoPROC BUSTER\n\n"""
-        
+
         chdir="cd "+"/".join(ppdoutdir.split("/")[:-1])
         ppd="pipedream -h5 "+input_data+" -d "+ppdoutdir+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+keepH+clusterSearch+fitrefineMode+postrefineMode+scanChirals+occRef+" -nofreeref -nthreads -1 -v"
-        
+
         singlePipedreamOut+=chdir+"\n"
         singlePipedreamOut+=ppd
 
@@ -972,7 +844,7 @@ def submit_pipedream(request):
             useANISO=" -useaniso"
         else:
             useANISO=""
-        
+
         #BUSTER refinement mode
         if "thorough" in b_refinemode:
             refineMode=" -thorough"
@@ -994,11 +866,11 @@ def submit_pipedream(request):
             pdbREDO+=" -runpepflip"
 
         #Rhofit ligand
-        
-        
+
+
         lib=rho_ligandcode.replace("rho_ligandcode:","")
-                
-        
+
+
         #Keep Hydrogen RhoFit
         keepH=""
         if "true" in rho_keepH:
@@ -1007,7 +879,7 @@ def submit_pipedream(request):
         #Cluster to search for ligands
         clusterSearch=""
         if len(rho_allclusters)>16:
-            if "true" in rho_allclusters.split(":")[-1].lower(): 
+            if "true" in rho_allclusters.split(":")[-1].lower():
                 clusterSearch=" -allclusters"
             else:
                 ncluster=rho_xclusters.split(":")[-1]
@@ -1036,15 +908,15 @@ def submit_pipedream(request):
             postrefineMode=" -postquick"
         else:
             postrefineMode=" "
-        
+
         scanChirals=""
         if "false" in rho_scanchirals:
             scanChirals=" -nochirals"
-        
+
         occRef=""
         if "false" in rho_occuprefine:
             occRef=" -nooccref"
-        
+
         header=""
         header+= """#!/bin/bash\n"""
         header+= """#!/bin/bash\n"""
@@ -1053,14 +925,14 @@ def submit_pipedream(request):
         header+= """#SBATCH --exclusive\n"""
         header+= """#SBATCH -N1\n"""
         header+= """#SBATCH --cpus-per-task=40\n"""
-        #header+= """#SBATCH --mem=220000\n""" 
+        #header+= """#SBATCH --mem=220000\n"""
         header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
         header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""
         header+= """module purge\n"""
         header+= """module load autoPROC BUSTER\n\n"""
         scriptList=list()
 
-        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):            
+        for ppddata,ppdout in zip(ppddatasetList,ppdoutdirList):
             chdir="cd "+"/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
                 ligand = ppddata.split("/")[8].split("-")[-1]
@@ -1069,11 +941,11 @@ def submit_pipedream(request):
             if "apo" in ppddata.lower():
                 rhofitINPUT=""
             ppd="pipedream -h5 "+ppddata+" -d "+ppdout+" -xyzin "+userPDBpath+rhofitINPUT+useANISO+refineMode+pdbREDO+" -nofreeref -nthreads -1 -v"
-        
+
             allPipedreamOut=chdir+"\n"
             allPipedreamOut+=chdir.replace("cd ","rm -rf ")+"/pipedream/"+"\n"
             allPipedreamOut+=ppd+"\n\n"
-            
+
             scriptList.append(allPipedreamOut)
         chunkScripts=[header+"".join(x) for x in list(scrsplit(scriptList,nodes) )]
 
@@ -1139,7 +1011,7 @@ def load_pipedream_density(request):
     with open(os.path.join(project_process_protein_dir(proj), "pipedream.csv"), "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
-    
+
     for n,line in enumerate(lines):
         if line[0]==sample:
             ligand      =line[2]
@@ -1188,8 +1060,8 @@ def load_pipedream_density(request):
             rhofitscore="-"
             center="[0,0,0]"
             cE="false"
-            
-            
+
+
     if os.path.exists(mtz):
         if not os.path.exists(dif):
             cmd="cd "+files[-1]+";"
@@ -1197,10 +1069,10 @@ def load_pipedream_density(request):
             subprocess.call(cmd,shell=True)
 
         #name,pdb,nat,dif,frag,center=a.split(";")
-    
-                    
-       
-        
+
+
+
+
         return render(request,'fragview/pipedream_density.html', {
             "name":sample.replace("/data/visitors/","/static/"),
             "pdb":pdb.replace("/data/visitors/","/static/"),
@@ -1223,7 +1095,7 @@ def load_pipedream_density(request):
             # "frag":frag,
             # "prevst":prevst,
             # "nextst":nextst,
-            
+
         })
 
 ################ PANDDA #####################
@@ -1231,19 +1103,19 @@ def load_pipedream_density(request):
 def pandda_density(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
-    panddaInput=str(request.GET.get('structure'))     
-    
+    panddaInput=str(request.GET.get('structure'))
+
     if len(panddaInput.split(";"))==5:
         method,dataset,event,site,nav=panddaInput.split(";")
     if len(panddaInput.split(";"))==3:
         method,dataset,nav=panddaInput.split(";")
-    
+
     mdl=[x.split("/")[-3] for x in sorted(glob.glob(path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/*/modelled_structures/*model.pdb'))]
     if len(mdl)!=0:
         indices = [i for i, s in enumerate(mdl) if dataset in s][0]
-        
-        if "prev" in nav:  
-                
+
+        if "prev" in nav:
+
             try:
                 dataset=mdl[indices-1]
             except IndexError:
@@ -1260,7 +1132,7 @@ def pandda_density(request):
         ligand=dataset.split("-")[-1].split("_")[0]
         modelledDir=path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+'/modelled_structures/'
         pdb=sorted(glob.glob(modelledDir+"*fitted*"))[-1]
-        
+
         center="[0,0,0]"
         rwork=""
         rfree=""
@@ -1274,7 +1146,7 @@ def pandda_density(request):
                 k=i.split(",")
                 break
         headers=inspect_events[0].split(",")
-        bdc=k[2]    
+        bdc=k[2]
         center="["+k[12]+","+k[13]+","+k[14]+"]"
         resolution=k[18]
         rfree=k[20]
@@ -1284,17 +1156,17 @@ def pandda_density(request):
         interesting=k[headers.index("Interesting")]
         ligplaced=k[headers.index("Ligand Placed")]
         ligconfid=k[headers.index("Ligand Confidence")]
-        comment=k[headers.index("Comment")]     
+        comment=k[headers.index("Comment")]
 
         if len(panddaInput.split(";"))==3:
             event=k[1]
             site=k[11]
-            
+
         if "true" in ligplaced.lower():
             ligplaced="lig_radio"
         else:
             ligplaced="nolig_radio"
-        
+
         if "true" in interesting.lower():
             interesting="interesting_radio"
         else:
@@ -1306,7 +1178,7 @@ def pandda_density(request):
             ligconfid="medium_conf_radio"
         else:
             ligconfid="low_conf_radio"
-        
+
 
         pdb=pdb.replace("/data/visitors/","")
         map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+'/'+dataset+'-z_map.native.ccp4'
@@ -1345,14 +1217,14 @@ def pandda_density(request):
 def pandda_densityC(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
 
-    panddaInput=str(request.GET.get('structure'))     
-    
-    
+    panddaInput=str(request.GET.get('structure'))
 
-    
+
+
+
     dataset,site_idx,event_idx,method,ddtag,run=panddaInput.split(";")
-    
-    
+
+
     map1='biomax/'+proposal+'/'+shift+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/'+dataset+ddtag+"_"+run+'-z_map.native.ccp4'
     map2=glob.glob(path+'/fragmax/results/pandda/'+acr+"/"+method+'/pandda/processed_datasets/'+dataset+ddtag+"_"+run+'/*BDC*ccp4')[0].replace("/data/visitors/","")
     summarypath=('biomax/'+proposal+'/'+shift+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/processed_datasets/"+dataset+ddtag+"_"+run+"/html/"+dataset+ddtag+"_"+run+".html")
@@ -1379,9 +1251,9 @@ def pandda_densityC(request):
             line=i.split(",")
             if dataset+ddtag+"_"+run == line[0] and event_idx==line[1] and site_idx==line[11]:
                 k=line
-            
+
     headers=inspect_events[0].split(",")
-    bdc=k[2]    
+    bdc=k[2]
     center="["+k[12]+","+k[13]+","+k[14]+"]"
     resolution=k[18]
     rfree=k[20]
@@ -1391,17 +1263,17 @@ def pandda_densityC(request):
     interesting=k[headers.index("Interesting")]
     ligplaced=k[headers.index("Ligand Placed")]
     ligconfid=k[headers.index("Ligand Confidence")]
-    comment=k[headers.index("Comment")]     
+    comment=k[headers.index("Comment")]
 
     if len(panddaInput.split(";"))==3:
         event=k[1]
         site=k[11]
-        
+
     if "true" in ligplaced.lower():
         ligplaced="lig_radio"
     else:
         ligplaced="nolig_radio"
-    
+
     if "true" in interesting.lower():
         interesting="interesting_radio"
     else:
@@ -1413,10 +1285,10 @@ def pandda_densityC(request):
         ligconfid="medium_conf_radio"
     else:
         ligconfid="low_conf_radio"
-        
-    
-    
-    with open(path+"/fragmax/process/"+acr+"/panddainspects.csv","r") as csvFile:        
+
+
+
+    with open(path+"/fragmax/process/"+acr+"/panddainspects.csv","r") as csvFile:
         reader = csv.reader(csvFile)
         lines = list(reader)
     lines=lines[1:]
@@ -1463,7 +1335,7 @@ def pandda_densityC(request):
     #else:
     #    return render(request,"fragview/error.html",{"issue":"No modelled structure for "+method+"_"+dataset+" was found."})
 
-def pandda_inspect(request):    
+def pandda_inspect(request):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     proc_methods=[x.split("/")[-5] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/html_summaries/*inspect.html")]
     if proc_methods==[]:
@@ -1497,7 +1369,7 @@ def pandda_inspect(request):
             filters.append("dimple"    )  if DP=="true" else ""
             filters.append("fspipeline")  if FS=="true" else ""
             filters.append("buster"    )  if BU=="true" else ""
-        else:    
+        else:
             flat_filters=set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
             xdsapp      =(1 if "xdsapp" in flat_filters else 0)
             autoproc    =(1 if "autoproc" in flat_filters else 0)
@@ -1508,8 +1380,8 @@ def pandda_inspect(request):
             dimple      =(1 if "dimple" in flat_filters else 0)
             fspipeline  =(1 if "fspipeline" in flat_filters else 0)
             buster      =(1 if "buster" in flat_filters else 0)
-            
-    else:    
+
+    else:
         flat_filters=set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
         xdsapp      =(1 if "xdsapp" in flat_filters else 0)
         autoproc    =(1 if "autoproc" in flat_filters else 0)
@@ -1520,14 +1392,14 @@ def pandda_inspect(request):
         dimple      =(1 if "dimple" in flat_filters else 0)
         fspipeline  =(1 if "fspipeline" in flat_filters else 0)
         buster      =(1 if "buster" in flat_filters else 0)
-       
 
 
-    
+
+
     method=request.GET.get("methods")
     if method is None or "panddaSelect" in method or ";" in method:
-        
-        
+
+
         if len(eventscsv)!=0:
             if method is not None and ";" in method:
                 filters=list()
@@ -1543,22 +1415,22 @@ def pandda_inspect(request):
                 filters.append("buster"    )  if BU=="true" else ""
             allEventDict, eventDict, low_conf, medium_conf, high_conf = panddaEvents(request, filters)
 
-                    
-            sitesL=list() 
+
+            sitesL=list()
             for k,v in eventDict.items():
-                sitesL+=[k1 for k1,v1 in v.items()]               
-                
+                sitesL+=[k1 for k1,v1 in v.items()]
+
 
             siteN=Counter(sitesL)
             ligEvents=sum(siteN.values())
             siteP=dict()
             for k,v in natsort.natsorted(siteN.items()):
                 siteP[k]=100*v/ligEvents
-                        
-                        
+
+
             totalEvents=high_conf+medium_conf+low_conf
             uniqueEvents=str(len(allEventDict.items()))
-            
+
             with open(path+"/fragmax/process/"+acr+"/panddainspects.csv","w") as csvFile:
                 writer = csv.writer(csvFile)
                 writer.writerow(["dataset","site_idx","event_idx","proc_method","ddtag","run","bdc"])
@@ -1600,9 +1472,9 @@ def pandda_inspect(request):
             html+='      <h1>Consensus of PANDDA Inspect Summaries '+"_".join(filters)+'</h1>\n'
             html+='      <h2>Summary of Inspection of Datasets</h2>\n'
             html+='      \n'
-            
+
             # Styles CSS
-            html+='<style>\n'   
+            html+='<style>\n'
             html+='    .container {\n'
             html+='        max-width: 100% !important;\n'
             html+='        margin: 0 50px 50px 150px !important;\n'
@@ -1610,10 +1482,10 @@ def pandda_inspect(request):
             html+='    }\n'
             html+='    .col-md-8 {\n'
             html+='    width: 100% !important;\n'
-            html+='    }\n'   
+            html+='    }\n'
             html+='    </style>\n'
-            
-            
+
+
             #Fitting process plot (necessary?)
             html+='      <div class="row">\n'
             html+='        <div class="col-xs-12">\n'
@@ -1633,15 +1505,15 @@ def pandda_inspect(request):
             html+='            </div>\n'
             html+='            </div>\n'
             html+='        </div>\n'
-            
-            
+
+
             #Site distribution plot
             html+='        <div class="col-xs-12">\n'
             html+='          <p>Identified Ligands by Site</p>\n'
             html+='          <div class="progress">\n'
             colour="progress-bar-info"
             for k,v1 in siteP.items():
-                
+
                 v=siteN[k]
                 html+='            <div class="progress-bar '+colour+'" style="width:'+str(siteP[k])+'%">\n'
                 html+='              <span class="sr-only">S'+k+': '+str(v)+' hits</span>\n'
@@ -1651,11 +1523,11 @@ def pandda_inspect(request):
                     colour="progress-bar-default"
                 else:
                     colour="progress-bar-info"
-            
-            
-            
+
+
+
             #Inspections facts
-            
+
             html+='            </div>\n'
             html+='        </div>\n'
             html+='        </div>\n'
@@ -1675,9 +1547,9 @@ def pandda_inspect(request):
             html+='      <div class="row">\n'
             html+='        </div>\n'
             html+='<hr>\n'
-            
-            
-            
+
+
+
             #Table header
             html+='<div class="table-responsive">\n'
             html+='<table id="main-table" class="table table-bordered table-striped" data-page-length="50">\n'
@@ -1700,18 +1572,18 @@ def pandda_inspect(request):
             html+='        <th class="text-nowrap"></th>\n'
             html+='        </tr>\n'
             html+='    </thead>\n'
-            
-            
-            
+
+
+
             #Table body
             html+='<tbody>\n'
-            
+
             for k,v in natsort.natsorted(eventDict.items()):
                 for k1,v1 in v.items():
                     #print(k,k1,v1[0][:-2])
                     detailsDict = datasetDetails(request, k, k1, v1[0][:-4])
                     #ds=method;dataset;event_id;site_id
-                    
+
                     dataset=k
                     site_idx=k1.split("_")[0]
                     event_idx=k1.split("_")[1]
@@ -1722,8 +1594,8 @@ def pandda_inspect(request):
                     ds=dataset+";"+site_idx+";"+event_idx+";"+proc_method+";"+ddtag+";"+run
                     #ds=v1[0][:-4]+";"+k+v1[0][-3:]+";"+detailsDict['event_idx']+";"+k1
                     #datasetDetails(dataset,site_idx,method)
-                    
-                    
+
+
                     if detailsDict['viewed']=="False\n" or detailsDict['ligplaced']=="False" or detailsDict['interesting']=="False":
                         html+='        <tr class=info>\n'
                     else:
@@ -1731,7 +1603,7 @@ def pandda_inspect(request):
                     html+='          <th class="text-nowrap" scope="row" style="text-align: center;"><form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+'" name="structure" size="1">Open</button></form></th>\n'
                     html+='          <th class="text-nowrap" scope="row">'+k+v1[0][-3:]+'</th>\n'
                     html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>'+v1[0][:-4]+'</td>\n'
-                                        
+
                     #if detailsDict['interesting']=="True":
                     #    html+='          <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>\n'
                     #else:
@@ -1741,7 +1613,7 @@ def pandda_inspect(request):
                     #    html+='          <td class="text-nowrap text-success"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> True</td>\n'
                     #else:
                     #    html+='          <td class="text-nowrap text-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> False</td>\n'
-                        
+
                     html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict['event_idx']+'</td>\n'
                     html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["site_idx"]+'</td>\n'
                     html+='          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '+detailsDict["bdc"]+'</td>\n'
@@ -1758,9 +1630,9 @@ def pandda_inspect(request):
             html+='\n'
             html+='</body>\n'
             html+='</html>\n'
-            
+
             return render(request,'fragview/pandda_inspect.html', {
-            'proc_methods':proc_methods, 
+            'proc_methods':proc_methods,
             'Report': html,
             'xdsapp':xdsapp,
             'autoproc':autoproc,
@@ -1782,16 +1654,16 @@ def pandda_inspect(request):
                 html=""
                 for n,line in enumerate(inspectfile):
                     if '<th class="text-nowrap" scope="row">' in line:
-                        
+
                         event= inspectfile[n+4].split("/span>")[-1].split("</td>")[0].replace(" ","")
                         site = inspectfile[n+5].split("/span>")[-1].split("</td>")[0].replace(" ","")
                         ds=method+";"+line.split('row">')[-1].split('</th')[0]+";"+event+";"+site
-                        
+
                         html+='<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank"><button class="btn" type="submit" value="'+ds+';stay" name="structure" size="1">Open</button></form>'
                         html+=line
                     else:
                         html+=line
-                
+
                 #a=a.replace('class="table-responsive"','').replace('id="main-table" class="table table-bordered table-striped"','id="resultsTable"')
                 html="".join(html)
                 html=html.replace('<th class="text-nowrap">Dataset</th>','<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
@@ -1850,7 +1722,7 @@ def submit_pandda(request):
         return render(request, "fragview/jobs_submitted.html",{"command":giantCMD})
     if "analyse" in panddaCMD:    
         function,proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
-        
+
         method=proc+"_"+ref
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -1870,10 +1742,10 @@ def submit_pandda(request):
             '''import multiprocessing \n'''
             '''path=sys.argv[1]\n'''
             '''method=sys.argv[2]\n'''
-            '''acr=sys.argv[3]\n''' 
+            '''acr=sys.argv[3]\n'''
             '''fraglib=sys.argv[4]\n'''
-            '''shiftList=sys.argv[5].split(",")\n'''  
-            '''proposal=path.split("/")[4]\n'''           
+            '''shiftList=sys.argv[5].split(",")\n'''
+            '''proposal=path.split("/")[4]\n'''
             '''def pandda_run(method):\n'''
             '''    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)\n'''
             '''    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16" \n'''
@@ -1895,11 +1767,11 @@ def submit_pandda(request):
             '''        for k,v in badDataset.items():\n'''
             '''            if len(v)>0:\n'''
             '''                if os.path.exists(v[0]):\n'''
-            '''                    shutil.rmtree(v[0])\n''' 
+            '''                    shutil.rmtree(v[0])\n'''
             '''                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):\n'''
             '''                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)\n'''
-            '''                pandda_run(method)\n'''    
-            '''pandda_run(method)\n'''        
+            '''                pandda_run(method)\n'''
+            '''pandda_run(method)\n'''
             '''os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')\n''')
 
         script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
@@ -1920,14 +1792,14 @@ def submit_pandda(request):
                 outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
                 outp.write('python ' + py_script +' ' + proj.data_path() + ' ' + method + ' '
                            + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
-        
+
         #script=path+"/fragmax/scripts/panddaRUN_"+method+".sh"
         #command ='echo "module purge | module load PReSTO | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         #subprocess.call(command,shell=True)
         t1 = threading.Thread(target=pandda_worker,args=(method,proj))
         t1.daemon = True
         t1.start()
-        
+
         return render(request,
                       "fragview/jobs_submitted.html",
                       {"command": panddaCMD})
@@ -1954,7 +1826,7 @@ def pandda_analyse(request):
                     newest=time
                     newestpath=last
                     newestmethod=methods
-    
+
     method=request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
@@ -1984,7 +1856,7 @@ def datasetDetails(request, dataset, site_idx, method):
     detailsDict=dict()
     with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/pandda_inspect_events.csv","r") as inp:
         a=inp.readlines()
-    
+
     for i in a:
         if dataset in i:
             if i.split(",")[11]+"_"+i.split(",")[1]==site_idx:
@@ -1992,7 +1864,7 @@ def datasetDetails(request, dataset, site_idx, method):
 
     headers=a[0].split(",")
     detailsDict['event_idx']=k[1]
-    detailsDict['bdc']=k[2]    
+    detailsDict['bdc']=k[2]
     detailsDict['site_idx']=k[11]
     detailsDict['center']="["+k[12]+","+k[13]+","+k[14]+"]"
     detailsDict['z_peak']=k[16]
@@ -2006,13 +1878,13 @@ def datasetDetails(request, dataset, site_idx, method):
     detailsDict['interesting']=k[headers.index("Interesting")]
     detailsDict['ligplaced']=k[headers.index("Ligand Placed")]
     detailsDict['ligconfid']=k[headers.index("Ligand Confidence")]
-    detailsDict['comment']=k[headers.index("Comment")]     
-    detailsDict['viewed']=k[headers.index("Viewed\n")]  
+    detailsDict['comment']=k[headers.index("Comment")]
+    detailsDict['viewed']=k[headers.index("Viewed\n")]
     return detailsDict
 
 def panddaEvents(request, filters):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
-    
+
     eventscsv=[x for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/analyses/pandda_inspect_events.csv") ]
     if len(filters)!=0:
         eventscsv=[x for x in eventscsv if  any(xs in x for xs in filters)]
@@ -2030,9 +1902,9 @@ def panddaEvents(request, filters):
         a=[x.split(",") for x in a]
         headers=a[0]
         for line in a:
-            
+
             if line[headers.index("Ligand Placed")]=="True":
-                
+
                 dtag=line[0][:-3]
                 event_idx=line[1]
                 site_idx=line[11]
@@ -2044,12 +1916,12 @@ def panddaEvents(request, filters):
                     medium_conf+=1
                 if intersting=="Low":
                     low_conf+=1
-                    
+
                 if dtag not in eventDict:
-                    
+
                     eventDict[dtag]={site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}}
                     allEventDict[dtag]={site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}}
-                else: 
+                else:
 
                     if site_idx not in eventDict[dtag]:
                         eventDict[dtag].update({site_idx+"_"+event_idx:{method+"_"+line[0][-3:]:bdc}})
@@ -2072,7 +1944,7 @@ def fix_pandda_symlinks(request):
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",shell=True)
     subprocess.call("cd "+path+"/fragmax/results/pandda/"+acr+"""/ ; chmod -R 770 .""",shell=True)
     linksFolder=glob.glob(path+"/fragmax/results/pandda/"+acr+"/*/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
-    for dst in linksFolder:    
+    for dst in linksFolder:
         folder="/".join(dst.split("/")[:-1])+"/"
         pdbs=os.listdir(folder)
         src=folder+sorted([x for x in pdbs if "fitted" in x])[-1]
@@ -2090,7 +1962,7 @@ def pandda_giant(request):
         for score in available_scores:
             with open(score,"r") as readFile:
                 htmlcontent="".join(readFile.readlines())
-                
+
             htmlcontent=htmlcontent.replace('src="./residue_plots','src="/static/'+'/'.join(score.split('/')[3:-1])+'/residue_plots')
             scoreDict[score.split('/')[-3]]=htmlcontent
         return render(request,'fragview/pandda_giant.html', {'scores_plots': scoreDict})
@@ -2100,7 +1972,7 @@ def pandda_giant(request):
 def pandda_worker(method, proj):
     rn=str(randint(10000, 99999))
 
-    
+
     header= '''#!/bin/bash\n'''
     header+='''#!/bin/bash\n'''
     header+='''#SBATCH -t 00:15:00\n'''
@@ -2145,11 +2017,11 @@ def pandda_worker(method, proj):
         if optionList==[]:
             selectedDict[dataset]=""
         else:
-            prefered= sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s], reverse=True)    
-            if prefered ==[] and optionList!=[]:  
+            prefered= sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s], reverse=True)
+            if prefered ==[] and optionList!=[]:
                 prefered=sorted([s for s in optionList if "dials" in s or "xdsapp" in s or "autoproc" in s], reverse=True)
-                if prefered ==[]:                  
-                    sub = optionList[0]            
+                if prefered ==[]:
+                    sub = optionList[0]
                 elif prefered!=[]:
                     sub = prefered[0]
             elif prefered!=[]:
@@ -2163,7 +2035,7 @@ def pandda_worker(method, proj):
             script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
             with open(script, "w") as writeFile:
                 writeFile.write(header)
-                proc,ref= method.split("_")        
+                proc,ref= method.split("_")
                 frag=dataset.split("-")[-1].split("_")[0]
                 hklin=pdb.replace(".pdb",".mtz")
                 output_dir = os.path.join(proj.data_path(), "fragmax", "results",
@@ -2175,14 +2047,14 @@ def pandda_worker(method, proj):
 
                 cmd = """mtzdmp """ + hklin
                 output = subprocess.Popen( cmd, shell=True,stdout=subprocess.PIPE ).communicate()[0].decode("utf-8")
-                
+
                 for i in output.splitlines():
                     if "A )" in i:
                         resHigh=i.split()[-3]
                     if "free" in i.lower() and "flag" in i.lower():
                         freeRflag=i.split()[-1]
                     spl_l=i.split()
-                    if len(spl_l)>2: 
+                    if len(spl_l)>2:
                         if spl_l[-2]=="F" and spl_l[-1]=="FP":
                             flabel="FP"
                             sigflabel="SIGFP"
@@ -2193,13 +2065,13 @@ def pandda_worker(method, proj):
                             flabel="F-obs"
                             sigflabel="SIGF-obs"
                 cad_fill    = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout
-                uniqueify   = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout                
+                uniqueify   = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout
                 hklout_rfill= hklout.replace(".mtz","_rfill.mtz")
                 hklout_coef = hklout.replace(".mtz","_map_coeffs.mtz")
                 freerflag   = '''echo -e "COMPLETE FREE='''+freeRflag+''' \\nEND" | freerflag hklin '''+hklout+''' hklout '''+hklout_rfill
                 phenix_maps = "phenix.maps "+hklout_rfill+" "+hklout.replace(".mtz",".pdb")+"; mv "+hklout+" "+hklout.replace(".mtz","_original.mtz")+"; mv "+hklout.replace(".mtz","_map_coeffs.mtz")+" "+hklout
                 cad_copyflag='''echo -e "monitor BRIEF \\n labin file_number 1 ALL \\nlabin file_number 2 E1='''+flabel+''' E2='''+sigflabel+''' E3='''+freeRflag+''' \\nlabout file_number 2 E1='''+flabel+''' E2='''+sigflabel+''' E3='''+freeRflag+'''" | cad hklin1 '''+hklout_coef+''' hklin2 '''+hklout_rfill+''' hklout '''+hklout
-                
+
                 writeFile.write(cmdcp1+"\n")
                 writeFile.write(cad_fill+"\n")
                 writeFile.write(uniqueify+"\n")
@@ -2227,21 +2099,22 @@ def pandda_worker(method, proj):
 
     subprocess.call(cmd,shell=True)
     os.remove(script)
-    
+
+
 def giant_score(request, method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
-    
+
     header='''#!/bin/bash\n'''
     header+='''#!/bin/bash\n'''
     header+='''#SBATCH -t 00:05:00\n'''
     header+='''#SBATCH -J GiantScore\n'''
     header+='''#SBATCH --nice=25\n'''
-    header+='''#SBATCH --cpus-per-task=1\n'''    
-    header+='''#SBATCH --mem=2500\n'''        
+    header+='''#SBATCH --cpus-per-task=1\n'''
+    header+='''#SBATCH --mem=2500\n'''
     header+='''sleep 15000\n'''
     with open(path+"/fragmax/scripts/giant_holder.sh","w") as writeFile:
         writeFile.write(header)
-    
+
     script=path+"/fragmax/scripts/giant_holder.sh"
     cmd='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd,shell=True)
@@ -2253,7 +2126,7 @@ def giant_score(request, method):
     header+='''#SBATCH -t 02:00:00\n'''
     header+='''#SBATCH -J '''+jname+'''\n'''
     header+='''#SBATCH --nice=25\n'''
-    header+='''#SBATCH --cpus-per-task=2\n'''    
+    header+='''#SBATCH --cpus-per-task=2\n'''
     header+='''#SBATCH --mem=5000\n'''
     header+='''#SBATCH -o '''+path+'''/fragmax/logs/pandda_export_%j.out\n'''
     header+='''#SBATCH -e '''+path+'''/fragmax/logs/pandda_export_%j.err\n\n'''
@@ -2262,7 +2135,7 @@ def giant_score(request, method):
 
 
     panddaExport="pandda.export pandda_dir='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda' export_dir='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda-export'"
-    
+
 
     with open(path+"/fragmax/scripts/pandda-export.sh","w") as writeFile:
         writeFile.write(header)
@@ -2281,7 +2154,7 @@ def giant_score(request, method):
     header+='''#SBATCH -t 02:00:00\n'''
     header+='''#SBATCH -J '''+jname+'''\n'''
     header+='''#SBATCH --nice=25\n'''
-    header+='''#SBATCH --cpus-per-task=1\n'''    
+    header+='''#SBATCH --cpus-per-task=1\n'''
     header+='''#SBATCH --mem=2500\n'''
     header+='''#SBATCH -o '''+path+'''/fragmax/logs/pandda_giant_%j_out.txt\n'''
     header+='''#SBATCH -e '''+path+'''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
@@ -2294,17 +2167,17 @@ def giant_score(request, method):
     line+="\njid1=$(sbatch "+path+"/fragmax/scripts/pandda-export.sh)"
     line+="\njid1=`echo $jid1|cut -d ' ' -f4`"
     for _dir in _dirs:
-        dataset=_dir.split("/")[-1]    
+        dataset=_dir.split("/")[-1]
         src=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final_original.mtz"
         dst=path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda-export/"+dataset+"/"+dataset+"-pandda-input.mtz"
         cpcmd3="cp -f "+src+" "+dst
         if "Apo" not in _dir:
             try:
                 ens=glob.glob(_dir+"/*ensemble*.pdb")[0]
-                make_restraints="giant.make_restraints "+ens+" all=True resname=XXX"        
+                make_restraints="giant.make_restraints "+ens+" all=True resname=XXX"
                 inp_mtz=ens.replace("-ensemble-model.pdb","-pandda-input.mtz")
                 frag=_dir.split("/")[-1].split("-")[-1].split("_")[0]
-                quick_refine="giant.quick_refine "+ens+" "+inp_mtz+" "+frag+".cif multi-state-restraints.refmac.params resname=XXX"        
+                quick_refine="giant.quick_refine "+ens+" "+inp_mtz+" "+frag+".cif multi-state-restraints.refmac.params resname=XXX"
             except:
                 ens=""
                 make_restraints=""
@@ -2313,8 +2186,8 @@ def giant_score(request, method):
             writeFile.write(header)
             writeFile.write("\n"+"cd "+_dir)
             writeFile.write("\n"+cpcmd3)
-            writeFile.write("\n"+make_restraints)            
-            writeFile.write("\n"+quick_refine)        
+            writeFile.write("\n"+make_restraints)
+            writeFile.write("\n"+quick_refine)
         script=path+"/fragmax/scripts/giant_pandda_"+frag+".sh"
         line+="\nsbatch  --dependency=afterany:$jid1 "+path+"/fragmax/scripts/giant_pandda_"+frag+".sh"
         line+="\nsleep 0.1"
@@ -2327,7 +2200,7 @@ def giant_score(request, method):
     header+='''#SBATCH -t 02:00:00\n'''
     header+='''#SBATCH -J '''+jname+'''\n'''
     header+='''#SBATCH --nice=25\n'''
-    header+='''#SBATCH --cpus-per-task=2\n'''    
+    header+='''#SBATCH --cpus-per-task=2\n'''
     header+='''#SBATCH --mem=2000\n'''
     header+='''#SBATCH -o '''+path+'''/fragmax/logs/pandda_score_%j_out.txt\n'''
     header+='''#SBATCH -e '''+path+'''/fragmax/logs/pandda_score_%j_err.txt\nn'''
@@ -2339,7 +2212,7 @@ def giant_score(request, method):
         writeFile.write(header)
         scorecmd="""echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;"""+scoreModel+"""' | ssh -F ~/.ssh/ w-guslim-cc-0"""
         for _dir in _dirs:
-            dataset=_dir.split("/")[-1]    
+            dataset=_dir.split("/")[-1]
             src=path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+dataset+"/final_original.mtz"
             dst=path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda-export/"+dataset+"/"+dataset+"-pandda-input.mtz"
             cpcmd3="cp -f "+src+" "+dst
@@ -2355,7 +2228,7 @@ def giant_score(request, method):
 
 def procReport(request):
     method=""
-    report=str(request.GET.get('dataHeader')) 
+    report=str(request.GET.get('dataHeader'))
     if "fastdp" in report or "EDNA" in report:
         method="log"
         with open(report.replace("/static/","/data/visitors/"),"r") as readFile:
@@ -2413,12 +2286,12 @@ def ligfit_datasets(request):
     empty,rhofitSW,ligfitSW,ligandfile,fitprocess,scanchirals,customligfit,ligfromname,filters=userInput.split(";;")
     useRhoFit="False"
     useLigFit="False"
-    
+
     if "true" in rhofitSW:
         useRhoFit="True"
     if "true" in ligfitSW:
         useLigFit="True"
-  
+
     t1 = threading.Thread(target=autoLigandFit, args=(request, useLigFit, useRhoFit, proj.library, filters))
     t1.daemon = True
     t1.start()
@@ -2445,13 +2318,13 @@ def dataproc_datasets(request):
         rfSW.append("buster")     if ("true" in userinputs[14]) else False
         if rfSW==[]:
             rfSW=[""]
-            
-        lfSW=list()   
+
+        lfSW=list()
         lfSW.append("rhofit") if ("true" in userinputs[19]) else False
         lfSW.append("ligfit") if ("true" in userinputs[20]) else False
         if lfSW==[]:
             lfSW=[""]
-            
+
         PDBID=userinputs[18].split(":")[-1]
 
         spg=userinputs[5].split(":")[-1]
@@ -2510,27 +2383,27 @@ def dataproc_datasets(request):
             t = threading.Thread(target=run_dials, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
-            
+
         if useautproc=="true":
             t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
-          
+
         if usexdsxscale=="true":
             t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters))
             t.daemon = True
             t.start()
-            
+
         return render(request,'fragview/dataproc_datasets.html', {'allproc': "Jobs submitted using "+str(nodes)+" per method"})
 
-    
-    
+
+
     return render(request,'fragview/dataproc_datasets.html', {'allproc': ""})
 
 
 ########### HPC JOBS CONTROL #################
 def kill_HPC_job(request):
-    jobid_k=str(request.GET.get('jobid_kill'))     
+    jobid_k=str(request.GET.get('jobid_kill'))
 
     subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -2539,7 +2412,7 @@ def kill_HPC_job(request):
         ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
-    output=""   
+    output=""
 
 
     for i in out.decode("UTF-8").split("\n")[1:-1]:
@@ -2552,15 +2425,15 @@ def kill_HPC_job(request):
         except:
             prosw="Unkown"
         output+="<tr><td>"+"</td><td>".join(i.split())+"</td><td>"+prosw+"</td><td><a href='/static"+stdout_file+"'> job_"+i.split()[0]+"_out.txt</a></td><td><a href='/static"+stderr_file+"'>job_"+i.split()[0]+"""_err.txt</a></td><td>
-           
+
         <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
             <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
         </form>
 
         </tr>""".format(i.split()[0])
 
-    
-    
+
+
     return render(request,'fragview/hpcstatus_jobkilled.html', {'command': output, 'history': ""})
 
 
@@ -2598,7 +2471,7 @@ def hpcstatus(request):
                 stdOut=stdOut.replace("/data/visitors/","/static/")
             except:
                 stdErr,stdOut=["-","-"]
-                
+
             hpcList.append([jobid,partition,name,user,ST,TIME,NODE,NODEn,stdErr,stdOut])
 
     return render(request,
@@ -2609,7 +2482,7 @@ def hpcstatus(request):
 
 def retrieveParameters(xmlfile):
     #Dictionary with parameters for dataset info template page
-    
+
     with open(xmlfile,"r") as inp:
         a=inp.readlines()
 
@@ -2645,7 +2518,7 @@ def retrieveParameters(xmlfile):
     paramDict["snapshot3"]=a[45].split("</")[0].split(">")[1]
     paramDict["snapshot4"]=a[46].split("</")[0].split(">")[1]
     paramDict["ybeampos"]=format(float(a[47].split("</")[0].split(">")[1]),".2f")
-    
+
     return paramDict
 
 def datacollectionSummary(proj):
@@ -2660,18 +2533,18 @@ def datacollectionSummary(proj):
 
     if os.path.exists(data_collections_file):
         return
-    else:        
+    else:
         os.makedirs(data_collections_dir, mode=0o760, exist_ok=True)
         with open(data_collections_file, "w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(["imagePrefix","SampleName","dataCollectionPath","Acronym","dataCollectionNumber","numberOfImages","resolution","snapshot","ligsvg"])
-            
-            for xml in natsort.natsorted(lists, key=lambda x: ("Apo" in x, x)):    
+
+            for xml in natsort.natsorted(lists, key=lambda x: ("Apo" in x, x)):
                 outdirxml=xml.replace("/process/","/fragmax/process/").split("fastdp")[0].replace("xds_","")[:-3]
                 if not os.path.exists(outdirxml+".xml"):
                     if not os.path.exists("/".join(outdirxml.split("/")[:-1])):
                         os.makedirs("/".join(outdirxml.split("/")[:-1]))
-                    shutil.copyfile(xml,outdirxml+".xml")        
+                    shutil.copyfile(xml,outdirxml+".xml")
 
 
                 with open(xml,"r") as fd:
@@ -2688,7 +2561,7 @@ def datacollectionSummary(proj):
                 colPath    = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imageDirectory"]
 
                 if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                    ligsvg="/static/img/apo.png"                
+                    ligsvg="/static/img/apo.png"
                 else:
                     ligsvg = f"{project_static_url(proj)}/fragmax/process/fragment/" \
                              f"{proj.library}/{sample}/{sample}.svg"
@@ -2709,12 +2582,12 @@ def resultSummary(proj):
             with open(entry,"r") as inp:
                 pdb_file=inp.readlines()
             for line in pdb_file:
-                if "REMARK   3   FREE R VALUE                     :" in line:            
+                if "REMARK   3   FREE R VALUE                     :" in line:
                     r_free=line.split()[-1]
-                    r_free=str("{0:.2f}".format(float(r_free)))        
+                    r_free=str("{0:.2f}".format(float(r_free)))
                     #bonds=line.split()[10]
                     #angles=line.split()[13]
-                if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
+                if "REMARK   3   R VALUE            (WORKING SET) :" in line:
                     r_work=line.split()[-1]
                     r_work=str("{0:.2f}".format(float(r_work)))
                 if "REMARK   3   BOND LENGTHS REFINED ATOMS        (A):" in line:
@@ -2740,10 +2613,10 @@ def resultSummary(proj):
             with open(entry,"r") as inp:
                 dimple_log=inp.readlines()
             blist=[]
-            for n,line in enumerate(dimple_log):                
-                if line.startswith("blobs: "):                     
+            for n,line in enumerate(dimple_log):
+                if line.startswith("blobs: "):
                     blist=line.split(":")[-1].rstrip()
-                
+
             pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
             dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
             nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
@@ -2752,15 +2625,15 @@ def resultSummary(proj):
             with open(entry,"r") as inp:
                 pdb_file=inp.readlines()
             for line in pdb_file:
-                if "REMARK   3   R VALUE            (WORKING SET) :" in line:            
-                    r_work=line.split(" ")[-1]                
+                if "REMARK   3   R VALUE            (WORKING SET) :" in line:
+                    r_work=line.split(" ")[-1]
                     r_work=str("{0:.2f}".format(float(r_work)))
-                if "REMARK   3   FREE R VALUE                     :" in line:            
+                if "REMARK   3   FREE R VALUE                     :" in line:
                     r_free=line.split(" ")[-1]
                     r_free=str("{0:.2f}".format(float(r_free)))
                 if "REMARK   3   BOND LENGTHS                       (A) :" in line:
                     bonds=line.split()[-1]
-                if "REMARK   3   BOND ANGLES                  (DEGREES) :" in line:   
+                if "REMARK   3   BOND ANGLES                  (DEGREES) :" in line:
                     angles=line.split()[-1]
                 if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
                     resolution=line.split(":")[-1].replace(" ","").replace("\n","")
@@ -2776,9 +2649,9 @@ def resultSummary(proj):
                     b=str("{0:.2f}".format(float(b)))
                     c=str("{0:.2f}".format(float(c)))
                     spg="".join(line.split()[-4:])
-            if not os.path.exists(entry.replace("refine.pdb","final.pdb")):            
+            if not os.path.exists(entry.replace("refine.pdb","final.pdb")):
                 shutil.copyfile(entry, entry.replace("refine.pdb","final.pdb"))
-            if not os.path.exists(entry.replace("refine.pdb","final.mtz")):            
+            if not os.path.exists(entry.replace("refine.pdb","final.mtz")):
                 shutil.copyfile(entry.replace("refine.pdb","refine.mtz"), entry.replace("refine.pdb","final.mtz"))
             blist="[]"
             pdbout="/".join(entry.split("/")[3:-1])+"/final.pdb"
@@ -2791,7 +2664,7 @@ def resultSummary(proj):
                 with open(entry,"r") as inp:
                     pdb_file=inp.readlines()
                 for line in pdb_file:
-                    if "REMARK Final:" in line:            
+                    if "REMARK Final:" in line:
                         r_work=line.split()[4]
                         r_free=line.split()[7]
                         r_free=str("{0:.2f}".format(float(r_free)))
@@ -2813,7 +2686,7 @@ def resultSummary(proj):
                         c=str("{0:.2f}".format(float(c)))
                         spg="".join(line.split()[-4:])
 
-                with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:    
+                with open("/".join(entry.split("/")[:-1])+"/blobs.log","r") as inp:
                     readFile=inp.readlines()
                     blist=[]
                     for line in readFile:
@@ -2829,7 +2702,7 @@ def resultSummary(proj):
                 with open("/".join(entry.split("/")[:-1])+"/mtz2map.log","r") as inp:
                     readFile=inp.readlines()
                     for mline in readFile:
-                        if "_2mFo-DFc.ccp4" in mline:                            
+                        if "_2mFo-DFc.ccp4" in mline:
                             pdbout  ="/".join(entry.split("/")[3:-1])+"/final.pdb"
                             dif_map ="/".join(entry.split("/")[3:-1])+"/final_2mFo-DFc.ccp4"
                             nat_map ="/".join(entry.split("/")[3:-1])+"/final_mFo-DFc.ccp4"
@@ -2857,9 +2730,9 @@ def resultSummary(proj):
                     ligfitRUNPath=sorted(glob.glob(f"{res_dir}/ligfit/LigandFit*"))[-1]
 
                     if glob.glob(f"{res_dir}/ligfit/LigandFit*")!=[]:
-                        if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:                        
+                        if glob.glob(ligfitRUNPath+"/LigandFit*.log") !=[]:
                             if os.path.exists(ligfitRUNPath+"/LigandFit_summary.dat"):
-                                with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:                    
+                                with open(ligfitRUNPath+"/LigandFit_summary.dat","r") as inp:
                                     ligfitscore=inp.readlines()[6].split()[2]
 
                             ligfitlog=glob.glob(ligfitRUNPath+"/LigandFit*.log")[0]
@@ -2872,10 +2745,10 @@ def resultSummary(proj):
                     pass
 
         ligfit_dataset="_".join(usracr.split("_")[:-2])
-        
-        return [usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]        
-    
-    
+
+        return [usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,ligfit_dataset,pipeline,rhofitscore,ligfitscore,ligblob]
+
+
     xdsappLogs    = list()
     autoprocLogs  = list()
     dialsLogs     = list()
@@ -2921,41 +2794,41 @@ def resultSummary(proj):
         with open(log,"r") as readFile:
             logfile=readFile.readlines()
         for n,line in enumerate(logfile):
-            if "ISa" in line:           
-                isa=logfile[n+1].split()[-1]        
+            if "ISa" in line:
+                isa=logfile[n+1].split()[-1]
         isaDict[dataset].update({"autoproc":isa})
     for log in dialsLogs:
         dataset=log.split("/")[10]
         with open(log,"r") as readFile:
             logfile=readFile.readlines()
         for n,line in enumerate(logfile):
-            if "ISa" in line:            
-                isa=logfile[n+1].split()[-1]            
+            if "ISa" in line:
+                isa=logfile[n+1].split()[-1]
         isaDict[dataset].update({"dials":isa})
     for log in xdsxscaleLogs:
         dataset=log.split("/")[10]
         with open(log,"r") as readFile:
             logfile=readFile.readlines()
         for n,line in enumerate(logfile):
-            if "ISa" in line:             
-                if logfile[n+3].split()!=[]:                
-                    isa=logfile[n+3].split()[-2]            
+            if "ISa" in line:
+                if logfile[n+3].split()!=[]:
+                    isa=logfile[n+3].split()[-2]
         isaDict[dataset].update({"xdsxscale":isa})
     for log in fastdpLogs:
         dataset=log.split("/")[9][4:-2]
         with open(log,"r") as readFile:
             logfile=readFile.readlines()
         for n,line in enumerate(logfile):
-            if "ISa" in line:            
-                isa=logfile[n+1].split()[-1]            
+            if "ISa" in line:
+                isa=logfile[n+1].split()[-1]
         isaDict[dataset].update({"fastdp":isa})
     for log in EDNALogs:
         dataset=log.split("/")[9][4:-2]
         with open(log,"r") as readFile:
             logfile=readFile.readlines()
         for n,line in enumerate(logfile):
-            if "ISa" in line:             
-                if logfile[n+3].split()!=[]:                
+            if "ISa" in line:
+                if logfile[n+3].split()!=[]:
                     isa=logfile[n+3].split()[-2]
                     if isa=="b":
                         isa=""
@@ -2964,14 +2837,14 @@ def resultSummary(proj):
 
     with open(project_results_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","ISa","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])        
+        writer.writerow(["usracr","pdbout","dif_map","nat_map","spg","resolution","ISa","r_work","r_free","bonds","angles","a","b","c","alpha","beta","gamma","blist","dataset","pipeline","rhofitscore","ligfitscore","ligblob"])
         for entry in resultsList:
             row = ThreadWithReturnValue(target=info_func, args=(entry,isaDict,))
             row.start()
-            
+
             if row.join() is not None:
                 writer.writerow(row.join())
-    
+
     result_plots.generate(project_results_file(proj), project_process_protein_dir(proj))
 
 def run_xdsapp(proj, nodes, filters):
@@ -2988,7 +2861,7 @@ def run_xdsapp(proj, nodes, filters):
     header+= """#SBATCH --exclusive\n"""
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
-    #header+= """#SBATCH --mem=220000\n""" 
+    #header+= """#SBATCH --mem=220000\n"""
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
@@ -3019,7 +2892,7 @@ def run_xdsapp(proj, nodes, filters):
         script = project_script(proj, f"xdsapp_fragmax_part{num}.sh")
         with open(script, "w") as outfile:
             outfile.write(chunk)
-                
+
         command ='echo "module purge | module load CCP4 XDSAPP DIALS | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command,shell=True)
         print(f"running command '{command}'")
@@ -3029,7 +2902,7 @@ def run_autoproc(proj, nodes, filters):
         filters=filters.split(":")[-1]
 
     if filters=="ALL":
-        filters=""   
+        filters=""
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3038,7 +2911,7 @@ def run_autoproc(proj, nodes, filters):
     header+= """#SBATCH --exclusive\n"""
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
-    #header+= """#SBATCH --mem=220000\n""" 
+    #header+= """#SBATCH --mem=220000\n"""
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
@@ -3077,7 +2950,7 @@ def run_xdsxscale(proj, nodes, filters):
 
     if filters=="ALL":
         filters=""
-    
+
 
     header= """#!/bin/bash\n"""
     header+= """#!/bin/bash\n"""
@@ -3085,9 +2958,9 @@ def run_xdsxscale(proj, nodes, filters):
     header+= """#SBATCH -J xdsxscale\n"""
     header+= """#SBATCH --exclusive\n"""
     header+= """#SBATCH -N1\n"""
-    header+= """#SBATCH --cpus-per-task=40\n"""       
-    #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH --mem-per-cpu=2000\n""" 
+    header+= """#SBATCH --cpus-per-task=40\n"""
+    #header+= """#SBATCH --mem=220000\n"""
+    header+= """#SBATCH --mem-per-cpu=2000\n"""
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""
     header+= """module purge\n\n"""
@@ -3110,7 +2983,7 @@ def run_xdsxscale(proj, nodes, filters):
         os.makedirs(outdir,mode=0o760, exist_ok=True)
         os.makedirs(outdir+"/xdsxscale",mode=0o760, exist_ok=True)
 
-        
+
         script="cd "+outdir+"/xdsxscale \n"
         script+="xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
@@ -3142,8 +3015,8 @@ def run_dials(proj, nodes, filters):
     header+= """#SBATCH --exclusive\n"""
     header+= """#SBATCH -N1\n"""
     header+= """#SBATCH --cpus-per-task=40\n"""
-    #header+= """#SBATCH --mem=220000\n""" 
-    header+= """#SBATCH --mem-per-cpu=2000\n""" 
+    #header+= """#SBATCH --mem=220000\n"""
+    header+= """#SBATCH --mem-per-cpu=2000\n"""
 
     header+= """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header+= """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
@@ -3164,7 +3037,7 @@ def run_dials(proj, nodes, filters):
         os.makedirs(outdir,mode=0o760, exist_ok=True)
         os.makedirs(outdir+"/dials",mode=0o760, exist_ok=True)
 
-        
+
         script="cd "+outdir+"/dials \n"
         script+="xia2 goniometer.axes=0,1,0 pipeline=dials failover=true  nproc=40 image="+h5master+":1:"+nImg+" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
@@ -3264,11 +3137,11 @@ def process2results(request, spacegroup, filters, aimlessopt):
                 '''\n                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "'''
                 '''\n        if aimless=="true":'''
                 '''\n            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)'''%(path,acr,spacegroup,aimlessopt))
-                    
-                
 
 
-            
+
+
+
 
     proc2resOut=""
 
@@ -3280,9 +3153,9 @@ def process2results(request, spacegroup, filters, aimlessopt):
     proc2resOut+= """#SBATCH --exclusive\n"""
     proc2resOut+= """#SBATCH -N1\n"""
     proc2resOut+= """#SBATCH --cpus-per-task=48\n"""
-    proc2resOut+= """#SBATCH --mem=220000\n""" 
+    proc2resOut+= """#SBATCH --mem=220000\n"""
     proc2resOut+= """#SBATCH -o """+path+"""/fragmax/logs/process2results_%j_out.txt\n"""
-    proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j_err.txt\n"""    
+    proc2resOut+= """#SBATCH -e """+path+"""/fragmax/logs/process2results_%j_err.txt\n"""
     proc2resOut+= """module purge\n"""
     proc2resOut+= """module load CCP4 Phenix\n\n"""
 
@@ -3293,11 +3166,11 @@ def process2results(request, spacegroup, filters, aimlessopt):
     proc2resOut+="python "+path+"/fragmax/scripts/process2results.py "
     with open(path+"/fragmax/scripts/run_proc2res.sh","w") as outp:
         outp.write(proc2resOut)
-    
+
 def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt):
     #proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     proj = current_project(request)
-    customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]    
+    customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
     aimlessopt      = aimlessopt.split("aimlessopt:")[-1]
@@ -3327,10 +3200,10 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
                         '''\nif "dimple" in argsfit:'''
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum2 = commands.getstatusoutput(cmd)'''
-                        '''\nif "fspipeline" in argsfit:'''                                                                                             
+                        '''\nif "fspipeline" in argsfit:'''
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/fspipeline_master.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum3 = commands.getstatusoutput(cmd)'''
-                        '''\nif "buster" in argsfit:'''                        
+                        '''\nif "buster" in argsfit:'''
                         '''\n    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_master.sh" % (jobnum1,path)'''
                         '''\n    status,jobnum4 = commands.getstatusoutput(cmd)''')
     def fspipeline_hpc(PDB):
@@ -3347,14 +3220,14 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
         nodes=round(len(inputData)/48 + 0.499)
         node0=64-nodes
 
-        for n,i in enumerate(list(scrsplit(scriptList,nodes))):    
+        for n,i in enumerate(list(scrsplit(scriptList,nodes))):
             header='''#!/bin/bash\n'''
             header+='''#!/bin/bash\n'''
             header+='''#SBATCH -t 04:00:00\n'''
             header+='''#SBATCH -J FSpipeline\n'''
             #header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
             header+='''#SBATCH --nice=25\n'''
-            header+='''#SBATCH --cpus-per-task=2\n'''    
+            header+='''#SBATCH --cpus-per-task=2\n'''
             header+='''#SBATCH --mem=5000\n'''
             header+='''#SBATCH -o '''+proj.data_path()+'''/fragmax/logs/fsp_fragmax_%j_out.txt\n'''
             header+='''#SBATCH -e '''+proj.data_path()+'''/fragmax/logs/fsp_fragmax_%j_err.txt\n\n'''
@@ -3390,7 +3263,7 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
             if os.path.exists("/".join(srcmtz.split("/")[:-1])+"/buster"):
                 cmd+="rm -rf "+"/".join(srcmtz.split("/")[:-1])+"/buster\n\n"
             if not os.path.exists(dstmtz):
-                cmd+='echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+srcmtz+' hklout '+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log\n\n"   
+                cmd+='echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin '+srcmtz+' hklout '+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/truncate.log\n\n"
             cmd+="refine -L -p "+PDB+" -m "+dstmtz+" "+customrefbuster+" -TLS -nthreads 2 -d "+"/".join(srcmtz.split("/")[:-1])+"/buster \n"
             scriptList.append(cmd)
         for n,i in enumerate(list(scrsplit(scriptList,nodes))):
@@ -3422,11 +3295,11 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
 
     def dimple_hpc(PDB):
         #Creates HPC script to run dimple on all mtz files provided.
-        #PDB _file can be provided in the header of the python script and parse to all 
+        #PDB _file can be provided in the header of the python script and parse to all
         #pipelines (Dimple, pipedream, bessy)
 
 
-        ##This line will make dimple run on unscaled unmerged files. It seems that works 
+        ##This line will make dimple run on unscaled unmerged files. It seems that works
         ##better sometimes
 
         outDirs=list()
@@ -3441,15 +3314,15 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
         dimpleOut+= """#SBATCH --exclusive\n"""
         dimpleOut+= """#SBATCH -N1\n"""
         dimpleOut+= """#SBATCH --cpus-per-task=48\n"""
-        dimpleOut+= """#SBATCH --mem=220000\n""" 
+        dimpleOut+= """#SBATCH --mem=220000\n"""
         dimpleOut+= """#SBATCH -o """+proj.data_path()+"""/fragmax/logs/dimple_fragmax_%j_out.txt\n"""
-        dimpleOut+= """#SBATCH -e """+proj.data_path()+"""/fragmax/logs/dimple_fragmax_%j_err.txt\n"""    
+        dimpleOut+= """#SBATCH -e """+proj.data_path()+"""/fragmax/logs/dimple_fragmax_%j_err.txt\n"""
         dimpleOut+= """module purge\n"""
         dimpleOut+= """module load CCP4 Phenix \n\n"""
-        
+
         dimpleOut+="python "+proj.data_path()+"/fragmax/scripts/run_dimple.py"
         dimpleOut+="\n\n"
-        
+
         with open(proj.data_path()+"/fragmax/scripts/run_dimple.sh","w") as outp:
             outp.write(dimpleOut)
 
@@ -3484,9 +3357,9 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
                             '''    p = multiprocessing.Pool(48)\n'''
                             '''    p.map(fragmax_worker, inpdata)\n'''
                             '''if __name__ == "__main__":\n'''
-                            '''    mp_handler()\n'''%(proj.data_path(),proj.protein,PDB,filters,customrefdimple))    
-    
-    if userPDB!="":         
+                            '''    mp_handler()\n'''%(proj.data_path(),proj.protein,PDB,filters,customrefdimple))
+
+    if userPDB!="":
         if useFSP:
             fspipeline_hpc(userPDB)
             argsfit+="fspipeline"
@@ -3498,12 +3371,12 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
             argsfit+="buster"
     else:
         userPDB="-"
-    
+
     command ='echo "python '+proj.data_path()+'/fragmax/scripts/run_queueREF.py '+argsfit+' '+proj.data_path()+' '+proj.protein+' '+userPDB+' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call("rm "+proj.data_path()+"/fragmax/scripts/*.setvar.lis",shell=True)
     subprocess.call("rm "+proj.data_path()+"/fragmax/scripts/slurm*_out.txt",shell=True)
     subprocess.call(command,shell=True)
-    
+
 def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
     #proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
     proj = current_project(request)
@@ -3563,11 +3436,11 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
                 '''        p.map(fit_worker, inpdataR)\n'''
                 '''if __name__ == '__main__':\n'''
                 '''    mp_handler()\n''')
-                    
-    
 
 
-    
+
+
+
     script=proj.data_path()+"/fragmax/scripts/autoligand.sh"
     if "True" in useRhoFit:
         with open(proj.data_path()+"/fragmax/scripts/autoligand.sh","w") as writeFile:
@@ -3618,12 +3491,12 @@ def get_project_status(proj):
     for i in procList:
         dataset_run=i.split("/")[-2]
         statusDict[dataset_run]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
-        
+
     for result in resList:
         dts=result.split("/")[-2]
         if dts not in statusDict:
             statusDict[dts]={"autoproc":"none","dials":"none","EDNA":"none","fastdp":"none","xdsapp":"none","xdsxscale":"none","dimple":"none","fspipeline":"none","buster":"none","rhofit":"none","ligfit":"none"}
-    
+
         for j in glob.glob(result+"*"):
             if os.path.exists(j+"/dimple/final.pdb"):
                 statusDict[dts].update({"dimple":"full"})
@@ -3635,7 +3508,7 @@ def get_project_status(proj):
                 statusDict[dts].update({"ligfit":"full"})
             if glob.glob(j+"/*/rhofit/best.pdb")!=[]:
                 statusDict[dts].update({"rhofit":"full"})
-                
+
     for process in procList:
         dts=process.split("/")[-2]
         j=list()
@@ -3645,9 +3518,9 @@ def get_project_status(proj):
 
         if j!=[]:
             j=j[0]
-        if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:            
+        if glob.glob(j+"/autoproc/*staraniso*.mtz")+glob.glob(j+"/autoproc/*aimless*.mtz")!=[]:
             statusDict[dts].update({"autoproc":"full"})
-        if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:            
+        if glob.glob(j+"/dials/DataFiles/*mtz")!=[]:
             statusDict[dts].update({"dials":"full"})
         ej=list()
 
@@ -3663,20 +3536,20 @@ def get_project_status(proj):
 
         if fj!=[]:
             statusDict[dts].update({"fastdp":"full"})
-        if glob.glob(j+"/xdsapp/*mtz")!=[]:            
+        if glob.glob(j+"/xdsapp/*mtz")!=[]:
             statusDict[dts].update({"xdsapp":"full"})
-        if glob.glob(j+"/xdsxscale/DataFiles/*mtz")!=[]:            
-            statusDict[dts].update({"xdsxscale":"full"})    
+        if glob.glob(j+"/xdsxscale/DataFiles/*mtz")!=[]:
+            statusDict[dts].update({"xdsxscale":"full"})
 
     with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerow(["dataset","run","autoproc","dials","EDNA","fastdp","xdsapp","xdsxscale","dimple","fspipeline","buster","ligfit","rhofit"])    
-        for dataset_run,status in statusDict.items():    
+        writer.writerow(["dataset","run","autoproc","dials","EDNA","fastdp","xdsapp","xdsxscale","dimple","fspipeline","buster","ligfit","rhofit"])
+        for dataset_run,status in statusDict.items():
             writer.writerow([dataset_run]+list(status.values()))
 
 ###############################
 
-###############################        
+###############################
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
@@ -3731,5 +3604,5 @@ def sym2spg(sym):
             "216": "F -4 3 m ","217":" I -4 3 m ","218":" P -4 3 n ","219":"F -4 3 c" ,"220":"I -4 3 d",
             "221": "P m -3 m ","222":" P n -3 n ","223":" P m -3 n ","224":"P n -3 m" ,"225":"F m -3 m",
             "226": "F m -3 c ","227":" F d -3 m ","228":" F d -3 c ","229":"I m -3 m" ,"230":"I a -3 d"}
-    
+
     return spgDict[sym]
