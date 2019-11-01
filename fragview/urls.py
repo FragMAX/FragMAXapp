@@ -1,14 +1,16 @@
 from django.urls import path
 from fragview import views
 from fragview.views import projects
+from fragview.views import datasets
 
 
 urlpatterns = [
     path('', views.index, name='index'),
 
-    path('testpage/', views.testfunc, name='pandda_analyse'),
-    path('datasets/', views.datasets, name='datasets'),
-    path('datasets_notready/', views.datasets, name='datasets_notready'),
+    path('testpage/', views.testfunc, name='testpage'),
+
+    path('datasets/', datasets.show_all, name='datasets'),
+    path('dataset_info/', datasets.set_details, name='dataset_info'),
 
     path('results/', views.results, name='results'),
     path('results_notready/', views.results, name='results_notready'),
@@ -44,7 +46,7 @@ urlpatterns = [
     path('project/current/<int:id>/', projects.set_current),
     path('project_summary/', projects.project_summary, name='project_summary'),
 
-    path('dataset_info/', views.dataset_info, name='dataset_info'),
+
     path('data_analysis/', views.data_analysis, name='data_analysis'),
     path('pipedream/', views.pipedream, name='pipedream'),
     path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
