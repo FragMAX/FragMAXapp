@@ -1897,7 +1897,7 @@ def submit_pandda(request):
         with open(script, "w") as outp:
                 outp.write('#!/bin/bash\n')
                 outp.write('#!/bin/bash\n')
-                outp.write('#SBATCH -t 99:55:00\n')
+                outp.write('#SBATCH -t 08:00:00\n')
                 outp.write('#SBATCH -J PDD'+methodshort+'\n')
                 outp.write('#SBATCH --exclusive\n')
                 outp.write('#SBATCH -N1\n')
@@ -1906,8 +1906,8 @@ def submit_pandda(request):
                 outp.write('#SBATCH -o ' + log_prefix + 'out.txt\n')
                 outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
                 outp.write('module purge\n')
-                outp.write('module load PReSTO\n')
-                outp.write('\n')
+                outp.write('module load PyMOL\n')                
+                outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
                 outp.write('python ' + py_script +' ' + proj.data_path() + ' ' + method + ' '
                            + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
         
