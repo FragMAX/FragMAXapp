@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc
+from fragview.views import projects, datasets, hpc, results
 
 
 urlpatterns = [
@@ -11,8 +11,7 @@ urlpatterns = [
     path('datasets/', datasets.show_all, name='datasets'),
     path('dataset_info/', datasets.set_details, name='dataset_info'),
 
-    path('results/', views.results, name='results'),
-    path('results_notready/', views.results, name='results_notready'),
+    path('results/', results.show, name='results'),
 
     path('density/', views.results_density, name='density'),
     path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
