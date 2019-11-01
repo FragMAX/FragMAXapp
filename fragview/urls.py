@@ -1,7 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects
-from fragview.views import datasets
+from fragview.views import projects, datasets, hpc
 
 
 urlpatterns = [
@@ -54,8 +53,8 @@ urlpatterns = [
     path('pipedream_results_notready/', views.pipedream_results, name='pipedream_results'),
     path('submit_pipedream/', views.submit_pipedream, name='submit_pipedream'),
 
-    path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
-    path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
+    path('hpcstatus/', hpc.status, name='hpcstatus'),
+    path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
 
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
     path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
