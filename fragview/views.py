@@ -380,8 +380,8 @@ def datasets(request):
         get_project_status(proj)
 
     ##Proc status
-    if os.path.exists(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv"):
-        with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/allstatus.csv","r") as csvFile:
+    if os.path.exists(project_all_status_file(proj)):
+        with open(project_all_status_file(proj),"r") as csvFile:
             reader = csv.reader(csvFile)
             lines = list(reader)[1:]
         for i,j in zip(prf_list,run_list):
@@ -1907,7 +1907,6 @@ def submit_pandda(request):
                 outp.write('#SBATCH -o ' + log_prefix + 'out.txt\n')
                 outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
                 outp.write('module purge\n')
-                outp.write('module load PyMOL\n')                
                 outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
                 outp.write('python ' + py_script +' ' + proj.data_path() + ' ' + method + ' '
                            + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
@@ -2180,6 +2179,9 @@ def pandda_worker(method, proj):
                         if spl_l[-2]=="F" and spl_l[-1]=="F":
                             flabel="F"
                             sigflabel="SIGF"
+                        if spl_l[-2]=="F" and spl_l[-1]=="F-obs":
+                            flabel="F-obs"
+                            sigflabel="SIGF-obs"
                 cad_fill    = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 '''+resHigh+'''" | cad hklin1 '''+hklin+''' hklout '''+hklout
                 uniqueify   = '''uniqueify -f '''+freeRflag+''' '''+hklout+''' '''+hklout                
                 hklout_rfill= hklout.replace(".mtz","_rfill.mtz")
@@ -2213,6 +2215,7 @@ def pandda_worker(method, proj):
             " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
 
     subprocess.call(cmd,shell=True)
+    os.remove(script)
     
 def giant_score(request, method):
     proposal,shift,acr,proposal_type,path, subpath, static_datapath,fraglib,shiftList=project_definitions(request)
