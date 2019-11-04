@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc, results, density, misc, analysis
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda
 
 
 urlpatterns = [
@@ -16,19 +16,14 @@ urlpatterns = [
     path('density/', density.show, name='density'),
     path('dual_density/', density.compare_poses, name='dual_density'),
     path('pipedream_density/', density.show_pipedream, name='pipedream_density'),
-
     path('pandda_density/', density.pandda, name='pandda_density'),
     path('pandda_densityC/', density.pandda_consensus, name='pandda_densityC'),
-    path('pandda/', views.pandda, name='pandda'),
-    path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
 
-    path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
-    path('pandda_giant/', views.pandda_giant, name='pandda_giant'),
-
-    path('pandda_notready/', views.pandda, name='pandda_notready'),
-    path('pandda_running/', views.pandda, name='pandda_running'),
-
-    path('submit_pandda/', views.submit_pandda, name='submit_pandda'),
+    path('pandda/', pandda.processing_form, name='pandda'),
+    path('pandda_analyse/', pandda.analyse, name='pandda_analyse'),
+    path('pandda_inspect/', pandda.inspect, name='pandda_inspect'),
+    path('pandda_giant/', pandda.giant, name='pandda_giant'),
+    path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
 
     path('ugly/', misc.ugly, name='ugly'),
