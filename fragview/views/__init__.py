@@ -31,27 +31,6 @@ from random import randint
 ################################
 
 
-def data_analysis(request):
-    proj = current_project(request)
-
-    models = [
-        x.split("/")[-1].split(".pdb")[0]
-        for x in glob.glob(proj.data_path() + "/fragmax/models/*.pdb")
-    ]
-
-    datasets = sorted(
-        [
-            x.split("/")[-1].replace("_master.h5","")
-            for x in list(project_raw_master_h5_files(proj))    
-        ],
-        key=lambda x: ("Apo" in x, x))
-    list(project_raw_master_h5_files(proj))    
-
-    return render(request,
-                  "fragview/data_analysis.html",
-                  {"models": models, "datasets": datasets})
-
-
 def reciprocal_lattice(request):
     proj = current_project(request)
     dataset = str(request.GET.get('dataHeader'))

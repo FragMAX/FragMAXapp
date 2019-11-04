@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc, results, density, misc
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis
 
 
 urlpatterns = [
@@ -45,7 +45,7 @@ urlpatterns = [
     path('project_summary/', projects.project_summary, name='project_summary'),
 
 
-    path('data_analysis/', views.data_analysis, name='data_analysis'),
+    path('data_analysis/', analysis.processing_form, name='data_analysis'),
     path('pipedream/', views.pipedream, name='pipedream'),
     path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
 
