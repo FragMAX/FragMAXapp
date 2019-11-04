@@ -75,9 +75,10 @@ def data_analysis(request):
     datasets = sorted(
         [
             x.split("/")[-1].replace("_master.h5","")
-            for x in glob.glob(proj.data_path()+"/raw/"+proj.protein+"/*/*master.h5")
+            for x in list(project_raw_master_h5_files(proj))    
         ],
         key=lambda x: ("Apo" in x, x))
+    list(project_raw_master_h5_files(proj))    
 
     return render(request,
                   "fragview/data_analysis.html",
@@ -1848,6 +1849,8 @@ def submit_pandda(request):
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
         if os.path.exists(res_pandda):
+            if os.path.join(res_dir, "pandda_backup"):
+                shutil.rmtree(os.path.join(res_dir, "pandda_backup"))
             shutil.move(res_pandda, os.path.join(res_dir, "pandda_backup"))
 
         py_script = project_script(proj, "pandda_worker.py")
@@ -2209,6 +2212,7 @@ def pandda_worker(method, proj):
 
             cmd='echo "module purge | module load CCP4 | sbatch '+script+' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(cmd,shell=True)
+            os.remove(script)
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     cmd='echo "module purge | module load CCP4 | ' + "sbatch --dependency=singleton --job-name=PnD" + rn + \
@@ -3341,7 +3345,7 @@ def run_structure_solving(request, useDIMPLE, useFSP, useBUSTER, userPDB, spaceg
             header+='''#!/bin/bash\n'''
             header+='''#SBATCH -t 04:00:00\n'''
             header+='''#SBATCH -J FSpipeline\n'''
-            header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
+            #header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
             header+='''#SBATCH --nice=25\n'''
             header+='''#SBATCH --cpus-per-task=2\n'''    
             header+='''#SBATCH --mem=5000\n'''
@@ -3534,6 +3538,8 @@ def autoLigandFit(request, useLigFit,useRhoFit,fraglib,filters):
                 '''    inpdataP.append([a,b,c,d])\n'''
                 '''def fit_worker((cif, mtz, pdb, out)):\n'''
                 '''    if fitmethod=="rhofit":\n'''
+                '''        if os.path.exists(out):\n'''
+                '''            os.system("rm -rf "+out)\n'''
                 '''        command="rhofit -l %s -m %s -p %s -d %s" %(cif, mtz, pdb, out)\n'''
                 '''        subprocess.call(command, shell=True) \n'''
                 '''    if fitmethod=="ligfit":\n'''
