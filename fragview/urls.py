@@ -1,12 +1,12 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc, results, density
+from fragview.views import projects, datasets, hpc, results, density, misc
 
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', misc.index, name='index'),
 
-    path('testpage/', views.testfunc, name='testpage'),
+    path('testpage/', misc.testfunc, name='testpage'),
 
     path('datasets/', datasets.show_all, name='datasets'),
     path('dataset_info/', datasets.set_details, name='dataset_info'),
@@ -31,12 +31,12 @@ urlpatterns = [
     path('submit_pandda/', views.submit_pandda, name='submit_pandda'),
 
 
-    path('ugly/', views.ugly, name='ugly'),
+    path('ugly/', misc.ugly, name='ugly'),
     path('reciprocal_lattice/', views.reciprocal_lattice, name='reciprocal_lattice'),
     path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
 
     path('procReport/', views.procReport, name='procReport'),
-    path('results_download/', views.results_download, name='results_download'),
+    path('results_download/', misc.results_download, name='results_download'),
 
     path('projects/', projects.list),
     path('project/<int:id>/', projects.edit),

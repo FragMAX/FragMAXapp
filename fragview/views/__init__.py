@@ -30,15 +30,6 @@ from random import randint
 
 ################################
 
-def index(request):
-    return render(request, "fragview/index.html")
-
-def results_download(request):
-    return render(request, "fragview/results_download.html")
-
-def error_page(request):
-    return render(request, "fragview/error.html")
-
 
 def data_analysis(request):
     proj = current_project(request)
@@ -59,14 +50,6 @@ def data_analysis(request):
     return render(request,
                   "fragview/data_analysis.html",
                   {"models": models, "datasets": datasets})
-
-
-def testfunc(request):
-    return render(request, "fragview/testpage.html", {"files": "results"})
-
-
-def ugly(request):
-    return render(request,'fragview/ugly.html')
 
 
 def reciprocal_lattice(request):
