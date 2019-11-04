@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc, results
+from fragview.views import projects, datasets, hpc, results, density
 
 
 urlpatterns = [
@@ -13,11 +13,12 @@ urlpatterns = [
 
     path('results/', results.show, name='results'),
 
-    path('density/', views.results_density, name='density'),
-    path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
+    path('density/', density.show, name='density'),
+    path('dual_density/', density.compare_poses, name='dual_density'),
+    path('pipedream_density/', density.show_pipedream, name='pipedream_density'),
 
-    path('pandda_density/', views.pandda_density, name='pandda_density'),
-    path('pandda_densityC/', views.pandda_densityC, name='pandda_densityC'),
+    path('pandda_density/', density.pandda, name='pandda_density'),
+    path('pandda_densityC/', density.pandda_consensus, name='pandda_densityC'),
     path('pandda/', views.pandda, name='pandda'),
     path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
 
@@ -33,7 +34,6 @@ urlpatterns = [
     path('ugly/', views.ugly, name='ugly'),
     path('reciprocal_lattice/', views.reciprocal_lattice, name='reciprocal_lattice'),
     path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
-    path('dual_density/', views.compare_poses, name='dual_density'),
 
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', views.results_download, name='results_download'),
