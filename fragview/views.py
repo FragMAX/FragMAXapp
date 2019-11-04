@@ -557,7 +557,10 @@ def results_density(request):
             with open(rhofit,"r") as rhofitfile:
                 for line in rhofitfile.readlines():
                     if line.startswith("HETATM"):
-                        rhocenter="["+",".join(line[32:54].split())+"]"
+                        coords=line[32:54].split()
+                        coords=list(map(float,coords))
+                        coords=list(map(str,coords))
+                        rhocenter="["+",".join(coords)+"]"
                         break
         else:
             rhofit=""
@@ -568,7 +571,11 @@ def results_density(request):
             with open(ligfit,"r") as ligfitfile:
                 for line in ligfitfile.readlines():
                     if line.startswith("HETATM"):
-                        ligcenter="["+",".join(line[32:54].split())+"]"
+                        coords=line[32:54].split()
+                        coords=list(map(float,coords))
+                        coords=list(map(str,coords))
+                        ligcenter="["+",".join(coords)+"]"
+
                         break
         except:
             ligfit=""
