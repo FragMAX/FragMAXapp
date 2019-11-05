@@ -2,28 +2,19 @@ from django.shortcuts import render
 from fragview.projects import current_project, project_shift_dirs, project_static_url
 from fragview.projects import project_script, project_process_protein_dir, project_model_path
 from fragview.projects import project_raw_master_h5_files, project_ligand_cif, project_definitions, project_xml_files
-from difflib import SequenceMatcher
+
 
 import glob
 import os
-import random
 import natsort
-import shutil
 import pyfastcopy
+import shutil
 import csv
 import subprocess
-import itertools
 import time
 import threading
 import pypdb
-import ast
-import sys
 import xmltodict
-from subprocess import Popen, PIPE
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import pandas as pd
 
 
 ################ PIPEDREAM #####################
