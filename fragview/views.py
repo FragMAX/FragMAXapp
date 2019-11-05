@@ -1847,7 +1847,7 @@ def submit_pandda(request):
         t2 = threading.Thread(target=giant_score, args=(request, method))
         t2.daemon = True
         t2.start()
-        return render(request, "fragview/submit_pandda.html",{"command":giantCMD})
+        return render(request, "fragview/jobs_submitted.html",{"command":giantCMD})
     if "analyse" in panddaCMD:    
         function,proc,ref,complete,use_apo,use_dmso,use_cryo,use_CAD,ref_CAD,ign_errordts,keepup_last,ign_symlink=panddaCMD.split(";")
         
