@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview import views
-from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice
 
 
 urlpatterns = [
@@ -27,8 +27,7 @@ urlpatterns = [
 
 
     path('ugly/', misc.ugly, name='ugly'),
-    path('reciprocal_lattice/', views.reciprocal_lattice, name='reciprocal_lattice'),
-    path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
+    path('reciprocal_lattice/', lattice.reciprocal, name='reciprocal_lattice'),
 
     path('procReport/', views.procReport, name='procReport'),
     path('results_download/', misc.results_download, name='results_download'),
