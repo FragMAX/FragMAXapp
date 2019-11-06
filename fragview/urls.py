@@ -1,6 +1,7 @@
 from django.urls import path
 from fragview import views
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice
+from fragview.views import pipedream
 
 
 urlpatterns = [
@@ -38,13 +39,11 @@ urlpatterns = [
     path('project/current/<int:id>/', projects.set_current),
     path('project_summary/', projects.project_summary, name='project_summary'),
 
-
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
-    path('pipedream/', views.pipedream, name='pipedream'),
-    path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
 
-    path('pipedream_results_notready/', views.pipedream_results, name='pipedream_results'),
-    path('submit_pipedream/', views.submit_pipedream, name='submit_pipedream'),
+    path('pipedream/', pipedream.processing_form, name='pipedream'),
+    path('pipedream_results/', pipedream.results, name='pipedream_results'),
+    path('submit_pipedream/', pipedream.submit, name='submit_pipedream'),
 
     path('hpcstatus/', hpc.status, name='hpcstatus'),
     path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
