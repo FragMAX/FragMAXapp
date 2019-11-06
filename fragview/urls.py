@@ -1,7 +1,7 @@
 from django.urls import path
 from fragview import views
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice
-from fragview.views import pipedream
+from fragview.views import pipedream, refine
 
 
 urlpatterns = [
@@ -49,6 +49,6 @@ urlpatterns = [
     path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
 
     path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
-    path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
+    path('refine_datasets/', refine.datasets, name='refine_datasets'),
     path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
 ]
