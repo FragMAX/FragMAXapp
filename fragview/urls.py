@@ -30,7 +30,7 @@ urlpatterns = [
     path('ugly/', misc.ugly, name='ugly'),
     path('reciprocal_lattice/', lattice.reciprocal, name='reciprocal_lattice'),
 
-    path('procReport/', views.procReport, name='procReport'),
+    path('procReport/', datasets.proc_report, name='procReport'),
     path('results_download/', misc.results_download, name='results_download'),
 
     path('projects/', projects.list),

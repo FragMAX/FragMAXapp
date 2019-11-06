@@ -17,16 +17,6 @@ import xmltodict
 
 #############################################
 
-def procReport(request):
-    method=""
-    report=str(request.GET.get('dataHeader'))
-    if "fastdp" in report or "EDNA" in report:
-        method="log"
-        with open(report.replace("/static/","/data/visitors/"),"r") as readFile:
-            report=readFile.readlines()
-        report="<br>".join(report)
-    return render(request,'fragview/procReport.html', {'reportHTML': report, "method":method})
-
 def refine_datasets(request):
     userInput=str(request.GET.get("submitrfProc"))
     empty,dimpleSW,fspSW,busterSW,refinemode,mrthreshold,refinerescutoff,userPDB,refspacegroup,filters,customrefdimple,customrefbuster,customreffspipe,aimlessopt=userInput.split(";;")

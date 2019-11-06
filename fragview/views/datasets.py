@@ -571,3 +571,15 @@ def get_project_status(proj):
                          "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
+
+
+def proc_report(request):
+    method = ""
+    report = str(request.GET.get('dataHeader'))
+    if "fastdp" in report or "EDNA" in report:
+        method = "log"
+        with open(report.replace("/static/", "/data/visitors/"), "r") as readFile:
+            report = readFile.readlines()
+        report = "<br>".join(report)
+
+    return render(request, "fragview/procReport.html", {"reportHTML": report, "method": method})
