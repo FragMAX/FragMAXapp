@@ -665,7 +665,7 @@ shiftList=sys.argv[5].split(",")
 proposal=path.split("/")[4]
 def pandda_run(method):
     os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)
-    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16"
+    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])+"' cpus=16"
     subprocess.call(command, shell=True)
     if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:
         lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]
