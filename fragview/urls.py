@@ -1,61 +1,53 @@
 from django.urls import path
-from . import views
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice
+from fragview.views import pipedream, refine, process, ligfit
 
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', misc.index, name='index'),
 
-    path('testpage/', views.testfunc, name='pandda_analyse'),
-    path('datasets/', views.datasets, name='datasets'),
-    path('datasets_notready/', views.datasets, name='datasets_notready'),
+    path('testpage/', misc.testfunc, name='testpage'),
 
-    path('results/', views.results, name='results'),
-    path('results_notready/', views.results, name='results_notready'),
+    path('datasets/', datasets.show_all, name='datasets'),
+    path('dataset_info/', datasets.set_details, name='dataset_info'),
 
-    path('density/', views.results_density, name='density'),
-    path('pipedream_density/', views.load_pipedream_density, name='pipedream_density'),
+    path('results/', results.show, name='results'),
 
-    path('pandda_density/', views.pandda_density, name='pandda_density'),
-    path('pandda_densityC/', views.pandda_densityC, name='pandda_densityC'),
-    path('pandda/', views.pandda, name='pandda'),
-    path('pandda_analyse/', views.pandda_analyse, name='pandda_analyse'),
+    path('density/', density.show, name='density'),
+    path('dual_density/', density.compare_poses, name='dual_density'),
+    path('pipedream_density/', density.show_pipedream, name='pipedream_density'),
+    path('pandda_density/', density.pandda, name='pandda_density'),
+    path('pandda_densityC/', density.pandda_consensus, name='pandda_densityC'),
 
-    path('pandda_inspect/', views.pandda_inspect, name='pandda_inspect'),
-    path('pandda_giant/', views.pandda_giant, name='pandda_giant'),
-
-    path('pandda_notready/', views.pandda, name='pandda_notready'),
-    path('pandda_running/', views.pandda, name='pandda_running'),
-
-    path('submit_pandda/', views.submit_pandda, name='submit_pandda'),
+    path('pandda/', pandda.processing_form, name='pandda'),
+    path('pandda_analyse/', pandda.analyse, name='pandda_analyse'),
+    path('pandda_inspect/', pandda.inspect, name='pandda_inspect'),
+    path('pandda_giant/', pandda.giant, name='pandda_giant'),
+    path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
 
-    path('ugly/', views.ugly, name='ugly'),
-    path('reciprocal_lattice/', views.reciprocal_lattice, name='reciprocal_lattice'),
-    path('dual_ligand_notready/', views.reciprocal_lattice, name='dual_ligand_notready'),
-    path('dual_density/', views.compare_poses, name='dual_density'),
+    path('ugly/', misc.ugly, name='ugly'),
+    path('reciprocal_lattice/', lattice.reciprocal, name='reciprocal_lattice'),
 
-    path('procReport/', views.procReport, name='procReport'),
-    path('results_download/', views.results_download, name='results_download'),
+    path('procReport/', datasets.proc_report, name='procReport'),
+    path('results_download/', misc.results_download, name='results_download'),
 
-    path('projects/', views.projects),
-    path('project/<int:id>/', views.project),
-    path('project/new', views.project_new, name='new_project'),
-    path('project/current/<int:id>/', views.project_set_current),
+    path('projects/', projects.list),
+    path('project/<int:id>/', projects.edit),
+    path('project/new', projects.new, name='new_project'),
+    path('project/current/<int:id>/', projects.set_current),
+    path('project_summary/', projects.project_summary, name='project_summary'),
 
-    path('project_summary/', views.project_summary, name='project_summary'),
+    path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
-    path('dataset_info/', views.dataset_info, name='dataset_info'),
-    path('data_analysis/', views.data_analysis, name='data_analysis'),
-    path('pipedream/', views.pipedream, name='pipedream'),
-    path('pipedream_results/', views.pipedream_results, name='pipedream_results'),
+    path('pipedream/', pipedream.processing_form, name='pipedream'),
+    path('pipedream_results/', pipedream.results, name='pipedream_results'),
+    path('submit_pipedream/', pipedream.submit, name='submit_pipedream'),
 
-    path('pipedream_results_notready/', views.pipedream_results, name='pipedream_results'),
-    path('submit_pipedream/', views.submit_pipedream, name='submit_pipedream'),
+    path('hpcstatus/', hpc.status, name='hpcstatus'),
+    path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
 
-    path('hpcstatus/', views.hpcstatus, name='hpcstatus'),
-    path('hpcstatus_jobkilled/', views.kill_HPC_job, name='hpcstatus_jobkilled'),
-
-    path('dataproc_datasets/', views.dataproc_datasets, name='dataproc_datasets'),
-    path('refine_datasets/', views.refine_datasets, name='refine_datasets'),
-    path('ligfit_datasets/', views.ligfit_datasets, name='ligfit_datasets'),
+    path('dataproc_datasets/', process.datasets, name='dataproc_datasets'),
+    path('refine_datasets/', refine.datasets, name='refine_datasets'),
+    path('ligfit_datasets/', ligfit.datasets, name='ligfit_datasets'),
 ]
