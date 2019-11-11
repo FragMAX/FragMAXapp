@@ -357,8 +357,7 @@ def sym2spg(sym):
 
 
 def pandda(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+    proj = current_project(request)
 
     panddaInput = str(request.GET.get('structure'))
 
@@ -367,9 +366,11 @@ def pandda(request):
     if len(panddaInput.split(";")) == 3:
         method, dataset, nav = panddaInput.split(";")
 
-    mdl = [x.split("/")[-3] for x in sorted(glob(
-        path + "/fragmax/results/pandda/" + acr + "/" + method +
-        "/pandda/processed_datasets/*/modelled_structures/*model.pdb"))]
+    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    datasets_dir = path.join(pandda_res_dir, "processed_datasets")
+
+    mdl = [x.split("/")[-3] for x in sorted(glob(f"{datasets_dir}/*/modelled_structures/*model.pdb"))]
+
     if len(mdl) != 0:
         indices = [i for i, s in enumerate(mdl) if dataset in s][0]
 
@@ -387,14 +388,14 @@ def pandda(request):
                 dataset = mdl[0]
 
         ligand = dataset.split("-")[-1].split("_")[0]
-        modelledDir = \
-            path + '/fragmax/results/pandda/' + acr + "/" + method + '/pandda/processed_datasets/' + \
-            dataset + '/modelled_structures/'
-        pdb = sorted(glob(modelledDir + "*fitted*"))[-1]
 
-        with open(path + "/fragmax/results/pandda/" + acr + "/" + method +
-                  "/pandda/analyses/pandda_inspect_events.csv", "r") as inp:
+        modelledDir = path.join(datasets_dir, dataset, "modelled_structures")
+
+        pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
+
+        with open(path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r") as inp:
             inspect_events = inp.readlines()
+
         for i in inspect_events:
             if dataset in i:
                 k = i.split(",")
@@ -434,18 +435,15 @@ def pandda(request):
             ligconfid = "low_conf_radio"
 
         pdb = pdb.replace("/data/visitors/", "")
+
         map1 = \
-            'biomax/' + proposal + '/' + shift + '/fragmax/results/pandda/' + acr + "/" + method + \
-            '/pandda/processed_datasets/' + dataset + '/' + dataset + '-z_map.native.ccp4'
+            "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
+            "/pandda/processed_datasets/" + dataset + "/" + dataset + "-z_map.native.ccp4"
 
-        map2 = glob(
-            '/data/visitors/biomax/' + proposal + '/' + shift + '/fragmax/results/pandda/' + acr + "/" + method +
-            '/pandda/processed_datasets/' + dataset + '/*BDC*ccp4')[
-            0].replace("/data/visitors/", "")
+        map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0].replace("/data/visitors/", "")
 
-        summarypath = (
-            'biomax/' + proposal + '/' + shift + "/fragmax/results/pandda/" + acr + "/" + method +
-            "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html")
+        summarypath = "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + \
+            "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
 
         return render(
             request,
@@ -453,19 +451,15 @@ def pandda(request):
             {
                 "siten": site,
                 "event": event,
-                "dataset": dataset,
                 "method": method,
                 "rwork": rwork,
                 "rfree": rfree,
                 "resolution": resolution,
                 "spg": spg,
-                "shift": shift,
-                "proposal": proposal,
                 "dataset": dataset,
                 "pdb": pdb,
                 "2fofc": map2,
                 "fofc": map1,
-                "fraglib": fraglib,
                 "ligand": ligand,
                 "center": center,
                 "analysed": analysed,
