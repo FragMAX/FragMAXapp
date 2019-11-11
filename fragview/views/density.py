@@ -8,7 +8,7 @@ from glob import glob
 from django.shortcuts import render
 
 from fragview.projects import current_project, project_results_file, project_static_url, project_results_dir
-from fragview.projects import project_process_protein_dir, project_definitions
+from fragview.projects import project_process_protein_dir
 
 
 def show(request):
@@ -478,35 +478,35 @@ def pandda(request):
 
 
 def pandda_consensus(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+    proj = current_project(request)
 
     panddaInput = str(request.GET.get("structure"))
 
     dataset, site_idx, event_idx, method, ddtag, run = panddaInput.split(";")
 
     map1 = \
-        "biomax/" + proposal + "/" + shift + "/fragmax/results/pandda/" + acr + "/" + method + \
+        "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
         "/pandda/processed_datasets/" + dataset + ddtag + "_" + run + "/" + dataset + ddtag + \
         "_" + run + "-z_map.native.ccp4"
 
-    map2 = glob(
-        path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda/processed_datasets/"
-        + dataset + ddtag + "_" + run + "/*BDC*ccp4")[0].replace("/data/visitors/", "")
+    glob_pattern = \
+        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}/pandda/processed_datasets/" + \
+        f"{dataset}{ddtag}_{run}/*BDC*ccp4"
+    map2 = glob(glob_pattern)[0].replace("/data/visitors/", "")
 
-    summarypath = (
-        "biomax/" + proposal + "/" + shift + "/fragmax/results/pandda/" + acr + "/" + method +
-        "/pandda/processed_datasets/" + dataset + ddtag + "_" + run + "/html/" + dataset + ddtag + "_" + run + ".html")
+    summarypath = \
+        "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
+        "/pandda/processed_datasets/" + dataset + ddtag + "_" + run + "/html/" + dataset + ddtag + "_" + run + ".html"
 
     ligand = dataset.split("-")[-1].split("_")[0] + ddtag
-    modelledDir = \
-        path + "/fragmax/results/pandda/" + acr + "/" + method + '/pandda/processed_datasets/' + dataset + ddtag + \
-        "_" + run + "/modelled_structures/"
 
-    pdb = sorted(glob(modelledDir + "*fitted*"))[-1]
+    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    modelledDir = path.join(pandda_res_dir, "processed_datasets", f"{dataset}{ddtag}_{run}", "modelled_structures")
+
+    pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
     pdb = pdb.replace("/data/visitors/", "")
 
-    events_csv = path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda/analyses/pandda_inspect_events.csv"
+    events_csv = path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv")
     with open(events_csv, "r") as inp:
         inspect_events = inp.readlines()
 
@@ -546,9 +546,10 @@ def pandda_consensus(request):
     else:
         ligconfid = "low_conf_radio"
 
-    with open(path + "/fragmax/process/" + acr + "/panddainspects.csv", "r") as csvFile:
+    with open(path.join(project_process_protein_dir(proj), "panddainspects.csv"), "r") as csvFile:
         reader = csv.reader(csvFile)
         lines = list(reader)
+
     lines = lines[1:]
     for n, i in enumerate(lines):
         if panddaInput.split(";") == i[:-1]:
@@ -574,12 +575,9 @@ def pandda_consensus(request):
             "rfree": rfree,
             "resolution": resolution,
             "spg": spg,
-            "shift": shift,
-            "proposal": proposal,
             "pdb": pdb,
             "2fofc": map2,
             "fofc": map1,
-            "fraglib": fraglib,
             "ligand": ligand,
             "center": center,
             "analysed": analysed,
