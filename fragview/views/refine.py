@@ -55,7 +55,10 @@ def datasets(request):
                           customrefbuster, customreffspipe, aimlessopt)
     outinfo = "<br>".join(userInput.split(";;"))
 
-    return render(request, 'fragview/refine_datasets.html', {'allproc': outinfo})
+    return render(
+        request,
+        "fragview/jobs_submitted.html",
+        {"command": outinfo})
 
 
 def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
