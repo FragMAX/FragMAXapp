@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from glob import glob
 from django.shortcuts import render
-from fragview.projects import current_project, project_definitions, project_script
+from fragview.projects import current_project, project_script, project_process_protein_dir
 from .utils import scrsplit
 
 
@@ -51,14 +51,14 @@ def datasets(request):
     pdbmodel.replace(".pdb.pdb", ".pdb")
     spacegroup = refspacegroup.replace("refspacegroup:", "")
 
-    run_structure_solving(proj, request, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup, filters, customrefdimple,
+    run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup, filters, customrefdimple,
                           customrefbuster, customreffspipe, aimlessopt)
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(request, 'fragview/refine_datasets.html', {'allproc': outinfo})
 
 
-def run_structure_solving(proj, request, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
+def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
                           customrefbuster, customreffspipe, aimlessopt):
 
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
@@ -71,7 +71,7 @@ def run_structure_solving(proj, request, useDIMPLE, useFSP, useBUSTER, userPDB, 
     if filters == "ALL":
         filters = ""
 
-    process2results(request, spacegroup, aimlessopt)
+    process2results(proj, spacegroup, aimlessopt)
 
     with open(project_script(proj, "run_queueREF.py"), "w") as writeFile:
         writeFile.write('''import commands, os, sys, glob, time, subprocess
@@ -281,14 +281,14 @@ if __name__ == "__main__":
     subprocess.call(command, shell=True)
 
 
-def process2results(request, spacegroup, aimlessopt):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = project_definitions(
-        request)
+def process2results(proj, spacegroup, aimlessopt):
+    glob_pattern = f"{project_process_protein_dir(proj)}/*/*/"
     for dp in ["xdsapp", "autoproc", "xdsxscale", "EDNA", "fastdp", "dials"]:
         [os.makedirs("/".join(x.split("/")[:8] + x.split("/")[10:]).replace("/process/", "/results/") + dp, mode=0o760,
-                     exist_ok=True) for x in glob(path + "/fragmax/process/" + acr + "/*/*/")]
+                     exist_ok=True) for x in glob(glob_pattern)]
 
-    with open(path + "/fragmax/scripts/process2results.py", "w") as writeFile:
+    py_script = project_script(proj, "process2results.py")
+    with open(py_script, "w") as writeFile:
         writeFile.write(
 '''import os
 nimport glob
@@ -366,7 +366,7 @@ for dataset in datasetList:
                 cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)''' % (  # noqa
-                        path, acr, spacegroup, aimlessopt))
+                        proj.data_path(), proj.protein, spacegroup, aimlessopt))
 
     proc2resOut = ""
 
@@ -380,11 +380,12 @@ for dataset in datasetList:
     proc2resOut += """#SBATCH -N1\n"""
     proc2resOut += """#SBATCH --cpus-per-task=48\n"""
     proc2resOut += """#SBATCH --mem=220000\n"""
-    proc2resOut += """#SBATCH -o """ + path + """/fragmax/logs/process2results_%j_out.txt\n"""
-    proc2resOut += """#SBATCH -e """ + path + """/fragmax/logs/process2results_%j_err.txt\n"""
+    proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
+    proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
     proc2resOut += """module purge\n"""
     proc2resOut += """module load CCP4 Phenix\n\n"""
     proc2resOut += "\n\n"
-    proc2resOut += "python " + path + "/fragmax/scripts/process2results.py "
-    with open(path + "/fragmax/scripts/run_proc2res.sh", "w") as outp:
+    proc2resOut += "python " + py_script
+
+    with open(project_script(proj, "run_proc2res.sh"), "w") as outp:
         outp.write(proc2resOut)
