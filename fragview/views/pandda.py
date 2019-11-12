@@ -630,7 +630,7 @@ def submit(request):
 
     if "giantscore" in giantCMD:
         function, method = giantCMD.split(";")
-        t2 = threading.Thread(target=giant_score, args=(request, method))
+        t2 = threading.Thread(target=giant_score, args=(proj, method))
         t2.daemon = True
         t2.start()
         return render(request, "fragview/jobs_submitted.html", {"command": giantCMD})
@@ -719,9 +719,10 @@ os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
 
 
-def giant_score(request, method):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+def giant_score(proj, method):
+    res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
+    pandda_dir = os.path.join(res_dir, "pandda")
+    export_dir = os.path.join(res_dir, "pandda-export")
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -732,10 +733,10 @@ def giant_score(request, method):
     header += '''#SBATCH --mem=2500\n'''
     header += '''sleep 15000\n'''
 
-    with open(path + "/fragmax/scripts/giant_holder.sh", "w") as writeFile:
+    script = project_script(proj, "giant_holder.sh")
+    with open(script, "w") as writeFile:
         writeFile.write(header)
 
-    script = path + "/fragmax/scripts/giant_holder.sh"
     cmd = 'echo "module purge | module load CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
@@ -748,21 +749,19 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=2\n'''
     header += '''#SBATCH --mem=5000\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_export_%j.out\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_export_%j.err\n\n'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.out\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.err\n\n'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n'''
 
-    panddaExport = "pandda.export pandda_dir='" + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-                   "/pandda' export_dir='" + path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export'"
+    panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
-    with open(path + "/fragmax/scripts/pandda-export.sh", "w") as writeFile:
+    export_script = project_script(proj, "pandda-export.sh")
+    with open(export_script, "w") as writeFile:
         writeFile.write(header)
         writeFile.write(panddaExport)
 
-    script = path + "/fragmax/scripts/pandda-export.sh"
-
-    cmd = 'echo "module purge | module load CCP4 | sh ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+    cmd = 'echo "module purge | module load CCP4 | sh ' + export_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
     header = '''#!/bin/bash\n'''
@@ -772,23 +771,22 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=1\n'''
     header += '''#SBATCH --mem=2500\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_giant_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_out.txt\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n'''
 
-    _dirs = glob(path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/*")
+    _dirs = glob(f"{export_dir}/*")
 
     line = "#! /bin/bash"
-    line += "\njid1=$(sbatch " + path + "/fragmax/scripts/pandda-export.sh)"
+    line += f"\njid1=$(sbatch {export_script})"
     line += "\njid1=`echo $jid1|cut -d ' ' -f4`"
+
     for _dir in _dirs:
         dataset = _dir.split("/")[-1]
-        src = \
-            path + "/fragmax/results/pandda/" + acr + "/" + method + "/" + dataset + "/final_original.mtz"
-        dst = \
-            path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/" + dataset + "/" + dataset + \
-            "-pandda-input.mtz"
+
+        src = os.path.join(res_dir, dataset, "final_original.mtz")
+        dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
         cpcmd3 = "cp -f " + src + " " + dst
         if "Apo" not in _dir:
@@ -804,19 +802,24 @@ def giant_score(request, method):
                 make_restraints = ""
                 quick_refine = ""
 
-        with open(path + "/fragmax/scripts/giant_pandda_" + frag + ".sh", "w") as writeFile:
+        script = project_script(proj, f"giant_pandda_{frag}.sh")
+        with open(script, "w") as writeFile:
             writeFile.write(header)
             writeFile.write("\n" + "cd " + _dir)
             writeFile.write("\n" + cpcmd3)
             writeFile.write("\n" + make_restraints)
             writeFile.write("\n" + quick_refine)
-        script = path + "/fragmax/scripts/giant_pandda_" + frag + ".sh"
-        line += "\nsbatch  --dependency=afterany:$jid1 " + path + "/fragmax/scripts/giant_pandda_" + frag + ".sh"
+
+        line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.1"
-    with open(path + "/fragmax/scripts/giant_worker.sh", "w") as writeFile:
+
+    pandda_score_script = project_script(proj, "pandda-score.sh")
+    giant_worker_script = project_script(proj, "giant_worker.sh")
+
+    with open(giant_worker_script, "w") as writeFile:
         writeFile.write(line)
         writeFile.write(
-            "\n\nsbatch --dependency=singleton --job-name=" + jname + " " + path + "/fragmax/scripts/pandda-score.sh")
+            "\n\nsbatch --dependency=singleton --job-name=" + jname + " " + pandda_score_script)
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -825,33 +828,31 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=2\n'''
     header += '''#SBATCH --mem=2000\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_score_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_score_%j_err.txt\nn'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_out.txt\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_err.txt\nn'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n\n'''
-    scoreModel = \
-        'giant.score_model_multiple out_dir="' + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-        '/pandda-scores" ' + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-        '/pandda-export/* res_names="XXX" cpu=24'
 
-    with open(path + "/fragmax/scripts/pandda-score.sh", "w") as writeFile:
+    scores_dir = os.path.join(res_dir, "pandda-scores")
+    scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
+
+    with open(pandda_score_script, "w") as writeFile:
         writeFile.write(header)
         scorecmd = \
             f"echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
 
         for _dir in _dirs:
             dataset = _dir.split("/")[-1]
-            src = path + "/fragmax/results/pandda/" + acr + "/" + method + "/" + dataset + "/final_original.mtz"
-            dst = \
-                path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/" + dataset + "/" + \
-                dataset + "-pandda-input.mtz"
+
+            src = os.path.join(res_dir, dataset, "final_original.mtz")
+            dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
+
             cpcmd3 = "cp -f " + src + " " + dst
             writeFile.write("\n" + cpcmd3)
 
         writeFile.write("\n" + scorecmd)
 
-    script = path + "/fragmax/scripts/giant_worker.sh"
-    cmd = 'echo "module purge | module load CCP4 | sh ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+    cmd = 'echo "module purge | module load CCP4 | sh ' + giant_worker_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
 
