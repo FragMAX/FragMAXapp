@@ -10,7 +10,7 @@ from random import randint
 from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
-from fragview.projects import current_project, project_definitions, project_results_dir, project_script
+from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_raw_master_h5_files, project_shift_dirs
 
 
@@ -26,18 +26,22 @@ def processing_form(request):
 
 
 def inspect(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+    proj = current_project(request)
 
-    proc_methods = [x.split("/")[-5] for x in
-                    glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/html_summaries/*inspect.html")]
+    res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein)
+
+    glob_pattern = f"{res_dir}/*/pandda/analyses/html_summaries/*inspect.html"
+    proc_methods = [x.split("/")[-5] for x in glob(glob_pattern)]
+
     if proc_methods == []:
-        localcmd = "cd " + path + "/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
-        return render(request, 'fragview/pandda_notready.html', {"cmd": localcmd})
+        localcmd = f"cd {proj.data_path()}/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
+        return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
 
     filters = []
-    eventscsv = [x for x in
-                 glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/pandda_inspect_events.csv")]
+
+    glob_pattern = f"{res_dir}/*/pandda/analyses/pandda_inspect_events.csv"
+    eventscsv = [x for x in glob(glob_pattern)]
+
     filterform = request.GET.get("filterForm")
     if filterform is not None:
         if ";" in filterform:
@@ -101,7 +105,7 @@ def inspect(request):
                 filters.append("dimple") if DP == "true" else ""
                 filters.append("fspipeline") if FS == "true" else ""
                 filters.append("buster") if BU == "true" else ""
-            allEventDict, eventDict, low_conf, medium_conf, high_conf = panddaEvents(request, filters)
+            allEventDict, eventDict, low_conf, medium_conf, high_conf = pandda_events(proj, filters)
 
             sitesL = list()
             for k, v in eventDict.items():
@@ -116,7 +120,7 @@ def inspect(request):
             totalEvents = high_conf + medium_conf + low_conf
             uniqueEvents = str(len(allEventDict.items()))
 
-            with open(path + "/fragmax/process/" + acr + "/panddainspects.csv", "w") as csvFile:
+            with open(os.path.join(project_process_protein_dir(proj), "panddainspects.csv"), "w") as csvFile:
                 writer = csv.writer(csvFile)
                 writer.writerow(["dataset", "site_idx", "event_idx", "proc_method", "ddtag", "run", "bdc"])
                 for k, v in natsort.natsorted(eventDict.items()):
@@ -271,9 +275,7 @@ def inspect(request):
 
             for k, v in natsort.natsorted(eventDict.items()):
                 for k1, v1 in v.items():
-                    # print(k,k1,v1[0][:-2])
-                    detailsDict = dataset_details(request, k, k1, v1[0][:-4])
-                    # ds=method;dataset;event_id;site_id
+                    detailsDict = dataset_details(proj, k, k1, v1[0][:-4])
 
                     dataset = k
                     site_idx = k1.split("_")[0]
@@ -350,8 +352,8 @@ def inspect(request):
             })
 
     else:
-        inspect_file = os.path.join(path, "fragmax", "results", "pandda", acr, method, "pandda", "analyses",
-                                    "html_summaries", "pandda_inspect.html")
+        inspect_file = os.path.join(res_dir, method, "pandda", "analyses", "html_summaries", "pandda_inspect.html")
+
         if os.path.exists(inspect_file):
             with open(inspect_file, "r") as inp:
                 inspectfile = inp.readlines()
@@ -418,12 +420,9 @@ def inspect(request):
                     "buster": 0})
 
 
-def panddaEvents(request, filters):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = project_definitions(
-        request)
+def pandda_events(proj, filters):
+    eventscsv = glob(f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/analyses/pandda_inspect_events.csv")
 
-    eventscsv = [x for x in
-                 glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/pandda_inspect_events.csv")]
     if len(filters) != 0:
         eventscsv = [x for x in eventscsv if any(xs in x for xs in filters)]
     eventDict = dict()
@@ -474,12 +473,12 @@ def panddaEvents(request, filters):
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
 
-def dataset_details(request, dataset, site_idx, method):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = project_definitions(
-        request)
-
+def dataset_details(proj, dataset, site_idx, method):
     detailsDict = dict()
-    events_csv = path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda/analyses/pandda_inspect_events.csv"
+
+    events_csv = os.path.join(project_results_dir(proj), "pandda", proj.protein,
+                              method, "pandda", "analyses", "pandda_inspect_events.csv")
+
     with open(events_csv, "r") as inp:
         a = inp.readlines()
 
@@ -538,7 +537,7 @@ def analyse(request):
 
     fixsl = request.GET.get("fixsymlinks")
     if fixsl is not None and "FixSymlinks" in fixsl:
-        t1 = threading.Thread(target=fix_pandda_symlinks, args=(request,))
+        t1 = threading.Thread(target=fix_pandda_symlinks, args=(proj,))
         t1.daemon = True
         t1.start()
 
@@ -592,27 +591,25 @@ def analyse(request):
             return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 
-def fix_pandda_symlinks(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
-
-    os.system("chmod -R 775 " + path + "/fragmax/results/pandda/")
+def fix_pandda_symlinks(proj):
+    os.system("chmod -R 775 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
-    subprocess.call("cd " + path + "/fragmax/results/pandda/" + acr + """/ ; chmod -R 770 .""", shell=True)
+    subprocess.call("cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""",
+                    shell=True)
 
-    linksFolder = glob(
-        path + "/fragmax/results/pandda/" + acr +
-        "/*/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
+                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+    linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:
         folder = "/".join(dst.split("/")[:-1]) + "/"
@@ -630,7 +627,7 @@ def submit(request):
 
     if "giantscore" in giantCMD:
         function, method = giantCMD.split(";")
-        t2 = threading.Thread(target=giant_score, args=(request, method))
+        t2 = threading.Thread(target=giant_score, args=(proj, method))
         t2.daemon = True
         t2.start()
         return render(request, "fragview/jobs_submitted.html", {"command": giantCMD})
@@ -719,9 +716,10 @@ os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
 
 
-def giant_score(request, method):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+def giant_score(proj, method):
+    res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
+    pandda_dir = os.path.join(res_dir, "pandda")
+    export_dir = os.path.join(res_dir, "pandda-export")
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -732,10 +730,10 @@ def giant_score(request, method):
     header += '''#SBATCH --mem=2500\n'''
     header += '''sleep 15000\n'''
 
-    with open(path + "/fragmax/scripts/giant_holder.sh", "w") as writeFile:
+    script = project_script(proj, "giant_holder.sh")
+    with open(script, "w") as writeFile:
         writeFile.write(header)
 
-    script = path + "/fragmax/scripts/giant_holder.sh"
     cmd = 'echo "module purge | module load CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
@@ -748,21 +746,19 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=2\n'''
     header += '''#SBATCH --mem=5000\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_export_%j.out\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_export_%j.err\n\n'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.out\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.err\n\n'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n'''
 
-    panddaExport = "pandda.export pandda_dir='" + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-                   "/pandda' export_dir='" + path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export'"
+    panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
-    with open(path + "/fragmax/scripts/pandda-export.sh", "w") as writeFile:
+    export_script = project_script(proj, "pandda-export.sh")
+    with open(export_script, "w") as writeFile:
         writeFile.write(header)
         writeFile.write(panddaExport)
 
-    script = path + "/fragmax/scripts/pandda-export.sh"
-
-    cmd = 'echo "module purge | module load CCP4 | sh ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+    cmd = 'echo "module purge | module load CCP4 | sh ' + export_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
     header = '''#!/bin/bash\n'''
@@ -772,23 +768,22 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=1\n'''
     header += '''#SBATCH --mem=2500\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_giant_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_out.txt\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n'''
 
-    _dirs = glob(path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/*")
+    _dirs = glob(f"{export_dir}/*")
 
     line = "#! /bin/bash"
-    line += "\njid1=$(sbatch " + path + "/fragmax/scripts/pandda-export.sh)"
+    line += f"\njid1=$(sbatch {export_script})"
     line += "\njid1=`echo $jid1|cut -d ' ' -f4`"
+
     for _dir in _dirs:
         dataset = _dir.split("/")[-1]
-        src = \
-            path + "/fragmax/results/pandda/" + acr + "/" + method + "/" + dataset + "/final_original.mtz"
-        dst = \
-            path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/" + dataset + "/" + dataset + \
-            "-pandda-input.mtz"
+
+        src = os.path.join(res_dir, dataset, "final_original.mtz")
+        dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
         cpcmd3 = "cp -f " + src + " " + dst
         if "Apo" not in _dir:
@@ -804,19 +799,24 @@ def giant_score(request, method):
                 make_restraints = ""
                 quick_refine = ""
 
-        with open(path + "/fragmax/scripts/giant_pandda_" + frag + ".sh", "w") as writeFile:
+        script = project_script(proj, f"giant_pandda_{frag}.sh")
+        with open(script, "w") as writeFile:
             writeFile.write(header)
             writeFile.write("\n" + "cd " + _dir)
             writeFile.write("\n" + cpcmd3)
             writeFile.write("\n" + make_restraints)
             writeFile.write("\n" + quick_refine)
-        script = path + "/fragmax/scripts/giant_pandda_" + frag + ".sh"
-        line += "\nsbatch  --dependency=afterany:$jid1 " + path + "/fragmax/scripts/giant_pandda_" + frag + ".sh"
+
+        line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.1"
-    with open(path + "/fragmax/scripts/giant_worker.sh", "w") as writeFile:
+
+    pandda_score_script = project_script(proj, "pandda-score.sh")
+    giant_worker_script = project_script(proj, "giant_worker.sh")
+
+    with open(giant_worker_script, "w") as writeFile:
         writeFile.write(line)
         writeFile.write(
-            "\n\nsbatch --dependency=singleton --job-name=" + jname + " " + path + "/fragmax/scripts/pandda-score.sh")
+            "\n\nsbatch --dependency=singleton --job-name=" + jname + " " + pandda_score_script)
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -825,33 +825,31 @@ def giant_score(request, method):
     header += '''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=2\n'''
     header += '''#SBATCH --mem=2000\n'''
-    header += '''#SBATCH -o ''' + path + '''/fragmax/logs/pandda_score_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + path + '''/fragmax/logs/pandda_score_%j_err.txt\nn'''
+    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_out.txt\n'''
+    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_err.txt\nn'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n\n'''
-    scoreModel = \
-        'giant.score_model_multiple out_dir="' + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-        '/pandda-scores" ' + path + "/fragmax/results/pandda/" + acr + "/" + method + \
-        '/pandda-export/* res_names="XXX" cpu=24'
 
-    with open(path + "/fragmax/scripts/pandda-score.sh", "w") as writeFile:
+    scores_dir = os.path.join(res_dir, "pandda-scores")
+    scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
+
+    with open(pandda_score_script, "w") as writeFile:
         writeFile.write(header)
         scorecmd = \
             f"echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
 
         for _dir in _dirs:
             dataset = _dir.split("/")[-1]
-            src = path + "/fragmax/results/pandda/" + acr + "/" + method + "/" + dataset + "/final_original.mtz"
-            dst = \
-                path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda-export/" + dataset + "/" + \
-                dataset + "-pandda-input.mtz"
+
+            src = os.path.join(res_dir, dataset, "final_original.mtz")
+            dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
+
             cpcmd3 = "cp -f " + src + " " + dst
             writeFile.write("\n" + cpcmd3)
 
         writeFile.write("\n" + scorecmd)
 
-    script = path + "/fragmax/scripts/giant_worker.sh"
-    cmd = 'echo "module purge | module load CCP4 | sh ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+    cmd = 'echo "module purge | module load CCP4 | sh ' + giant_worker_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
     subprocess.call(cmd, shell=True)
 
 

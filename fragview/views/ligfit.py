@@ -23,7 +23,10 @@ def datasets(request):
     t1.daemon = True
     t1.start()
 
-    return render(request, "fragview/ligfit_datasets.html", {"allproc": "<br>".join(userInput.split(";;"))})
+    return render(
+        request,
+        "fragview/jobs_submitted.html",
+        {"command": "<br>".join(userInput.split(";;"))})
 
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
