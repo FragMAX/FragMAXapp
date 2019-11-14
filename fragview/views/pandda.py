@@ -10,7 +10,7 @@ from random import randint
 from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
-from fragview.projects import current_project, project_definitions, project_results_dir, project_script
+from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_raw_master_h5_files, project_shift_dirs
 
 
@@ -26,18 +26,22 @@ def processing_form(request):
 
 
 def inspect(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
+    proj = current_project(request)
 
-    proc_methods = [x.split("/")[-5] for x in
-                    glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/html_summaries/*inspect.html")]
+    res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein)
+
+    glob_pattern = f"{res_dir}/*/pandda/analyses/html_summaries/*inspect.html"
+    proc_methods = [x.split("/")[-5] for x in glob(glob_pattern)]
+
     if proc_methods == []:
-        localcmd = "cd " + path + "/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
-        return render(request, 'fragview/pandda_notready.html', {"cmd": localcmd})
+        localcmd = f"cd {proj.data_path()}/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
+        return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
 
     filters = []
-    eventscsv = [x for x in
-                 glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/pandda_inspect_events.csv")]
+
+    glob_pattern = f"{res_dir}/*/pandda/analyses/pandda_inspect_events.csv"
+    eventscsv = [x for x in glob(glob_pattern)]
+
     filterform = request.GET.get("filterForm")
     if filterform is not None:
         if ";" in filterform:
@@ -101,7 +105,7 @@ def inspect(request):
                 filters.append("dimple") if DP == "true" else ""
                 filters.append("fspipeline") if FS == "true" else ""
                 filters.append("buster") if BU == "true" else ""
-            allEventDict, eventDict, low_conf, medium_conf, high_conf = panddaEvents(request, filters)
+            allEventDict, eventDict, low_conf, medium_conf, high_conf = pandda_events(proj, filters)
 
             sitesL = list()
             for k, v in eventDict.items():
@@ -116,7 +120,7 @@ def inspect(request):
             totalEvents = high_conf + medium_conf + low_conf
             uniqueEvents = str(len(allEventDict.items()))
 
-            with open(path + "/fragmax/process/" + acr + "/panddainspects.csv", "w") as csvFile:
+            with open(os.path.join(project_process_protein_dir(proj), "panddainspects.csv"), "w") as csvFile:
                 writer = csv.writer(csvFile)
                 writer.writerow(["dataset", "site_idx", "event_idx", "proc_method", "ddtag", "run", "bdc"])
                 for k, v in natsort.natsorted(eventDict.items()):
@@ -271,9 +275,7 @@ def inspect(request):
 
             for k, v in natsort.natsorted(eventDict.items()):
                 for k1, v1 in v.items():
-                    # print(k,k1,v1[0][:-2])
-                    detailsDict = dataset_details(request, k, k1, v1[0][:-4])
-                    # ds=method;dataset;event_id;site_id
+                    detailsDict = dataset_details(proj, k, k1, v1[0][:-4])
 
                     dataset = k
                     site_idx = k1.split("_")[0]
@@ -350,8 +352,8 @@ def inspect(request):
             })
 
     else:
-        inspect_file = os.path.join(path, "fragmax", "results", "pandda", acr, method, "pandda", "analyses",
-                                    "html_summaries", "pandda_inspect.html")
+        inspect_file = os.path.join(res_dir, method, "pandda", "analyses", "html_summaries", "pandda_inspect.html")
+
         if os.path.exists(inspect_file):
             with open(inspect_file, "r") as inp:
                 inspectfile = inp.readlines()
@@ -418,12 +420,9 @@ def inspect(request):
                     "buster": 0})
 
 
-def panddaEvents(request, filters):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = project_definitions(
-        request)
+def pandda_events(proj, filters):
+    eventscsv = glob(f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/analyses/pandda_inspect_events.csv")
 
-    eventscsv = [x for x in
-                 glob(path + "/fragmax/results/pandda/" + acr + "/*/pandda/analyses/pandda_inspect_events.csv")]
     if len(filters) != 0:
         eventscsv = [x for x in eventscsv if any(xs in x for xs in filters)]
     eventDict = dict()
@@ -474,12 +473,12 @@ def panddaEvents(request, filters):
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
 
-def dataset_details(request, dataset, site_idx, method):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = project_definitions(
-        request)
-
+def dataset_details(proj, dataset, site_idx, method):
     detailsDict = dict()
-    events_csv = path + "/fragmax/results/pandda/" + acr + "/" + method + "/pandda/analyses/pandda_inspect_events.csv"
+
+    events_csv = os.path.join(project_results_dir(proj), "pandda", proj.protein,
+                              method, "pandda", "analyses", "pandda_inspect_events.csv")
+
     with open(events_csv, "r") as inp:
         a = inp.readlines()
 
@@ -538,7 +537,7 @@ def analyse(request):
 
     fixsl = request.GET.get("fixsymlinks")
     if fixsl is not None and "FixSymlinks" in fixsl:
-        t1 = threading.Thread(target=fix_pandda_symlinks, args=(request,))
+        t1 = threading.Thread(target=fix_pandda_symlinks, args=(proj,))
         t1.daemon = True
         t1.start()
 
@@ -592,27 +591,25 @@ def analyse(request):
             return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 
-def fix_pandda_symlinks(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
-
-    os.system("chmod -R 775 " + path + "/fragmax/results/pandda/")
+def fix_pandda_symlinks(proj):
+    os.system("chmod -R 775 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
-    subprocess.call("cd " + path + "/fragmax/results/pandda/" + acr + """/ ; chmod -R 770 .""", shell=True)
+    subprocess.call("cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""",
+                    shell=True)
 
-    linksFolder = glob(
-        path + "/fragmax/results/pandda/" + acr +
-        "/*/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
+                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+    linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:
         folder = "/".join(dst.split("/")[:-1]) + "/"
