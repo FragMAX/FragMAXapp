@@ -10,9 +10,8 @@ from random import randint
 from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
-from fragview.projects import current_project, project_definitions, project_results_dir, project_script
+from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_raw_master_h5_files, project_shift_dirs
-from fragview.projects import project_process_protein_dir
 
 
 def processing_form(request):
@@ -538,7 +537,7 @@ def analyse(request):
 
     fixsl = request.GET.get("fixsymlinks")
     if fixsl is not None and "FixSymlinks" in fixsl:
-        t1 = threading.Thread(target=fix_pandda_symlinks, args=(request,))
+        t1 = threading.Thread(target=fix_pandda_symlinks, args=(proj,))
         t1.daemon = True
         t1.start()
 
@@ -592,27 +591,25 @@ def analyse(request):
             return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 
-def fix_pandda_symlinks(request):
-    proposal, shift, acr, proposal_type, path, subpath, static_datapath, fraglib, shiftList = \
-        project_definitions(request)
-
-    os.system("chmod -R 775 " + path + "/fragmax/results/pandda/")
+def fix_pandda_symlinks(proj):
+    os.system("chmod -R 775 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
     subprocess.call(
-        "cd " + path + "/fragmax/results/pandda/" + acr +
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
         """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
         shell=True)
 
-    subprocess.call("cd " + path + "/fragmax/results/pandda/" + acr + """/ ; chmod -R 770 .""", shell=True)
+    subprocess.call("cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""",
+                    shell=True)
 
-    linksFolder = glob(
-        path + "/fragmax/results/pandda/" + acr +
-        "/*/pandda/processed_datasets/*/modelled_structures/*pandda-model.pdb")
+    glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
+                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+    linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:
         folder = "/".join(dst.split("/")[:-1]) + "/"
