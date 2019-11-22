@@ -252,6 +252,8 @@ for a,b in zip(outDirs,mtzList):
     inpdata.append([a,b])
 
 def fragmax_worker((di, mtz)):
+    if not os.path.exists(di):
+        os.makedirs(di)
     command="dimple -s "+mtz+" "+PDB+" "+di+" %s ; cd "+di+" ; phenix.mtz2map final.mtz"
     subprocess.call(command, shell=True)
 
@@ -294,12 +296,12 @@ def process2results(proj, spacegroup, aimlessopt):
     with open(py_script, "w") as writeFile:
         writeFile.write(
 '''import os
-nimport glob
+import glob
 import subprocess
 import shutil
 import sys
 path="%s"
-nacr="%s"
+acr="%s"
 spg="%s"
 aimless="%s"
 subprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)
@@ -315,7 +317,7 @@ for dataset in datasetList:
                 srcmtz=[x for x in glob.glob(dataset+"autoproc/*mtz")][0]
     dstmtz=path+"/fragmax/results/"+dataset.split("/")[-2]+"/autoproc/"+dataset.split("/")[-2]+"_autoproc_merged.mtz"
     if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-        shutil.copyfile(srcmtz,dstmtz)
+        os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
         cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
@@ -323,7 +325,7 @@ for dataset in datasetList:
     if os.path.exists(srcmtz):
         dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"
         if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            shutil.copyfile(srcmtz,dstmtz)
+            os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
             cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
@@ -331,7 +333,7 @@ for dataset in datasetList:
     if os.path.exists(srcmtz):
         dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"
         if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            shutil.copyfile(srcmtz,dstmtz)
+            os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
             cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
@@ -341,7 +343,7 @@ for dataset in datasetList:
     if os.path.exists(srcmtz):
         dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsapp/"+dataset.split("/")[-2]+"_xdsapp_merged.mtz"
         if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            shutil.copyfile(srcmtz,dstmtz)
+            os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
             cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
@@ -350,7 +352,7 @@ for dataset in datasetList:
         srcmtz=mtzoutList[0]
     dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/EDNA/"+dataset.split("/")[-2]+"_EDNA_merged.mtz"
     if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-        shutil.copyfile(srcmtz,dstmtz)
+        os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
         cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
         if aimless=="true":
             subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
@@ -360,7 +362,7 @@ for dataset in datasetList:
         if os.path.exists(srcmtz):
             dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/fastdp/"+dataset.split("/")[-2]+"_fastdp_merged.mtz"
             if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-                shutil.copyfile(srcmtz,dstmtz)
+                os.makedirs("/".join(dstmtz.split("/")[:-1]), exist_ok=True); shutil.copyfile(srcmtz,dstmtz)
                 try:
                     subprocess.check_call(['gunzip', dstmtz+".gz"])
                 except:
