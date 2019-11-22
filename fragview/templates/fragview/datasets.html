@@ -83,18 +83,12 @@
   </tr>
   </thead>
   <tbody>
+  
     <tr >
     </tr>
     {% for img,prf,res,path,snap,acr,png,run,smp,dps,rfs,lgs in files %}
     <tr>
     <td>
-    {% comment %} <form action="/dataset_info">
-        <input class="btn-small" id={{prf}} name={{ prf }} type="submit" value="Get Info" />
-          <a href="javascript:{}" onclick="document.getElementById({{prf}}).submit();">hCAII-H5_testing</a> 
-
-    </form> {% endcomment %}
-
-
 
     <form action="/dataset_info/" method="get" id={{prf}} >
       <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
