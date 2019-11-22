@@ -144,6 +144,7 @@ def run_xdsapp(proj, nodes, filters):
         nImg = dtc["numberOfImages"]
 
         script = \
+            f"mkdir -p {outdir}/xdsapp\n" \
             f"cd {outdir}/xdsapp\n" \
             f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} --delphi=10 " \
             f"--fried=True --range=1\\ {nImg}\n\n"
@@ -200,6 +201,7 @@ def run_autoproc(proj, nodes, filters):
         os.makedirs(outdir, mode=0o760, exist_ok=True)
 
         script = \
+            f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
             f'''process -h5 {h5master} -noANO autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so ''' + \
@@ -261,10 +263,11 @@ def run_xdsxscale(proj, nodes, filters):
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
 
-        script = "cd " + outdir + "/xdsxscale \n"
-        script += \
-            "xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image=" + h5master + ":1:" + nImg + \
-            " multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        script = \
+        f"mkdir -p {outdir}/xdsxscale\n" \
+        f"cd {outdir}/xdsxscale \n" \
+        f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image={h5master}:1:{nImg}" \
+        f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
@@ -318,10 +321,12 @@ def run_dials(proj, nodes, filters):
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
 
-        script = "cd " + outdir + "/dials \n"
-        script += \
-            "xia2 goniometer.axes=0,1,0 pipeline=dials failover=true  nproc=40 image=" + h5master + ":1:" + nImg + \
-            " multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
+        
+        script = \
+        f"mkdir -p {outdir}/dials\n" \
+        f"cd {outdir}/dials \n" \
+        f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true  nproc=40 image={h5master}:1:{nImg}" \
+        f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n\n"
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
