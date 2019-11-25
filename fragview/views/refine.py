@@ -1,6 +1,6 @@
 import os
 import pypdb
-import pyfastcopy  # noqa
+import pyfastcopy  
 import shutil
 import subprocess
 from glob import glob
@@ -73,333 +73,249 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         filters = filters.split(":")[-1]
     if filters == "ALL":
         filters = ""
-
-    process2results(proj, spacegroup, aimlessopt)
-
-    with open(project_script(proj, "run_queueREF.py"), "w") as writeFile:
-        writeFile.write('''import commands, os, sys, glob, time, subprocess
-argsfit=sys.argv[1]
-path=sys.argv[2]
-acr=sys.argv[3]
-PDBfile=sys.argv[4]
-cmd = "sbatch "+path+"/fragmax/scripts/run_proc2res.sh"
-status, jobnum1 = commands.getstatusoutput(cmd)
-jobnum1=jobnum1.split("batch job ")[-1]
-inputData=list()
-for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
-    mtzList=glob.glob(proc+"*mtz")
-    if mtzList and "''' + filters + '''" in proc:
-        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])
-def scrsplit(a, n):
-    k, m = divmod(len(a), n)
-    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-if "dimple" in argsfit:
-    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/run_dimple.sh" % (jobnum1,path)
-    status,jobnum2 = commands.getstatusoutput(cmd)
-if "fspipeline" in argsfit:
-    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/fspipeline_master.sh" % (jobnum1,path)
-    status,jobnum3 = commands.getstatusoutput(cmd)
-if "buster" in argsfit:
-    cmd = "sbatch --dependency=afterany:%s %s/fragmax/scripts/buster_master.sh" % (jobnum1,path)
-    status,jobnum4 = commands.getstatusoutput(cmd)''')
-
-    def fspipeline_hpc(PDB):
-        inputData = list()
-        m = 0
-
-        fsp = '''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine=''' + PDB + \
-              ''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 ''' + customreffspipe
-        for proc in glob(proj.data_path() + "/fragmax/results/" + proj.protein + "*/*/"):
-            mtzList = glob(proc + "*mtz")
-            if mtzList and filters in proc:
-                inputData.append(sorted(glob(proc + "*mtz"))[0])
-        scriptList = ["cd " + "/".join(x.split("/")[:-1]) + "/ \n" + fsp for x in inputData]
-        nodes = round(len(inputData) / 48 + 0.499)
-
-        for n, i in enumerate(list(scrsplit(scriptList, nodes))):
-            header = '''#!/bin/bash\n'''
-            header += '''#!/bin/bash\n'''
-            header += '''#SBATCH -t 04:00:00\n'''
-            header += '''#SBATCH -J FSpipeline\n'''
-            # header+='''#SBATCH --nodelist=cn'''+str(node0+n)+'''\n'''
-            header += '''#SBATCH --nice=25\n'''
-            header += '''#SBATCH --cpus-per-task=2\n'''
-            header += '''#SBATCH --mem=5000\n'''
-            header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/fsp_fragmax_%j_out.txt\n'''
-            header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/fsp_fragmax_%j_err.txt\n\n'''
-            header += '''module purge\n'''
-            header += '''module load CCP4 Phenix\n'''
-            header += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
-            for j in i:
-                with open(proj.data_path() + "/fragmax/scripts/fspipeline_worker_" + str(m) + ".sh", "w") as writeFile:
-                    writeFile.write(header + j)
-                m += 1
-
-        with open(proj.data_path() + "/fragmax/scripts/fspipeline_master.sh", "w") as writeFile:
-            writeFile.write("""#!/bin/bash\n"""
-                            """#!/bin/bash\n"""
-                            """#SBATCH -t 01:00:00\n"""
-                            """#SBATCH -J FSPmaster\n\n"""
-                            """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/fspipeline_master_%j_out.txt\n"""
-                            """for file in """ + proj.data_path() + "/fragmax/scripts" +
-                            """/fspipeline_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
-                            """""")
-
-    def buster_hpc(PDB):
-        inputData = list()
-        scriptList = list()
-        m = 0
-        for proc in glob(proj.data_path() + "/fragmax/results/" + proj.protein + "*/*/"):
-            mtzList = glob(proc + "*mtz")
-            if mtzList and filters in proc:
-                inputData.append(sorted(glob(proc + "*mtz"))[0])
-        nodes = round(len(inputData) / 48 + 0.499)
-        node0 = 54 - nodes
-        for n, srcmtz in enumerate(inputData):
-            cmd = ""
-            dstmtz = srcmtz.replace("merged", "truncate")
-            if os.path.exists("/".join(srcmtz.split("/")[:-1]) + "/buster"):
-                cmd += "rm -rf " + "/".join(srcmtz.split("/")[:-1]) + "/buster\n\n"
-            if not os.path.exists(dstmtz):
-                cmd += \
-                    'echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin ' + srcmtz + ' hklout ' + dstmtz + \
-                    " | tee " + '/'.join(dstmtz.split('/')[:-1]) + "/truncate.log\n\n"  # noqa
-            cmd += "refine -L -p " + PDB + " -m " + dstmtz + " " + customrefbuster + " -TLS -nthreads 2 -d " + "/".join(
-                srcmtz.split("/")[:-1]) + "/buster \n"
-            scriptList.append(cmd)
-
-        for n, i in enumerate(list(scrsplit(scriptList, nodes))):
-            header = '''#!/bin/bash\n'''
-            header += '''#!/bin/bash\n'''
-            header += '''#SBATCH -t 04:00:00\n'''
-            header += '''#SBATCH -J BUSTER\n'''
-            header += '''#SBATCH --cpus-per-task=2\n'''
-            header += '''#SBATCH --mem=5000\n'''
-            header += '''#SBATCH --nice=25\n'''
-            #header += '''#SBATCH --nodelist=cn''' + str(node0 + n) + '''\n'''
-            header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/buster_fragmax_%j_out.txt\n'''
-            header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/buster_fragmax_%j_err.txt\n\n'''
-            header += '''module purge\n'''
-            header += '''module load autoPROC BUSTER\n'''
-            header += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
-            for j in i:
-                with open(proj.data_path() + "/fragmax/scripts/buster_worker_" + str(m) + ".sh", "w") as writeFile:
-                    writeFile.write(header + j)
-                m += 1
-        with open(proj.data_path() + "/fragmax/scripts/buster_master.sh", "w") as writeFile:
-            writeFile.write("""#!/bin/bash\n"""
-                            """#!/bin/bash\n"""
-                            """#SBATCH -t 01:00:00\n"""
-                            """#SBATCH -J BSTRmaster\n\n"""
-                            """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/buster_master_%j_out.txt\n"""
-                            """for file in """ + proj.data_path() + "/fragmax/scripts" +
-                            """/buster_worker*.sh; do   sbatch $file;   sleep 0.1; rm $file; done\n"""
-                            """rm buster_worker*sh""")
-
-    def dimple_hpc(PDB):
-        # Creates HPC script to run dimple on all mtz files provided.
-        # PDB _file can be provided in the header of the python script and parse to all
-        # pipelines (Dimple, pipedream, bessy)
-
-        # This line will make dimple run on unscaled unmerged files. It seems that works
-        # better sometimes
-
-        # outDirs = list()
-        # inputData = list()
-        dimpleOut = ""
-
-        # define env for script for dimple
-        dimpleOut += """#!/bin/bash\n"""
-        dimpleOut += """#!/bin/bash\n"""
-        dimpleOut += """#SBATCH -t 99:55:00\n"""
-        dimpleOut += """#SBATCH -J dimple\n"""
-        dimpleOut += """#SBATCH --exclusive\n"""
-        dimpleOut += """#SBATCH -N1\n"""
-        dimpleOut += """#SBATCH --cpus-per-task=48\n"""
-        dimpleOut += """#SBATCH --mem=220000\n"""
-        dimpleOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dimple_fragmax_%j_out.txt\n"""
-        dimpleOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dimple_fragmax_%j_err.txt\n"""
-        dimpleOut += """module purge\n"""
-        dimpleOut += """module load CCP4 Phenix \n\n"""
-
-        dimpleOut += "python " + proj.data_path() + "/fragmax/scripts/run_dimple.py"
-        dimpleOut += "\n\n"
-
-        with open(proj.data_path() + "/fragmax/scripts/run_dimple.sh", "w") as outp:
-            outp.write(dimpleOut)
-
-        with open(proj.data_path() + "/fragmax/scripts/run_dimple.py", "w") as writeFile:
-            writeFile.write('''import multiprocessing
-import subprocess
-import glob
-
-
-path="%s"
-acr="%s"
-PDB="%s"
-
-inputData=list()
-for proc in glob.glob(path+"/fragmax/results/"+acr+"*/*/"):
-    mtzList=glob.glob(proc+"*mtz")
-    if mtzList and "%s" in proc:
-        inputData.append(sorted(glob.glob(proc+"*mtz"))[0])
-
-outDirs=["/".join(x.split("/")[:-1])+"/dimple" for x in inputData]
-mtzList=inputData
-
-inpdata=list()
-for a,b in zip(outDirs,mtzList):
-    inpdata.append([a,b])
-
-def fragmax_worker((di, mtz)):
-    if not os.path.exists(di):
-        os.makedirs(di)
-    command="dimple -s "+mtz+" "+PDB+" "+di+" %s ; cd "+di+" ; phenix.mtz2map final.mtz"
-    subprocess.call(command, shell=True)
-
-def mp_handler():
-    p = multiprocessing.Pool(48)
-    p.map(fragmax_worker, inpdata)
-
-if __name__ == "__main__":
-    mp_handler()\n''' % (
-             proj.data_path(), proj.protein, PDB, filters, customrefdimple))
-
+    
     if userPDB != "":
         if useFSP:
-            fspipeline_hpc(userPDB)
             argsfit += "fspipeline"
         if useDIMPLE:
-            dimple_hpc(userPDB)
             argsfit += "dimple"
         if useBUSTER:
-            buster_hpc(userPDB)
             argsfit += "buster"
+        
+        
+
+        
+
+        datasetList=glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")   
+        proc2resOut = ""
+        proc2resOut += """#!/bin/bash\n"""
+        proc2resOut += """#!/bin/bash\n"""
+        proc2resOut += """#SBATCH -t 04:00:00\n"""
+        proc2resOut += """#SBATCH -J Pro2Res\n"""   
+        proc2resOut += """#SBATCH -N1\n"""
+        proc2resOut += """#SBATCH --cpus-per-task=2\n"""    
+        proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
+        proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
+        proc2resOut += """module purge\n"""
+        proc2resOut += """module load PReSTO autoPROC BUSTER\n\n"""
+        proc2resOut += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
+
+
+        aimless=bool(aimlessopt)
+        for dataset in datasetList:    
+            sample=dataset.split("/")[-2]
+            with open(project_script(proj, "proc2res_"+sample+".sh"), "w") as outp:
+                outp.write(proc2resOut)
+                edna=find_edna(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                fastdp=find_fastdp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                xdsapp=find_xdsapp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                xdsxscale=find_xdsxscale(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                dials=find_dials(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                autoproc=find_autoproc(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple)        
+                
+                outp.write(edna)
+                outp.write("\n\n")
+                outp.write(fastdp)
+                outp.write("\n\n")
+                outp.write(xdsapp)
+                outp.write("\n\n")
+                outp.write(xdsxscale)
+                outp.write("\n\n")
+                outp.write(dials)
+                outp.write("\n\n")
+                outp.write(autoproc)
+                outp.write("\n\n")
+            script=project_script(proj, "proc2res_"+sample+".sh")
+            command = 'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+            subprocess.call(command, shell=True)
+        
     else:
         userPDB = "-"
 
-    command = \
-        'echo "python ' + proj.data_path() + '/fragmax/scripts/run_queueREF.py ' + argsfit + ' ' + \
-        proj.data_path() + ' ' + proj.protein + ' ' + userPDB + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call("rm " + proj.data_path() + "/fragmax/scripts/*.setvar.lis", shell=True)
-    subprocess.call("rm " + proj.data_path() + "/fragmax/scripts/slurm*_out.txt", shell=True)
-    subprocess.call(command, shell=True)
+    
+
+def aimless_cmd(spacegroup,dstmtz):
+    outdir='/'.join(dstmtz.split('/')[:-1])
+    cmd=f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
+        f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
+        f"{dstmtz} HKLOUT {dstmtz} | tee {outdir}/aimless.log"
+    return cmd
 
 
-def process2results(proj, spacegroup, aimlessopt):
-    glob_pattern = f"{project_process_protein_dir(proj)}/*/*/"
-    for dp in ["xdsapp", "autoproc", "xdsxscale", "EDNA", "fastdp", "dials"]:
-        [os.makedirs("/".join(x.split("/")[:8] + x.split("/")[10:]).replace("/process/", "/results/") + dp, mode=0o760,
-                     exist_ok=True) for x in glob(glob_pattern)]
-
-    py_script = project_script(proj, "process2results.py")
-    with open(py_script, "w") as writeFile:
-        writeFile.write(
-'''import os
-import glob
-import subprocess
-import shutil
-import sys
-path="%s"
-acr="%s"
-spg="%s"
-aimless="%s"
-#subprocess.call("rm "+path+"/fragmax/results/"+acr+"*/*/*merged.mtz",shell=True)
-datasetList=glob.glob(path+"/fragmax/process/"+acr+"/*/*/")
-for dataset in datasetList:
-    if glob.glob(dataset+"autoproc/*mtz")!=[]:
+def find_autoproc(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=None
+    dstmtz=None
+    aimless_c=""
+    autoproc_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    if glob(dataset+"autoproc/*mtz")!=[]:
         try:
-            srcmtz=[x for x in glob.glob(dataset+"autoproc/*mtz") if "staraniso" in x][0]
+            srcmtz=[x for x in glob(dataset+"autoproc/*mtz") if "staraniso" in x][0]
         except IndexError:
             try:
-                srcmtz=[x for x in glob.glob(dataset+"autoproc/*mtz") if "aimless" in x][0]
+                srcmtz=[x for x in glob(dataset+"autoproc/*mtz") if "aimless" in x][0]
             except IndexError:
-                srcmtz=[x for x in glob.glob(dataset+"autoproc/*mtz")][0]
-    dstmtz=path+"/fragmax/results/"+dataset.split("/")[-2]+"/autoproc/"+dataset.split("/")[-2]+"_autoproc_merged.mtz"
-    if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-        if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-            os.makedirs("/".join(dstmtz.split("/")[:-1]))
-        shutil.copyfile(srcmtz,dstmtz)
-        cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-        if aimless=="true":
-            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
-    srcmtz=dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
-    if os.path.exists(srcmtz):
+                srcmtz=[x for x in glob(dataset+"autoproc/*mtz")][0]
+    dstmtz=proj.data_path()+"/fragmax/results/"+dataset.split("/")[-2]+"/autoproc/"+dataset.split("/")[-2]+"_autoproc_merged.mtz"
+    if srcmtz:        
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'
+        if aimless:            
+            aimless_c=f'{cmd}'        
+        autoproc_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=autoproc_cmd + "\n" + refine_cmd
+    return out_cmd
+    
 
-        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"
-        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-                os.makedirs("/".join(dstmtz.split("/")[:-1]))
-            shutil.copyfile(srcmtz,dstmtz)
-            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-        if aimless=="true":
-            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
-    srcmtz=dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
+def find_dials(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=None
+    dstmtz=None
+    aimless_c=""
+    dials_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    srcmtz=dataset+"dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
+    dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/dials/"+dataset.split("/")[-2]+"_dials_merged.mtz"
     if os.path.exists(srcmtz):
-        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"
-        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-                os.makedirs("/".join(dstmtz.split("/")[:-1]))
-                shutil.copyfile(srcmtz,dstmtz)
-            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-        if aimless=="true":
-            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
-    mtzoutList=glob.glob(dataset+"xdsapp/*F.mtz")
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'
+        if aimless:            
+            aimless_c=f'{cmd}'
+        dials_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=dials_cmd + "\n" + refine_cmd
+    return out_cmd
+
+
+def find_xdsxscale(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=None
+    dstmtz=None
+    aimless_c=""
+    xdsxscale_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    srcmtz=dataset+"xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
+    dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsxscale/"+dataset.split("/")[-2]+"_xdsxscale_merged.mtz"
+    if os.path.exists(srcmtz):
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'
+        if aimless:            
+            aimless_c=f'{cmd}'
+        xdsxscale_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=xdsxscale_cmd + "\n" + refine_cmd
+    return out_cmd
+
+
+def find_xdsapp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=False
+    dstmtz=None
+    aimless_c=""
+    xdsapp_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    mtzoutList=glob(dataset+"xdsapp/*F.mtz")
     if mtzoutList!=[]:
         srcmtz=mtzoutList[0]
-    if os.path.exists(srcmtz):
         dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/xdsapp/"+dataset.split("/")[-2]+"_xdsapp_merged.mtz"
-        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-                os.makedirs("/".join(dstmtz.split("/")[:-1]))
-                shutil.copyfile(srcmtz,dstmtz)
-            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-        if aimless=="true":
-            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
-    mtzoutList=glob.glob(path+"/fragmax/process/"+acr+"/"+dataset.split("/")[-3]+"/*/edna/*_noanom_aimless.mtz")    
-    if mtzoutList!=[]:        
+    if srcmtz:  
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'        
+        if aimless:
+            aimless_c=f'{cmd}'
+        xdsapp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c              
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=xdsapp_cmd + "\n" + refine_cmd
+    return out_cmd
+
+
+def find_edna(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=False
+    dstmtz=None
+    aimless_c=""
+    edna_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    mtzoutList=glob(proj.data_path()+"/fragmax/process/"+proj.protein+"/"+dataset.split("/")[-3]+"/*/edna/*_noanom_aimless.mtz")   
+    if mtzoutList!=[]:
         srcmtz=mtzoutList[0]
         dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/edna/"+dataset.split("/")[-2]+"_EDNA_merged.mtz"
-        if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-            if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-                os.makedirs("/".join(dstmtz.split("/")[:-1]))
-                shutil.copyfile(srcmtz,dstmtz)
-            cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-            if aimless=="true":
-                subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)
-    mtzoutList=glob.glob(path+"/fragmax/process/"+acr+"/"+dataset.split("/")[-3]+"/*/fastdp/*.mtz")  
+    if srcmtz:  
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'        
+        if aimless:
+            aimless_c=f'{cmd}'
+        edna_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c     
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=edna_cmd + "\n" + refine_cmd
+    return out_cmd
+
+
+def find_fastdp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,customrefbuster,customrefdimple):
+    srcmtz=False
+    dstmtz=None
+    aimless_c=""
+    fastdp_cmd=""
+    refine_cmd=""
+    out_cmd=""
+    mtzoutList=glob(proj.data_path()+"/fragmax/process/"+proj.protein+"/"+dataset.split("/")[-3]+"/*/fastdp/*.mtz")                  
     if mtzoutList!=[]:
         srcmtz=mtzoutList[0]
-        if os.path.exists(srcmtz):
-            dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/fastdp/"+dataset.split("/")[-2]+"_fastdp_merged.mtz"
-            if not os.path.exists(dstmtz) and os.path.exists(srcmtz):
-                if not os.path.exists("/".join(dstmtz.split("/")[:-1])):
-                    os.makedirs("/".join(dstmtz.split("/")[:-1])); 
-                shutil.copyfile(srcmtz,dstmtz)           
-                a=dataset.split("process/")[0]+"results/"+dataset+"/fastdp/"+dataset+"_fastdp_unmerged.mtz"
-                cmd="echo 'choose spacegroup "+spg+"' | pointless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN "+dstmtz+" HKLOUT "+dstmtz+" | tee "+'/'.join(dstmtz.split('/')[:-1])+"/aimless.log ; "
-        if aimless=="true":
-            subprocess.Popen(cmd,stdout=subprocess.PIPE, shell=True)''' % (  # noqa
-                        proj.data_path(), proj.protein, spacegroup, aimlessopt))
+        dstmtz=dataset.split("process/")[0]+"results/"+dataset.split("/")[-2]+"/fastdp/"+dataset.split("/")[-2]+"_fastdp_merged.mtz"
+    if srcmtz:  
+        outdir="/".join(dstmtz.split("/")[:-1])
+        cdtooutdir="cd "+ outdir
+        cmd=aimless_cmd(spacegroup,dstmtz)        
+        mkdir=f'mkdir -p {outdir}'
+        copy=f'cp {srcmtz} {dstmtz}'        
+        if aimless:
+            aimless_c=f'{cmd}'
+        fastdp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c    
+        refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
+        out_cmd=fastdp_cmd + "\n" + refine_cmd
+    return out_cmd
 
-    proc2resOut = ""
 
-    # define env for script for dimple
+def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz):
+    dimple_cmd=""
+    buster_cmd=""
+    fsp_cmd=""
+    srcmtz=dstmtz
+    outdir="/".join(dstmtz.split("/")[:-1])
+    fsp = '''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine=''' + userPDB + \
+          ''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 ''' + customreffspipe
 
-    proc2resOut += """#!/bin/bash\n"""
-    proc2resOut += """#!/bin/bash\n"""
-    proc2resOut += """#SBATCH -t 99:55:00\n"""
-    proc2resOut += """#SBATCH -J Pro2Res\n"""
-    proc2resOut += """#SBATCH --exclusive\n"""
-    proc2resOut += """#SBATCH -N1\n"""
-    proc2resOut += """#SBATCH --cpus-per-task=48\n"""
-    proc2resOut += """#SBATCH --mem=220000\n"""
-    proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
-    proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
-    proc2resOut += """module purge\n"""
-    proc2resOut += """module load CCP4 Phenix\n\n"""
-    proc2resOut += "\n\n"
-    proc2resOut += "python " + py_script
+    if "dimple" in argsfit:
+        dimple_cmd+=f"dimple {dstmtz} {userPDB} {outdir}/dimple {customrefdimple}"
 
-    with open(project_script(proj, "run_proc2res.sh"), "w") as outp:
-        outp.write(proc2resOut)
+    if "buster" in argsfit:
+        dstmtz = dstmtz.replace("merged", "truncate")
+        outdir="/".join(dstmtz.split("/")[:-1])
+        if os.path.exists(outdir + "/buster"):
+            buster_cmd += "rm -rf " + outdir + "/buster\n"
+        buster_cmd += \
+            'echo "truncate yes \labout F=FP SIGF=SIGFP" | truncate hklin ' + srcmtz + ' hklout ' + dstmtz + \
+            " | tee " + outdir + "/truncate.log\n"  
+        buster_cmd += "refine -L -p " + userPDB + " -m " + dstmtz + " " + customrefbuster + " -TLS -nthreads 2 -d " + outdir + "/buster \n"
+    
+    if "fspipeline" in argsfit:
+        fsp_cmd+=fsp+"\n"
+        
+    return dimple_cmd+"\n"+fsp_cmd+"\n"+buster_cmd
