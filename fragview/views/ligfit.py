@@ -1,8 +1,14 @@
 import subprocess
 import threading
+import os
 from django.shortcuts import render
-from fragview.projects import current_project, project_script
+from fragview.projects import current_project, project_script, project_process_protein_dir
 
+from glob import glob
+
+
+
+update_script="/data/staff/biomax/webapp/static/scripts/update_status.py"
 
 def datasets(request):
     proj = current_project(request)
@@ -30,98 +36,59 @@ def datasets(request):
 
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
+    
     if "filters:" in filters:
         filters = filters.split(":")[-1]
     if filters == "ALL":
         filters = ""
 
-    with open(project_script(proj, "autoligand.py"), "w") as writeFile:
-        writeFile.write(f'''import multiprocessing
-import time
-import subprocess
-import sys
-import glob
-import os
-path="{proj.data_path()}"
-fraglib="{proj.library}"
-acr="{proj.protein}"
-shiftList="{proj.shift_list}"
-fitmethod=sys.argv[4]
-pdbList=list()
-shiftList=shiftList.split(",")
-for s in shiftList:
-    p="/data/visitors/biomax/{proj.proposal}/"+s
-    pdbList+=glob.glob(p+"/fragmax/results/"+acr+"*/*/*/final.pdb")
-pdbList=[x for x in pdbList if "Apo" not in x and "{filters}" in x]
-cifList=list()
-mtzList=[x.replace(".pdb",".mtz") for x in pdbList]
-outListR=[x.replace("final.pdb","rhofit/") for x in pdbList]
-outListP=[x.replace("final.pdb","ligfit/") for x in pdbList]
-for i in pdbList:
-    fragID=i.split("/")[8].split("-")[-1].split("_")[0]
-    cifList.append(path+"/fragmax/process/fragment/"+fraglib+"/"+fragID+"/"+fragID+".cif")
-inpdataR=list()
-inpdataP=list()
-for a,b,c,d in zip(cifList,mtzList,pdbList,outListR):
-    inpdataR.append([a,b,c,d])
-for a,b,c,d in zip(cifList,mtzList,pdbList,outListP):
-    inpdataP.append([a,b,c,d])
-def fit_worker((cif, mtz, pdb, out)):
-    if fitmethod=="rhofit":
-        if os.path.exists(out):
-            os.system("rm -rf "+out)
-        command="rhofit -l %s -m %s -p %s -d %s" %(cif, mtz, pdb, out)
-        subprocess.call(command, shell=True)
-    if fitmethod=="ligfit":
-        out="/".join(out.split("/")[:-1])
-        if not os.path.exists(out):
-            os.makedirs(out)
-            command="cd %s && phenix.ligandfit data=%s model=%s ligand=%s fill=True clean_up=True" %(out,mtz, pdb, cif)
-            subprocess.call(command, shell=True)
-def mp_handler():
-    p = multiprocessing.Pool(48)
-    if fitmethod=="ligfit":
-        p.map(fit_worker, inpdataP)
-    if fitmethod=="rhofit":
-        p.map(fit_worker, inpdataR)
-if __name__ == '__main__':
-    mp_handler()''')
+    fitmethod=""
+    if useLigFit=="True":
+        fitmethod+="ligfit"
+    if useRhoFit=="True":
+        fitmethod+="rhofit"
 
-    print(project_script(proj, "autoligand.py"))
 
-    script = proj.data_path() + "/fragmax/scripts/autoligand.sh"
-    if "True" in useRhoFit:
-        with open(script, "w") as writeFile:
-            writeFile.write('''#!/bin/bash\n'''
-                            '''#!/bin/bash\n'''
-                            '''#SBATCH -t 99:55:00\n'''
-                            '''#SBATCH -J autoRhofit\n'''
-                            '''#SBATCH --exclusive\n'''
-                            '''#SBATCH -N1\n'''
-                            '''#SBATCH --cpus-per-task=48\n'''
-                            '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/auto_rhofit_%j_out.txt\n'''
-                            '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/auto_rhofit_%j_err.txt\n'''
-                            '''module purge\n'''
-                            '''module load autoPROC BUSTER Phenix CCP4\n'''
-                            '''python ''' + proj.data_path() + '''/fragmax/scripts/autoligand.py ''' +
-                            proj.data_path() + ''' ''' + proj.library + ''' ''' + proj.protein + ''' rhofit\n''')
-        command = 'echo "module purge | module load BUSTER CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
-
-    if "True" in useLigFit:
-        with open(script, "w") as writeFile:
-            writeFile.write('''#!/bin/bash\n'''
-                            '''#!/bin/bash\n'''
-                            '''#SBATCH -t 3:00:00\n'''
-                            '''#SBATCH -J autoLigfit\n'''
-                            '''#SBATCH --exclusive\n'''
-                            '''#SBATCH -N1\n'''
-                            '''#SBATCH --cpus-per-task=48\n'''
-                            '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/auto_ligfit_%j_out.txt\n'''
-                            '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/auto_ligfit_%j_err.txt\n'''
-                            '''module purge\n'''
-                            '''module load autoPROC BUSTER Phenix CCP4\n'''
-                            '''python ''' + proj.data_path() + '''/fragmax/scripts/autoligand.py ''' +
-                            proj.data_path() + ''' ''' + proj.library + ''' ''' + proj.protein + ''' ligfit\n''')
+    pdbList=glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb")
+    pdbList=[x for x in pdbList if "Apo" not in x and filters in x]
+    header=""
+    header+="#!/bin/bash\n"
+    header+="#!/bin/bash\n"
+    header+="#SBATCH -t 01:00:00\n"
+    header+="#SBATCH -J autoLigfit\n"
+    header+="#SBATCH --cpus-per-task=1\n"
+    header+=f"#SBATCH -o /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_out.txt\n"
+    header+=f"#SBATCH -e /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_err.txt\n"
+    header+="module purge\n"
+    header+="module load autoPROC BUSTER Phenix CCP4\n"    
+    
+    for pdb in pdbList:
+        rhofit_cmd = ""
+        ligfit_cmd = ""    
+        fragID         = pdb.split("/")[8].split("-")[-1].split("_")[0]
+        ligCIF         = proj.data_path()+"/fragmax/process/fragment/"+proj.library+"/"+fragID+"/"+fragID+".cif"
+        rhofit_outdir  = pdb.replace("final.pdb","rhofit/")
+        ligfit_outdir  = pdb.replace("final.pdb","ligfit/")
+        mtz_input      = pdb.replace(".pdb",".mtz") 
+        sample         = pdb.split("/")[8]
+        if "rhofit" in fitmethod:
+            if os.path.exists(rhofit_outdir):
+                rhofit_cmd += f"rm -rf {rhofit_outdir}\n"
+            rhofit_cmd     += f"rhofit -l {ligCIF} -m {mtz_input} -p {pdb} -d {rhofit_outdir}\n"
+        if "ligfit" in fitmethod:
+            if os.path.exists(ligfit_outdir):
+                ligfit_cmd += f"rm -rf {ligfit_outdir}\n"
+                ligfit_cmd += f"mkdir -p {ligfit_outdir}\n"
+            ligfit_cmd     += f"cd {ligfit_outdir} \n"
+            ligfit_cmd     += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligCIF} fill=True clean_up=True \n"
+            
+        with open(project_script(proj, "autoligand_"+sample+".sh"), "w") as writeFile:
+            writeFile.write(header)
+            writeFile.write(rhofit_cmd)
+            writeFile.write(ligfit_cmd)
+            writeFile.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
+            writeFile.write("\n\n")
+        script=project_script(proj, "autoligand_"+sample+".sh")    
         command = 'echo "module purge | module load CCP4 Phenix | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
         subprocess.call(command, shell=True)
+        #os.remove(script)
