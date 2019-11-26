@@ -383,7 +383,7 @@ def show_all(request):
                 if status[0][11] == "full":
                     lge += \
                         '<p align="left"><font size="2" color="green">&#9679;</font>' \
-                        '<font size="2"> RhoTFit</font></p></td>'
+                        '<font size="2"> RhoFit</font></p></td>'
                 else:
                     lge += \
                         '<p align="left"><font size="2" color="red">&#9675;</font>' \
