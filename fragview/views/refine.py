@@ -3,11 +3,13 @@ import pypdb
 import pyfastcopy  
 import shutil
 import subprocess
+import threading
 from glob import glob
 from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_process_protein_dir
 from .utils import scrsplit
 
+update_script="/data/staff/biomax/webapp/static/scripts/update_status.py"
 
 def datasets(request):
     proj = current_project(request)
@@ -51,8 +53,11 @@ def datasets(request):
     pdbmodel.replace(".pdb.pdb", ".pdb")
     spacegroup = refspacegroup.replace("refspacegroup:", "")
 
-    run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup, filters, customrefdimple,
-                          customrefbuster, customreffspipe, aimlessopt)
+    t1 = threading.Thread(target=run_structure_solving, args=(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup, filters, customrefdimple,
+                          customrefbuster, customreffspipe, aimlessopt))
+    t1.daemon = True
+    t1.start()
+    
     outinfo = "<br>".join(userInput.split(";;"))
 
     return render(
@@ -125,15 +130,17 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
                 outp.write(autoproc)
                 outp.write("\n\n")
+                outp.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
+                outp.write("\n\n")
             script=project_script(proj, "proc2res_"+sample+".sh")
             command = 'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(command, shell=True)
+            os.remove(script)
         
     else:
         userPDB = "-"
 
     
-
 def aimless_cmd(spacegroup,dstmtz):
     outdir='/'.join(dstmtz.split('/')[:-1])
     cmd=f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
@@ -166,7 +173,7 @@ def find_autoproc(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspip
         copy=f'cp {srcmtz} {dstmtz}'
         if aimless:            
             aimless_c=f'{cmd}'        
-        autoproc_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        autoproc_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=autoproc_cmd + "\n" + refine_cmd
     return out_cmd
@@ -189,7 +196,7 @@ def find_dials(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,c
         copy=f'cp {srcmtz} {dstmtz}'
         if aimless:            
             aimless_c=f'{cmd}'
-        dials_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        dials_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"   
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=dials_cmd + "\n" + refine_cmd
     return out_cmd
@@ -212,7 +219,7 @@ def find_xdsxscale(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspi
         copy=f'cp {srcmtz} {dstmtz}'
         if aimless:            
             aimless_c=f'{cmd}'
-        xdsxscale_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c   
+        xdsxscale_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"   
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=xdsxscale_cmd + "\n" + refine_cmd
     return out_cmd
@@ -237,7 +244,7 @@ def find_xdsapp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,
         copy=f'cp {srcmtz} {dstmtz}'        
         if aimless:
             aimless_c=f'{cmd}'
-        xdsapp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c              
+        xdsapp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"              
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=xdsapp_cmd + "\n" + refine_cmd
     return out_cmd
@@ -262,7 +269,7 @@ def find_edna(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,cu
         copy=f'cp {srcmtz} {dstmtz}'        
         if aimless:
             aimless_c=f'{cmd}'
-        edna_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c     
+        edna_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"     
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=edna_cmd + "\n" + refine_cmd
     return out_cmd
@@ -287,7 +294,7 @@ def find_fastdp(proj,dataset,aimless,spacegroup,argsfit,userPDB,customreffspipe,
         copy=f'cp {srcmtz} {dstmtz}'        
         if aimless:
             aimless_c=f'{cmd}'
-        fastdp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c    
+        fastdp_cmd=mkdir+"\n"+cdtooutdir+"\n"+copy+"\n"+aimless_c+"\n"    
         refine_cmd=set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz)       
         out_cmd=fastdp_cmd + "\n" + refine_cmd
     return out_cmd
