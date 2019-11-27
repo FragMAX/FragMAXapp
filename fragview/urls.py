@@ -1,5 +1,5 @@
 from django.urls import path
-from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice, soaking
 from fragview.views import pipedream, refine, process, ligfit
 
 
@@ -7,6 +7,8 @@ urlpatterns = [
     path('', misc.index, name='index'),
 
     path('testpage/', misc.testfunc, name='testpage'),
+
+    path('soaking_plan/', soaking.soaking_plan, name='soaking_plan'),
 
     path('datasets/', datasets.show_all, name='datasets'),
     path('dataset_info/', datasets.set_details, name='dataset_info'),
