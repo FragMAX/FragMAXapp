@@ -67,6 +67,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
         ligfit_cmd = ""    
         fragID         = pdb.split("/")[8].split("-")[-1].split("_")[0]
         ligCIF         = proj.data_path()+"/fragmax/process/fragment/"+proj.library+"/"+fragID+"/"+fragID+".cif"
+        ligPDB         = proj.data_path()+"/fragmax/process/fragment/"+proj.library+"/"+fragID+"/"+fragID+".pdb"
         rhofit_outdir  = pdb.replace("final.pdb","rhofit/")
         ligfit_outdir  = pdb.replace("final.pdb","ligfit/")
         mtz_input      = pdb.replace(".pdb",".mtz") 
@@ -78,9 +79,9 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
         if "ligfit" in fitmethod:
             if os.path.exists(ligfit_outdir):
                 ligfit_cmd += f"rm -rf {ligfit_outdir}\n"
-                ligfit_cmd += f"mkdir -p {ligfit_outdir}\n"
+            ligfit_cmd     += f"mkdir -p {ligfit_outdir}\n"
             ligfit_cmd     += f"cd {ligfit_outdir} \n"
-            ligfit_cmd     += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligCIF} fill=True clean_up=True \n"
+            ligfit_cmd     += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} fill=True clean_up=True \n"
             
         with open(project_script(proj, "autoligand_"+sample+".sh"), "w") as writeFile:
             writeFile.write(header)
