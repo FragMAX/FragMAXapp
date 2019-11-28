@@ -323,6 +323,7 @@ def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, cust
         buster_cmd += "refine -L -p " + userPDB + " -m " + dstmtz + " " + customrefbuster + " -TLS -nthreads 2 -d " + outdir + "/buster \n"
     
     if "fspipeline" in argsfit:
+        fsp_cmd+="cd "+outdir+"\n"
         fsp_cmd+=fsp+"\n"
         
-    return dimple_cmd+"\n"+fsp_cmd+"\n"+buster_cmd
+    return dimple_cmd+"\n"+buster_cmd+"\n"+fsp_cmd

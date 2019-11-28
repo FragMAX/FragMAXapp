@@ -641,7 +641,7 @@ def submit(request):
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
         if os.path.exists(res_pandda):
-            if os.path.join(res_dir, "pandda_backup"):
+            if os.path.exists(os.path.join(res_dir, "pandda_backup")):
                 shutil.rmtree(os.path.join(res_dir, "pandda_backup"))
             shutil.move(res_pandda, os.path.join(res_dir, "pandda_backup"))
 
