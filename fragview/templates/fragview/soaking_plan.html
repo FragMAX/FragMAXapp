@@ -1,7 +1,7 @@
 
 {% extends 'fragview/base.html' %}
 
-{% block title %}Soaking Planner{% endblock %}
+{% block title %}FragMAX - Soaking Planner{% endblock %}
 {% block content %}
 
 {% load static %}
@@ -14,7 +14,6 @@
 .round {
   position: relative;
 }
-
 .round label {
   background-color: #fff;
   border: 1px solid #ccc;
@@ -26,7 +25,6 @@
   top: 0;
   width: 28px;
 }
-
 .round label:after {
   border: 2px solid #fff;
   border-top: none;
@@ -40,24 +38,19 @@
   transform: rotate(-45deg);
   width: 12px;
 }
-
 .round input[type="checkbox"] {
   visibility: hidden;
 }
-
 .round input[type="checkbox"]:checked + label {
   background-color: #66bb6a;
   border-color: #66bb6a;
 }
-
 .round input[type="checkbox"]:checked + label:after {
   opacity: 1;
 }
-
 .square {
   position: relative;
 }
-
 .square label {
   background-color: #fff;
   border: 1px solid #ccc;
@@ -68,7 +61,6 @@
   top: 0;
   width: 28px;
 }
-
 .square label:after {
   border: 2px solid #fff;
   border-top: none;
@@ -82,26 +74,21 @@
   transform: rotate(-45deg);
   width: 12px;
 }
-
 .square input[type="checkbox"] {
   visibility: hidden;
 }
-
 .square input[type="checkbox"]:checked + label {
   background-color: #66bb6a;
   border-color: #66bb6a;
 }
-
 .square input[type="checkbox"]:checked + label:after {
   opacity: 1;
 }
-
 /* general styling */
 html, body {
   height: 100%;
   margin: 0;
 }
-
 body {
   
   background-color: #f1f2f3;
@@ -109,25 +96,25 @@ body {
   
   display: flex;
 }
-
-.container {
+.container-well {
   margin: 0 auto;
 }
-
+.container {
+  padding-top: 55px;
+}
 .subwella {}
 .subwellb {
-    top: -16px;
+    top:  0px;
     left :31px;
 
 }
 .subwellc {
-   
+   top: 29px;
 }
 .subwelld {
-    top: -16px;
+    top:  29px;
     left: 31px;
 }
-
 .column1{
     
     display: flex;
@@ -178,12 +165,12 @@ body {
 }
 
 .MRC3{
-    
+    padding-left:250px
 }
 </style>
 <body>
 <div class="MRC3">
-<div class="column1"><div class="container">
+<div class="column1"><div class="container-well">
 <div class="container">A1<div class="round subwella">  <input type="checkbox" id="checkboxA1a" />  <label for="checkboxA1a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA1b" disabled/>  <label for="checkboxA1b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA1c" />  <label for="checkboxA1c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA1d" />  <label for="checkboxA1d"></label></div>  </div>  
 <div class="container">B1<div class="round subwella">  <input type="checkbox" id="checkboxB1a" />  <label for="checkboxB1a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB1b" disabled/>  <label for="checkboxB1b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB1c" />  <label for="checkboxB1c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB1d" />  <label for="checkboxB1d"></label></div>  </div>  
 <div class="container">C1<div class="round subwella">  <input type="checkbox" id="checkboxC1a" />  <label for="checkboxC1a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC1b" disabled/>  <label for="checkboxC1b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC1c" />  <label for="checkboxC1c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC1d" />  <label for="checkboxC1d"></label></div>  </div>  
@@ -193,7 +180,7 @@ body {
 <div class="container">G1<div class="round subwella">  <input type="checkbox" id="checkboxG1a" />  <label for="checkboxG1a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG1b" disabled/>  <label for="checkboxG1b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG1c" />  <label for="checkboxG1c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG1d" />  <label for="checkboxG1d"></label></div>  </div>  
 <div class="container">H1<div class="round subwella">  <input type="checkbox" id="checkboxH1a" />  <label for="checkboxH1a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH1b" disabled/>  <label for="checkboxH1b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH1c" />  <label for="checkboxH1c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH1d" />  <label for="checkboxH1d"></label></div>  </div>  
 </div>
-<div class="column2"><div class="container">
+<div class="column2"><div class="container-well">
 <div class="container">A2<div class="round subwella">  <input type="checkbox" id="checkboxA2a" />  <label for="checkboxA2a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA2b" disabled/>  <label for="checkboxA2b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA2c" />  <label for="checkboxA2c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA2d" />  <label for="checkboxA2d"></label></div>  </div>  
 <div class="container">B2<div class="round subwella">  <input type="checkbox" id="checkboxB2a" />  <label for="checkboxB2a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB2b" disabled/>  <label for="checkboxB2b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB2c" />  <label for="checkboxB2c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB2d" />  <label for="checkboxB2d"></label></div>  </div>  
 <div class="container">C2<div class="round subwella">  <input type="checkbox" id="checkboxC2a" />  <label for="checkboxC2a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC2b" disabled/>  <label for="checkboxC2b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC2c" />  <label for="checkboxC2c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC2d" />  <label for="checkboxC2d"></label></div>  </div>  
@@ -203,7 +190,7 @@ body {
 <div class="container">G2<div class="round subwella">  <input type="checkbox" id="checkboxG2a" />  <label for="checkboxG2a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG2b" disabled/>  <label for="checkboxG2b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG2c" />  <label for="checkboxG2c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG2d" />  <label for="checkboxG2d"></label></div>  </div>  
 <div class="container">H2<div class="round subwella">  <input type="checkbox" id="checkboxH2a" />  <label for="checkboxH2a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH2b" disabled/>  <label for="checkboxH2b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH2c" />  <label for="checkboxH2c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH2d" />  <label for="checkboxH2d"></label></div>  </div>  
 </div>
-<div class="column3"><div class="container">
+<div class="column3"><div class="container-well">
 <div class="container">A3<div class="round subwella">  <input type="checkbox" id="checkboxA3a" />  <label for="checkboxA3a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA3b" disabled/>  <label for="checkboxA3b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA3c" />  <label for="checkboxA3c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA3d" />  <label for="checkboxA3d"></label></div>  </div>  
 <div class="container">B3<div class="round subwella">  <input type="checkbox" id="checkboxB3a" />  <label for="checkboxB3a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB3b" disabled/>  <label for="checkboxB3b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB3c" />  <label for="checkboxB3c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB3d" />  <label for="checkboxB3d"></label></div>  </div>  
 <div class="container">C3<div class="round subwella">  <input type="checkbox" id="checkboxC3a" />  <label for="checkboxC3a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC3b" disabled/>  <label for="checkboxC3b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC3c" />  <label for="checkboxC3c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC3d" />  <label for="checkboxC3d"></label></div>  </div>  
@@ -213,7 +200,7 @@ body {
 <div class="container">G3<div class="round subwella">  <input type="checkbox" id="checkboxG3a" />  <label for="checkboxG3a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG3b" disabled/>  <label for="checkboxG3b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG3c" />  <label for="checkboxG3c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG3d" />  <label for="checkboxG3d"></label></div>  </div>  
 <div class="container">H3<div class="round subwella">  <input type="checkbox" id="checkboxH3a" />  <label for="checkboxH3a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH3b" disabled/>  <label for="checkboxH3b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH3c" />  <label for="checkboxH3c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH3d" />  <label for="checkboxH3d"></label></div>  </div>  
 </div>
-<div class="column4"><div class="container">
+<div class="column4"><div class="container-well">
 <div class="container">A4<div class="round subwella">  <input type="checkbox" id="checkboxA4a" />  <label for="checkboxA4a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA4b" disabled/>  <label for="checkboxA4b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA4c" />  <label for="checkboxA4c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA4d" />  <label for="checkboxA4d"></label></div>  </div>  
 <div class="container">B4<div class="round subwella">  <input type="checkbox" id="checkboxB4a" />  <label for="checkboxB4a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB4b" disabled/>  <label for="checkboxB4b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB4c" />  <label for="checkboxB4c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB4d" />  <label for="checkboxB4d"></label></div>  </div>  
 <div class="container">C4<div class="round subwella">  <input type="checkbox" id="checkboxC4a" />  <label for="checkboxC4a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC4b" disabled/>  <label for="checkboxC4b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC4c" />  <label for="checkboxC4c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC4d" />  <label for="checkboxC4d"></label></div>  </div>  
@@ -223,7 +210,7 @@ body {
 <div class="container">G4<div class="round subwella">  <input type="checkbox" id="checkboxG4a" />  <label for="checkboxG4a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG4b" disabled/>  <label for="checkboxG4b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG4c" />  <label for="checkboxG4c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG4d" />  <label for="checkboxG4d"></label></div>  </div>  
 <div class="container">H4<div class="round subwella">  <input type="checkbox" id="checkboxH4a" />  <label for="checkboxH4a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH4b" disabled/>  <label for="checkboxH4b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH4c" />  <label for="checkboxH4c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH4d" />  <label for="checkboxH4d"></label></div>  </div>  
 </div>
-<div class="column5"><div class="container">
+<div class="column5"><div class="container-well">
 <div class="container">A5<div class="round subwella">  <input type="checkbox" id="checkboxA5a" />  <label for="checkboxA5a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA5b" disabled/>  <label for="checkboxA5b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA5c" />  <label for="checkboxA5c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA5d" />  <label for="checkboxA5d"></label></div>  </div>  
 <div class="container">B5<div class="round subwella">  <input type="checkbox" id="checkboxB5a" />  <label for="checkboxB5a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB5b" disabled/>  <label for="checkboxB5b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB5c" />  <label for="checkboxB5c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB5d" />  <label for="checkboxB5d"></label></div>  </div>  
 <div class="container">C5<div class="round subwella">  <input type="checkbox" id="checkboxC5a" />  <label for="checkboxC5a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC5b" disabled/>  <label for="checkboxC5b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC5c" />  <label for="checkboxC5c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC5d" />  <label for="checkboxC5d"></label></div>  </div>  
@@ -233,7 +220,7 @@ body {
 <div class="container">G5<div class="round subwella">  <input type="checkbox" id="checkboxG5a" />  <label for="checkboxG5a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG5b" disabled/>  <label for="checkboxG5b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG5c" />  <label for="checkboxG5c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG5d" />  <label for="checkboxG5d"></label></div>  </div>  
 <div class="container">H5<div class="round subwella">  <input type="checkbox" id="checkboxH5a" />  <label for="checkboxH5a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH5b" disabled/>  <label for="checkboxH5b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH5c" />  <label for="checkboxH5c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH5d" />  <label for="checkboxH5d"></label></div>  </div>  
 </div>
-<div class="column6"><div class="container">
+<div class="column6"><div class="container-well">
 <div class="container">A6<div class="round subwella">  <input type="checkbox" id="checkboxA6a" />  <label for="checkboxA6a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA6b" disabled/>  <label for="checkboxA6b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA6c" />  <label for="checkboxA6c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA6d" />  <label for="checkboxA6d"></label></div>  </div>  
 <div class="container">B6<div class="round subwella">  <input type="checkbox" id="checkboxB6a" />  <label for="checkboxB6a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB6b" disabled/>  <label for="checkboxB6b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB6c" />  <label for="checkboxB6c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB6d" />  <label for="checkboxB6d"></label></div>  </div>  
 <div class="container">C6<div class="round subwella">  <input type="checkbox" id="checkboxC6a" />  <label for="checkboxC6a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC6b" disabled/>  <label for="checkboxC6b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC6c" />  <label for="checkboxC6c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC6d" />  <label for="checkboxC6d"></label></div>  </div>  
@@ -243,7 +230,7 @@ body {
 <div class="container">G6<div class="round subwella">  <input type="checkbox" id="checkboxG6a" />  <label for="checkboxG6a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG6b" disabled/>  <label for="checkboxG6b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG6c" />  <label for="checkboxG6c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG6d" />  <label for="checkboxG6d"></label></div>  </div>  
 <div class="container">H6<div class="round subwella">  <input type="checkbox" id="checkboxH6a" />  <label for="checkboxH6a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH6b" disabled/>  <label for="checkboxH6b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH6c" />  <label for="checkboxH6c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH6d" />  <label for="checkboxH6d"></label></div>  </div>  
 </div>
-<div class="column7"><div class="container">
+<div class="column7"><div class="container-well">
 <div class="container">A7<div class="round subwella">  <input type="checkbox" id="checkboxA7a" />  <label for="checkboxA7a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA7b" disabled/>  <label for="checkboxA7b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA7c" />  <label for="checkboxA7c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA7d" />  <label for="checkboxA7d"></label></div>  </div>  
 <div class="container">B7<div class="round subwella">  <input type="checkbox" id="checkboxB7a" />  <label for="checkboxB7a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB7b" disabled/>  <label for="checkboxB7b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB7c" />  <label for="checkboxB7c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB7d" />  <label for="checkboxB7d"></label></div>  </div>  
 <div class="container">C7<div class="round subwella">  <input type="checkbox" id="checkboxC7a" />  <label for="checkboxC7a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC7b" disabled/>  <label for="checkboxC7b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC7c" />  <label for="checkboxC7c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC7d" />  <label for="checkboxC7d"></label></div>  </div>  
@@ -253,7 +240,7 @@ body {
 <div class="container">G7<div class="round subwella">  <input type="checkbox" id="checkboxG7a" />  <label for="checkboxG7a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG7b" disabled/>  <label for="checkboxG7b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG7c" />  <label for="checkboxG7c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG7d" />  <label for="checkboxG7d"></label></div>  </div>  
 <div class="container">H7<div class="round subwella">  <input type="checkbox" id="checkboxH7a" />  <label for="checkboxH7a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH7b" disabled/>  <label for="checkboxH7b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH7c" />  <label for="checkboxH7c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH7d" />  <label for="checkboxH7d"></label></div>  </div>  
 </div>
-<div class="column8"><div class="container">
+<div class="column8"><div class="container-well">
 <div class="container">A8<div class="round subwella">  <input type="checkbox" id="checkboxA8a" />  <label for="checkboxA8a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA8b" disabled/>  <label for="checkboxA8b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA8c" />  <label for="checkboxA8c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA8d" />  <label for="checkboxA8d"></label></div>  </div>  
 <div class="container">B8<div class="round subwella">  <input type="checkbox" id="checkboxB8a" />  <label for="checkboxB8a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB8b" disabled/>  <label for="checkboxB8b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB8c" />  <label for="checkboxB8c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB8d" />  <label for="checkboxB8d"></label></div>  </div>  
 <div class="container">C8<div class="round subwella">  <input type="checkbox" id="checkboxC8a" />  <label for="checkboxC8a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC8b" disabled/>  <label for="checkboxC8b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC8c" />  <label for="checkboxC8c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC8d" />  <label for="checkboxC8d"></label></div>  </div>  
@@ -263,7 +250,7 @@ body {
 <div class="container">G8<div class="round subwella">  <input type="checkbox" id="checkboxG8a" />  <label for="checkboxG8a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG8b" disabled/>  <label for="checkboxG8b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG8c" />  <label for="checkboxG8c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG8d" />  <label for="checkboxG8d"></label></div>  </div>  
 <div class="container">H8<div class="round subwella">  <input type="checkbox" id="checkboxH8a" />  <label for="checkboxH8a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH8b" disabled/>  <label for="checkboxH8b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH8c" />  <label for="checkboxH8c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH8d" />  <label for="checkboxH8d"></label></div>  </div>  
 </div>
-<div class="column9"><div class="container">
+<div class="column9"><div class="container-well">
 <div class="container">A9<div class="round subwella">  <input type="checkbox" id="checkboxA9a" />  <label for="checkboxA9a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA9b" disabled/>  <label for="checkboxA9b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA9c" />  <label for="checkboxA9c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA9d" />  <label for="checkboxA9d"></label></div>  </div>  
 <div class="container">B9<div class="round subwella">  <input type="checkbox" id="checkboxB9a" />  <label for="checkboxB9a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB9b" disabled/>  <label for="checkboxB9b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB9c" />  <label for="checkboxB9c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB9d" />  <label for="checkboxB9d"></label></div>  </div>  
 <div class="container">C9<div class="round subwella">  <input type="checkbox" id="checkboxC9a" />  <label for="checkboxC9a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC9b" disabled/>  <label for="checkboxC9b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC9c" />  <label for="checkboxC9c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC9d" />  <label for="checkboxC9d"></label></div>  </div>  
@@ -273,7 +260,7 @@ body {
 <div class="container">G9<div class="round subwella">  <input type="checkbox" id="checkboxG9a" />  <label for="checkboxG9a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG9b" disabled/>  <label for="checkboxG9b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG9c" />  <label for="checkboxG9c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG9d" />  <label for="checkboxG9d"></label></div>  </div>  
 <div class="container">H9<div class="round subwella">  <input type="checkbox" id="checkboxH9a" />  <label for="checkboxH9a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH9b" disabled/>  <label for="checkboxH9b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH9c" />  <label for="checkboxH9c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH9d" />  <label for="checkboxH9d"></label></div>  </div>  
 </div>
-<div class="column10"><div class="container">
+<div class="column10"><div class="container-well">
 <div class="container">A10<div class="round subwella">  <input type="checkbox" id="checkboxA10a" />  <label for="checkboxA10a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA10b" disabled/>  <label for="checkboxA10b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA10c" />  <label for="checkboxA10c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA10d" />  <label for="checkboxA10d"></label></div>  </div>  
 <div class="container">B10<div class="round subwella">  <input type="checkbox" id="checkboxB10a" />  <label for="checkboxB10a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB10b" disabled/>  <label for="checkboxB10b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB10c" />  <label for="checkboxB10c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB10d" />  <label for="checkboxB10d"></label></div>  </div>  
 <div class="container">C10<div class="round subwella">  <input type="checkbox" id="checkboxC10a" />  <label for="checkboxC10a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC10b" disabled/>  <label for="checkboxC10b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC10c" />  <label for="checkboxC10c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC10d" />  <label for="checkboxC10d"></label></div>  </div>  
@@ -283,7 +270,7 @@ body {
 <div class="container">G10<div class="round subwella">  <input type="checkbox" id="checkboxG10a" />  <label for="checkboxG10a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG10b" disabled/>  <label for="checkboxG10b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG10c" />  <label for="checkboxG10c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG10d" />  <label for="checkboxG10d"></label></div>  </div>  
 <div class="container">H10<div class="round subwella">  <input type="checkbox" id="checkboxH10a" />  <label for="checkboxH10a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH10b" disabled/>  <label for="checkboxH10b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH10c" />  <label for="checkboxH10c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH10d" />  <label for="checkboxH10d"></label></div>  </div>  
 </div>
-<div class="column11"><div class="container">
+<div class="column11"><div class="container-well">
 <div class="container">A11<div class="round subwella">  <input type="checkbox" id="checkboxA11a" />  <label for="checkboxA11a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA11b" disabled/>  <label for="checkboxA11b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA11c" />  <label for="checkboxA11c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA11d" />  <label for="checkboxA11d"></label></div>  </div>  
 <div class="container">B11<div class="round subwella">  <input type="checkbox" id="checkboxB11a" />  <label for="checkboxB11a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB11b" disabled/>  <label for="checkboxB11b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB11c" />  <label for="checkboxB11c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB11d" />  <label for="checkboxB11d"></label></div>  </div>  
 <div class="container">C11<div class="round subwella">  <input type="checkbox" id="checkboxC11a" />  <label for="checkboxC11a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC11b" disabled/>  <label for="checkboxC11b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC11c" />  <label for="checkboxC11c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC11d" />  <label for="checkboxC11d"></label></div>  </div>  
@@ -293,7 +280,7 @@ body {
 <div class="container">G11<div class="round subwella">  <input type="checkbox" id="checkboxG11a" />  <label for="checkboxG11a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxG11b" disabled/>  <label for="checkboxG11b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxG11c" />  <label for="checkboxG11c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxG11d" />  <label for="checkboxG11d"></label></div>  </div>  
 <div class="container">H11<div class="round subwella">  <input type="checkbox" id="checkboxH11a" />  <label for="checkboxH11a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxH11b" disabled/>  <label for="checkboxH11b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxH11c" />  <label for="checkboxH11c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxH11d" />  <label for="checkboxH11d"></label></div>  </div>  
 </div>
-<div class="column12"><div class="container">
+<div class="column12"><div class="container-well">
 <div class="container">A12<div class="round subwella">  <input type="checkbox" id="checkboxA12a" />  <label for="checkboxA12a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxA12b" disabled/>  <label for="checkboxA12b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxA12c" />  <label for="checkboxA12c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxA12d" />  <label for="checkboxA12d"></label></div>  </div>  
 <div class="container">B12<div class="round subwella">  <input type="checkbox" id="checkboxB12a" />  <label for="checkboxB12a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxB12b" disabled/>  <label for="checkboxB12b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxB12c" />  <label for="checkboxB12c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxB12d" />  <label for="checkboxB12d"></label></div>  </div>  
 <div class="container">C12<div class="round subwella">  <input type="checkbox" id="checkboxC12a" />  <label for="checkboxC12a"></label></div><div class="square subwellb">  <input type="checkbox" id="checkboxC12b" disabled/>  <label for="checkboxC12b"></label></div><div class="round subwellc">  <input type="checkbox" id="checkboxC12c" />  <label for="checkboxC12c"></label></div><div class="round subwelld">  <input type="checkbox" id="checkboxC12d" />  <label for="checkboxC12d"></label></div>  </div>  
