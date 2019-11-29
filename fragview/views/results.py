@@ -248,7 +248,7 @@ def result_summary(proj):
         #old way, still looking for datasets in the regular process folder, not fragmax
         fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
         EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
-        
+        allLogs=xdsappLogs+autoprocLogs+dialsLogs+xdsxscaleLogs+EDNALogs+fastdpLogs
         #new way, looking for datasets inside the fragmax/process folder
         #It wont work with old project unless fastdp and EDNA is synchronised with fragmax folder
         #fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
@@ -260,7 +260,7 @@ def result_summary(proj):
             glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
             glob(f"{res_dir}**/*/buster/refine.pdb")
 
-    datasetList = sorted(set([x.split("/")[-4] for x in resultsList]), key=lambda x: ("Apo" in x, x))
+    datasetList = sorted(set([x.split("/")[-3] for x in allLogs]), key=lambda x: ("Apo" in x, x))
     for dataset in datasetList:
         isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "EDNA": ""}
 
