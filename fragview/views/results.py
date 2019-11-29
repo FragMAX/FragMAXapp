@@ -245,16 +245,23 @@ def result_summary(proj):
         autoprocLogs += glob(f"{fmax_proc_dir}/*/*/autoproc/process.log")
         dialsLogs += glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
         xdsxscaleLogs += glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
+        #old way, still looking for datasets in the regular process folder, not fragmax
         fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
         EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
-        h5List += glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
+        
+        #new way, looking for datasets inside the fragmax/process folder
+        #It wont work with old project unless fastdp and EDNA is synchronised with fragmax folder
+        #fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
+        #EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
+
+        #h5List += glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
         resultsList += \
             glob(f"{res_dir}**/*/dimple/final.pdb") + \
             glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
             glob(f"{res_dir}**/*/buster/refine.pdb")
 
-    h5List = sorted(h5List, key=lambda x: ("Apo" in x, x))
-    for dataset in [x.split("/")[-1].split("_master.h5")[0] for x in h5List]:
+    datasetList = sorted(set([x.split("/")[-4] for x in resultsList]), key=lambda x: ("Apo" in x, x))
+    for dataset in datasetList:
         isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "EDNA": ""}
 
     resultsList = sorted(resultsList, key=lambda x: ("Apo" in x, x))
