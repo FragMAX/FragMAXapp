@@ -1,0 +1,33 @@
+# build & push
+
+docker build -t docker.maxiv.lu.se/fragmax .
+docker push docker.maxiv.lu.se/fragmax
+
+# pull
+
+docker pull docker.maxiv.lu.se/fragmax
+
+# setup DB and key volumes
+
+# docker container prune && docker volume rm fragmax <-- to remove volume
+./deploy/create_vol.py
+
+# migrate database on the volume
+
+docker run \
+    --mount source=fragmax,target=/volume \
+    -ti fragmax ./migrate_db.sh
+
+# run
+
+docker run \
+    --mount type=bind,source=/etc/ssl/certs,target=/etc/ssl/certs \
+    --mount type=bind,source=/etc/nslcd.conf,target=/etc/nslcd.conf \
+    --mount type=bind,source=/mxn/home,target=/mxn/home \
+    --mount type=bind,source=/mxn/groups/biomax/wmxsoft/xds_related,target=/mxn/groups/biomax/wmxsoft/xds_related \
+    --mount type=bind,source=/mxn/groups/ispybstorage/pyarch,target=/app/static/pyarch \
+    --mount type=bind,source=/data/visitors/biomax,target=/data/visitors/biomax \
+    --mount source=fragmax,target=/volume \
+    --restart unless-stopped \
+    --publish 80:80 --name fragmax -d docker.maxiv.lu.se/fragmax
+
