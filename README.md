@@ -22,11 +22,9 @@ Dataset analysis with Pandda
 
 See environment.yml and requirements.txt files.
 
-## Set-up with conda and pip
+## Set-up with conda
 
-Follow steps below to set-up an environment for running FragMAX webapp using conda and pip.
-
-We need to use both conda and pip, as some of the required packages are not available via conda.
+Follow steps below to set-up an environment for running FragMAX webapp using conda.
 
 - use you prefered method for installing [conda](https://docs.conda.io/en/latest/)
 - clone this repository
@@ -36,11 +34,6 @@ We need to use both conda and pip, as some of the required packages are not avai
 - create conda environment 'FragMAX'
 
     conda env create -f <src-dir>/environment.yml
-
-- install missing packages
-
-    conda activate FragMAX
-    pip install -r <src-dir>/requirements.txt 
 
 If all goes well, the conda environment called 'FragMAX' will contain all required package for the webapp.
 
