@@ -72,16 +72,15 @@ def result_summary(proj):
                     resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
                     resolution = str("{0:.2f}".format(float(resolution)))
                 if "CRYST1" in line:
-                    a = line[9:15]
-                    b = line[18:24]
-                    c = line[27:33]
-                    alpha = line[34:40].replace(" ", "")
-                    beta = line[41:47].replace(" ", "")
-                    gamma = line[48:54].replace(" ", "")
-                    a = str("{0:.2f}".format(float(a)))
-                    b = str("{0:.2f}".format(float(b)))
-                    c = str("{0:.2f}".format(float(c)))
-                    spg = "".join(line.split()[7:])
+                        a=line.split()[1]
+                        b=line.split()[2]
+                        c=line.split()[3]
+
+                        alpha=line.split()[4]
+                        beta=line.split()[5]
+                        gamma=line.split()[6]
+
+                        spg="".join(line.split()[7:])
 
             entry = entry.replace("final.pdb", "dimple.log")
             with open(entry, "r") as inp:
@@ -113,16 +112,16 @@ def result_summary(proj):
                     resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
                     resolution = str("{0:.2f}".format(float(resolution)))
                 if "CRYST1" in line:
-                    a = line[9:15]
-                    b = line[18:24]
-                    c = line[27:33]
-                    alpha = line[34:40].replace(" ", "")
-                    beta = line[41:47].replace(" ", "")
-                    gamma = line[48:54].replace(" ", "")
-                    a = str("{0:.2f}".format(float(a)))
-                    b = str("{0:.2f}".format(float(b)))
-                    c = str("{0:.2f}".format(float(c)))
-                    spg = "".join(line.split()[-4:])
+                    a=line.split()[1]
+                    b=line.split()[2]
+                    c=line.split()[3]
+
+                    alpha=line.split()[4]
+                    beta=line.split()[5]
+                    gamma=line.split()[6]
+
+                    spg="".join(line.split()[7:])
+
             if not path.exists(entry.replace("refine.pdb", "final.pdb")):
                 shutil.copyfile(entry, entry.replace("refine.pdb", "final.pdb"))
 
@@ -152,16 +151,15 @@ def result_summary(proj):
                         resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
                         resolution = str("{0:.2f}".format(float(resolution)))
                     if "CRYST1" in line:
-                        a = line[9:15]
-                        b = line[18:24]
-                        c = line[27:33]
-                        alpha = line[34:40].replace(" ", "")
-                        beta = line[41:47].replace(" ", "")
-                        gamma = line[48:54].replace(" ", "")
-                        a = str("{0:.2f}".format(float(a)))
-                        b = str("{0:.2f}".format(float(b)))
-                        c = str("{0:.2f}".format(float(c)))
-                        spg = "".join(line.split()[-4:])
+                        a=line.split()[1]
+                        b=line.split()[2]
+                        c=line.split()[3]
+
+                        alpha=line.split()[4]
+                        beta=line.split()[5]
+                        gamma=line.split()[6]
+
+                        spg="".join(line.split()[7:])
 
                 with open("/".join(entry.split("/")[:-1]) + "/blobs.log", "r") as inp:
                     readFile = inp.readlines()
@@ -246,21 +244,22 @@ def result_summary(proj):
         dialsLogs += glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
         xdsxscaleLogs += glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
         #old way, still looking for datasets in the regular process folder, not fragmax
-        fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
-        EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
-        allLogs=xdsappLogs+autoprocLogs+dialsLogs+xdsxscaleLogs+EDNALogs+fastdpLogs
+        #fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
+        #EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
+        
         #new way, looking for datasets inside the fragmax/process folder
         #It wont work with old project unless fastdp and EDNA is synchronised with fragmax folder
-        #fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
-        #EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
+        fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
+        EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
 
+        allLogs=xdsappLogs+autoprocLogs+dialsLogs+xdsxscaleLogs+EDNALogs+fastdpLogs
         #h5List += glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
         resultsList += \
             glob(f"{res_dir}**/*/dimple/final.pdb") + \
             glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
             glob(f"{res_dir}**/*/buster/refine.pdb")
 
-    datasetList = sorted(set([x.split("/")[-3] for x in allLogs]), key=lambda x: ("Apo" in x, x))
+    datasetList = sorted(set([x.split("/")[-3] for x in allLogs]+[x.split("/")[-4] for x in resultsList]), key=lambda x: ("Apo" in x, x))
     for dataset in datasetList:
         isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "EDNA": ""}
 
@@ -272,7 +271,7 @@ def result_summary(proj):
             logfile = readFile.readlines()
         for line in logfile:
             if "    ISa" in line:
-                isa = line.split()[-1]
+                isa = line.split()[-1]                
                 isaDict[dataset].update({"xdsapp": isa})
 
     for log in autoprocLogs:
@@ -304,7 +303,7 @@ def result_summary(proj):
         isaDict[dataset].update({"xdsxscale": isa})
 
     for log in fastdpLogs:
-        dataset = log.split("/")[9][4:-2]
+        dataset = log.split("/")[10]
         with open(log, "r") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -313,7 +312,7 @@ def result_summary(proj):
         isaDict[dataset].update({"fastdp": isa})
 
     for log in EDNALogs:
-        dataset = log.split("/")[9][4:-2]
+        dataset = log.split("/")[10]
         with open(log, "r") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
