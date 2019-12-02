@@ -662,7 +662,7 @@ shiftList=sys.argv[5].split(",")
 proposal=path.split("/")[4]
 def pandda_run(method):
     os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)
-    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])+"' cpus=16"
+    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])+"' cpus=16 "
     subprocess.call(command, shell=True)
     if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:
         lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]
@@ -708,7 +708,7 @@ os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
             outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
             outp.write('python ' + py_script + ' ' + proj.data_path() + ' ' + method + ' '
                        + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
-
+        
         t1 = threading.Thread(target=pandda_worker, args=(method, proj))
         t1.daemon = True
         t1.start()
@@ -855,7 +855,7 @@ def giant_score(proj, method):
 
 def pandda_worker(method, proj):
     rn = str(randint(10000, 99999))
-
+    
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
     header += '''#SBATCH -t 00:15:00\n'''
@@ -869,51 +869,30 @@ def pandda_worker(method, proj):
               proj.protein + '''_%j_err.txt\n'''
     header += '''module purge\n'''
     header += '''module load CCP4 Phenix\n'''
-
+    
     fragDict = dict()
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library}/*"):
         fragDict[_dir.split("/")[-1]] = _dir
+    
+    if "best" in method:
+        
+        selectedDict = {
+                x.split("/")[-4]: x
+                for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
+            }       
+        for dataset in selectedDict.keys():
+            selectedDict[dataset]=get_best_alt_dataset(proj,dataset)            
+    else:
+        method_dir = method.replace("_", "/")      
+        datasetList=set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/*/*/*/final.pdb")])
+        selectedDict = {
+                x.split("/")[-4]: x
+                for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/final.pdb"))
+            }
+        missingDict = set(datasetDict) - set(selectedDict)
 
-    datasetDict = {
-        dt.split("/")[-1].split("_master.h5")[0]: dt
-        for dt in sorted(
-            [x for x in project_raw_master_h5_files(proj) if "ref-" not in x])
-    }
-
-    method_dir = method.replace("_", "/")
-
-    selectedDict = {
-        x.split("/")[-4]: x
-        for x in sorted([
-            x for x in
-            [item for it in
-             [glob(f"{s}/fragmax/results/{proj.protein}*/{method_dir}/final.pdb") for s in project_shift_dirs(proj)]
-             for item in it]])
-    }
-
-    missingDict = {k: datasetDict[k] for k in set(datasetDict) - set(selectedDict)}
-
-    for dataset in missingDict:
-        optionList = [
-            item for it in
-            [glob(f"{s}/fragmax/results/{dataset}/*/*/final.pdb") for s in project_shift_dirs(proj)]
-            for item in it]
-
-        if optionList == []:
-            selectedDict[dataset] = ""
-        else:
-            prefered = sorted([s for s in optionList if method.split("_")[0] in s or method.split("_")[-1] in s],
-                              reverse=True)
-            if prefered == [] and optionList != []:
-                prefered = sorted([s for s in optionList if "dials" in s or "xdsapp" in s or "autoproc" in s],
-                                  reverse=True)
-                if prefered == []:
-                    sub = optionList[0]
-                elif prefered != []:
-                    sub = prefered[0]
-            elif prefered != []:
-                sub = prefered[0]
-            selectedDict[dataset] = sub
+        for dataset in missingDict:
+            selectedDict[dataset]=get_best_alt_dataset(proj,dataset)
 
     for dataset, pdb in selectedDict.items():
         if os.path.exists(pdb):
@@ -943,12 +922,23 @@ def pandda_worker(method, proj):
                            resHigh + '''" | cad hklin1 ''' + hklin + ''' hklout ''' + hklout
                 uniqueify = '''uniqueify -f ''' + freeRflag + ''' ''' + hklout + ''' ''' + hklout
                 hklout_rfill = hklout.replace(".mtz", "_rfill.mtz")
-
+                
                 freerflag = '''echo -e "COMPLETE FREE=''' + freeRflag + ''' \\nEND" | freerflag hklin ''' + \
                             hklout + ''' hklout ''' + hklout_rfill
+                
 
+                #Find F and SIGF flags for phenix maps
+                cmd = """mtzdmp """ + hklout_rfill
+                output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
+                flags=""
+                for i in output.splitlines():
+                    if "H K L " in i:
+                        flags=i.split()
+                fsigf_Flag=""
+                if "F" in flags and "SIGF" in flags:
+                    fsigf_Flag="maps.input.reflection_data.labels=F,SIGF"
                 phenix_maps = \
-                    "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + "; mv " + hklout + " " + \
+                    "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + " "+fsigf_Flag+"; mv " + hklout + " " + \
                     hklout.replace(".mtz", "_original.mtz") + "; mv " + \
                     hklout.replace(".mtz", "_map_coeffs.mtz") + " " + hklout
 
@@ -970,11 +960,33 @@ def pandda_worker(method, proj):
 
             cmd = 'echo "module purge | module load CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
             subprocess.call(cmd, shell=True)
-            os.remove(script)
+            #os.remove(script)
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     cmd = 'echo "module purge | module load CCP4 | ' + "sbatch --dependency=singleton --job-name=PnD" + rn + \
           " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
 
     subprocess.call(cmd, shell=True)
-    os.remove(script)
+    #os.remove(script)
+
+
+def get_best_alt_dataset(proj,dataset):
+    optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb")
+    rwork_res=list()
+    r_work=""
+    resolution=""
+    if optionList==[]:
+        return ""
+    else:        
+        for pdb in optionList:
+            with open(pdb,"r") as readFile:
+                pdb_file=readFile.readlines()
+            for line in pdb_file:
+                if "REMARK Final:" in line:
+                    r_work = line.split()[4]
+                    r_free = line.split()[7]
+                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+                    resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+            rwork_res.append((pdb,r_work,resolution))
+        rwork_res.sort(key=lambda pair: pair[1:3])
+        return rwork_res[0][0]
