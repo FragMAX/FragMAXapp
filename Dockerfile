@@ -45,6 +45,7 @@ COPY fragview fragview/
 COPY fragmax fragmax/
 COPY static static/
 COPY manage.py deploy/migrate_db.sh ./
+COPY deploy/site_settings.py site_settings.py
 RUN ln -s /data/visitors/biomax static/biomax
 RUN ln -s /mxn/groups/ispybstorage/pyarch static/pyarch
 # hack to serve css, js etc files from the 'material' package via nginx

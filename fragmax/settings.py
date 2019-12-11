@@ -146,3 +146,20 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     '/data/visitors/biomax/',
 ]
+
+#
+# HPC (compute cluster) settings
+#
+
+# the host we use to manage jobs on HPC
+HPC_FRONT_END = "clu0-fe-1"
+# user name for issuing jobs,
+# None means use currently logged in user
+HPC_USER = None
+
+
+# load site specific settings override, if any
+try:
+    from site_settings import *  # noqa F403, F401
+except ModuleNotFoundError:
+    print("NOTE: no site settings found")

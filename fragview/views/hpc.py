@@ -5,17 +5,13 @@ from time import sleep
 from django.shortcuts import render
 
 from fragview.projects import current_project, project_shift_dirs
+from fragview import hpc
 
 
 def status(request):
     proj = current_project(request)
 
-    proc = subprocess.Popen(
-        ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-
-    out, err = proc.communicate()
+    out = hpc.jobs_list(request.user)
 
     hpcList = list()
     for j in out.decode("UTF-8").split("\n")[1:-1]:
@@ -54,10 +50,8 @@ def kill_job(request):
     subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     sleep(5)
-    proc = subprocess.Popen(
-        ["ssh", "-t", "clu0-fe-1", "squeue", "-u", request.user.username],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = proc.communicate()
+
+    out = hpc.jobs_list(request.user)
     output = ""
 
     for i in out.decode("UTF-8").split("\n")[1:-1]:
