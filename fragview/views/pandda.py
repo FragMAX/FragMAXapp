@@ -11,6 +11,7 @@ from random import randint
 from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
+from fragview import hpc
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir
 
@@ -976,19 +977,11 @@ def pandda_worker(method, proj):
                         f"cp {os.path.join(fragDict[frag], frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
                         f"cp {os.path.join(fragDict[frag], frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
 
-            cmd = 'echo "module purge | module load CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(cmd, shell=True)
+            hpc.run_sbatch(script)
             # os.remove(script)
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
-    cmd = 'echo "module purge | module load CCP4 | ' + "sbatch --dependency=singleton --job-name=PnD" + rn + \
-          " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-    import json
-
-    # as requested in comment
-    
-    subprocess.call(cmd, shell=True)
-    # os.remove(script)
+    hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
 
 
 def get_best_alt_dataset(proj, dataset):

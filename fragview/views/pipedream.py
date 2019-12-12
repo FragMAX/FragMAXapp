@@ -9,6 +9,7 @@ import subprocess
 from os import path
 from glob import glob
 from django.shortcuts import render
+from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
 from fragview.projects import project_shift_dirs, project_static_url, project_model_path, project_ligand_cif
 from fragview.projects import project_script
@@ -263,9 +264,7 @@ def submit(request):
         with open(script, "w") as ppdsh:
             ppdsh.write(singlePipedreamOut)
 
-        command = \
-            'echo "module purge | module load autoPROC BUSTER | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)
 
     if "alldatasets" in input_data:
         ppddatasetList = list(project_raw_master_h5_files(proj))
@@ -389,9 +388,7 @@ def submit(request):
             with open(script, "w") as outfile:
                 outfile.write(chunk)
 
-            command = \
-                'echo "module purge | module load autoPROC BUSTER | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command, shell=True)
+            hpc.run_sbatch(script)
 
     return render(
         request,

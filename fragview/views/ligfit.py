@@ -1,7 +1,7 @@
-import subprocess
 import threading
 import os
 from django.shortcuts import render
+from fragview import hpc
 from fragview.projects import current_project, project_script
 
 from glob import glob
@@ -87,6 +87,5 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
             writeFile.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
             writeFile.write("\n\n")
         script = project_script(proj, "autoligand_" + sample + ".sh")
-        command = 'echo "module purge | module load CCP4 Phenix | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)
         # os.remove(script)

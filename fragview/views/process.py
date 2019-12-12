@@ -6,6 +6,7 @@ import subprocess
 from os import path
 from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_xml_files
+from fragview import hpc
 from .utils import scrsplit
 
 update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
@@ -164,9 +165,7 @@ def run_xdsapp(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command = \
-            'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)
 
 
 def run_autoproc(proj, nodes, filters):
@@ -225,9 +224,7 @@ def run_autoproc(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command = \
-            'echo "module purge | module load CCP4 autoPROC DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)
 
 
 def run_xdsxscale(proj, nodes, filters):
@@ -287,9 +284,7 @@ def run_xdsxscale(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command = \
-            'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)
 
 
 def run_dials(proj, nodes, filters):
@@ -347,6 +342,4 @@ def run_dials(proj, nodes, filters):
         with open(script, "w") as outfile:
             outfile.write(chunk)
 
-        command = \
-            'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-        subprocess.call(command, shell=True)
+        hpc.run_sbatch(script)

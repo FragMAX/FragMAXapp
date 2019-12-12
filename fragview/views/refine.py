@@ -2,10 +2,10 @@ import os
 import pypdb
 import pyfastcopy  # noqa
 import shutil
-import subprocess
 import threading
 from glob import glob
 from django.shortcuts import render
+from fragview import hpc
 from fragview.projects import current_project, project_script
 
 update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
@@ -135,9 +135,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
                 outp.write("\n\n")
             script = project_script(proj, "proc2res_" + sample + ".sh")
-            command = 'echo "module purge | module load CCP4 XDSAPP DIALS | sbatch ' + script + \
-                      ' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command, shell=True)
+            hpc.run_sbatch(script)
             os.remove(script)
 
     else:
