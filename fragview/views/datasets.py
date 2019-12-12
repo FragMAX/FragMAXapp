@@ -279,8 +279,7 @@ def show_all(request):
         for i, j in zip(prf_list, run_list):
             dictEntry = i + "_" + j
             status = [line for line in lines if line[0] == dictEntry]
-            print(dictEntry)
-            print(status)
+
             if status != []:
                 da = "<td>"
                 if status[0][1] == "full":
