@@ -1,0 +1,7 @@
+run_tests:
+  tags: [docker]
+  image: python:3.6-buster
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - ./manage.py test
