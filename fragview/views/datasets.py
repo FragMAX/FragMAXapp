@@ -10,7 +10,7 @@ import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_shift_dirs
+from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir, project_results_dir
 from fragview.projects import current_project, project_static_url, project_results_file
 
 
@@ -245,9 +245,9 @@ def show_all(request):
         datacollection_summary(proj)
 
     if "resyncStatus" in resyncStatus:
-        #os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
-        #get_project_status(proj)
-        #datacollection_summary(proj)
+        # os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
+        # get_project_status(proj)
+        # datacollection_summary(proj)
         resync_status_project(proj)
 
     with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
@@ -415,14 +415,11 @@ def show_all(request):
 
     results = zip(img_list, prf_list, res_list, path_list, snap_list, acr_list,
                   png_list, run_list, smp_list, dpentry, rfentry, lgentry)
-    
+
     return render(request, "fragview/datasets.html", {"files": results})
 
 
 def datacollection_summary(proj):
-    
-    
-
     lists = list()
     for s in proj.shifts():
         lists += glob(
@@ -435,14 +432,14 @@ def datacollection_summary(proj):
     if os.path.exists(data_collections_file):
         return
     else:
-        #Create basic folders for a new project
+        # Create basic folders for a new project
         os.makedirs(data_collections_dir, mode=0o760, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "logs"),      mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "scripts"),   mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "models"),    mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "export"),    mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "results"),   mode=0o770, exist_ok=True)
-        
+        os.makedirs(os.path.join(proj.data_path(), "fragmax", "logs"), mode=0o770, exist_ok=True)
+        os.makedirs(os.path.join(proj.data_path(), "fragmax", "scripts"), mode=0o770, exist_ok=True)
+        os.makedirs(os.path.join(proj.data_path(), "fragmax", "models"), mode=0o770, exist_ok=True)
+        os.makedirs(os.path.join(proj.data_path(), "fragmax", "export"), mode=0o770, exist_ok=True)
+        os.makedirs(os.path.join(proj.data_path(), "fragmax", "results"), mode=0o770, exist_ok=True)
+
         with open(data_collections_file, "w") as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow([
@@ -451,7 +448,7 @@ def datacollection_summary(proj):
 
             for xml in natsort.natsorted(lists, key=lambda x: ("Apo" in x, x)):
                 outdirxml = xml.replace("/process/", "/fragmax/process/").split("fastdp")[0].replace("xds_", "")[:-3]
-                if not os.path.exists(outdirxml+".xml"):
+                if not os.path.exists(outdirxml + ".xml"):
                     if not os.path.exists("/".join(outdirxml.split("/")[:-1])):
                         os.makedirs("/".join(outdirxml.split("/")[:-1]))
                     shutil.copyfile(xml, outdirxml + ".xml")
@@ -467,7 +464,8 @@ def datacollection_summary(proj):
                 snaps = ",".join(
                     [doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath" + i]
                      for i in ["1", "2", "3", "4"]
-                     if doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath"+i] != "None"]
+                     if
+                     doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath" + i] != "None"]
                 )
 
                 if len(snaps) < 1:
@@ -527,14 +525,14 @@ def get_project_status(proj):
                 "ligfit": "none",
             }
 
-        for j in glob(result+"*"):
-            if os.path.exists(j+"/dimple/final.pdb"):
+        for j in glob(result + "*"):
+            if os.path.exists(j + "/dimple/final.pdb"):
                 statusDict[dts].update({"dimple": "full"})
 
-            if os.path.exists(j+"/fspipeline/final.pdb"):
+            if os.path.exists(j + "/fspipeline/final.pdb"):
                 statusDict[dts].update({"fspipeline": "full"})
 
-            if os.path.exists(j+"/buster/final.pdb"):
+            if os.path.exists(j + "/buster/final.pdb"):
                 statusDict[dts].update({"buster": "full"})
 
             if glob(j + "/*/ligfit/LigandFit*/ligand_fit_*.pdb") != []:
@@ -556,7 +554,7 @@ def get_project_status(proj):
         if glob(j + "/autoproc/*staraniso*.mtz") + glob(j + "/autoproc/*aimless*.mtz") != []:
             statusDict[dts].update({"autoproc": "full"})
 
-        if glob(j+"/dials/DataFiles/*mtz") != []:
+        if glob(j + "/dials/DataFiles/*mtz") != []:
             statusDict[dts].update({"dials": "full"})
 
         ej = list()
@@ -599,72 +597,79 @@ def proc_report(request):
     return render(request, "fragview/procReport.html", {"reportHTML": report, "method": method})
 
 
+def get_dataset_status(proj, dataset, run):
+    proc_dir = project_process_dir(proj)
+    dps1 = glob(f"{proc_dir}/{proj.protein}/{dataset}/{dataset}_{run}/*/*mtz")
+    dps2 = glob(f"{proc_dir}/{proj.protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
+    dps3 = glob(f"{proj.data_path()}/process/{proj.protein}/{dataset}/*/*/results/*mtz*")
 
-def get_dataset_status(proj,dataset,run):
-    dps1=glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/*/*mtz")
-    dps2=glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
-    dps3=glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/process/{proj.protein}/{dataset}/*/*/results/*mtz*")
-    dp_full=set([x.split("/")[11] for x in dps1+dps2]+[x.split("/")[10].replace("EDNA_proc","edna") for x in dps3 if "autoPROC" not in x])
+    dp_full = set(
+        [x.split("/")[11] for x in dps1 + dps2] + [x.split("/")[10].replace("EDNA_proc", "edna") for x in dps3 if
+                                                   "autoPROC" not in x])
 
-    dp_status={'autoproc':"none", 
-               'dials':"none", 
-               'edna':"none", 
-               'fastdp':"none",
-               'xdsapp':"none",
-               'xdsxscale':"none"}
+    dp_status = {'autoproc': "none",
+                 'dials': "none",
+                 'edna': "none",
+                 'fastdp': "none",
+                 'xdsapp': "none",
+                 'xdsxscale': "none"}
 
     for proc in dp_full:
-        dp_status[proc]="full"
+        dp_status[proc] = "full"
 
-    rf_full=set([x.split("/")[10] for x in glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
-    rf_status={'dimple':"none", 
-               'fspipeline':"none", 
-               'buster':"none"}
+    rf_full = set([x.split("/")[10] for x in glob(
+        f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
+    rf_status = {'dimple': "none",
+                 'fspipeline': "none",
+                 'buster': "none"}
     for ref in rf_full:
-        rf_status[ref]="full"
+        rf_status[ref] = "full"
 
-    lg_full=set([x.split("/")[11] for x in glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/results/{dataset}_{run}/*/*/ligfit/*/*.pdb")+glob(f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/results/{dataset}_{run}/*/*/rhofit/*.pdb")])
-    lg_status={'rhofit':"none",                
-               'ligfit':"none"}
+    res_dir = project_results_dir(proj)
+
+    lg_full = set([x.split("/")[11] for x in
+                   glob(f"{res_dir}/{dataset}_{run}/*/*/ligfit/*/*.pdb") +
+                   glob(f"{res_dir}/{dataset}_{run}/*/*/rhofit/*.pdb")])
+    lg_status = {'rhofit': "none",
+                 'ligfit': "none"}
     for lig in lg_full:
-        lg_status[lig]="full"
-    
-    
+        lg_status[lig] = "full"
+
     d4 = dict(dp_status, **rf_status)
     d4.update(lg_status)
 
     return d4
 
-def update_all_status_csv(allcsv,dataset,run,statusDict):
+
+def update_all_status_csv(allcsv, dataset, run, statusDict):
     with open(allcsv, 'r') as readFile:
-        csvfile=list(csv.reader(readFile))
+        csvfile = list(csv.reader(readFile))
 
-    #Get index of the dataset to be updated
+    # Get index of the dataset to be updated
     for row in csvfile:
-        if row[0]==dataset+"_"+run:
-            row_to_change=csvfile.index(row)
+        if row[0] == dataset + "_" + run:
+            row_to_change = csvfile.index(row)
 
-            #Create the list with new values for process, refine, ligfit status
-            #and update the csv file
-            updated_value=[dataset+"_"+run]+list(statusDict.values())
-            csvfile[row_to_change]=updated_value
+            # Create the list with new values for process, refine, ligfit status
+            # and update the csv file
+            updated_value = [dataset + "_" + run] + list(statusDict.values())
+            csvfile[row_to_change] = updated_value
 
-            #write the new csv file with updated values
+            # write the new csv file with updated values
             with open(allcsv, 'w') as writeFile:
                 writer = csv.writer(writeFile)
                 writer.writerows(csvfile)
-                
+
 
 def resync_status_project(proj):
-    allcsv=f'{proj.data_path()}/fragmax/process/{proj.protein}/allstatus.csv'
+    allcsv = f'{proj.data_path()}/fragmax/process/{proj.protein}/allstatus.csv'
 
-    #Copy data from beamline auto processing to fragmax folders
-    h5s=list(itertools.chain(*[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5") for p in proj.shifts() ]))
-   
-    
+    # Copy data from beamline auto processing to fragmax folders
+    h5s = list(itertools.chain(
+        *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
+          for p in proj.shifts()]))
+
     for h5 in h5s:
-        dataset,run=(h5.split("/")[-1][:-10].split("_"))
-        p=h5.split("/")[5]
-        statusDict = get_dataset_status(proj,dataset,run)
-        update_all_status_csv(allcsv,dataset,run,statusDict)
-        
+        dataset, run = (h5.split("/")[-1][:-10].split("_"))
+        statusDict = get_dataset_status(proj, dataset, run)
+        update_all_status_csv(allcsv, dataset, run, statusDict)

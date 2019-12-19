@@ -8,7 +8,7 @@ from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_xml_files
 from .utils import scrsplit
 
-update_script="/data/staff/biomax/webapp/static/scripts/update_status.py"
+update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
 
 
 def datasets(request):
@@ -144,12 +144,12 @@ def run_xdsapp(proj, nodes, filters):
                            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
-        sample=outdir.split("/")[-1]
+        sample = outdir.split("/")[-1]
         script = \
             f"mkdir -p {outdir}/xdsapp\n" \
             f"cd {outdir}/xdsapp\n" \
             f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} --delphi=10 " \
-            f"--fried=True --range=1\\ {nImg}\n"+ \
+            f"--fried=True --range=1\\ {nImg}\n" + \
             f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
 
         scriptList.append(script)
@@ -202,7 +202,7 @@ def run_autoproc(proj, nodes, filters):
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
-        sample=outdir.split("/")[-1]
+        sample = outdir.split("/")[-1]
 
         script = \
             f"mkdir -p {outdir}/\n" \
@@ -213,7 +213,7 @@ def run_autoproc(proj, nodes, filters):
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
             f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} -d {outdir}/autoproc\n''' + \
             f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
-            
+
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
@@ -268,14 +268,14 @@ def run_xdsxscale(proj, nodes, filters):
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
-        sample=outdir.split("/")[-1]
+        sample = outdir.split("/")[-1]
 
         script = \
-        f"mkdir -p {outdir}/xdsxscale\n" \
-        f"cd {outdir}/xdsxscale \n" \
-        f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image={h5master}:1:{nImg}" \
-        f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
-        f"python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n"
+            f"mkdir -p {outdir}/xdsxscale\n" \
+            f"cd {outdir}/xdsxscale \n" \
+            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
+            f"python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n"
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
@@ -328,14 +328,14 @@ def run_dials(proj, nodes, filters):
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
-        sample=outdir.split("/")[-1]
-        
+        sample = outdir.split("/")[-1]
+
         script = \
-        f"mkdir -p {outdir}/dials\n" \
-        f"cd {outdir}/dials \n" \
-        f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true  nproc=40 image={h5master}:1:{nImg}" \
-        f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n"+ \
-        f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
+            f"mkdir -p {outdir}/dials\n" \
+            f"cd {outdir}/dials \n" \
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true  nproc=40 image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
+            f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
