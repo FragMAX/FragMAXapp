@@ -23,6 +23,8 @@ RUN apt-get update \
         libxt6 \
         # for running multiple processes
         supervisor \
+        # for django <-> celery communication
+        redis-server \
         # for installing and running django webapp
         python3 \
         python3-pip \
@@ -43,6 +45,7 @@ RUN pip3 install -r requirements.txt
 #
 COPY fragview fragview/
 COPY fragmax fragmax/
+COPY worker worker/
 COPY static static/
 COPY manage.py deploy/migrate_db.sh ./
 COPY deploy/site_settings.py site_settings.py

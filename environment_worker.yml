@@ -1,0 +1,10 @@
+name: FragMAXWorker
+dependencies:
+  - python=3.7
+  - celery=4.3.0
+  - redis=5.0.3
+  - redis-py=3.3.11
+  - pip=19.3.1
+  - pip:
+    - redlock==1.2.0
+

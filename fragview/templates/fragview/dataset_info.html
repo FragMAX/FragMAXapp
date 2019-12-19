@@ -332,10 +332,9 @@
                         <button class="btn-large" type="submit" value="{{imgprf}}_{{run}}" name="dataHeader" size="1">Open Reciprocal Lattice Viewer</button>
                     </form>
                 {% endif %}
-                
-                <img class="myImg diffsnap" id="diff1" src="{{diffraction1}}" >
-        
-                <img class="myImg diffsnap" id="diff2" src="{{diffraction2}}" >
+
+                <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
+                <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
         
                 <img class="myImg crystalsnap" id="snap1" src="{{snapshot1}}" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         

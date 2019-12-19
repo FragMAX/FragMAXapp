@@ -35,5 +35,26 @@ Follow steps below to set-up an environment for running FragMAX webapp using con
 
     conda env create -f <src-dir>/environment.yml
 
-If all goes well, the conda environment called 'FragMAX' will contain all required package for the webapp.
+The conda environment 'FragMAX' will contain all required package for FragMAX webapp.
+
+### Running the Webapp
+
+To run FragMAX application the _Web Application_, _Workers Threads_ and _Redis Server_ components must be started.
+Each component runs in it's own separate process.
+
+To start _Redis Server_ activate 'FragMAX' environment and run:
+
+    redis-server
+
+To start _Workers Threads_ activate 'FragMAX' environment and run:
+
+    celery -A fragmax worker --loglevel=info
+
+The '--concurrency' argument specifies number of worker threads to use.
+The '--loglevel' argument specifies log verbosity.
+
+To start _Web Application_ activate 'FragMAX' environment and run:
+
+    ./manage.py runserver
+
 

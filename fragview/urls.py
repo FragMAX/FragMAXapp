@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice, soaking
-from fragview.views import pipedream, refine, process, ligfit
+from fragview.views import pipedream, refine, process, ligfit, diffraction
 
 
 urlpatterns = [
@@ -52,4 +52,6 @@ urlpatterns = [
     path('dataproc_datasets/', process.datasets, name='dataproc_datasets'),
     path('refine_datasets/', refine.datasets, name='refine_datasets'),
     path('ligfit_datasets/', ligfit.datasets, name='ligfit_datasets'),
+
+    path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image),
 ]

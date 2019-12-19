@@ -5,7 +5,6 @@ import xmltodict
 import natsort
 import pyfastcopy  # noqa
 import shutil
-import subprocess
 import itertools
 
 from django.shortcuts import render
@@ -45,24 +44,7 @@ def set_details(request):
     else:
         snapshot2 = datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/", "/static/")
 
-    diffraction1 = \
-        proj.data_path() + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "_1.jpeg"
-    if not os.path.exists(diffraction1):
-        h5data = datainfo["imageDirectory"] + "/" + prefix + "_" + run + "_data_0000"
-        cmd = "adxv -sa -slabs 10 -weak_data " + h5data + "01.h5 " + diffraction1
-        subprocess.call(cmd, shell=True)
-    diffraction1 = diffraction1.replace("/data/visitors/", "/static/")
-
-    diffraction2 = \
-        proj.data_path() + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "_2.jpeg"
-    if not os.path.exists(diffraction2):
-        half = int(float(images) / 200)
-        if half < 10:
-            half = "0" + str(half)
-        h5data = datainfo["imageDirectory"] + "/" + prefix + "_" + run + "_data_0000"
-        cmd = "adxv -sa -slabs 10 -weak_data " + h5data + half + ".h5 " + diffraction2
-        subprocess.call(cmd, shell=True)
-    diffraction2 = diffraction2.replace("/data/visitors/", "/static/")
+    half = int(float(images) / 200)
 
     # getreports
     scurp = curp.replace("/data/visitors/", "/static/")
@@ -133,7 +115,7 @@ def set_details(request):
     else:
         lines = []
 
-    return render(request, 'fragview/dataset_info.html', {
+    return render(request, "fragview/dataset_info.html", {
         "csvfile": lines,
         "shift": curp.split("/")[-1],
         "run": run,
@@ -171,8 +153,7 @@ def set_details(request):
         "xbeampos": datainfo["xbeampos"],
         "snapshot1": snapshot1,
         "snapshot2": snapshot2,
-        "diffraction1": diffraction1,
-        "diffraction2": diffraction2,
+        "diffraction_half": half,
         "ybeampos": datainfo["ybeampos"],
         "energy": energy,
         "totalExposure": totalExposure,
