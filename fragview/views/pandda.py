@@ -660,9 +660,12 @@ acr=sys.argv[3]
 fraglib=sys.argv[4]
 shiftList=sys.argv[5].split(",")
 proposal=path.split("/")[4]
-def pandda_run(method):
+noZmapmode=True
+initpass=True
+ground_state_entries=','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])
+def pandda_run(method,ground_state_entries,initpass):
     os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)
-    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])+"' cpus=16 "
+    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+ground_state_entries+"' cpus=16 "
     subprocess.call(command, shell=True)
     if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:
         lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]
@@ -678,14 +681,24 @@ def pandda_run(method):
                 bd=line.split("Failed to align dataset ")[1].rstrip()
                 bdpath=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+bd+"*")
                 badDataset[bd]=bdpath
+            if "Writing PanDDA End-of-Analysis Summary" in line and noZmapmode==True and initpass==True:
+                with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/pandda_analyse_events.csv","r") as readFile:
+                    events=csv.reader(readFile)
+                    events=[x for x in events][1:]
+                noZmap=[x[0] for x in events]
+                alldts=[x.split("/")[-1] for x in glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+acr+"*")]
+                newGroundStates=",".join(list(set(alldts) - set(noZmap)))
+                initpass=False
+                pandda_run(method,newGroundStates,initpass)
+                
         for k,v in badDataset.items():
-            if len(v)>0:
+            if len(v)>0 and initpass==True:
                 if os.path.exists(v[0]):
                     shutil.rmtree(v[0])
                     if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):
                         shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)
-                pandda_run(method)
-pandda_run(method)
+                pandda_run(method,ground_state_entries,initpass)
+pandda_run(method,ground_state_entries,initpass)
 os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
 '''
                        )
