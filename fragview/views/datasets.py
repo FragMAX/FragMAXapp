@@ -158,7 +158,6 @@ def set_details(request):
         "energy": energy,
         "totalExposure": totalExposure,
         "edgeResolution": edgeResolution,
-        "acr": prefix.split("-")[0],
         "xdsappreport": xdsappreport,
         "dialsreport": dialsreport,
         "xdsreport": xdsreport,
