@@ -32,10 +32,6 @@ def show(request):
                 mtzf = glob(final_glob)[0]
                 shutil.copyfile(mtzf, mtzfd)
 
-    if path.exists(mtzfd):
-        if not path.exists(path.join(res_dir, "final_2mFo-DFc.ccp4")):
-            subprocess.call("phenix.mtz2map final.mtz", cwd=res_dir, shell=True)
-
     processM = pipeline.split("_")[0]
     refineM = pipeline.split("_")[1]
 
@@ -129,8 +125,6 @@ def show(request):
         {
             "name": usracr,
             "pdb": pdbout,
-            "nat": nat_map,
-            "dif": dif_map,
             "xyzlist": blist,
             "center": center,
             "ligand": ligsvg,
@@ -140,10 +134,10 @@ def show(request):
             "rfree": r_free,
             "resolution": resolution,
             "spg": spg,
-            'ligfit_dataset': ligfit_dataset,
+            "ligfit_dataset": ligfit_dataset,
             "process": processM,
             "refine": refineM,
-            'blob': ligblob,
+            "blob": ligblob,
             "rhofitcenter": rhocenter,
             "ligfitcenter": ligcenter,
             "ligbox": ligbox,

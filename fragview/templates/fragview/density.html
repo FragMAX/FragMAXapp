@@ -204,7 +204,9 @@
     <script>
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
       V.load_pdb("/static/{{pdb}}");
-      V.load_ccp4_maps("/static/{{nat}}","/static/{{dif}}");
+      V.load_ccp4_maps(
+            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/nat",
+            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/dif");
 
 
       V.load_pdb("{{ligfitpdb}}");
