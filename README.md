@@ -1,8 +1,7 @@
 # FragMAX_WebApp
 FragMAX webapp for data processing and visualisation
 
-
-Django application to plan fragment screening experiments, process data, visualise results and compare structures. 
+Web application to plan fragment screening experiments, process data, visualize results and compare structures.
 
 Uses [UglyMOL](http://uglymol.github.io/) for electron density visualisation
 Uses CCP4, XDS, Phenix packages for data processing and analysis
@@ -16,15 +15,33 @@ Uses CCP4, XDS, Phenix packages for data processing and analysis
 
 Dataset analysis with Pandda
 
+## Development
 
+### Components
 
-## Dependencies
+The FragMAX webapp consists of 3 major components:
 
-See environment.yml and requirements.txt files.
+ * Web Application
+ * Workers Threads
+ * Redis Server
 
-## Set-up with conda
+The _Web Application_ component implements the UI part of the FragMAX.
+It is build on top of Django framework, and serves the web-requests.
 
-Follow steps below to set-up an environment for running FragMAX webapp using conda.
+The _Worker Threads_ component handles performing long running tasks, not suitable to be performed on web-request threads.
+Note that the heavy data processing is performed on an HPC cluster, thus the worker threads are not involved.
+
+The _Redis Server_ is used for communication between the web-request and worker threads.
+
+### Dependencies
+
+For the _Web Application_ component the required python package are listed in both `environment.yml` and `requirements.txt` files.
+
+For _Workers Threads_ and _Redis Server_ components the required python package are listed in `environment_worker.yml` file.
+
+### Set-up with conda
+
+Follow steps below to set-up an environments for running FragMAX webapp using conda.
 
 - use you prefered method for installing [conda](https://docs.conda.io/en/latest/)
 - clone this repository
@@ -50,11 +67,9 @@ To start _Workers Threads_ activate 'FragMAX' environment and run:
 
     celery -A fragmax worker --loglevel=info
 
-The '--concurrency' argument specifies number of worker threads to use.
 The '--loglevel' argument specifies log verbosity.
 
 To start _Web Application_ activate 'FragMAX' environment and run:
 
     ./manage.py runserver
-
 
