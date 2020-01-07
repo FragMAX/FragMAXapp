@@ -1,7 +1,6 @@
 import pyfastcopy  # noqa
 import shutil
 import csv
-import subprocess
 from os import path
 from glob import glob
 
@@ -241,13 +240,11 @@ def show_pipedream(request):
                 nextstr = lines[currentpos + 1][0]
 
     if "Apo" not in sample:
+        process = "rhofit"
         files = glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/rhofit*/")
         files.sort(key=lambda x: path.getmtime(x))
         if files != []:
             pdb = files[-1] + "refine.pdb"
-            dif = files[-1] + "refine_mFo-DFc.ccp4"
-            nat = files[-1] + "refine_2mFo-DFc.ccp4"
-            mtz = files[-1] + "refine.mtz"
             rhofit = files[-1] + "best.pdb"
 
         with open(rhofit, "r") as inp:
@@ -257,45 +254,37 @@ def show_pipedream(request):
         cE = "true"
 
     else:
+        process = "refine"
         files = glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/refine*/")
         files.sort(key=lambda x: path.getmtime(x))
         if files != []:
             pdb = files[-1] + "refine.pdb"
-            dif = files[-1] + "refine_mFo-DFc.ccp4"
-            nat = files[-1] + "refine_2mFo-DFc.ccp4"
-            mtz = files[-1] + "refine.mtz"
             rhofit = ""
             rhofitscore = "-"
             center = "[0,0,0]"
             cE = "false"
 
-    if path.exists(mtz):
-        if not path.exists(dif):
-            cmd = "cd " + files[-1] + ";"
-            cmd += "phenix.mtz2map " + mtz
-            subprocess.call(cmd, shell=True)
-
-        return render(
-            request,
-            "fragview/pipedream_density.html",
-            {
-                "name": sample.replace("/data/visitors/", "/static/"),
-                "pdb": pdb.replace("/data/visitors/", "/static/"),
-                "nat": nat.replace("/data/visitors/", "/static/"),
-                "dif": dif.replace("/data/visitors/", "/static/"),
-                "rhofit": rhofit.replace("/data/visitors/", "/static/"),
-                "center": center,
-                "symmetry": symmetry,
-                "resolution": resolution,
-                "rwork": rwork,
-                "rfree": rfree,
-                "rhofitscore": rhofitscore,
-                "ligand": ligand.replace("/data/visitors/", "/static/"),
-                "prevstr": prevstr,
-                "nextstr": nextstr,
-                "cE": cE,
-                "ligsvg": ligsvg,
-            })
+    return render(
+        request,
+        "fragview/pipedream_density.html",
+        {
+            "name": sample.replace("/data/visitors/", "/static/"),
+            "pdb": pdb.replace("/data/visitors/", "/static/"),
+            "sample": sample,
+            "process": process,
+            "rhofit": rhofit.replace("/data/visitors/", "/static/"),
+            "center": center,
+            "symmetry": symmetry,
+            "resolution": resolution,
+            "rwork": rwork,
+            "rfree": rfree,
+            "rhofitscore": rhofitscore,
+            "ligand": ligand.replace("/data/visitors/", "/static/"),
+            "prevstr": prevstr,
+            "nextstr": nextstr,
+            "cE": cE,
+            "ligsvg": ligsvg,
+        })
 
 
 def sym2spg(sym):

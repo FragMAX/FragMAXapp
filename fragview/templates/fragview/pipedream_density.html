@@ -161,8 +161,8 @@
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
 
       V.load_pdb_and_ccp4_maps("{{pdb}}",
-                               "{{nat}}",
-                               "{{dif}}"
+                               "/pipedream_ccp4_map/{{sample}}/{{process}}/nat",
+                               "/pipedream_ccp4_map/{{sample}}/{{process}}/dif"
                             {% ifequal cE "true" %}
                             , function () { 
                             V.recenter({{center}}, null, 25);}     

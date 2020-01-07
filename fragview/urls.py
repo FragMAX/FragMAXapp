@@ -54,4 +54,5 @@ urlpatterns = [
 
     path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image),
     path('ccp4_map/<dataset>/<process>/<refine>/<type>', ccp4.map),
+    path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
 ]
