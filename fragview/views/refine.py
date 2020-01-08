@@ -74,10 +74,10 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
     aimlessopt = aimlessopt.split("aimlessopt:")[-1]
     argsfit = "none"
-    if "filters:" in filters:
-        filters = filters.split(":")[-1]
+
+    filters = filters.split(":")[-1]
     if filters == "ALL":
-        filters = ""
+        filters = "*"
 
     if userPDB != "":
         if useFSP:
@@ -87,7 +87,8 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         if useBUSTER:
             argsfit += "buster"
 
-        datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")
+        datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/{filters}/")
+
         proc2resOut = ""
         proc2resOut += """#!/bin/bash\n"""
         proc2resOut += """#!/bin/bash\n"""
