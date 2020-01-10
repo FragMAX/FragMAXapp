@@ -6,12 +6,14 @@ import shutil
 import threading
 import json
 import subprocess
+from os import path
 from glob import glob
 from random import randint
 from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
+from fragview.views import utils
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir
 
@@ -746,11 +748,8 @@ def giant_score(proj, method):
     header += '''sleep 15000\n'''
 
     script = project_script(proj, "giant_holder.sh")
-    with open(script, "w") as writeFile:
-        writeFile.write(header)
-
-    cmd = 'echo "module purge | module load CCP4 | sbatch ' + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(cmd, shell=True)
+    utils.write_script(script, header)
+    hpc.run_sbatch(script)
 
     rn = str(randint(10000, 99999))
     jname = "Gnt" + rn
@@ -769,12 +768,8 @@ def giant_score(proj, method):
     panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
     export_script = project_script(proj, "pandda-export.sh")
-    with open(export_script, "w") as writeFile:
-        writeFile.write(header)
-        writeFile.write(panddaExport)
-
-    cmd = 'echo "module purge | module load CCP4 | sh ' + export_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(cmd, shell=True)
+    utils.write_script(export_script, header+panddaExport)
+    hpc.frontend_run(export_script)
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -815,12 +810,9 @@ def giant_score(proj, method):
                 quick_refine = ""
 
         script = project_script(proj, f"giant_pandda_{frag}.sh")
-        with open(script, "w") as writeFile:
-            writeFile.write(header)
-            writeFile.write("\n" + "cd " + _dir)
-            writeFile.write("\n" + cpcmd3)
-            writeFile.write("\n" + make_restraints)
-            writeFile.write("\n" + quick_refine)
+        utils.write_script(script,
+                           f"{header}\n"
+                           f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
 
         line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.1"
@@ -828,10 +820,9 @@ def giant_score(proj, method):
     pandda_score_script = project_script(proj, "pandda-score.sh")
     giant_worker_script = project_script(proj, "giant_worker.sh")
 
-    with open(giant_worker_script, "w") as writeFile:
-        writeFile.write(line)
-        writeFile.write(
-            "\n\nsbatch --dependency=singleton --job-name=" + jname + " " + pandda_score_script)
+    utils.write_script(giant_worker_script,
+                       f"{line}\n\n"
+                       f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}")
 
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -848,24 +839,22 @@ def giant_score(proj, method):
     scores_dir = os.path.join(res_dir, "pandda-scores")
     scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
 
-    with open(pandda_score_script, "w") as writeFile:
-        writeFile.write(header)
-        scorecmd = \
-            f"echo 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
+    body = ""
+    for _dir in _dirs:
+        dataset = _dir.split("/")[-1]
 
-        for _dir in _dirs:
-            dataset = _dir.split("/")[-1]
+        src = path.join(res_dir, dataset, "final_original.mtz")
+        dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
-            src = os.path.join(res_dir, dataset, "final_original.mtz")
-            dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
+        body += f"\ncp -f " + src + " " + dst
 
-            cpcmd3 = "cp -f " + src + " " + dst
-            writeFile.write("\n" + cpcmd3)
+    scorecmd = \
+        f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
 
-        writeFile.write("\n" + scorecmd)
+    utils.write_script(pandda_score_script,
+                       f"{header}{body}{scorecmd}")
 
-    cmd = 'echo "module purge | module load CCP4 | sh ' + giant_worker_script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-    subprocess.call(cmd, shell=True)
+    hpc.frontend_run(giant_worker_script)
 
 
 def pandda_worker(method, proj):

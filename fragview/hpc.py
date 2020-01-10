@@ -1,3 +1,4 @@
+import sys
 import subprocess
 from django.conf import settings
 
@@ -20,6 +21,23 @@ def _ssh_on_frontend(command):
 
         stdout, stderr = proc.communicate(command.encode("utf-8"))
         return stdout, stderr, proc.returncode
+
+
+def frontend_run(command):
+    """
+    run shell command on HPC front-end host,
+    the shell command's stdout and stderr will be dumped to our stdout and stderr streams
+    """
+
+    # TODO: check exit code and bubble up error on exit code != 0
+    stdout, stderr, _ = _ssh_on_frontend(command)
+
+    # forward stdout and stderr outputs, for traceability
+    if stdout is not None:
+        sys.stdout.buffer.write(stdout)
+
+    if stderr is not None:
+        sys.stderr.buffer.write(stderr)
 
 
 def jobs_list(logged_in_user):
@@ -46,5 +64,5 @@ def run_sbatch(sbatch_script, sbatch_options=None):
     # add script for sbatch to run
     cmd += f" {sbatch_script}"
 
-    # TODO: check exit code and bobble up error on exit code != 0
+    # TODO: check exit code and bubble up error on exit code != 0
     _ssh_on_frontend(cmd)
