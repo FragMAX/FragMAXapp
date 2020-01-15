@@ -47,7 +47,6 @@ def new(request):
     GET requests show the 'Create new Project' page
     POST requests will try to create a new project
     """
-    print("NEW")
     if request.method == "GET":
         return render(request, "fragview/project.html")
 
