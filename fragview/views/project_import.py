@@ -1,27 +1,19 @@
 import os
-import csv
 from glob import glob
-import xmltodict
-import natsort
 import pyfastcopy  # noqa
 import shutil
 import subprocess
 import itertools
 
-from django.shortcuts import render
-
-# from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir, project_results_dir
-from fragview.projects import current_project # , project_static_url, project_results_file
-
-proj = current_project(request)
 
 def import_edna_fastdp(proj):
     # Copy data from beamline auto processing to fragmax folders
     # Should be run in a different thread
     h5s = list(itertools.chain(
-        *[glob(f"/data/visitors/biomax/{proj.proposal}/{shift}/raw/{proj.protein}/"\
-        f"{proj.protein}*/{proj.protein}*master.h5")
-          for shift in proj.shifts()]))
+        *[glob(f"/data/visitors/biomax/{proj.proposal}/{shift}/raw/{proj.protein}/"
+               f"{proj.protein}*/{proj.protein}*master.h5")
+            for shift in proj.shifts()])
+    )
     for h5 in h5s:
         dataset, run = (h5.split("/")[-1][:-10].split("_"))
         shift_collection = h5.split("/")[5]
