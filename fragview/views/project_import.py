@@ -10,24 +10,26 @@ import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir, project_results_dir
-from fragview.projects import current_project, project_static_url, project_results_file
+# from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir, project_results_dir
+from fragview.projects import current_project # , project_static_url, project_results_file
 
+proj = current_project(request)
 
 def import_edna_fastdp(proj):
     # Copy data from beamline auto processing to fragmax folders
     # Should be run in a different thread
     h5s = list(itertools.chain(
-        *[glob(f"/data/visitors/biomax/{proj.proposal}/{shift}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
+        *[glob(f"/data/visitors/biomax/{proj.proposal}/{shift}/raw/{proj.protein}/"\
+        f"{proj.protein}*/{proj.protein}*master.h5")
           for shift in proj.shifts()]))
     for h5 in h5s:
         dataset, run = (h5.split("/")[-1][:-10].split("_"))
         shift_collection = h5.split("/")[5]
         edna_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/"\
-                        f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
+            f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
         edna_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/edna/"
         fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"\
-                        "/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
+            f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
         if os.path.exists(edna_path_src):

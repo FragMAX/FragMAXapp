@@ -688,7 +688,7 @@ def import_edna_fastdp(proj):
                         f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
         edna_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/edna/"
         fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"\
-                        "/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
+                        f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
         if os.path.exists(edna_path_src):
