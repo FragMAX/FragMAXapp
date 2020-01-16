@@ -8,6 +8,8 @@ from fragview.forms import ProjectForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
 
+from worker import setup_project_files
+
 
 def list(request):
     """
@@ -55,6 +57,7 @@ def new(request):
         return render(request, "fragview/project.html", {"form": form})
 
     form.save()
+    setup_project_files.delay(form.instance.id)
 
     return redirect("/projects/")
 

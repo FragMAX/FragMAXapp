@@ -1,16 +1,13 @@
 import os
 import csv
 from glob import glob
-import xmltodict
-import natsort
 import pyfastcopy  # noqa
-import shutil
 import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir, project_results_dir
-from fragview.projects import current_project, project_static_url, project_results_file
+from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir
+from fragview.projects import current_project, project_results_file, project_results_dir
 
 
 def set_details(request):
@@ -216,13 +213,7 @@ def retrieve_parameters(xmlfile):
 def show_all(request):
     proj = current_project(request)
 
-    resyncAction = str(request.GET.get("resyncdsButton"))
     resyncStatus = str(request.GET.get("resyncstButton"))
-
-    datacollection_summary(proj)
-
-    if "resyncDataset" in resyncAction:
-        datacollection_summary(proj)
 
     if "resyncStatus" in resyncStatus:
         # os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
@@ -396,68 +387,6 @@ def show_all(request):
                   png_list, run_list, smp_list, dpentry, rfentry, lgentry)
 
     return render(request, "fragview/datasets.html", {"files": results})
-
-
-def datacollection_summary(proj):
-    lists = list()
-    for s in proj.shifts():
-        lists += glob(
-            "/data/visitors/biomax/" + proj.proposal + "/" + s + "/process/" + proj.protein +
-            "/**/**/fastdp/cn**/ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml")
-
-    data_collections_dir = os.path.join(proj.data_path(), "fragmax", "process", proj.protein)
-    data_collections_file = os.path.join(data_collections_dir, "datacollections.csv")
-
-    if os.path.exists(data_collections_file):
-        return
-    else:
-        # Create basic folders for a new project
-        os.makedirs(data_collections_dir, mode=0o760, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "logs"), mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "scripts"), mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "models"), mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "export"), mode=0o770, exist_ok=True)
-        os.makedirs(os.path.join(proj.data_path(), "fragmax", "results"), mode=0o770, exist_ok=True)
-
-        with open(data_collections_file, "w") as csvFile:
-            writer = csv.writer(csvFile)
-            writer.writerow([
-                "imagePrefix", "SampleName", "dataCollectionPath", "Acronym", "dataCollectionNumber",
-                "numberOfImages", "resolution", "snapshot", "ligsvg"])
-
-            for xml in natsort.natsorted(lists, key=lambda x: ("Apo" in x, x)):
-                outdirxml = xml.replace("/process/", "/fragmax/process/").split("fastdp")[0].replace("xds_", "")[:-3]
-                if not os.path.exists(outdirxml + ".xml"):
-                    if not os.path.exists("/".join(outdirxml.split("/")[:-1])):
-                        os.makedirs("/".join(outdirxml.split("/")[:-1]))
-                    shutil.copyfile(xml, outdirxml + ".xml")
-
-                with open(xml, "r") as fd:
-                    doc = xmltodict.parse(fd.read())
-
-                nIMG = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["numberOfImages"]
-                resolution = "%.2f" % float(doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["resolution"])
-                run = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["dataCollectionNumber"]
-                dataset = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]
-                sample = dataset.split("-")[-1]
-                snaps = ",".join(
-                    [doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath" + i]
-                     for i in ["1", "2", "3", "4"]
-                     if
-                     doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["xtalSnapshotFullPath" + i] != "None"]
-                )
-
-                if len(snaps) < 1:
-                    snaps = "noSnapshots"
-                colPath = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imageDirectory"]
-
-                if "Apo" in doc["XSDataResultRetrieveDataCollection"]["dataCollection"]["imagePrefix"]:
-                    ligsvg = "/static/img/apo.png"
-                else:
-                    ligsvg = f"{project_static_url(proj)}/fragmax/process/fragment/" \
-                             f"{proj.library}/{sample}/{sample}.svg"
-
-                writer.writerow([dataset, sample, colPath, proj.protein, run, nIMG, resolution, snaps, ligsvg])
 
 
 def get_project_status(proj):

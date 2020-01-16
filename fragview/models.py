@@ -14,6 +14,13 @@ class Project(models.Model):
     shift_list = models.TextField(blank=True)
 
     @staticmethod
+    def get(proj_id):
+        """
+        get project by ID
+        """
+        return Project.objects.get(id=proj_id)
+
+    @staticmethod
     def user_projects(user_proposals):
         return Project.objects.filter(proposal__in=user_proposals)
 
