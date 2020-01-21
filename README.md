@@ -35,9 +35,7 @@ The _Redis Server_ is used for communication between the web-request and worker 
 
 ### Dependencies
 
-For the _Web Application_ component the required python package are listed in both `environment.yml` and `requirements.txt` files.
-
-For _Workers Threads_ and _Redis Server_ components the required python package are listed in `environment_worker.yml` file.
+The required python package are listed in both `environment.yml` and `requirements.txt` files.
 
 ### Set-up with conda
 
