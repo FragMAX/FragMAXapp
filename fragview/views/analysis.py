@@ -16,6 +16,7 @@ def processing_form(request):
         [
             x.split("/")[-1].replace("_master.h5", "")
             for x in project_raw_master_h5_files(proj)
+            if "ref-" not in x
         ],
         key=lambda x: ("Apo" in x, x))
 
