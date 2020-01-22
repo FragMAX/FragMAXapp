@@ -4,6 +4,7 @@ import natsort
 import pyfastcopy  # noqa
 import shutil
 import threading
+import json
 import subprocess
 from glob import glob
 from random import randint
@@ -900,12 +901,16 @@ def pandda_worker(method, proj):
         datasetList = set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/*/*/*/final.pdb")])
         selectedDict = {
             x.split("/")[-4]: x
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/final.pdb"))
+            for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/*/final.pdb"))
         }
         missingDict = set(datasetList) - set(selectedDict)
 
         for dataset in missingDict:
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
+
+    pandda_selection = f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/selection.json"
+    with open(pandda_selection, "w") as writeFile:
+        writeFile.write(json.dumps(selectedDict)) # use `json.loads` to do the reverse
 
     for dataset, pdb in selectedDict.items():
         if os.path.exists(pdb):
@@ -978,7 +983,10 @@ def pandda_worker(method, proj):
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     cmd = 'echo "module purge | module load CCP4 | ' + "sbatch --dependency=singleton --job-name=PnD" + rn + \
           " " + script + ' " | ssh -F ~/.ssh/ clu0-fe-1'
+    import json
 
+    # as requested in comment
+    
     subprocess.call(cmd, shell=True)
     # os.remove(script)
 
