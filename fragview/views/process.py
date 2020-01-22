@@ -300,14 +300,14 @@ def run_dials(proj, nodes, filters):
     header += """#SBATCH -J DIALS\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=40\n"""
+    header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
-    header += """#SBATCH --mem-per-cpu=2000\n"""
+    # header += """#SBATCH --mem-per-cpu=2000\n"""
 
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += """module load CCP4 XDS DIALS\n\n"""
+    header += """module load CCP4 XDS DIALS/1.14.10-2-PReSTO\n\n"""
 
     scriptList = list()
 
@@ -328,7 +328,7 @@ def run_dials(proj, nodes, filters):
         script = \
             f"mkdir -p {outdir}/dials\n" \
             f"cd {outdir}/dials \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true  nproc=40 image={h5master}:1:{nImg}" \
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true nproc=48 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
         scriptList.append(script)
