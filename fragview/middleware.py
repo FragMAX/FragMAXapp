@@ -27,20 +27,28 @@ def login_required(get_response):
 def no_projects_redirect(get_response):
     """
     middleware which in case user does not have access to any projects,
-    redirects to 'new project' page
+    redirects to the 'new project' page or 'manage project' in case
+    he/she have some pending project in flight
     """
     new_proj_url = urls.reverse("new_project")
+    manage_projects_url = urls.reverse("manage_projects")
 
     excluded_urls = [
         new_proj_url,
+        manage_projects_url,
         urls.reverse("logout"),
         urls.reverse("login"),
     ]
 
+    def _get_redirect_url(request):
+        if projects.have_pending_projects(request):
+            return manage_projects_url
+        return new_proj_url
+
     def check_current_project(request):
         if request.path_info not in excluded_urls and \
                 projects.current_project(request) is None:
-            return redirect(new_proj_url)
+            return redirect(_get_redirect_url(request))
 
         return get_response(request)
 

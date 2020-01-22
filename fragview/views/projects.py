@@ -3,7 +3,7 @@ from glob import glob
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 
-from fragview.models import Project
+from fragview.models import Project, PendingProject
 from fragview.forms import ProjectForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
@@ -15,7 +15,9 @@ def list(request):
     """
     projects list page, aka 'manage projects' page
     """
-    return render(request, "fragview/projects.html")
+    return render(request,
+                  "fragview/projects.html",
+                  {"pending_projects": PendingProject.get_projects()})
 
 
 def edit(request, id):
@@ -56,7 +58,7 @@ def new(request):
     if not form.is_valid():
         return render(request, "fragview/project.html", {"form": form})
 
-    form.save()
+    form.save_as_pending()
     setup_project_files.delay(form.instance.id)
 
     return redirect("/projects/")

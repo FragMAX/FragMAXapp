@@ -2,7 +2,7 @@ import re
 from os import path
 from django import forms
 from . import projects
-from .models import Project
+from .models import Project, PendingProject
 
 
 def _is_8_digits(str, subject="shift"):
@@ -103,3 +103,7 @@ class ProjectForm(forms.ModelForm):
         if len(errors) > 0:
             # there were errors
             raise forms.ValidationError(errors)
+
+    def save_as_pending(self):
+        self.save()
+        PendingProject(project=self.instance).save()

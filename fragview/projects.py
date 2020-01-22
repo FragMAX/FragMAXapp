@@ -9,6 +9,11 @@ def current_project(request):
     return request.user.get_current_project(proposals)
 
 
+def have_pending_projects(request):
+    proposals = get_proposals(request)
+    return request.user.have_pending_projects(proposals)
+
+
 def proposal_dir(proposal_number):
     return path.join(settings.PROPOSALS_DIR, proposal_number)
 

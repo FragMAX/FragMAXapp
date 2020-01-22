@@ -22,12 +22,16 @@ class Project(models.Model):
 
     @staticmethod
     def user_projects(user_proposals):
-        return Project.objects.filter(proposal__in=user_proposals)
+        pending_ids = PendingProject.get_project_ids()
+        return Project.objects.filter(proposal__in=user_proposals).exclude(id__in=pending_ids)
 
     @staticmethod
     def get_project(user_proposals, project_id):
         usr_proj = Project.user_projects(user_proposals)
         return usr_proj.filter(id=project_id).first()
+
+    def set_ready(self):
+        PendingProject.remove_pending(self)
 
     def icon_num(self):
         return self.id % self.PROJ_ICONS_NUMBER
@@ -50,6 +54,33 @@ class Project(models.Model):
         all_shifts = set(aditional_shifts).union([self.shift])
 
         return list(all_shifts)
+
+
+class PendingProject(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+
+    @staticmethod
+    def remove_pending(project):
+        pend = PendingProject.objects.filter(project=project.id)
+        if not pend.exists():
+            print(f"warning: project {project.id} not pending, ignoring request to remove pending state")
+            return
+
+        pend.first().delete()
+
+    @staticmethod
+    def get_projects():
+        """
+        get pending projects, a list of Project objects
+        """
+        return [pend.project for pend in PendingProject.objects.all()]
+
+    @staticmethod
+    def get_project_ids():
+        """
+        get pending projects IDs
+        """
+        return [pend.project.id for pend in PendingProject.objects.all()]
 
 
 class User(AbstractBaseUser):
@@ -93,3 +124,11 @@ class User(AbstractBaseUser):
             cur_proj = Project.user_projects(proposals).first()
 
         return cur_proj
+
+    def have_pending_projects(self, proposals):
+        for proj in PendingProject.get_projects():
+            if proj.proposal in proposals:
+                return True
+
+        # no pending project for the user found
+        return False

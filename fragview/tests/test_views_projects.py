@@ -1,7 +1,7 @@
 from unittest import mock
 from django import test
 
-from fragview.models import Project, User
+from fragview.models import Project, PendingProject, User
 from fragview import auth
 
 
@@ -177,7 +177,8 @@ class TestNew(_ProjectTestCase):
         self.assert_field_required_error(resp, "protein")
 
     @mock.patch("os.path.isdir")
-    def test_create_new(self, isdir_mock):
+    @mock.patch("fragview.views.projects.setup_project_files")
+    def test_create_new(self, setup_proj_mock, isdir_mock):
         isdir_mock.return_value = True
 
         resp = self.client.post("/project/new",
@@ -194,6 +195,12 @@ class TestNew(_ProjectTestCase):
         self.assertEqual(LIBRARY, proj.library)
         self.assertEqual(PROP1, proj.proposal)
         self.assertEqual(SHIFT, proj.shift)
+
+        # project should be in 'pending' state
+        self.assertTrue(PendingProject.objects.filter(project=proj.id).exists())
+
+        # check that 'set-up project files' task have been started
+        setup_proj_mock.delay.assert_called_once_with(proj.id)
 
 
 class TestSetCurrent(_ProjectTestCase):

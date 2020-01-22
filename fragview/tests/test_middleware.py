@@ -1,5 +1,6 @@
 import unittest
 from django import urls
+from django import test
 from unittest import mock
 from fragview import middleware
 
@@ -20,7 +21,7 @@ class MiddlewareTestsMixin:
         self.assertEqual(result.status_code, 302)
         self.assertEqual(result.url, redirect_url)
 
-    def _request_mock(self, path="/", authenticated=True, with_project=False):
+    def _request_mock(self, path="/", authenticated=True, with_project=False, have_pending=False):
         req = mock.Mock()
         req.path = path  # in our case, path and path_info are the same
         req.path_info = path
@@ -28,6 +29,7 @@ class MiddlewareTestsMixin:
         req.session = dict(proposals=["12344321"])
 
         req.user.is_authenticated = authenticated
+        req.user.have_pending_projects.return_value = have_pending
 
         if not with_project:
             req.user.get_current_project.return_value = None
@@ -69,7 +71,7 @@ class TestLoginRequired(MiddlewareTestsMixin, unittest.TestCase):
         self._assert_no_redirect(res)
 
 
-class TestNoProjectsRedirect(MiddlewareTestsMixin, unittest.TestCase):
+class TestNoProjectsRedirect(MiddlewareTestsMixin, test.TestCase):
     """
     test no_projects_redirect() middleware
     """
@@ -105,3 +107,10 @@ class TestNoProjectsRedirect(MiddlewareTestsMixin, unittest.TestCase):
         # check that we were redirected to 'new project' page
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res.url, urls.reverse("new_project"))
+
+    def test_only_pending_project_redirect(self):
+        res = self.middleware_callable(self._request_mock(have_pending=True))
+
+        # check that we were redirected to 'new project' page
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, urls.reverse("manage_projects"))
