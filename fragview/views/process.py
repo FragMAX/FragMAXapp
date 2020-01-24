@@ -206,9 +206,8 @@ def run_autoproc(proj, nodes, filters):
         script = \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} -noANO autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
-            f'''autoPROC_XdsKeyword_LIB=\\$EBROOTNEGGIA/lib/dectris-neggia.so ''' + \
-            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
+            f'''process -h5 {h5master} -noANO ''' + \
+            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0 -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
             f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} -d {outdir}/autoproc\n''' + \
             f'''python {update_script} {sample} {proj.proposal}/{proj.shift}\n\n'''
