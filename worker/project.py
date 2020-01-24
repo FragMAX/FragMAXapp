@@ -13,6 +13,7 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_static_url, project_process_protein_dir
+from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script
 
 logger = get_task_logger(__name__)
 
@@ -34,6 +35,7 @@ def setup_project_files(proj_id):
 def _setup_project_files(proj):
     meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
+    _write_update_script(proj)
     _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
     _import_edna_fastdp(proj)
@@ -55,6 +57,13 @@ def _create_fragmax_folders(proj):
     _makedirs(path.join(fragmax_dir, "export"))
     _makedirs(path.join(fragmax_dir, "results"))
     _makedirs(project_process_protein_dir(proj))
+
+
+def _write_update_script(proj):
+    src_file = path.join(path.dirname(__file__), "data", UPDATE_STATUS_SCRIPT)
+    dst_file = project_update_status_script(proj)
+
+    shutil.copy(src_file, dst_file)
 
 
 def _parse_metafile(proj, metafile):

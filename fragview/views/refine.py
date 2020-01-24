@@ -6,9 +6,7 @@ import threading
 from glob import glob
 from django.shortcuts import render
 from fragview import hpc
-from fragview.projects import current_project, project_script
-
-update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
+from fragview.projects import current_project, project_script, project_update_status_script_cmds
 
 
 def datasets(request):
@@ -132,7 +130,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
                 outp.write(autoproc)
                 outp.write("\n\n")
-                outp.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
+                outp.write(project_update_status_script_cmds(proj, sample))
                 outp.write("\n\n")
             script = project_script(proj, "proc2res_" + sample + ".sh")
             hpc.run_sbatch(script)

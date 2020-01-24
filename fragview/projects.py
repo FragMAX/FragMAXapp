@@ -3,6 +3,8 @@ from os import path
 from django.conf import settings
 from .proposals import get_proposals
 
+UPDATE_STATUS_SCRIPT = "update_status.py"
+
 
 def current_project(request):
     proposals = get_proposals(request)
@@ -60,6 +62,17 @@ def project_script(project, script_file):
     generate full path to a file named 'script_file' inside project's script directory
     """
     return path.join(project.data_path(), "fragmax", "scripts", script_file)
+
+
+def project_update_status_script(project):
+    return project_script(project, UPDATE_STATUS_SCRIPT)
+
+
+def project_update_status_script_cmds(project, sample):
+    return \
+        "module purge\n" + \
+        "module load GCCcore/8.3.0 Python/3.7.4\n" + \
+        f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
 
 
 def project_raw_master_h5_files(project):

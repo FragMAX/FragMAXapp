@@ -2,7 +2,7 @@ import threading
 import os
 from django.shortcuts import render
 from fragview import hpc
-from fragview.projects import current_project, project_script
+from fragview.projects import current_project, project_script, project_update_status_script_cmds
 
 from glob import glob
 
@@ -84,7 +84,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
             writeFile.write(header)
             writeFile.write(rhofit_cmd)
             writeFile.write(ligfit_cmd)
-            writeFile.write(f"python {update_script} {sample} {proj.proposal}/{proj.shift}")
+            writeFile.write(project_update_status_script_cmds(proj, sample))
             writeFile.write("\n\n")
         script = project_script(proj, "autoligand_" + sample + ".sh")
         hpc.run_sbatch(script)
