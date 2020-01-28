@@ -900,7 +900,7 @@ def pandda_worker(method, proj):
 
     pandda_selection = f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/selection.json"
     with open(pandda_selection, "w") as writeFile:
-        writeFile.write(json.dumps(selectedDict)) # use `json.loads` to do the reverse
+        writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
 
     for dataset, pdb in selectedDict.items():
         if os.path.exists(pdb):
