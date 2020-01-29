@@ -1,5 +1,6 @@
 from glob import glob
 
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 
@@ -71,9 +72,8 @@ def set_current(request, id):
 
     request.user.set_current_project(proj)
 
-    # go back to original URL, or site root if we
-    # don't know referring page
-    return redirect(request.META.get("HTTP_REFERER", "/"))
+    # redirect to the 'start' page
+    return redirect(reverse("index"))
 
 
 def project_summary(request):
