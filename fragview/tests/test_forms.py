@@ -1,10 +1,12 @@
 from os import path
 import unittest
 from unittest import mock
+from django import test
 from django.test.client import RequestFactory
 from fragview import forms
 from django.conf import settings
 from fragview import projects
+from fragview.models import PendingProject
 
 
 PROPOSAL = "12345678"
@@ -16,7 +18,7 @@ SHIFT_2 = "00000002"
 
 def is_dir_mock(non_exist_dir):
     """
-    constuct an 'os.path.isdir()' mock, which returns
+    construct an 'os.path.isdir()' mock, which returns
     false for the 'non_exist_dir' path, and true otherwise
     """
     def _isdir(dir):
@@ -25,7 +27,10 @@ def is_dir_mock(non_exist_dir):
     return _isdir
 
 
-class TestProjectForm(unittest.TestCase):
+class FormTesterMixin:
+    """
+    Utility Mixin for testing Project Form class
+    """
     ReqsFactory = RequestFactory()
 
     def _request(self,
@@ -42,6 +47,52 @@ class TestProjectForm(unittest.TestCase):
                  proposal=proposal,
                  shift=shift,
                  shift_list=shift_list))
+
+
+class TestProjectFormSave(test.TestCase, FormTesterMixin):
+    def save_form(self):
+        """
+        create project form as save it as pending project
+
+        :return: created 'Project' database model object
+        """
+        request = self._request()
+
+        proj_form = forms.ProjectForm(request.POST)
+        with mock.patch("os.path.isdir") as isdir:
+            # mock isdir() to report that all directories exist
+            isdir.return_value = True
+
+            proj_form.save_as_pending()
+
+        return proj_form.instance
+
+    def test_save(self):
+        """
+        test saving form as pending project, and check
+        it's pending status in the database
+        :return:
+        """
+        proj = self.save_form()
+
+        # save project should be in pending state
+        pend_proj = PendingProject.objects.get(project=proj.id)
+        self.assertIsNotNone(pend_proj)
+
+    def test_set_ready(self):
+        """
+        test setting project 'ready' and check it's pending
+        state is droped from the database
+        """
+        proj = self.save_form()
+
+        proj.set_ready()
+
+        pend_proj = PendingProject.objects.filter(project=1)
+        self.assertFalse(pend_proj.exists())
+
+
+class TestProjectForm(unittest.TestCase, FormTesterMixin):
 
     def _assertValidationError(self, form, field, expected_error_regexp):
         self.assertFalse(form.is_valid())
