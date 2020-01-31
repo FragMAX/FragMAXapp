@@ -37,12 +37,16 @@ def project_shift_dirs(project):
         yield shift_dir(project.proposal, shift)
 
 
+def project_fragmax_dir(project):
+    return path.join(project.data_path(), "fragmax")
+
+
 def project_process_dir(project):
-    return path.join(project.data_path(), "fragmax", "process")
+    return path.join(project_fragmax_dir(project), "process")
 
 
 def project_results_dir(project):
-    return path.join(project.data_path(), "fragmax", "results")
+    return path.join(project_fragmax_dir(project), "results")
 
 
 def project_process_protein_dir(project):
