@@ -2,27 +2,16 @@ from unittest import mock
 from django import test
 
 from fragview.models import Project, PendingProject, User
-from fragview import auth
-
+from fragview.tests.utils import ViewTesterMixin
 
 PROTO = "PRTN"
 LIBRARY = "JBSD"
-
-PROP1 = "20180201"
-PROP2 = "20170223"
-
 SHIFT = "12345678"
 
 
-class _ProjectTestCase(test.TestCase):
+class _ProjectTestCase(test.TestCase, ViewTesterMixin):
     def setUp(self):
-        self.user = auth.ISPyBBackend()._get_user_obj("dummy")
-        self.client = test.Client()
-        self.client.force_login(user=self.user)
-
-        session = self.client.session
-        session["proposals"] = [PROP1, PROP2]
-        session.save()
+        self.setup_client()
 
     def assert_contains_template(self, response, template_name):
         """
@@ -56,8 +45,8 @@ class TestListProjects(_ProjectTestCase):
 
     def test_list(self):
         proj_ids = self._save_projs(
-            Project(protein="PRT", library="JBS", proposal=PROP1, shift="20190808"),
-            Project(protein="AST", library="JBS", proposal=PROP1, shift="20190808"))
+            Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808"),
+            Project(protein="AST", library="JBS", proposal=self.PROP1, shift="20190808"))
 
         resp = self.client.get("/projects/")
 
@@ -74,7 +63,7 @@ class TestEditNotFound(_ProjectTestCase):
     """
     def setUp(self):
         super().setUp()
-        Project(protein="PRT", library="JBS", proposal=PROP1, shift="20190808").save()
+        Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808").save()
 
     def test_get(self):
         resp = self.client.get("/project/23/")
@@ -89,7 +78,7 @@ class TestEdit(_ProjectTestCase):
     def setUp(self):
         super().setUp()
         self.proj = Project(protein="PRT", library="JBS",
-                            proposal=PROP1, shift="20190808")
+                            proposal=self.PROP1, shift="20190808")
         self.proj.save()
         self.url = f"/project/{self.proj.id}/"
 
@@ -184,7 +173,7 @@ class TestNew(_ProjectTestCase):
         resp = self.client.post("/project/new",
                                 dict(protein=PROTO,
                                      library=LIBRARY,
-                                     proposal=PROP1,
+                                     proposal=self.PROP1,
                                      shift=SHIFT))
 
         # check that we were redirected to 'projects' page
@@ -193,7 +182,7 @@ class TestNew(_ProjectTestCase):
         # check that project saved in the database looks good
         proj = Project.objects.get(protein=PROTO)
         self.assertEqual(LIBRARY, proj.library)
-        self.assertEqual(PROP1, proj.proposal)
+        self.assertEqual(self.PROP1, proj.proposal)
         self.assertEqual(SHIFT, proj.shift)
 
         # project should be in 'pending' state
@@ -206,7 +195,7 @@ class TestNew(_ProjectTestCase):
 class TestSetCurrent(_ProjectTestCase):
     def setUp(self):
         super().setUp()
-        self.proj = Project(protein="PRT", library="JBS", proposal=PROP1, shift="20190808")
+        self.proj = Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808")
         self.proj.save()
 
     def test_set(self):

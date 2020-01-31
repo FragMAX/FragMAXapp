@@ -52,7 +52,7 @@ urlpatterns = [
     path('refine_datasets/', refine.datasets, name='refine_datasets'),
     path('ligfit_datasets/', ligfit.datasets, name='ligfit_datasets'),
 
-    path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image),
+    path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image, name='diffraction_image'),
     path('ccp4_map/<dataset>/<process>/<refine>/<type>', ccp4.map),
     path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
 ]
