@@ -158,7 +158,7 @@ CELERY_RESULT_BACKEND = "redis://localhost"
 #
 
 # the host we use to manage jobs on HPC
-HPC_FRONT_END = "clu0-fe-1"
+HPC_FRONT_END = "clu0-fe-0"
 # user name for issuing jobs,
 # None means use currently logged in user
 HPC_USER = None
