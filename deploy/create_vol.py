@@ -53,7 +53,7 @@ with temp_init_dir() as temp_dir:
         "docker", "run",
         "--mount", "source=fragmax,target=/volume",
         "--mount", f"type=bind,source={temp_dir},target=/init_volume",
-        "-ti", "fragmax",
+        "-ti", "docker.maxiv.lu.se/fragmax",
         "sh", f"/init_volume/{SETUP_SCRIPT_NAME}"
     ]
     print(" ".join(cmd))
