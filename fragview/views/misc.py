@@ -1,10 +1,6 @@
 from django.shortcuts import render
 
 
-def index(request):
-    return render(request, "fragview/index.html")
-
-
 def results_download(request):
     return render(request, "fragview/results_download.html")
 

@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'fragview.context_processors.projects',
+                'fragview.context_processors.active_menu',
             ],
         },
     },

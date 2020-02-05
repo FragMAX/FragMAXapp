@@ -34,6 +34,11 @@
             .sidenav-links {
                padding-left: 32px !important;
             }
+
+            .sub-sidenav-links {
+               padding-left: 48px !important;
+            }
+
             .sidenav_local a {
             {% comment %} text-decoration: none; {% endcomment %}
             {% comment %} font-size: 22px; {% endcomment %}
@@ -222,14 +227,19 @@
          </li>
       {% endcomment %}
 
+    <li>
+        <a href="/" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Project<i class="material-icons" style="font-size:22px;color:white">dashboard</i>
+        </a>
+    </li>
+    {% ifequal active_menu 'project' %}
+        <li>
+            <a href="/pdbs" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                PDBs<i class="material-icons" style="font-size:22px;color:white">bubble_chart</i>
+            </a>
+        </li>
+    {% endifequal %}
 
-
-
-
-
-      {% comment %} <li class="isDisabled">
-         <a href="#" class="collapsible-header sidenav-links" data-turbolinks="false">Cryo opt<i class="material-icons " style="font-size:22px;color:white">ac_unit</i></a>
-      </li>{% endcomment %}
       <li>
          <a href="/soaking_plan" class="collapsible-header sidenav-links" data-turbolinks="false">Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
       </li> 
@@ -273,11 +283,6 @@
       </li>
       <li >
          <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
-      </li>
-      <li>
-         <a href="/project_summary" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Summary<i class="material-icons" style="font-size:22px;color:white">dashboard</i>
-         </a>
       </li>
       <li class="last">
          <a href="{% url 'logout' %}" class="collapsible-header sidenav-links" data-turbolinks="false">

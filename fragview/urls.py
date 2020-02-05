@@ -1,10 +1,11 @@
 from django.urls import path
-from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice, soaking
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4
 
 
 urlpatterns = [
-    path('', misc.index, name='index'),
+    # use 'project summary' view as the landing page
+    path('', projects.project_summary, name='project_summary'),
 
     path('testpage/', misc.testfunc, name='testpage'),
 
@@ -33,11 +34,17 @@ urlpatterns = [
     path('procReport/', datasets.proc_report, name='procReport'),
     path('results_download/', misc.results_download, name='results_download'),
 
+    # project management views
     path('projects/', projects.list, name='manage_projects'),
     path('project/<int:id>/', projects.edit),
     path('project/new', projects.new, name='new_project'),
     path('project/current/<int:id>/', projects.set_current),
-    path('project_summary/', projects.project_summary, name='project_summary'),
+
+    # PDBs management views
+    path('pdbs/', pdbs.list, name='manage_pdbs'),
+    path('pdb/<int:id>', pdbs.edit),
+    path('pdb/add', pdbs.add),
+    path('pdb/new', pdbs.new),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 

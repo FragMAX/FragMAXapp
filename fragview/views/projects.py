@@ -72,8 +72,8 @@ def set_current(request, id):
 
     request.user.set_current_project(proj)
 
-    # redirect to the 'start' page
-    return redirect(reverse("index"))
+    # redirect to the 'landing page' page
+    return redirect(reverse("project_summary"))
 
 
 def project_summary(request):

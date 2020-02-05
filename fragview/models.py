@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
-from .projects import shift_dir
+from .projects import shift_dir, project_model_file
 
 
 class Project(models.Model):
@@ -132,3 +132,26 @@ class User(AbstractBaseUser):
 
         # no pending project for the user found
         return False
+
+
+class PDB(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    filename = models.TextField()
+    # the official PDB ID, as assigned by Protein Data Bank organization
+    pdb_id = models.CharField(max_length=4)
+
+    class Meta:
+        unique_together = (("project", "filename"),)
+
+    @staticmethod
+    def project_pdbs(project):
+        """
+        fetch PDBs for the specified project
+        """
+        return PDB.objects.filter(project=project)
+
+    def file_path(self):
+        """
+        returns full path to the PDB file in the 'fragmax' project directory
+        """
+        return project_model_file(self.project, self.filename)

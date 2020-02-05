@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import Mock
 from django import test
+from django import urls
 from fragview import context_processors
 from fragview.models import Project
 
@@ -53,3 +54,33 @@ class TestProjectsLoggedIn(test.TestCase):
         self.assertSetEqual(
             set([self.proj1, self.proj2]),
             set(ctx["projects"]))
+
+
+class TestActiveMenu(unittest.TestCase):
+    """
+    test 'active menu' template context processor, the processor
+    that sets the 'active_menu' template context variable
+    """
+    def setup_req_mock(self, url):
+        req_mock = Mock()
+        req_mock.path_info = url
+
+        return req_mock
+
+    def test_no_menu(self):
+        """
+        test some URLs where there should be no active menu
+        """
+        no_menu_urls = ["/foo", "/bar", "/projects", urls.reverse("datasets")]
+        for url in no_menu_urls:
+            ctx = context_processors.active_menu(self.setup_req_mock(url))
+            self.assertDictEqual({}, ctx)
+
+    def test_project_menu(self):
+        """
+        test URLs where 'project' menu is active
+        """
+        project_urls = ["/", "/pdbs", "/pdb/242", "/pdb/add"]
+        for url in project_urls:
+            ctx = context_processors.active_menu(self.setup_req_mock(url))
+            self.assertDictEqual(dict(active_menu="project"), ctx)

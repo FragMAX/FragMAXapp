@@ -49,6 +49,14 @@ def project_results_dir(project):
     return path.join(project_fragmax_dir(project), "results")
 
 
+def project_models_dir(project):
+    return path.join(project_fragmax_dir(project), "models")
+
+
+def project_model_file(project, model_file):
+    return path.join(project_models_dir(project), model_file)
+
+
 def project_process_protein_dir(project):
     return path.join(project_process_dir(project), project.protein)
 
