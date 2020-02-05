@@ -232,7 +232,7 @@ def show_all(request):
         img_list = [x[5] for x in lines[1:]]
         path_list = [x[2] for x in lines[1:]]
         snap_list = [x[7].split(",")[0].replace("/mxn/groups/ispybstorage/", "/static/") for x in lines[1:]]
-        snap2_list = [x.replace("1.snapshot.jpeg","2.snapshot.jpeg") for x in snap_list]
+        snap2_list = [x.replace("1.snapshot.jpeg", "2.snapshot.jpeg") for x in snap_list]
         png_list = [x[8] for x in lines[1:]]
         run_list = [x[4] for x in lines[1:]]
 

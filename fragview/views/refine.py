@@ -147,7 +147,6 @@ def aimless_cmd(spacegroup, dstmtz):
     cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
           f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
           f"{dstmtz} HKLOUT {dstmtz} | tee {outdir}/aimless.log"
-    cad_fill=""
     return cmd
 
 
