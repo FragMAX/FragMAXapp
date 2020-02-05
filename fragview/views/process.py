@@ -113,7 +113,7 @@ def datasets(request):
 
 def run_xdsapp(proj, nodes, filters):
     # Modules list for HPC env
-    softwares="CCP4 XDSAPP"
+    softwares = "CCP4 XDSAPP"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -170,7 +170,7 @@ def run_xdsapp(proj, nodes, filters):
 
 def run_autoproc(proj, nodes, filters):
     # Modules list for HPC env
-    softwares="CCP4 autoPROC Durin"
+    softwares = "CCP4 autoPROC Durin"
 
     if "filters:" in filters:
         filters = filters.split(":")[-1]
@@ -232,7 +232,7 @@ def run_autoproc(proj, nodes, filters):
 
 def run_xdsxscale(proj, nodes, filters):
     # Modules list for HPC env
-    softwares="PReSTO DIALS/2.1.1-1-PReSTO"
+    softwares = "PReSTO DIALS/2.1.1-1-PReSTO"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -294,7 +294,7 @@ def run_xdsxscale(proj, nodes, filters):
 
 def run_dials(proj, nodes, filters):
     # Modules list for HPC env
-    softwares="PReSTO DIALS/2.1.1-1-PReSTO"
+    softwares = "PReSTO DIALS/2.1.1-1-PReSTO"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 

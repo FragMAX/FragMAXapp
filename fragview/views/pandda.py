@@ -993,4 +993,3 @@ def get_best_alt_dataset(proj, dataset):
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]
-
