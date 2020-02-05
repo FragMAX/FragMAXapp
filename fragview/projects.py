@@ -72,10 +72,12 @@ def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
 
 
-def project_update_status_script_cmds(project, sample):
+def project_update_status_script_cmds(project, sample, softwares):
     return \
         "module purge\n" + \
         "module load GCCcore/8.3.0 Python/3.7.4\n" + \
+        "module purge\n" + \
+        f"module load {softwares}\n" + \
         f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
 
 

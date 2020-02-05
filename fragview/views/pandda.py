@@ -971,6 +971,7 @@ def pandda_worker(method, proj):
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
+    os.remove(script)
 
 
 def get_best_alt_dataset(proj, dataset):
@@ -992,3 +993,4 @@ def get_best_alt_dataset(proj, dataset):
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]
+

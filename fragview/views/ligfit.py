@@ -35,6 +35,8 @@ def datasets(request):
 
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
+    # Modules for HPC env
+    softwares = "autoPROC BUSTER Phenix CCP4"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
     if filters == "ALL":
@@ -57,7 +59,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
     header += f"#SBATCH -o /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_out.txt\n"
     header += f"#SBATCH -e /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_err.txt\n"
     header += "module purge\n"
-    header += "module load autoPROC BUSTER Phenix CCP4\n"
+    header += f"module load {softwares}\n"
 
     for pdb in pdbList:
         rhofit_cmd = ""
@@ -84,7 +86,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
             writeFile.write(header)
             writeFile.write(rhofit_cmd)
             writeFile.write(ligfit_cmd)
-            writeFile.write(project_update_status_script_cmds(proj, sample))
+            writeFile.write(project_update_status_script_cmds(proj, sample, softwares))
             writeFile.write("\n\n")
         script = project_script(proj, "autoligand_" + sample + ".sh")
         hpc.run_sbatch(script)

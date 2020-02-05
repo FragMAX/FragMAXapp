@@ -112,6 +112,8 @@ def datasets(request):
 
 
 def run_xdsapp(proj, nodes, filters):
+    # Modules list for HPC env
+    softwares="CCP4 XDSAPP"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -129,7 +131,7 @@ def run_xdsapp(proj, nodes, filters):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsapp_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += """module load CCP4 XDSAPP\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -149,7 +151,7 @@ def run_xdsapp(proj, nodes, filters):
             f"cd {outdir}/xdsapp\n" \
             f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} --delphi=10 " \
             f"--fried=True --range=1\\ {nImg}\n" + \
-            project_update_status_script_cmds(proj, sample)
+            project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -167,6 +169,9 @@ def run_xdsapp(proj, nodes, filters):
 
 
 def run_autoproc(proj, nodes, filters):
+    # Modules list for HPC env
+    softwares="CCP4 autoPROC Durin"
+
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -179,12 +184,12 @@ def run_autoproc(proj, nodes, filters):
     header += """#SBATCH -J autoPROC\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=40\n"""
+    header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/autoproc_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += """module load CCP4 autoPROC\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -204,11 +209,12 @@ def run_autoproc(proj, nodes, filters):
         script = \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} -noANO ''' + \
-            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0 -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
+            f'''process -h5 {h5master} -noANO autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
+            f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
+            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
             f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} -d {outdir}/autoproc\n''' + \
-            project_update_status_script_cmds(proj, sample)
+            project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
 
@@ -225,6 +231,8 @@ def run_autoproc(proj, nodes, filters):
 
 
 def run_xdsxscale(proj, nodes, filters):
+    # Modules list for HPC env
+    softwares="PReSTO DIALS/2.1.1-1-PReSTO"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -237,13 +245,13 @@ def run_xdsxscale(proj, nodes, filters):
     header += """#SBATCH -J xdsxscale\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=40\n"""
+    header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
     header += """#SBATCH --mem-per-cpu=2000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += """module load PReSTO\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -269,7 +277,7 @@ def run_xdsxscale(proj, nodes, filters):
             f"cd {outdir}/xdsxscale \n" \
             f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true  nproc=40 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
-            project_update_status_script_cmds(proj, sample)
+            project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
@@ -285,6 +293,8 @@ def run_xdsxscale(proj, nodes, filters):
 
 
 def run_dials(proj, nodes, filters):
+    # Modules list for HPC env
+    softwares="PReSTO DIALS/2.1.1-1-PReSTO"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -304,7 +314,7 @@ def run_dials(proj, nodes, filters):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += """module load CCP4 XDS DIALS/1.14.10-2-PReSTO\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -327,7 +337,7 @@ def run_dials(proj, nodes, filters):
             f"cd {outdir}/dials \n" \
             f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true nproc=48 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
-            project_update_status_script_cmds(proj, sample)
+            project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
