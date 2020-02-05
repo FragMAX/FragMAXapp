@@ -7,6 +7,7 @@ from glob import glob
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
+from .utils import Filter
 
 
 def datasets(request):
@@ -85,7 +86,8 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         if useBUSTER:
             argsfit += "buster"
 
-        datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/{filters}/")
+        datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")
+        datasetList = sorted(Filter(datasetList, filters.split(",")))
 
         proc2resOut = ""
         proc2resOut += """#!/bin/bash\n"""
@@ -145,6 +147,7 @@ def aimless_cmd(spacegroup, dstmtz):
     cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
           f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
           f"{dstmtz} HKLOUT {dstmtz} | tee {outdir}/aimless.log"
+    cad_fill=""
     return cmd
 
 
