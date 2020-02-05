@@ -147,6 +147,7 @@
     -moz-column-count:2;
     -webkit-column-count:2;
 }
+
 </style>
 
 
@@ -466,8 +467,8 @@
                                             </div>
                                             <div class="checkbox" id="pandda">
                                                 <label>
-                                                    <input id="phenixpanddacheckboxinput"
-                                                        name="phenixpanddacheckboxname" type="checkbox"
+                                                    <input id="panddacheckboxinput"
+                                                        name="panddacheckboxname" type="checkbox"
                                                         class="ligandform filled-in dt-checkboxes" value="panddaanalysis">
                                                     <span for="panddacheckboxinput">PanDDA </span>
                                                 </label>
@@ -1300,7 +1301,7 @@
         <div class="flex-center">
             <div>
                 <div class="card-content card-content-left">
-                    <div class="card-title">PanDDA analyse options</div>
+                    <div class="card-title">PanDDA analysis options</div>
                     <table class="optionstable">
                         <col width="8%">
                         <col width="17%">
@@ -1364,8 +1365,167 @@
                      </table>
                 </div>
             </div>
+            <div class="bottom-right">
+
+                <form action="/submit_pandda/" method="get" id="sendpandda" name="sendpandda" size="1" target="_blank">
+                    <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="pipedreamInput" name="panddaform" size="1">Run PanDDA</button>
+                </form> 
+            </div>
+        </div>
+        
+        
+    </div>
+
+
+
+<div class="card-title">Giant PanDDA</div>
+        
+    <div class="flexdiv_options  ">
+        <div class="flex-left">
+            <div>
+                <div class="card-content card-content-left">
+                    <table class="optionstable" > 
+                        <col width="8%">
+                        <col width="17%">
+                        <tbody>
+                        
+                <tr>
+                    <th class=" top-options">Available inspects</th>
+                    <td class=" top-options">
+                    <select class="selectbox" id="inspects" name="inspects">
+                            <option disabled selected value="yes"> -- select an option -- </option>
+                            {% for method in methods %}
+                            <option value="{{method}}">{{method}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>  
+
+                <tr>
+                    <th class=" top-options">Make restraints</sup></th>
+                    <td class=" top-options">
+                        <form id="groundstate" >
+                            <div class="checkbox" id="makerestraints">
+                            <label>
+                                <input id="allRestraint" name="allRestraint" type="checkbox" class="filled-in dt-checkboxes" value="allRestraint" checked>
+                                <span for="allRestraint">Create all restraints</span>
+                            </label>
+                            </div>
+                            <div class="checkbox" id="resnames" >
+                            <label>
+                                <input class="selectbox" name="resnames" placeholder="default: XXX"></input>
+                            </label>
+                            </div>
+                            
+                    </form> 
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th class=" top-options">Quick refine</sup></th>
+                    <td class=" top-options">
+                        <div style="display:flex">
+                            <select class="selectbox" name="compdatasets" disabled>
+                                <option selected disabled value="true"> -- PDB1 -- </option>
+                                <option value="true">pdbmodel</option>
+                                <option value="false">None</option>
+                            </select>
+                            <select class="selectbox" name="compdatasets" disabled>
+                                <option selected disabled value="true"> -- MTZ1 -- </option>
+                                <option value="true">mtzfile</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div style="display:flex">
+                            <select class="selectbox" name="compdatasets" disabled>
+                                <option selected disabled value="true"> -- PDB2 -- </option>
+                                <option value="true">pdbmodel</option>
+                                <option value="false">No</option>
+                            </select>
+                            <select class="selectbox" name="compdatasets" disabled>
+                                <option selected disabled value="true"> -- MTZ2 -- </option>
+                                <option value="true">mtzfile</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                
+                
+
+                </tbody>
+
+                </table>
+            </div>
+
         </div>
     </div>
+
+    <div class="flex-center">
+        <div>
+
+            <div class="card-content card-content-left">
+                <table class="optionstable">
+                    <col width="8%">
+                    <col width="17%">
+                    <tbody>
+            
+            <tr>
+                <th class=" top-options">Split conformations</th>
+                <td class=" top-options">
+                   <div class="col s12 required inline" id="splitConfs">                            
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="refmacradio" name="confproc_type" type="radio" value="refmac">
+                                <span class="item-label" for="refmacradio">Refmac refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="phenixradio" name="confproc_type" type="radio" value="phenix">
+                                <span class="item-label" for="phenixradio">Phenix refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="manualradio" name="confproc_type" type="radio" value="manual">
+                                <span class="item-label" for="manualradio">Manual refine</span>
+                            </label></div>
+                            <div class="radio" id="confref_type"><label>
+                                <input class="with-gap" id="norefineradio" name="confproc_type" type="radio" value="none" checked="checked">
+                                <span class="item-label" for="norefineradio">No refine</span>
+                            </label></div>                             
+                        </div>
+                </td>
+            </tr>   
+            <tr>
+                <th class=" top-options">Dataset cluster</th>
+                <td class=" top-options">
+                   <select class="selectbox" id="datasetCluster" name="datasetCluster" disabled>
+                        <option selected disabled value="no"> -- select an option -- </option>
+                        <option value="Yes">Yes</option>                        
+                        <option value="no">No</option>
+                    </select>
+                </td>
+            </tr>  
+              
+            <tr>
+            <th class=" top-options">Score models</th>
+            <td class=" top-options">
+                <select class="selectbox" name="giantscore">                    
+                    <option selected value="Yes">Yes</option>             
+                    <option value="No">No</option>
+                </select>
+            </td>
+        <tr>
+            
+            </tbody>
+
+            </table>
+        </div>
+<div class="bottom-right">
+     <form action="/submit_pandda/" method="get" id="sendgiant" name="sendgiant" size="1" target="_blank">
+        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="giantinput" name="giantform" size="1" >Run Giant PanDDA</button>
+    </form> 
+    
+
+</div>
+</div>
     </div>
     <div id="Pipedream" class="card tabcontent">
         <div class="card-title">Pipedream Options</div>
@@ -1758,6 +1918,20 @@
             }
         });
     });
+
+$(document).ready(function () {
+        $("#panddacheckboxinput").click(function () {
+            if ($(this).is(":checked")) {                
+                openDatasets(event, 'PanDDA')
+            } else {                
+                openDatasets(event, 'Hide')
+            }
+        });
+    });
+
+
+
+
     var f = document.getElementById("dtprocBtn");
 
     f.onsubmit = function dataproc() {
@@ -2003,6 +2177,49 @@ function getCheckedBoxes(chkboxName) {
   // Return the array if it is non-empty, or null
   return checkboxesChecked.length > 0 ? checkboxesChecked : null;
 }
+
+</script>
+
+
+<script>
+// PanDDA parser
+var f5 = document.getElementById("sendpandda");
+    
+    f5.onsubmit = function panddasetup(){
+
+        var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
+        var ref_type  = document.querySelector('input[name="ref_type"]:checked').value;
+        
+        var complete  = document.getElementsByName("compdatasets")[0].value;
+
+        var use_apo  = document.getElementById("apoGS").checked
+        var use_dmso = document.getElementById("dmsoGS").checked
+        var use_cryo = document.getElementById("cryoGS").checked
+        
+        var use_CAD  = document.getElementById("use_CAD").value 
+        var ref_CAD  = document.getElementById("refine_popMTZ").value 
+        
+        var ign_errordts = document.getElementById("ignoreErr").checked
+        var keepup_last  = document.getElementById("keepup").checked
+        var ign_symlink  = document.getElementById("fixsym").checked        
+        
+        var out = "analyse;"+proc_type+";"+ref_type+";"+complete+";"+use_apo+";"+use_dmso+";"+use_cryo+";"+use_CAD+";"+ref_CAD+";"+ign_errordts+";"+keepup_last+";"+ign_symlink
+        document.getElementsByName("panddaform")[0].value = out
+
+}
+
+var f6 = document.getElementById("sendgiant");
+    
+    f6.onsubmit = function giantsetup(){
+
+        var method = document.getElementById("inspects").value;
+             
+        
+        var out = "giantscore;"+method
+        document.getElementsByName("giantform")[0].value = out
+
+}
+
 
 </script>
 
