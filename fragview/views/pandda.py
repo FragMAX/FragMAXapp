@@ -651,7 +651,7 @@ def submit(request):
 
         py_script = project_script(proj, "pandda_worker.py")
         with open(py_script, "w") as outp:
-            outp.write('''  # noqa E501
+            outp.write('''# noqa E501
 import os
 import glob
 import sys
