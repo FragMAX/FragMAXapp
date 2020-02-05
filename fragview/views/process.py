@@ -7,7 +7,7 @@ from os import path
 from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
 from fragview import hpc
-from .utils import scrsplit
+from .utils import scrsplit, Filter
 
 
 def datasets(request):
@@ -74,7 +74,7 @@ def datasets(request):
         })
 
     if dtprc != "None":
-        dtprc_inp = dtprc.split(";")
+        dtprc_inp = dtprc.split(";;")
         usedials = dtprc_inp[1].split(":")[-1]
         usexdsxscale = dtprc_inp[2].split(":")[-1]
         usexdsapp = dtprc_inp[3].split(":")[-1]
@@ -135,7 +135,8 @@ def run_xdsapp(proj, nodes, filters):
 
     scriptList = list()
 
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
         with open(xml) as fd:
@@ -193,7 +194,8 @@ def run_autoproc(proj, nodes, filters):
 
     scriptList = list()
 
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
         with open(xml) as fd:
@@ -247,7 +249,7 @@ def run_xdsxscale(proj, nodes, filters):
     header += """#SBATCH -N1\n"""
     header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
-    header += """#SBATCH --mem-per-cpu=2000\n"""
+    # header += """#SBATCH --mem-per-cpu=2000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/xdsxscale_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
@@ -255,10 +257,8 @@ def run_xdsxscale(proj, nodes, filters):
 
     scriptList = list()
 
-    with open(project_script(proj, "filter.txt"), "w") as inp:
-        inp.write(filters)
-
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
         with open(xml) as fd:
@@ -310,7 +310,6 @@ def run_dials(proj, nodes, filters):
     header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
     # header += """#SBATCH --mem-per-cpu=2000\n"""
-
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
@@ -318,7 +317,8 @@ def run_dials(proj, nodes, filters):
 
     scriptList = list()
 
-    xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
+    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
         with open(xml) as fd:

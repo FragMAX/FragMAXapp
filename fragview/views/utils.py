@@ -15,3 +15,7 @@ def write_script(fname, contents):
     with os.fdopen(os.open(fname, os.O_CREAT | os.O_RDWR, mode), "w") as f:
         print(f"writing script file {fname}")
         f.write(contents)
+
+
+def Filter(datasetsList, filtersList):
+    return [str for str in datasetsList if any(sub in str for sub in filtersList)]

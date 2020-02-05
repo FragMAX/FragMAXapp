@@ -159,26 +159,26 @@
         <h5>HPC Nodes</h5>
         <div class="radio" id="nodes">
             <label>
-                <input class="with-gap" id="1node" name="1node" type="radio" value="1" disabled>
+                <input class="with-gap" id="1node" name="1node" type="radio" value="1" >
                 <span class="item-label" for="1node">1</span>
             </label>
             <label>
-                <input class="with-gap" id="5node" name="5node" type="radio" value="5" disabled>
-                <span class="item-label" for="5node">5</span>
+                <input class="with-gap" id="3node" name="5node" type="radio" value="5" >
+                <span class="item-label" for="3node">3</span>
             </label>
             <label>
-                <input class="with-gap" id="5node" name="5node" type="radio" value="10" disabled checked>
-                <span class="item-label" for="5node">10</span>
+                <input class="with-gap" id="6node" name="5node" type="radio" value="10"  checked>
+                <span class="item-label" for="6node">6</span>
             </label>
             <label>
-                <input class="with-gap" id="5node" name="5node" type="radio" value="25" disabled>
-                <span class="item-label" for="5node">25</span>
+                <input class="with-gap" id="9node" name="5node" type="radio" value="25" >
+                <span class="item-label" for="9node">9</span>
             </label>
         </div>
     </div>
     <h5 style="padding-left:310px;">{{project.protein}} Data Analysis</h5>
 
-    <h6 style="padding-left:330px;">• This page will process/reprocess your datasets using at MAX IV HPC and
+    <h6 style="padding-left:330px;">• New actions will process/reprocess your datasets using at MAX IV HPC and
         <b>replace</b> your current result</h6>
     {% comment %} <h7 style="padding-left:330px;">&bull; BioMAX autoprocessing statistics is displayed in the bottom of
         the page</h7> {% endcomment %}
@@ -188,12 +188,12 @@
                 value="alldatasets" checked>
             <span for="processALLckbox">Process all datasets </span>
         </label>
-        <select class="selectbox datasetbox" id="dropdownDataset" name="dropdownDataset" disabled>
+        {% comment %} <select class="selectbox datasetbox" id="dropdownDataset" name="dropdownDataset" disabled>
             <option disabled selected value> -- select a dataset -- </option>
             {% for datasetName in datasets %}
             <option value={{datasetName}}>{{datasetName}}</option>
             {% endfor %}
-        </select>
+        </select> {% endcomment %}
     </div>
     <div class=" card_options">
         <div class="card tab">
@@ -201,10 +201,7 @@
             <button class="tablinks" onclick="openDatasets(event, 'HideDatasets')">Hide</button>            
         </div>
         <div id="Datasets" class="card tabcontent">
-        <label>
-        <input id="selectALLdatasets" onClick="toggle(this)" type="checkbox" class="ligandform filled-in dt-checkboxes" >
-            <span>Select all datasets</span>
-        </label>
+        
 
         <div id="tablecontainer">
 
@@ -1754,8 +1751,10 @@
         $("#processALLckbox").click(function () {
             if ($(this).is(":checked")) {
                 $("#dropdownDataset").prop("disabled", true);
+                openDatasets(event, 'HideDatasets')
             } else {
                 $("#dropdownDataset").prop("disabled", false);
+                openDatasets(event, 'Datasets')
             }
         });
     });
@@ -1763,21 +1762,22 @@
 
     f.onsubmit = function dataproc() {
         //Data proc options
-        var dialsSW = ";dials:" + document.getElementsByName("dialscheckboxname")[0].checked
-        var xdsxscaleSW = ";xdsxscale:" + document.getElementsByName("xdsxscalecheckboxname")[0].checked
-        var xdsappSW = ";xdsapp:" + document.getElementsByName("xdsappcheckboxname")[0].checked
-        var autoprocSW = ";autoproc:" + document.getElementsByName("autoproccheckboxname")[0].checked
-        var spacegroup = ";spacegroup:" + document.getElementsByName("spacegroup")[0].value
-        var cellparam = ";cellparam:" + document.getElementsByName("cellparam")[0].value
-        var friedel = ";friedel:" + document.getElementsByName("friedel")[0].value
-        var datarange = ";datarange:" + document.getElementsByName("datarange")[0].value
-        var rescutoff = ";rescutoff:" + document.getElementsByName("rescutoff")[0].value
-        var cccutoff = ";cccutoff:" + document.getElementsByName("cccutoff")[0].value
-        var isigicutoff = ";isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
+        var dialsSW = ";;dials:" + document.getElementsByName("dialscheckboxname")[0].checked
+        var xdsxscaleSW = ";;xdsxscale:" + document.getElementsByName("xdsxscalecheckboxname")[0].checked
+        var xdsappSW = ";;xdsapp:" + document.getElementsByName("xdsappcheckboxname")[0].checked
+        var autoprocSW = ";;autoproc:" + document.getElementsByName("autoproccheckboxname")[0].checked
+        var spacegroup = ";;spacegroup:" + document.getElementsByName("spacegroup")[0].value
+        var cellparam = ";;cellparam:" + document.getElementsByName("cellparam")[0].value
+        var friedel = ";;friedel:" + document.getElementsByName("friedel")[0].value
+        var datarange = ";;datarange:" + document.getElementsByName("datarange")[0].value
+        var rescutoff = ";;rescutoff:" + document.getElementsByName("rescutoff")[0].value
+        var cccutoff = ";;cccutoff:" + document.getElementsByName("cccutoff")[0].value
+        var isigicutoff = ";;isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
         if (document.getElementById("processALLckbox").checked) {
-            var dtsfilters = ";filters:ALL"
+            var dtsfilters = ";;filters:ALL"
         } else {
-            var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
+            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
+            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
             datarange + rescutoff + cccutoff + isigicutoff + dtsfilters
@@ -1807,7 +1807,8 @@
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else {
-            var dtsfilters = ";;filters:" + document.getElementsByName("dropdownDataset")[0].value
+            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
+            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var aimlessopt = ";;aimlessopt:" + document.getElementById("aimlesscheckboxinput").checked.toString()
         var refinecmd = dimpleSW + fspSW + busterSW + refinemode + mrthreshold + refinerescutoff + pdbmodel +
@@ -1830,7 +1831,8 @@
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else {
-            var dtsfilters = ";;filters:" + document.getElementsByName("dropdownDataset")[0].value
+            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
+            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var ligfitcmd = rhofitSW + ligfitSW + ligandfile + fitprocess + scanchirals + customligfit +
             ligandfromname + dtsfilters
@@ -1988,7 +1990,19 @@ function toggle(source) {
 
 {% comment %} $('#tablecontainer').columnize({ columns: 2 }) {% endcomment %}
 
-
+function getCheckedBoxes(chkboxName) {
+  var checkboxes = document.getElementsByName(chkboxName);
+  var checkboxesChecked = [];
+  // loop over them all
+  for (var i=0; i<checkboxes.length; i++) {
+     // And stick the checked ones onto an array...
+     if (checkboxes[i].checked) {
+        checkboxesChecked.push(checkboxes[i].id.slice(14));
+     }
+  }
+  // Return the array if it is non-empty, or null
+  return checkboxesChecked.length > 0 ? checkboxesChecked : null;
+}
 
 </script>
 
