@@ -232,6 +232,7 @@ def show_all(request):
         img_list = [x[5] for x in lines[1:]]
         path_list = [x[2] for x in lines[1:]]
         snap_list = [x[7].split(",")[0].replace("/mxn/groups/ispybstorage/", "/static/") for x in lines[1:]]
+        snap2_list = [x.replace("1.snapshot.jpeg","2.snapshot.jpeg") for x in snap_list]
         png_list = [x[8] for x in lines[1:]]
         run_list = [x[4] for x in lines[1:]]
 
@@ -383,7 +384,7 @@ def show_all(request):
                  </td>"""
             lgentry.append(lge)
 
-    results = zip(img_list, prf_list, res_list, path_list, snap_list, acr_list,
+    results = zip(img_list, prf_list, res_list, path_list, snap_list, snap2_list, acr_list,
                   png_list, run_list, smp_list, dpentry, rfentry, lgentry)
 
     return render(request, "fragview/datasets.html", {"files": results})

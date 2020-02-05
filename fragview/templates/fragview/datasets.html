@@ -86,7 +86,7 @@
   
     <tr >
     </tr>
-    {% for img,prf,res,path,snap,acr,png,run,smp,dps,rfs,lgs in files %}
+    {% for img,prf,res,path,snap,snap2,acr,png,run,smp,dps,rfs,lgs in files %}
     <tr>
     <td>
 
@@ -110,6 +110,10 @@
       <a href={{ snap }} target="_blank">
           <img class="crystalsnap" id="snap1" src={{ snap }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
       </a>
+      <a href={{ snap }} target="_blank">
+          <img class="crystalsnap" id="snap1" src={{ snap2 }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+      </a>
+
     </td>    
       
     <td>
