@@ -79,8 +79,10 @@
               <td>{{TIME}}</td>
               <td>{{NODE}}</td>
               <td>{{NODEname}}</td>
-              <td><a href="#" onclick="readTextFile('{{StdOUT}}'); return false;">job_{{jobid}}.out</a></td>
-              <td><a href="#" onclick="readTextFile('{{StdERR}}'); return false;">job_{{jobid}}.err</a></td>
+              {% comment %} <td><a href="#" onclick="readTextFile('{{StdOUT}}'); return false;">job_{{jobid}}.out</a></td> {% endcomment %}
+              <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
+              <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
+              {% comment %} <td><a href="#" onclick="readTextFile('{{StdERR}}'); return false;">job_{{jobid}}.err</a></td> {% endcomment %}
               <td>          
                 <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
                     <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
