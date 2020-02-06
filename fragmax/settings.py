@@ -120,8 +120,10 @@ AUTH_USER_MODEL = "fragview.User"
 # root path to where proposals data is stored
 PROPOSALS_DIR = "/data/visitors/biomax"
 
-# Goto the 'front page' after logging out
-LOGOUT_REDIRECT_URL = "index"
+# after login, when no 'next' url is known, goto the 'front' page
+LOGIN_REDIRECT_URL = "/"
+# when logged out, goto login page
+LOGOUT_REDIRECT_URL = "login"
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
