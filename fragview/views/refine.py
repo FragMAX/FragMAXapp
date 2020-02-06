@@ -68,6 +68,9 @@ def datasets(request):
 
 def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
                           customrefbuster, customreffspipe, aimlessopt):
+    # Modules list for HPC env
+    softwares = "PReSTO autoPROC BUSTER"
+
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
@@ -99,7 +102,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
         proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
         proc2resOut += """module purge\n"""
-        proc2resOut += """module load PReSTO autoPROC BUSTER\n\n"""
+        proc2resOut += f"""module load {softwares}\n\n"""
         proc2resOut += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
 
         aimless = bool(aimlessopt)
@@ -132,7 +135,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
                 outp.write(autoproc)
                 outp.write("\n\n")
-                outp.write(project_update_status_script_cmds(proj, sample))
+                outp.write(project_update_status_script_cmds(proj, sample, softwares))
                 outp.write("\n\n")
             script = project_script(proj, "proc2res_" + sample + ".sh")
             hpc.run_sbatch(script)
