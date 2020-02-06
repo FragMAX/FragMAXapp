@@ -144,6 +144,13 @@ class PDB(models.Model):
         unique_together = (("project", "filename"),)
 
     @staticmethod
+    def get(id):
+        """
+        get PDB by our internal database ID
+        """
+        return PDB.objects.get(id=id)
+
+    @staticmethod
     def project_pdbs(project):
         """
         fetch PDBs for the specified project

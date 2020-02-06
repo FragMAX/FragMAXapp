@@ -1,16 +1,10 @@
-from glob import glob
-
 from django.shortcuts import render
+from fragview.models import PDB
 from fragview.projects import current_project, project_raw_master_h5_files
 
 
 def processing_form(request):
     proj = current_project(request)
-
-    models = [
-        x.split("/")[-1].split(".pdb")[0]
-        for x in glob(proj.data_path() + "/fragmax/models/*.pdb")
-    ]
 
     datasets = sorted(
         [
@@ -23,4 +17,7 @@ def processing_form(request):
     return render(
         request,
         "fragview/data_analysis.html",
-        {"models": models, "datasets": datasets})
+        {
+            "datasets": datasets,
+            "pdbs": PDB.project_pdbs(proj)
+        })

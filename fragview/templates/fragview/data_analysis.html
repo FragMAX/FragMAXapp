@@ -150,11 +150,6 @@
 
 </style>
 
-
-
-{% comment %}
-<meta http-equiv="refresh" content="5" /> {% endcomment %}
-
 <div>
     <div style="position:absolute; right: 50px">
         <h5>HPC Nodes</h5>
@@ -260,7 +255,7 @@
                                                     <span for="pipedreamcheckboxinputproc">Pipedream </span>
                                                 </label>
                                             </div>
-                                            <div class="checkbox " id="dials">
+                                            <div class="checkbox" id="dials">
                                                 <label>
                                                     <input id="dialscheckboxinput" name="dialscheckboxname"
                                                         type="checkbox" class="processform filled-in dt-checkboxes" value="dials">
@@ -376,21 +371,9 @@
                                 <tr>
                                     <th class=" top-options">PDB model</th>
                                     <td class=" top-options">
-                                        <input class="refineform selectbox" name="pdbcode" id="pdbcode"
-                                            placeholder="PDB ID or full path"></input>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class=" top-options"></th>
-                                    <td class=" top-options">
-                                        {% comment %} <input type='file' accept=".pdb"
-                                            onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' />
-                                        {% endcomment %}
-                                        <select class="refineform selectbox " name="dropdownModel" id="dropdownModel">
-                                            <option disabled selected value=""> -- select PDB model -- </option>
-                                            <option value=""></option>
-                                            {% for model in models %}
-                                            <option value={{model}}>{{model}}</option>
+                                        <select class="refineform selectbox" name="dropdownModel" id="dropdownModel">
+                                            {% for pdb in pdbs %}
+                                                <option value="{{pdb.id}}">{{pdb.filename}}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -398,8 +381,6 @@
                                 <tr>
                                     <th class=" top-options">Space group</th>
                                     <td class=" top-options">
-                                        
-                                        
                                         <label>
                                         <input class="refineform selectbox" name="refspacegroup" placeholder="P43212" ></input>   
                                         </label>
@@ -1969,11 +1950,7 @@ $(document).ready(function () {
         var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
         var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
         var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
-        if (document.getElementsByName("dropdownModel")[0].value == "") {
-            var pdbmodel = ";;pdbmodel:" + document.getElementsByName("pdbcode")[0].value
-        } else {
-            var pdbmodel = ";;pdbmodel:" + document.getElementsByName("dropdownModel")[0].value
-        }
+        var pdbmodel = ";;pdbmodel:" + document.getElementsByName("dropdownModel")[0].value
         var refspacegroup = ";;refspacegroup:" + document.getElementsByName("refspacegroup")[0].value
         var customrefdimple = ";;customrefinedimple:" + document.getElementsByName("customrefine")[0].value
         var customrefbuster = ";;customrefinebuster:" + document.getElementsByName("customrefine")[1].value
@@ -2115,14 +2092,20 @@ $(document).ready(function () {
         document.getElementById("fspcBlobvalue").innerHTML = this.value / 10;
     }
 
-    
-    $('.refineform').on('input',function(e){
-     if (document.getElementById("fspcheckboxinput").checked+document.getElementById("bustercheckboxinput").checked+document.getElementById("dimplecheckboxinput").checked!=0 && document.getElementsByName("dropdownModel")[0].value+document.getElementsByName("pdbcode")[0].value!="" && document.getElementsByName("refspacegroup")[0].value!="") {
-                    document.getElementById("submitrfProc").disabled = false;
-                }
-        else{
-                    document.getElementById("submitrfProc").disabled = true;
-        }
+
+
+    $(".refineform").on("input", function(e)
+    {
+        if (document.getElementById("fspcheckboxinput").checked+
+            document.getElementById("bustercheckboxinput").checked+
+            document.getElementById("dimplecheckboxinput").checked!=0 && document.getElementsByName("dropdownModel")[0].value)
+            {
+                document.getElementById("submitrfProc").disabled = false;
+            }
+            else
+            {
+                document.getElementById("submitrfProc").disabled = true;
+            }
     });
 
     $('.processform').on('input',function(e){

@@ -1,12 +1,11 @@
 import os
-import pypdb
 import pyfastcopy  # noqa
-import shutil
 import threading
 from glob import glob
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
+from fragview.models import PDB
 from .utils import Filter
 
 
@@ -30,31 +29,14 @@ def datasets(request):
         useBUSTER = False
     else:
         useBUSTER = True
-    # if len(userPDB)<20:
-    pdbmodel = userPDB.replace("pdbmodel:", "")
-    os.makedirs(proj.data_path() + "/fragmax/models/", mode=0o777, exist_ok=True)
-    if pdbmodel != "":
-        if pdbmodel in [x.split("/")[-1].split(".pdb")[0] for x in glob(proj.data_path() + "/fragmax/models/*.pdb")]:
-            if ".pdb" not in pdbmodel:
-                pdbmodel = proj.data_path() + "/fragmax/models/" + pdbmodel + ".pdb"
-            else:
-                pdbmodel = proj.data_path() + "/fragmax/models/" + pdbmodel
-        elif "/data/visitors/biomax/" in pdbmodel:
 
-            if not os.path.exists(proj.data_path() + "/fragmax/models/" + pdbmodel.split("/")[-1]):
-                shutil.copyfile(pdbmodel, proj.data_path() + "/fragmax/models/" + pdbmodel.split("/")[-1])
-                pdbmodel = proj.data_path() + "/fragmax/models/" + pdbmodel.split("/")[-1]
-        else:
-            if ".pdb" in pdbmodel:
-                pdbmodel = pdbmodel.split(".pdb")[0]
-            with open(proj.data_path() + "/fragmax/models/" + pdbmodel + ".pdb", "w") as pdb:
-                pdb.write(pypdb.get_pdb_file(pdbmodel, filetype='pdb'))
-            pdbmodel = proj.data_path() + "/fragmax/models/" + pdbmodel + ".pdb"
-    pdbmodel.replace(".pdb.pdb", ".pdb")
+    db_id = userPDB.replace("pdbmodel:", "")
+    pdbmodel = PDB.get(db_id)
+
     spacegroup = refspacegroup.replace("refspacegroup:", "")
     t1 = threading.Thread(target=run_structure_solving,
-                          args=(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel, spacegroup, filters, customrefdimple,
-                                customrefbuster, customreffspipe, aimlessopt))
+                          args=(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel.file_path(),
+                                spacegroup, filters, customrefdimple, customrefbuster, customreffspipe, aimlessopt))
     t1.daemon = True
     t1.start()
     outinfo = "<br>".join(userInput.split(";;"))
@@ -106,7 +88,8 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         aimless = bool(aimlessopt)
         for dataset in datasetList:
             sample = dataset.split("/")[-2]
-            with open(project_script(proj, "proc2res_" + sample + ".sh"), "w") as outp:
+            script = project_script(proj, f"proc2res_{sample}.sh")
+            with open(script, "w") as outp:
                 outp.write(proc2resOut)
 
                 edna = find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
@@ -136,7 +119,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
                 outp.write(project_update_status_script_cmds(proj, sample, softwares))
                 outp.write("\n\n")
-            script = project_script(proj, "proc2res_" + sample + ".sh")
+
             hpc.run_sbatch(script)
             os.remove(script)
     else:
