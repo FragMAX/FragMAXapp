@@ -488,7 +488,7 @@ def get_project_status(proj):
 
     with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerow(["dataset", "run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
+        writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
                          "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
