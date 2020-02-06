@@ -75,10 +75,10 @@ def project_update_status_script(project):
 def project_update_status_script_cmds(project, sample, softwares):
     return \
         "module purge\n" + \
-        "module load GCCcore/8.3.0 Python/3.7.4\n" + \
+        "module load GCCcore/8.3.0 Python/3.7.4\n" + \        
+        f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n" + \
         "module purge\n" + \
-        f"module load {softwares}\n" + \
-        f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
+        f"module load {softwares}\n"
 
 
 def project_raw_master_h5_files(project):
