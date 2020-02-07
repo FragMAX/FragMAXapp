@@ -69,7 +69,6 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                           customrefbuster, customreffspipe, aimlessopt):
     # Modules list for HPC env
     softwares = "PReSTO autoPROC BUSTER"
-    print("HERE")
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
@@ -89,7 +88,6 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
             argsfit += "buster"
 
         datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")
-        
         datasetList = sorted(Filter(datasetList, filters.split(",")))
 
         proc2resOut = ""
@@ -106,9 +104,6 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         proc2resOut += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
 
         aimless = bool(aimlessopt)
-        print("dataset")
-        print(datasetList)
-        print(filters)
         for dataset in datasetList:
             sample = dataset.split("/")[-2]
             with open(project_script(proj, "proc2res_" + sample + ".sh"), "w") as outp:
@@ -143,13 +138,12 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
             script = project_script(proj, "proc2res_" + sample + ".sh")
             hpc.run_sbatch(script)
-            os.remove(script)        
+            os.remove(script)
     else:
         userPDB = "-"
 
 
 def aimless_cmd(spacegroup, dstmtz):
-    print("HERE3")
     outdir = '/'.join(dstmtz.split('/')[:-1])
     cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
           f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
@@ -159,7 +153,6 @@ def aimless_cmd(spacegroup, dstmtz):
 
 def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
                   customrefdimple):
-    print("HERE4")
     srcmtz = None
     dstmtz = None
     aimless_c = ""
@@ -188,7 +181,6 @@ def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customre
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
         out_cmd = autoproc_cmd + "\n" + refine_cmd
-    print("HERE5")
     return out_cmd
 
 
