@@ -60,9 +60,6 @@ def _add_pdb_entry(project, filename, pdb_id=None):
 
 
 def _store_uploaded_pdb(proj, pdb_file):
-    # TODO sanitize 'pdb_file.name', as the filename is used
-    # TODO to derive path, we need to filter out all 'funny' (.., etc) characters
-
     # record new PDB model in the database
     pdb = _add_pdb_entry(proj, pdb_file.name)
 
