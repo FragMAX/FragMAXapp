@@ -8,6 +8,7 @@ from django.shortcuts import render
 
 from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir
 from fragview.projects import current_project, project_results_file, project_results_dir
+from fragview.projects import project_data_collections_file
 
 
 def set_details(request):
@@ -221,7 +222,7 @@ def show_all(request):
         # datacollection_summary(proj)
         resync_status_project(proj)
 
-    with open(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv", "r") as readFile:
+    with open(project_data_collections_file(proj), "r") as readFile:
         reader = csv.reader(readFile)
         lines = list(reader)
 

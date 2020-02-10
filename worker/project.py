@@ -13,7 +13,7 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_static_url, project_process_protein_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script
+from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
 
 logger = get_task_logger(__name__)
 
@@ -98,7 +98,8 @@ def _parse_metafile(proj, metafile):
 
 
 def _write_data_collections_file(proj, meta_files):
-    dc_file = path.join(project_process_protein_dir(proj), "datacollections.csv")
+    dc_file = project_data_collections_file(proj)
+    logger.info(f"writing {dc_file}")
 
     with open(dc_file, "w") as f:
         writer = csv.writer(f)
