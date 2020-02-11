@@ -6,7 +6,7 @@ import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_shift_dirs, project_process_dir
+from fragview.projects import project_all_status_file, project_process_dir
 from fragview.projects import current_project, project_results_file, project_results_dir
 from fragview.projects import project_data_collections_file
 
@@ -217,9 +217,6 @@ def show_all(request):
     resyncStatus = str(request.GET.get("resyncstButton"))
 
     if "resyncStatus" in resyncStatus:
-        # os.remove(proj.data_path() + "/fragmax/process/" + proj.protein + "/datacollections.csv")
-        # get_project_status(proj)
-        # datacollection_summary(proj)
         resync_status_project(proj)
 
     with open(project_data_collections_file(proj), "r") as readFile:
@@ -236,9 +233,6 @@ def show_all(request):
         snap2_list = [x.replace("1.snapshot.jpeg", "2.snapshot.jpeg") for x in snap_list]
         png_list = [x[8] for x in lines[1:]]
         run_list = [x[4] for x in lines[1:]]
-
-    if not os.path.exists(project_all_status_file(proj)):
-        get_project_status(proj)
 
     dpentry = list()
     rfentry = list()
@@ -389,110 +383,6 @@ def show_all(request):
                   png_list, run_list, smp_list, dpentry, rfentry, lgentry)
 
     return render(request, "fragview/datasets.html", {"files": results})
-
-
-def get_project_status(proj):
-    statusDict = dict()
-    procList = list()
-    resList = list()
-
-    for shift_dir in project_shift_dirs(proj):
-        procList += [
-            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
-            glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
-        resList += glob(f"{shift_dir}/fragmax/results/{proj.protein}*/")
-
-    for i in procList:
-        dataset_run = i.split("/")[-2]
-        statusDict[dataset_run] = {
-            "autoproc": "none",
-            "dials": "none",
-            "EDNA": "none",
-            "fastdp": "none",
-            "xdsapp": "none",
-            "xdsxscale": "none",
-            "dimple": "none",
-            "fspipeline": "none",
-            "buster": "none",
-            "rhofit": "none",
-            "ligfit": "none",
-        }
-
-    for result in resList:
-        dts = result.split("/")[-2]
-        if dts not in statusDict:
-            statusDict[dts] = {
-                "autoproc": "none",
-                "dials": "none",
-                "EDNA": "none",
-                "fastdp": "none",
-                "xdsapp": "none",
-                "xdsxscale": "none",
-                "dimple": "none",
-                "fspipeline": "none",
-                "buster": "none",
-                "rhofit": "none",
-                "ligfit": "none",
-            }
-
-        for j in glob(result + "*"):
-            if os.path.exists(j + "/dimple/final.pdb"):
-                statusDict[dts].update({"dimple": "full"})
-
-            if os.path.exists(j + "/fspipeline/final.pdb"):
-                statusDict[dts].update({"fspipeline": "full"})
-
-            if os.path.exists(j + "/buster/final.pdb"):
-                statusDict[dts].update({"buster": "full"})
-
-            if glob(j + "/*/ligfit/LigandFit*/ligand_fit_*.pdb") != []:
-                statusDict[dts].update({"ligfit": "full"})
-
-            if glob(j + "/*/rhofit/best.pdb") != []:
-                statusDict[dts].update({"rhofit": "full"})
-
-    for process in procList:
-        dts = process.split("/")[-2]
-        j = list()
-
-        for shift_dir in project_shift_dirs(proj):
-            j += glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dts}/")
-
-        if j != []:
-            j = j[0]
-
-        if glob(j + "/autoproc/*staraniso*.mtz") + glob(j + "/autoproc/*aimless*.mtz") != []:
-            statusDict[dts].update({"autoproc": "full"})
-
-        if glob(j + "/dials/DataFiles/*mtz") != []:
-            statusDict[dts].update({"dials": "full"})
-
-        ej = list()
-        for shift_dir in project_shift_dirs(proj):
-            ej += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/EDNA_proc/results/*mtz")
-
-        if ej != []:
-            statusDict[dts].update({"EDNA": "full"})
-        fj = list()
-
-        for shift_dir in project_shift_dirs(proj):
-            fj += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/fastdp/results/*mtz.gz")
-
-        if fj != []:
-            statusDict[dts].update({"fastdp": "full"})
-
-        if glob(j + "/xdsapp/*mtz") != []:
-            statusDict[dts].update({"xdsapp": "full"})
-
-        if glob(j + "/xdsxscale/DataFiles/*mtz") != []:
-            statusDict[dts].update({"xdsxscale": "full"})
-
-    with open(project_all_status_file(proj), "w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
-                         "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
-        for dataset_run, status in statusDict.items():
-            writer.writerow([dataset_run] + list(status.values()))
 
 
 def proc_report(request):

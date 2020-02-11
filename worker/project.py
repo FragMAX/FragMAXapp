@@ -14,6 +14,7 @@ from worker import dist_lock
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_static_url, project_process_protein_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
+from fragview.projects import project_shift_dirs, project_all_status_file
 
 logger = get_task_logger(__name__)
 
@@ -39,6 +40,7 @@ def _setup_project_files(proj):
     _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
     _import_edna_fastdp(proj)
+    _write_project_status(proj)
 
 
 def _makedirs(dir_path):
@@ -167,3 +169,109 @@ def _import_edna_fastdp(proj):
                 logger.info("importing fast_dp results")
                 shutil.copytree(fastdp_path_src, fastdp_path_dst)
                 subprocess.call(f"gzip -d {fastdp_path_dst}/*gz", shell=True)
+
+
+def _write_project_status(proj):
+    logger.info("writing project status")
+
+    statusDict = dict()
+    procList = list()
+    resList = list()
+
+    for shift_dir in project_shift_dirs(proj):
+        procList += [
+            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
+            glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
+        resList += glob(f"{shift_dir}/fragmax/results/{proj.protein}*/")
+
+    for i in procList:
+        dataset_run = i.split("/")[-2]
+        statusDict[dataset_run] = {
+            "autoproc": "none",
+            "dials": "none",
+            "EDNA": "none",
+            "fastdp": "none",
+            "xdsapp": "none",
+            "xdsxscale": "none",
+            "dimple": "none",
+            "fspipeline": "none",
+            "buster": "none",
+            "rhofit": "none",
+            "ligfit": "none",
+        }
+
+    for result in resList:
+        dts = result.split("/")[-2]
+        if dts not in statusDict:
+            statusDict[dts] = {
+                "autoproc": "none",
+                "dials": "none",
+                "EDNA": "none",
+                "fastdp": "none",
+                "xdsapp": "none",
+                "xdsxscale": "none",
+                "dimple": "none",
+                "fspipeline": "none",
+                "buster": "none",
+                "rhofit": "none",
+                "ligfit": "none",
+            }
+
+        for j in glob(result + "*"):
+            if os.path.exists(j + "/dimple/final.pdb"):
+                statusDict[dts].update({"dimple": "full"})
+
+            if os.path.exists(j + "/fspipeline/final.pdb"):
+                statusDict[dts].update({"fspipeline": "full"})
+
+            if os.path.exists(j + "/buster/final.pdb"):
+                statusDict[dts].update({"buster": "full"})
+
+            if glob(j + "/*/ligfit/LigandFit*/ligand_fit_*.pdb") != []:
+                statusDict[dts].update({"ligfit": "full"})
+
+            if glob(j + "/*/rhofit/best.pdb") != []:
+                statusDict[dts].update({"rhofit": "full"})
+
+    for process in procList:
+        dts = process.split("/")[-2]
+        j = list()
+
+        for shift_dir in project_shift_dirs(proj):
+            j += glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dts}/")
+
+        if j != []:
+            j = j[0]
+
+        if glob(j + "/autoproc/*staraniso*.mtz") + glob(j + "/autoproc/*aimless*.mtz") != []:
+            statusDict[dts].update({"autoproc": "full"})
+
+        if glob(j + "/dials/DataFiles/*mtz") != []:
+            statusDict[dts].update({"dials": "full"})
+
+        ej = list()
+        for shift_dir in project_shift_dirs(proj):
+            ej += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/EDNA_proc/results/*mtz")
+
+        if ej != []:
+            statusDict[dts].update({"EDNA": "full"})
+        fj = list()
+
+        for shift_dir in project_shift_dirs(proj):
+            fj += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/fastdp/results/*mtz.gz")
+
+        if fj != []:
+            statusDict[dts].update({"fastdp": "full"})
+
+        if glob(j + "/xdsapp/*mtz") != []:
+            statusDict[dts].update({"xdsapp": "full"})
+
+        if glob(j + "/xdsxscale/DataFiles/*mtz") != []:
+            statusDict[dts].update({"xdsxscale": "full"})
+
+    with open(project_all_status_file(proj), "w") as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
+                         "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
+        for dataset_run, status in statusDict.items():
+            writer.writerow([dataset_run] + list(status.values()))
