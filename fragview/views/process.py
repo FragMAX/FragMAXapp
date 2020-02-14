@@ -294,7 +294,7 @@ def run_xdsxscale(proj, nodes, filters):
 
 def run_dials(proj, nodes, filters):
     # Modules list for HPC env
-    softwares = "PReSTO DIALS/2.1.1-1-PReSTO"
+    softwares = "PReSTO DIALS/2.1.3-1-PReSTO"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 
@@ -308,8 +308,9 @@ def run_dials(proj, nodes, filters):
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
     header += """#SBATCH --cpus-per-task=48\n"""
-    # header+= """#SBATCH --mem=220000\n"""
-    # header += """#SBATCH --mem-per-cpu=2000\n"""
+    # it seems we need around ~210G of RAM to process some datasets,
+    # when we do a 48-way parallelization
+    header += """#SBATCH --mem=210G\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/dials_fragmax_%j_err.txt\n"""
     header += """module purge\n\n"""
