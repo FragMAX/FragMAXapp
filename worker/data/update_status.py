@@ -5,13 +5,10 @@ import sys
 
 def get_dataset_status(proposal, shift, protein, dataset, run):
     dps1 = glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*mtz".format(
-            proposal=proposal, shift=shift, protein=protein, dataset=dataset, run=run))
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*mtz")
     dps2 = glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*/*mtz".format(
-            proposal=proposal, shift=shift, protein=protein, dataset=dataset, run=run))
-    dps3 = glob(f"/data/visitors/biomax/{proposal}/{shift}/process/{protein}/{dataset}/*/*/results/*mtz*".format(
-        proposal=proposal, shift=shift, protein=protein, dataset=dataset, run=run))
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
+    dps3 = glob(f"/data/visitors/biomax/{proposal}/{shift}/process/{protein}/{dataset}/*/*/results/*mtz*")
     dp_full = set(
         [x.split("/")[11] for x in dps1 + dps2] + [x.split("/")[10].replace("EDNA_proc", "edna") for x in dps3 if
                                                    "autoPROC" not in x])
@@ -28,8 +25,7 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         dp_status[proc] = "full"
 
     rf_full = set([x.split("/")[10] for x in glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb".format(
-            proposal=proposal, shift=shift, dataset=dataset, run=run))])
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
 
     rf_status = dict(
         dimple="none",
@@ -40,10 +36,8 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         rf_status[ref] = "full"
 
     lg_full = set([x.split("/")[11] for x in glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/ligfit/*/*.pdb".format(
-            proposal=proposal, shift=shift, dataset=dataset, run=run)) + glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/rhofit/*.pdb".format(
-            proposal=proposal, shift=shift, dataset=dataset, run=run))])
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/ligfit/*/*.pdb") + glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/rhofit/*.pdb")])
     lg_status = {"rhofit": "none",
                  "ligfit": "none"}
     for lig in lg_full:
@@ -56,8 +50,7 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
 
 
 def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
-    allcsv = f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/allstatus.csv".format(
-        proposal=proposal, shift=shift, protein=protein)
+    allcsv = f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/allstatus.csv"
 
     with open(allcsv, "r") as readFile:
         csvfile = list(csv.reader(readFile))
@@ -79,7 +72,6 @@ def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
 
 
 # Copy data from beamline auto processing to fragmax folders
-
 dataset, run = sys.argv[1].split("_")
 proposal, shift = sys.argv[2].split("/")
 protein = dataset.split("-")[0]
