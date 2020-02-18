@@ -6,7 +6,7 @@ import subprocess
 from os import path
 from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
-from fragview import hpc
+from fragview import hpc, versions
 from .utils import scrsplit, Filter
 
 
@@ -294,7 +294,7 @@ def run_xdsxscale(proj, nodes, filters):
 
 def run_dials(proj, nodes, filters):
     # Modules list for HPC env
-    softwares = "PReSTO DIALS/2.1.3-1-PReSTO"
+    softwares = f"PReSTO {versions.DIALS_MOD}"
     if "filters:" in filters:
         filters = filters.split(":")[-1]
 

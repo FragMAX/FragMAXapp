@@ -23,6 +23,18 @@ def _ssh_on_frontend(command):
         return stdout, stderr, proc.returncode
 
 
+def _forward_output(output, stream):
+    if output is None:
+        # no output to forward
+        return
+
+    if not hasattr(stream, "buffer"):
+        stream.write(output)
+        return
+
+    stream.buffer.write(output)
+
+
 def frontend_run(command):
     """
     run shell command on HPC front-end host,
@@ -33,11 +45,8 @@ def frontend_run(command):
     stdout, stderr, _ = _ssh_on_frontend(command)
 
     # forward stdout and stderr outputs, for traceability
-    if stdout is not None:
-        sys.stdout.buffer.write(stdout)
-
-    if stderr is not None:
-        sys.stderr.buffer.write(stderr)
+    _forward_output(stdout, sys.stdout)
+    _forward_output(stderr, sys.stderr)
 
 
 def jobs_list(logged_in_user):

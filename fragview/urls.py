@@ -1,5 +1,5 @@
 from django.urls import path
-from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, lattice, soaking, pdbs
+from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4
 
 
@@ -29,7 +29,7 @@ urlpatterns = [
     path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
     path('ugly/', misc.ugly, name='ugly'),
-    path('reciprocal_lattice/', lattice.reciprocal, name='reciprocal_lattice'),
+    path('reciprocal_lattice/<sample>/<run>', reciprocal.show, name='reciprocal_lattice'),
 
     path('procReport/', datasets.proc_report, name='procReport'),
     path('results_download/', misc.results_download, name='results_download'),
@@ -62,4 +62,5 @@ urlpatterns = [
     path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image, name='diffraction_image'),
     path('ccp4_map/<dataset>/<process>/<refine>/<type>', ccp4.map),
     path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
+    path('reciprocal/<sample>/<run>', reciprocal.rlp),
 ]
