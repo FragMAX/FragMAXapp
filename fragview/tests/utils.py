@@ -22,3 +22,10 @@ class ViewTesterMixin:
         session = self.client.session
         session["proposals"] = [self.PROP1, self.PROP2]
         session.save()
+
+    def assert_contains_template(self, response, template_name):
+        """
+        assert that the response rendering involved using the specified template
+        """
+        templ_names = [t.name for t in response.templates]
+        self.assertIn(template_name, templ_names)

@@ -13,13 +13,6 @@ class _ProjectTestCase(test.TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
 
-    def assert_contains_template(self, response, template_name):
-        """
-        assert that the response rendering invovled using the specified template
-        """
-        templ_names = [t.name for t in response.templates]
-        self.assertIn(template_name, templ_names)
-
     def assert_field_required_error(self, response, field_name):
         """
         check that response's context contains the
