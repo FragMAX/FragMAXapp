@@ -122,17 +122,12 @@ def _delete_pdb(pdb):
 def edit(request, id):
     """
     GET request shows the 'PDB info' page
-    POST request will delete the PDB if action is set to 'delete'
+    POST request will delete the PDB
     """
     pdb = get_object_or_404(PDB, pk=id)
 
     if request.method == "POST":
-        action = request.POST["action"]
-        if action != "delete":
-            return HttpResponseBadRequest(f"unexpected action '{action}'")
-
         _delete_pdb(pdb)
-
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})
