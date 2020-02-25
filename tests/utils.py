@@ -1,12 +1,28 @@
+import unittest
 from fragview import auth
 from django import test
+
+
+def identity(func):
+    return func
+
+
+class WorkerTaskTester(unittest.TestCase):
+    def assert_locking(self, red_lock_mock, lock_id):
+        """
+        make assertions that a RedLock with specified id was acquired and released
+        """
+        red_lock_mock.assert_called_once_with(lock_id)
+
+        lock = red_lock_mock.return_value
+        lock.acquire.assert_called_once_with()
+        lock.release.assert_called_once_with()
 
 
 class ViewTesterMixin:
     """
     Utility mixin, that provides method to setup authenticated HTTP client
     """
-
     PROP1 = "20180201"
     PROP2 = "20170223"
 
