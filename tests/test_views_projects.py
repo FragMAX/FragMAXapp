@@ -2,7 +2,7 @@ from unittest import mock
 from django import test
 
 from fragview.models import Project, PendingProject, User
-from fragview.tests.utils import ViewTesterMixin
+from tests.utils import ViewTesterMixin
 
 PROTO = "PRTN"
 LIBRARY = "JBSD"

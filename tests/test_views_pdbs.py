@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile
 from fragview.views import pdbs
 from fragview.models import Project, PDB
 from fragview.projects import project_models_dir
-from fragview.tests.utils import ViewTesterMixin
+from tests.utils import ViewTesterMixin
 
 
 def _add_pdbs(project):
