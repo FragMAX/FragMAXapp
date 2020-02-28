@@ -5,6 +5,7 @@ from django import test
 from django.test.client import RequestFactory
 from fragview import forms
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from fragview import projects
 from fragview.models import PendingProject
 
@@ -35,43 +36,50 @@ class FormTesterMixin:
 
     def _request(self,
                  protein=PROTEIN,
-                 library="JBS",
+                 library_name="JBS",
                  proposal=PROPOSAL,
                  shift=SHIFT,
                  shift_list=f"{SHIFT_1},{SHIFT_2}"):
 
-        return self.ReqsFactory.post(
+        req = self.ReqsFactory.post(
             "/",  # we don't really care about the URL here
             dict(protein=protein,
-                 library=library,
+                 library_name=library_name,
                  proposal=proposal,
                  shift=shift,
                  shift_list=shift_list))
+
+        frags_file = SimpleUploadedFile("frags.csv", "B2a,N#Cc1c(cccc1)O".encode())
+        req.FILES["fragments_file"] = frags_file
+
+        return req
 
 
 class TestProjectFormSave(test.TestCase, FormTesterMixin):
     def save_form(self):
         """
-        create project form as save it as pending project
+        create project form and save it as pending project
 
         :return: created 'Project' database model object
         """
         request = self._request()
 
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
+
         with mock.patch("os.path.isdir") as isdir:
             # mock isdir() to report that all directories exist
             isdir.return_value = True
 
-            proj_form.save_as_pending()
+            # validate form to populate 'clean_data' fields
+            valid = proj_form.is_valid()
+            self.assertTrue(valid)  # sanity check that form _is_ valid
 
-        return proj_form.instance
+            return proj_form.save(pending=True)
 
     def test_save(self):
         """
         test saving form as pending project, and check
         it's pending status in the database
-        :return:
         """
         proj = self.save_form()
 
@@ -82,7 +90,7 @@ class TestProjectFormSave(test.TestCase, FormTesterMixin):
     def test_set_ready(self):
         """
         test setting project 'ready' and check it's pending
-        state is droped from the database
+        state is dropped from the database
         """
         proj = self.save_form()
 
@@ -105,8 +113,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         test validating a valid form
         """
         request = self._request()
-
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         with mock.patch("os.path.isdir") as isdir:
             # mock isdir() to report that all directories exist
@@ -129,8 +136,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         test validating a valid form wher shift list is empty
         """
         request = self._request(shift_list="")
-
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         with mock.patch("os.path.isdir") as isdir:
             # mock isdir() to report that all directories exist
@@ -151,7 +157,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         check that invalid characters in protein acronym are caught
         """
         request = self._request(protein="../../fo")
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         self._assertValidationError(proj_form, "protein", "invalid characters,.*")
 
@@ -160,7 +166,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         check that invalid characters in proposal number are caught
         """
         request = self._request(proposal="kiwi")
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         self._assertValidationError(proj_form, "proposal", "invalid proposal 'kiwi',.*")
 
@@ -169,7 +175,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         check that invalid characters in shift number are caught
         """
         request = self._request(shift="orange")
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         self._assertValidationError(proj_form, "shift", "invalid shift 'orange',.*")
 
@@ -178,7 +184,7 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         check that invalid characters one of the shifts in the shifts list are caught
         """
         request = self._request(shift_list=f"{SHIFT_1},moin")
-        proj_form = forms.ProjectForm(request.POST)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         self._assertValidationError(proj_form, "shift_list", "invalid shift 'moin',.*")
 
@@ -186,7 +192,8 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         """
         test specifying non-existing proposal
         """
-        proj_form = forms.ProjectForm(self._request().POST)
+        request = self._request()
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         _isdir = is_dir_mock(projects.proposal_dir(PROPOSAL))
         with mock.patch("os.path.isdir", _isdir):
@@ -196,7 +203,8 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         """
         test specifying non-existing shift
         """
-        proj_form = forms.ProjectForm(self._request().POST)
+        request = self._request()
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         _isdir = is_dir_mock(projects.shift_dir(PROPOSAL, SHIFT))
         with mock.patch("os.path.isdir", _isdir):
@@ -206,7 +214,8 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         """
         test specifying non-existing shift in the shifts list field
         """
-        proj_form = forms.ProjectForm(self._request().POST)
+        request = self._request()
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         _isdir = is_dir_mock(projects.shift_dir(PROPOSAL, SHIFT_2))
         with mock.patch("os.path.isdir", _isdir):
@@ -216,7 +225,8 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         """
         test specifying protein acronym, for which no data directory exist
         """
-        proj_form = forms.ProjectForm(self._request().POST)
+        request = self._request()
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT, PROTEIN))
         with mock.patch("os.path.isdir", _isdir):

@@ -1,7 +1,7 @@
 import unittest
 from django import test
 from django.conf import settings
-from fragview.models import User, Project
+from fragview.models import User, Project, Library
 
 
 PROPOSAL = "20200912"
@@ -18,7 +18,10 @@ class TestUser(test.TestCase):
         self.user = User(username=self.USERNAME)
         self.user.save()
 
-        self.project = Project(proposal=PROPOSAL)
+        lib = Library(name="hepp")
+        lib.save()
+
+        self.project = Project(proposal=PROPOSAL, library=lib)
         self.project.save()
 
     def test_set_current_project(self):
@@ -80,9 +83,12 @@ class TestProject(test.TestCase):
         """
         test Project.icon_num() method
         """
-        proj1 = Project()
+
+        lib = Library(name="REW")
+        lib.save()
+        proj1 = Project(library=lib)
         proj1.save()
-        proj2 = Project()
+        proj2 = Project(library=lib)
         proj2.save()
 
         # check that project icon number's are in [0..PROJ_ICONS_NUMBER) range

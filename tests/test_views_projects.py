@@ -1,7 +1,7 @@
 from unittest import mock
 from django import test
 
-from fragview.models import Project, PendingProject, User
+from fragview.models import Library, Project, PendingProject, User
 from tests.utils import ViewTesterMixin
 
 PROTO = "PRTN"
@@ -37,9 +37,12 @@ class TestListProjects(_ProjectTestCase):
         return ids
 
     def test_list(self):
+        lib = Library(name="JBS")
+        lib.save()
+
         proj_ids = self._save_projs(
-            Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808"),
-            Project(protein="AST", library="JBS", proposal=self.PROP1, shift="20190808"))
+            Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808"),
+            Project(protein="AST", library=lib, proposal=self.PROP1, shift="20190808"))
 
         resp = self.client.get("/projects/")
 
@@ -56,7 +59,9 @@ class TestEditNotFound(_ProjectTestCase):
     """
     def setUp(self):
         super().setUp()
-        Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808").save()
+        lib = Library(name="JBS")
+        lib.save()
+        Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808").save()
 
     def test_get(self):
         resp = self.client.get("/project/23/")
@@ -70,7 +75,11 @@ class TestEditNotFound(_ProjectTestCase):
 class TestEdit(_ProjectTestCase):
     def setUp(self):
         super().setUp()
-        self.proj = Project(protein="PRT", library="JBS",
+
+        lib = Library(name="JBS")
+        lib.save()
+
+        self.proj = Project(protein="PRT", library=lib,
                             proposal=self.PROP1, shift="20190808")
         self.proj.save()
         self.url = f"/project/{self.proj.id}/"
@@ -161,11 +170,20 @@ class TestNew(_ProjectTestCase):
     @mock.patch("os.path.isdir")
     @mock.patch("fragview.views.projects.setup_project_files")
     def test_create_new(self, setup_proj_mock, isdir_mock):
+        def _frags(library):
+            return [(frag.name, frag.smiles) for frag in library.fragment_set.all()]
+
         isdir_mock.return_value = True
+
+        # create a mocked 'file-like' object
+        frags_file = mock.Mock()
+        frags_file.name = "JBS.csv"
+        frags_file.read.return_value = "A1a,N#Cc1c(cccc1)O"
 
         resp = self.client.post("/project/new",
                                 dict(protein=PROTO,
-                                     library=LIBRARY,
+                                     library_name=LIBRARY,
+                                     fragments_file=frags_file,
                                      proposal=self.PROP1,
                                      shift=SHIFT))
 
@@ -174,7 +192,9 @@ class TestNew(_ProjectTestCase):
 
         # check that project saved in the database looks good
         proj = Project.objects.get(protein=PROTO)
-        self.assertEqual(LIBRARY, proj.library)
+        self.assertEqual(LIBRARY, proj.library.name)
+        self.assertListEqual(_frags(proj.library),
+                             [("A1a", "N#Cc1c(cccc1)O")])
         self.assertEqual(self.PROP1, proj.proposal)
         self.assertEqual(SHIFT, proj.shift)
 
@@ -188,7 +208,10 @@ class TestNew(_ProjectTestCase):
 class TestSetCurrent(_ProjectTestCase):
     def setUp(self):
         super().setUp()
-        self.proj = Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808")
+        lib = Library(name="JBS")
+        lib.save()
+
+        self.proj = Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808")
         self.proj.save()
 
     def test_set(self):

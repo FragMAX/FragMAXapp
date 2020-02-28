@@ -27,13 +27,13 @@ def edit(request, id):
     POST requests will update or delete the project
     """
     proj = get_object_or_404(Project, pk=id)
-    form = ProjectForm(request.POST or None, instance=proj)
+    form = ProjectForm(request.POST or None, request.FILES or None, model=proj)
 
     if request.method == "POST":
         action = request.POST["action"]
         if action == "modify":
             if form.is_valid():
-                form.save()
+                form.update()
                 return redirect("/projects/")
         elif action == "delete":
             proj.delete()
@@ -55,12 +55,13 @@ def new(request):
     if request.method == "GET":
         return render(request, "fragview/project.html")
 
-    form = ProjectForm(request.POST)
+    form = ProjectForm(request.POST, request.FILES)
+
     if not form.is_valid():
         return render(request, "fragview/project.html", {"form": form})
 
-    form.save_as_pending()
-    setup_project_files.delay(form.instance.id)
+    proj = form.save(pending=True)
+    setup_project_files.delay(proj.id)
 
     return redirect("/projects/")
 
@@ -89,13 +90,6 @@ def project_summary(request):
         totalapo += len(glob(shift_dir + "/raw/" + proj.protein + "/*Apo*"))
         totaldata += len(glob(shift_dir + "/raw/" + proj.protein + "/*"))
 
-    if "JBS" in proj.library:
-        libname = "JBS Xtal Screen"
-    elif "F2XEntry" in proj.library:
-        libname = "F2X Entry Screen"
-    else:
-        libname = "Custom library"
-
     months = {
         "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
         "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
@@ -111,6 +105,6 @@ def project_summary(request):
             "num_dataset": number_datasets,
             "totalapo": totalapo,
             "totaldata": totaldata,
-            "fraglib": libname,
+            "fraglib": proj.library.name,
             "exp_date": natdate
         })

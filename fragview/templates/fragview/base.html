@@ -134,7 +134,7 @@
                 <a class="dropdown-button" href="#!" data-target="pick-project-menu">
                     <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
                     <span class="white-text name" style="font-size: 20px; font-weight: bold;">
-                        {{project.protein}} - {{project.library}}
+                        {{project.protein}} - {{project.library.name}}
                         <i class="material-icons right">arrow_drop_down</i>
                     </span>
                 </a>
@@ -157,7 +157,7 @@
                         </div>
                         <div class="project-cell">
                             <div style="font-size: 20px; font-weight: bold;">{{ proj.protein }}</div>
-                            <div>{{ proj.library }}</div>
+                            <div>{{proj.library.name}}</div>
                         </div>
                     </div>
                 </a>

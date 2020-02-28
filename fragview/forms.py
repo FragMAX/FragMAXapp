@@ -1,7 +1,7 @@
 import re
 from os import path
 from django import forms
-from . import projects
+from fragview import projects, fraglib
 from .models import Project, PendingProject
 
 
@@ -12,10 +12,29 @@ def _is_8_digits(str, subject="shift"):
     return str
 
 
-class ProjectForm(forms.ModelForm):
-    class Meta:
-        model = Project
-        fields = ("protein", "library", "proposal", "shift", "shift_list")
+class ProjectForm(forms.Form):
+    model = None
+
+    protein = forms.CharField()
+    # library name and fragment file are required for new projects,
+    # but not when modifying existing projects
+    library_name = forms.CharField(required=False)
+    fragments_file = forms.FileField(required=False)
+    proposal = forms.CharField()
+    shift = forms.CharField()
+    shift_list = forms.CharField(required=False)
+
+    def __init__(self, data, files, model=None):
+        self.model = model
+        if data is None and model is not None:
+            data = dict(
+                protein=model.protein,
+                library_name=model.library.name,
+                proposal=model.proposal,
+                shift=model.shift,
+                shift_list=model.shift_list)
+
+        super().__init__(data, files)
 
     #
     # first each individual field is validated on 'syntactic' level,
@@ -25,13 +44,24 @@ class ProjectForm(forms.ModelForm):
     # paths, so we don't allow any funny characters, to avoid potential path hacks
     #
 
-    def clean_protein(self):
-        protein = self.cleaned_data["protein"]
+    def _check_alphanumeric(self, field_name):
+        field_val = self.cleaned_data[field_name]
 
-        if re.match("^\\w+$", protein) is None:
+        if re.match("^\\w+$", field_val) is None:
             raise forms.ValidationError("invalid characters, use numbers and letters")
 
-        return protein
+        return field_val
+
+    def clean_protein(self):
+        return self._check_alphanumeric("protein")
+
+    def clean_library_name(self):
+        if self.model:
+            # at the moment, the library name can't be modified
+            # for existing project, don't do any validation
+            return
+
+        return self._check_alphanumeric("library_name")
 
     def clean_proposal(self):
         return _is_8_digits(self.cleaned_data["proposal"], "proposal")
@@ -51,11 +81,22 @@ class ProjectForm(forms.ModelForm):
 
         return shift_list
 
-    #
-    # as a second step, perform 'semantic' validation, e.g. check
-    # that all directories for specified proposal, protein, etc
-    # actually exist
-    #
+    def _validate_library(self):
+        # make sure fragments specification file was provided
+        frags_file = self.files.get("fragments_file")
+        if frags_file is None:
+            if self.model is None:
+                return dict(fragments_file="please specify fragments definitions file")
+            return {}
+
+        # check if fragments file is valid by parsing it
+        try:
+            self.cleaned_data["fragments"] = fraglib.parse_uploaded_file(frags_file)
+        except fraglib.FraglibError as e:
+            # failed to parse fragments file, propagate parse error to the user
+            return dict(fragments_file=e.error_message())
+
+        return {}
 
     def _validate_shift_list(self, proposal):
         shift_list = self.cleaned_data["shift_list"].strip()
@@ -71,6 +112,12 @@ class ProjectForm(forms.ModelForm):
 
         # all shifts looks good, no errors
         return {}
+
+    #
+    # as a second step, perform 'semantic' validation, e.g. check
+    # that all directories for specified proposal, protein, etc
+    # actually exist
+    #
 
     def clean(self):
         if self.errors:
@@ -100,10 +147,45 @@ class ProjectForm(forms.ModelForm):
         shift_list_errors = self._validate_shift_list(proposal)
         errors.update(shift_list_errors)
 
+        library_errors = self._validate_library()
+        errors.update(library_errors)
+
         if len(errors) > 0:
             # there were errors
             raise forms.ValidationError(errors)
 
-    def save_as_pending(self):
-        self.save()
-        PendingProject(project=self.instance).save()
+    def update(self):
+        assert self.model is not None
+
+        self.model.protein = self.cleaned_data["protein"]
+        self.model.proposal = self.cleaned_data["proposal"]
+        self.model.shift = self.cleaned_data["shift"]
+        self.model.shift_list = self.cleaned_data["shift_list"]
+
+        self.model.save()
+
+    def save(self, pending=True):
+        # save the library
+        library = fraglib.save_new_library(
+            self.cleaned_data["library_name"], self.cleaned_data["fragments"])
+
+        # save the 'Project' model to DB
+        args = dict(
+            protein=self.cleaned_data["protein"],
+            library=library,
+            proposal=self.cleaned_data["proposal"],
+            shift=self.cleaned_data["shift"])
+
+        # check if there is any shift_list specified
+        shift_list = self.cleaned_data["shift_list"]
+        if len(shift_list) > 0:
+            args["shift_list"] = shift_list
+
+        proj = Project(**args)
+        proj.save()
+
+        # add 'pending' entry, if requested
+        if pending:
+            PendingProject(project=proj).save()
+
+        return proj

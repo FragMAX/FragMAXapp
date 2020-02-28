@@ -1,4 +1,3 @@
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - Home{% endblock %}
@@ -86,7 +85,7 @@
   
     <tr >
     </tr>
-    {% for img,prf,res,path,snap,snap2,acr,png,run,smp,dps,rfs,lgs in files %}
+    {% for img,prf,res,path,snap,snap2,acr,fragment,run,smp,dps,rfs,lgs in datasets %}
     <tr>
     <td>
 
@@ -117,12 +116,14 @@
     </td>    
       
     <td>
-      <a href={{ png }} target="_blank">
+        {% if fragment %}
+          <a href="/fragment/{{ fragment }}/image" target="_blank">
+            <img class="ligpng" src="/fragment/{{ fragment }}/image" height="40" width="86">
+          </a>
+        {% else %}
+          <img class="ligpng" src="/static/img/apo.png" height="40" width="86">
+        {% endif %}
 
-        <img class="ligpng" id="ligand" src={{ png }} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="40" width="86">
-
-          {% comment %} <img src="/static/blog/nopic/noloop.png" alt="noligand" height="40" width="86"> {% endcomment %}
-      </a>
     </td>
     </tr>
     {% endfor %}                   

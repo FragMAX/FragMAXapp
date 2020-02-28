@@ -3,12 +3,41 @@ from django.contrib.auth.models import AbstractBaseUser
 from .projects import shift_dir, project_model_file
 
 
+class Library(models.Model):
+    """
+    Fragments Library
+    """
+    # public libraries are available to all projects
+    name = models.TextField()
+
+    @staticmethod
+    def get(lib_id):
+        """
+        get library by ID
+        """
+        return Library.objects.get(id=lib_id)
+
+    def get_fragment(self, fragment_name):
+        fragment = self.fragment_set.filter(name=fragment_name)
+        if not fragment.exists():
+            return None
+
+        return fragment.first()
+
+
+class Fragment(models.Model):
+    library = models.ForeignKey(Library, on_delete=models.CASCADE)
+    name = models.TextField()
+    # chemical structure of the fragment, in SMILES format
+    smiles = models.TextField()
+
+
 class Project(models.Model):
     # number of unique project icons available
     PROJ_ICONS_NUMBER = 10
 
     protein = models.TextField()
-    library = models.TextField()
+    library = models.ForeignKey(Library, on_delete=models.CASCADE)
     proposal = models.TextField()
     shift = models.TextField()
     shift_list = models.TextField(blank=True)

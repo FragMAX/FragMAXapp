@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from django import test
 from django import urls
 from fragview import context_processors
-from fragview.models import Project
+from fragview.models import Project, Library
 
 PROP1 = "2020101"
 PROP2 = "2020102"
@@ -29,10 +29,14 @@ class TestProjectsLoggedIn(test.TestCase):
     """
 
     def setUp(self):
-        self.proj1 = Project(protein="PRT1", library="LBL1", proposal=PROP1)
+        lib1 = Library(name="LIB1")
+        lib1.save()
+        self.proj1 = Project(protein="PRT1", library=lib1, proposal=PROP1)
         self.proj1.save()
 
-        self.proj2 = Project(protein="PRT2", library="LBL2", proposal=PROP2)
+        lib2 = Library(name="LIB2")
+        lib2.save()
+        self.proj2 = Project(protein="PRT2", library=lib2, proposal=PROP2)
         self.proj2.save()
 
         #

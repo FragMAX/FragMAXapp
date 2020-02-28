@@ -44,13 +44,24 @@ th {
 .err_msg {
     color: red;
 }
+
+.frags_file {
+    height: 3rem;
+    /*
+     * the negative margin is the magic, that
+     * makes sure that the width of the table columns
+     * remain constant when we show and hide
+     * file input row
+     */
+    margin: 15px -120px 0 0;
+}
 </style>
 
 <script>
 function confirm_delete()
 {
     return confirm("Are you sure you want to delete " +
-        "'{{ form.protein.value }} - {{ form.library.value }}' project?");
+        "'{{ form.protein.value }} - {{ form.library_name.value }}' project?");
 }
 
 $(document).ready(function()
@@ -65,6 +76,7 @@ $(document).ready(function()
     <div class="card-content">
         <div class="card-title">Set experiment definitions</div><br>
             <form id="project_form"
+                  enctype="multipart/form-data"
                   action="/project/{% if project_id %}{{ project_id }}/{% else %}new{% endif %}"
                   method="post">
                 {% csrf_token %}
@@ -82,21 +94,36 @@ $(document).ready(function()
                             <div class="err_msg">{{ form.protein.errors }}</div>
                         </td>
                     </tr>
+                    {% if not project_id %}
+                    {% comment %}
+                        changing library for existing project not implemented for existing project,
+                        so don't show library widget for now
+                    {% endcomment %}
                     <tr>
-                        <th>Library</th>
+                        <th>Library Name</th>
                         <td>
-                            <select style="display:block" id="library" name="library" required>
-                                <option value="F2XEntry"
-                                        {% if form.library.value == 'F2XEntry' %}selected{% endif %}>
-                                    F2XEntry
-                                </option>
-                                <option value="JBS"
-                                        {% if form.library.value == 'JBS' %}selected{% endif %}>
-                                    JBS
-                                </option>
-                            </select>
+                            <input class="selectbox"
+                                   name="library_name"
+                                   placeholder="Library name"
+                                   value="{{ form.library_name.value }}"
+                                   required/>
+                            <div class="err_msg">{{ form.library_name.errors }}</div>
                         </td>
                     </tr>
+                    <tr>
+                        <th>Library Fragments</th>
+                        <td>
+                            <input class="frags_file" id="fragments_file" type="file" name="fragments_file"
+                                   value="{{ form.fragments_file.value }}"
+
+                                   {% if not project_id %}
+                                   {# don't require for existing project, otherwise we can't delete them #}
+                                   required
+                                   {% endif %}>
+                            <div class="err_msg">{{ form.fragments_file.errors }}</div>
+                        </td>
+                    </tr>
+                    {% endif %}
                     <tr>
                         <th>Proposal Number</th>
                         <td>

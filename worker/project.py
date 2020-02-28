@@ -28,7 +28,7 @@ def setup_project_files(proj_id):
         return
 
     with dist_lock.acquire(f"setup_project_files|{proj_id}"):
-        logger.info(f"setup project {proj.protein}-{proj.library} ({proj.id})")
+        logger.info(f"setup project {proj.protein}-{proj.library.name} ({proj.id})")
         _setup_project_files(proj)
         proj.set_ready()
 

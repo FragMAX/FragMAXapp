@@ -80,7 +80,7 @@ tr {
                         <div class="project-elm">
                             <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
                         </div>
-                        <div class="project-elm">{{ proj.protein }} - {{ proj.library }}</div>
+                        <div class="project-elm">{{ proj.protein }} - {{ proj.library.name }}</div>
                     </a>
                 </td>
                 <td>{{ proj.proposal }}</td>
@@ -107,7 +107,7 @@ tr {
                             <div class="project-elm">
                                 <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
                             </div>
-                            <div class="project-elm">{{ proj.protein }} - {{ proj.library }}</div>
+                            <div class="project-elm">{{ proj.protein }} - {{ proj.library.name }}</div>
                         </a>
                     </td>
                     <td>{{ proj.proposal }}</td>

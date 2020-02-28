@@ -1,0 +1,7 @@
+[run]
+branch = True
+
+omit =
+  manage.py
+  fragview/migrations/000*
+  tests/*

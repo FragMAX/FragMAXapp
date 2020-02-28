@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 from django import test
 from fragview import projects
-from fragview.models import User, Project
+from fragview.models import User, Project, Library
 
 TEST_PROPS_DIR = "/test/data"
 
@@ -51,7 +51,10 @@ class TestCurrentProject(test.TestCase):
     OTHER_PROPOSAL = "20209988"
 
     def setUp(self):
-        self.proj = Project(proposal=self.PROJ_PROPOSAL)
+        lib = Library(name="ad")
+        lib.save()
+
+        self.proj = Project(proposal=self.PROJ_PROPOSAL, library=lib)
         self.proj.save()
 
         self.user = User(current_project=self.proj)

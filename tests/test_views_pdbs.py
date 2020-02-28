@@ -9,7 +9,7 @@ from django import test
 from django.urls import reverse
 from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile
 from fragview.views import pdbs
-from fragview.models import Project, PDB
+from fragview.models import Project, Library, PDB
 from fragview.projects import project_models_dir
 from tests.utils import ViewTesterMixin
 
@@ -28,7 +28,10 @@ class _PDBViewTester(test.TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
 
-        self.proj = Project(protein="PRT", library="JBS", proposal=self.PROP1, shift="20190808")
+        lib = Library(name="JBS")
+        lib.save()
+
+        self.proj = Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808")
         self.proj.save()
 
 
@@ -58,7 +61,10 @@ class TestAddPdbEntry(test.TestCase):
     PDB_NAME = "9876.pdb"
 
     def test_duplicate_entry(self):
-        proj = Project(protein="PRT", library="JBS", proposal="20210102", shift="20190808")
+        lib = Library(name="JBS")
+        lib.save()
+
+        proj = Project(protein="PRT", library=lib, proposal="20210102", shift="20190808")
         proj.save()
 
         pdbs._add_pdb_entry(proj, self.PDB_NAME)
@@ -228,7 +234,10 @@ class _UploadedPDBTester(test.TestCase):
     PDB_CONTENT = b"dummy-pdb-content"
 
     def setUp(self):
-        self.proj = Project(protein="PRT", library="JBS", proposal="20210102", shift="20190808")
+        lib = Library(name="JBS")
+        lib.save()
+
+        self.proj = Project(protein="PRT", library=lib, proposal="20210102", shift="20190808")
         self.proj.save()
 
         self.temp_dir = tempfile.mkdtemp()
