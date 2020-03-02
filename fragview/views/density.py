@@ -476,6 +476,9 @@ def pandda_consensus(request):
         f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}/pandda/processed_datasets/" + \
         f"{dataset}{ddtag}_{run}/*BDC*ccp4"
     map2 = glob(glob_pattern)[0].replace("/data/visitors/", "")
+    average_map = map2.split("event")[0]+"ground-state-average-map.native.ccp4"
+    library = proj.library
+    name = map2.split("/")[-2]
 
     summarypath = \
         "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
@@ -561,6 +564,9 @@ def pandda_consensus(request):
             "pdb": pdb,
             "2fofc": map2,
             "fofc": map1,
+            "average_map": average_map,
+            "name": name,
+            "library": library,
             "ligand": ligand,
             "center": center,
             "analysed": analysed,
