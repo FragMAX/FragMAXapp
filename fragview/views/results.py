@@ -50,7 +50,11 @@ def result_summary(proj):
         pdbout = ""
         usracr = "_".join(entry.split("/")[8:11])
         pipeline = "_".join(entry.split("/")[9:11])
-        isa = isaDict[entry.split("/")[8]][entry.split("/")[9]]
+        ka = entry.split("/")[8]
+        kb = entry.split("/")[9]
+        if kb == "EDNA_proc":
+            kb = "edna"  # Updates the name of EDNA taken from file path for isaDict reference
+        isa = isaDict[ka][kb]
 
         if "dimple" in usracr:
             with open(entry, "r") as inp:
@@ -203,7 +207,6 @@ def result_summary(proj):
             if path.exists(ligfitPath):
                 try:
                     ligfitRUNPath = sorted(glob(f"{res_dir}/ligfit/LigandFit*"))[-1]
-
                     if glob(f"{res_dir}/ligfit/LigandFit*") != []:
                         if glob(ligfitRUNPath + "/LigandFit*.log") != []:
                             if path.exists(ligfitRUNPath + "/LigandFit_summary.dat"):
@@ -260,7 +263,7 @@ def result_summary(proj):
     datasetList = sorted(set([x.split("/")[-3] for x in allLogs] + [x.split("/")[-4] for x in resultsList]),
                          key=lambda x: ("Apo" in x, x))
     for dataset in datasetList:
-        isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "EDNA": ""}
+        isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": ""}
 
     resultsList = sorted(resultsList, key=lambda x: ("Apo" in x, x))
 
@@ -320,7 +323,7 @@ def result_summary(proj):
                     isa = logfile[n + 3].split()[-2]
                     if isa == "b":
                         isa = ""
-        isaDict[dataset].update({"EDNA": isa})
+        isaDict[dataset].update({"edna": isa})
 
     with open(project_results_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
@@ -333,6 +336,7 @@ def result_summary(proj):
             row.start()
 
             if row.join() is not None:
-                writer.writerow(row.join())
+                if "" not in row.join():
+                    writer.writerow(row.join())
 
     result_plots.generate(project_results_file(proj), project_process_protein_dir(proj))
