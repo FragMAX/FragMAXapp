@@ -1,4 +1,3 @@
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - Density viewer{% endblock %}
@@ -76,14 +75,14 @@
                          onclick="V.toggle_help(); return false;"
                          >H shows help.</a></header>
       <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 300px">      
-        <b><h6 >DIALS rlp.json  {{dataset}}</h6></b>        
+        <b><h6 >DIALS rlp.json {{sample}}_{{run}}</h6></b>
         </div>
   <footer id="help"></footer>
   <div id="inset"></div>
   <script>
   var loadReciprocal = function(){
     V = new UM.ReciprocalViewer({viewer: "viewer", hud: "hud", help: "help"});
-    V.load_data("{{rlp}}");}
+    V.load_data("/reciprocal/{{sample}}/{{run}}");}
     window.onload = function() {
       setTimeout(loadReciprocal, 10);
       }

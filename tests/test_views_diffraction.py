@@ -4,7 +4,7 @@ from django import test
 from django.urls import reverse
 from fragview.models import Project
 from fragview.projects import project_raw_protein_dir, project_process_protein_dir, project_static_url
-from fragview.tests.utils import ViewTesterMixin
+from tests.utils import ViewTesterMixin
 
 SHIFT = "20180101"
 DATA_SET = "PrtN-Apo0"

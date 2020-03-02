@@ -3,7 +3,7 @@ import pandas
 import seaborn as sns
 import matplotlib
 # explicitly set non-interactive backend for plotting
-# to avoid potentional problems with default picked
+# to avoid potential problems with default picked
 # interactive backends, that may try to create GUI widgets
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa

@@ -328,8 +328,10 @@
 <div class="flexdiv">
     <div id="snaps">
                 {% if dialsOK == "ready" %}
-                    <form action="/reciprocal_lattice/" method="get"  size="1" style="padding-left:25%; " target="_blank">
-                        <button class="btn-large" type="submit" value="{{imgprf}}_{{run}}" name="dataHeader" size="1">Open Reciprocal Lattice Viewer</button>
+                    <form action="/reciprocal_lattice/{{imgprf}}/{{run}}"
+                          method="get" size="1" style="padding-left:25%;"
+                          target="_blank">
+                        <button class="btn-large" type="submit" size="1">Open Reciprocal Lattice Viewer</button>
                     </form>
                 {% endif %}
 
