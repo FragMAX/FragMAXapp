@@ -10,7 +10,7 @@
   <style>
    body { font-family: sans-serif; }
    canvas { 
-     display: flex; 
+     display: block; 
      }
   .side-table{
     font-size: 15px;
@@ -70,7 +70,8 @@
     color: #FCFCFC; 
     position: absolute; 
     top: 20px; 
-    left: 20px; }
+    left: 20px; 
+    font-size: 22px;}
    .svg {
     -webkit-filter: contrast(0.5);
     filter: contrast(0.5);
@@ -81,6 +82,15 @@
 
 
     }
+
+  #viewer1 b, #viewer2 b { color: #FCFCFC;}
+  #viewer1 b { font-size: 22px; position: absolute; bottom: 60px; left: 50%;  background-color: #a8a8a8;}
+  #viewer2 b { font-size: 22px; position: absolute; bottom: 60px; right: 50%; background-color: #a8a8a8;}
+
+  #viewer1, #viewer2 { position:absolute; top:0; width:calc((100% - 550px)/2); height:100%; }
+  #viewer1 { left: 550px; }
+  #viewer2 { right: 0; }
+
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -233,32 +243,69 @@
 
 
 
-    <div style="display:flex;">
+    {% comment %} <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
       <img class="ligpng svg" id="ligand" src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/fragment/{{project.library}}/{{ligand}}/{{ligand}}.svg" >
       <b><h6>{{dataset }}_{{method}}</h6></b>
+      <header id="hud">Electron density viewer. Press H for help.</header>      
+    </div>
+    </div> {% endcomment %}
+    {% comment %} <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
+    <img class="ligpng svg" id="ligand" src="{{ligand}}" >
+    <b><h6> </h6></b>
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div> {% endcomment %}
+
+    <div style="display:flex;">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
+    <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg">
+    <b><h6>{{name}} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>
 
+
+  <div id="viewer1" ><b>Event map<br></b></div>
+  <div id="viewer2" ><b>Average map<br></b></div>
+  <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
+  <footer id="help"></footer>
     
-    <div id="viewer"></div>
+    {% comment %} <div id="viewer"></div> {% endcomment %}
 
     <footer id="help"></footer>
     <div id="inset"></div>
 
     <script>
-      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      {% comment %} V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
       
       V.load_pdb("/static/{{pdb}}",null, function(){
           V.recenter({{center}}, null, 25);
       });
-      V.load_ccp4_maps("/static/{{2fofc}}","/static/{{fofc}}");
+      V.load_ccp4_maps("/static/{{2fofc}}","/static/{{fofc}}"); {% endcomment %}
 
       document.getElementById('{{interesting}}').checked = true;
       document.getElementById('{{ligplaced}}'  ).checked = true;
       document.getElementById('{{ligconfid}}'  ).checked = true;
 
+    V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
+
+    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
+                              "/static/{{2fofc}}",
+                              "/static/{{fofc}}");
+    
+
+    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
+    {% comment %} V2.load_pdb_and_ccp4_maps("/static/{{pdb}}",
+                              "/static/{{average_map}}",
+                              "/static/{{average_map}}");
+                                   {% endcomment %}
+    V2.load_pdb("/static/{{pdb}}",null, function(){
+          V2.recenter({{center}}, null, 25);
+      });
+    V2.load_ccp4_maps("/static/{{average_map}}");
+    V1.recenter({{center}}, null, 25)
+    V1.renderer.domElement.focus();
+    V1.change_zoom_by_factor(3.5);
 
   </script>
 </body>
