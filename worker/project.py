@@ -12,7 +12,7 @@ import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
-from fragview.projects import proposal_dir, project_xml_files, project_static_url, project_process_protein_dir
+from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
 from fragview.projects import project_shift_dirs, project_all_status_file
 
@@ -75,11 +75,6 @@ def _parse_metafile(proj, metafile):
             if snap != "None":
                 yield snap
 
-    def _ligand_pic():
-        if "Apo" in dataset:
-            return "/static/img/apo.png"
-        return f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{sample}/{sample}.svg"
-
     with open(metafile, "rb") as f:
         doc = xmltodict.parse(f)
 
@@ -96,7 +91,7 @@ def _parse_metafile(proj, metafile):
         snaps = "noSnapshots"
     col_path = node["imageDirectory"]
 
-    return dataset, sample, col_path, run, img_num, resolution,  snaps, _ligand_pic()
+    return dataset, sample, col_path, run, img_num, resolution,  snaps
 
 
 def _write_data_collections_file(proj, meta_files):
@@ -107,11 +102,11 @@ def _write_data_collections_file(proj, meta_files):
         writer = csv.writer(f)
         writer.writerow([
             "imagePrefix", "SampleName", "dataCollectionPath", "Acronym", "dataCollectionNumber",
-            "numberOfImages", "resolution", "snapshot", "ligsvg"])
+            "numberOfImages", "resolution", "snapshot"])
 
         for mfile in meta_files:
-            dataset, sample, col_path, run, img_num, resolution, snaps, ligand = _parse_metafile(proj, mfile)
-            writer.writerow([dataset, sample, col_path, proj.protein, run, img_num, resolution, snaps, ligand])
+            dataset, sample, col_path, run, img_num, resolution, snaps = _parse_metafile(proj, mfile)
+            writer.writerow([dataset, sample, col_path, proj.protein, run, img_num, resolution, snaps])
 
 
 def _copy_collection_metadata_files(proj, meta_files):
