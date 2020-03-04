@@ -1,9 +1,10 @@
 run_tests:
   tags: [docker]
-  image: python:3.6-buster
+  image: conda/miniconda3
   before_script:
-    - pip install -r requirements.txt
-    - pip install flake8
+    - conda env create -f environment.yml
+    - source activate FragMAX
+    - conda install flake8
   script:
     - ./manage.py test
     - flake8
