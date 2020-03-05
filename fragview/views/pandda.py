@@ -669,7 +669,10 @@ initpass=True
 ground_state_entries=','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])
 def pandda_run(method,ground_state_entries,initpass):
     os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)
-    command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+ground_state_entries+"' cpus=16 "
+    if len(ground_state_entries.split(","))<40:
+        command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16 "
+    else:
+        command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+ground_state_entries+"' cpus=16 "
     subprocess.call(command, shell=True)
     if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:
         lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]
@@ -879,7 +882,6 @@ def pandda_worker(method, proj):
         fragDict[_dir.split("/")[-1]] = _dir
 
     if "best" in method:
-
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
@@ -898,11 +900,13 @@ def pandda_worker(method, proj):
         for dataset in missingDict:
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
 
-    pandda_selection = f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/selection.json"
-    with open(pandda_selection, "w") as writeFile:
-        writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
+    pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
+        "pandda", proj.protein, method, "selection.json"
+        )
 
     for dataset, pdb in selectedDict.items():
+        if "buster" in pdb:
+            pdb=pdb.replace("final.pdb","refine.pdb")
         if os.path.exists(pdb):
             fset = dataset.split("-")[-1]
             script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
@@ -935,15 +939,23 @@ def pandda_worker(method, proj):
                             hklout + ''' hklout ''' + hklout_rfill
 
                 # Find F and SIGF flags for phenix maps
-                cmd = """mtzdmp """ + hklout_rfill
-                output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
-                flags = ""
-                for i in output.splitlines():
-                    if "H K L " in i:
-                        flags = i.split()
-                fsigf_Flag = ""
-                if "F" in flags and "SIGF" in flags:
-                    fsigf_Flag = "maps.input.reflection_data.labels=F,SIGF"
+                # cmd = """mtzdmp """ + hklout_rfill
+                # output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
+                # flags = ""
+                # for i in output.splitlines():
+                    # if "H K L " in i:
+                        # flags = i.split()
+                # fsigf_Flag = ""
+                #if "F" in flags and "SIGF" in flags:
+                #fsigf_Flag = "maps.input.reflection_data.labels=F,SIGF"
+                cmd = f"/data/staff/biomax/guslim/read_mtz_flags.py {hklin}"
+                process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+                output, error = process.communicate()  # receive output from the python2 script
+
+                r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
+                fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
+                fsigf_Flag = "maps.input.reflection_data.labels='" + fsigf_Flag + "'"
+                print(fsigf_Flag)
                 phenix_maps = \
                     "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + " " + \
                     fsigf_Flag + "; mv " + hklout + " " + \
@@ -968,7 +980,8 @@ def pandda_worker(method, proj):
 
             hpc.run_sbatch(script)
             # os.remove(script)
-
+    with open(pandda_selection, "w") as writeFile:
+        writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
     os.remove(script)
