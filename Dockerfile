@@ -25,24 +25,39 @@ RUN apt-get update \
         supervisor \
         # for django <-> celery communication
         redis-server \
-        # for installing and running django webapp
-        python3 \
-        python3-pip \
         # the web server
         nginx \
-    # the nginx <-> django app 'middleware'
-    && pip3 install uwsgi==2.0.18
+        # adxv dependency
+        libgomp1 \
+        # used to add 'conda' deb repository
+        wget \
+        gpg
+
+#
+# add 'conda' deb repository
+#
+RUN wget --quiet  --output-document=- https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | \
+        gpg --dearmor > conda.gpg \
+    && install -o root -g root -m 644 conda.gpg /usr/share/keyrings/conda-archive-keyring.gpg
+COPY deploy/conda.list /etc/apt/sources.list.d/
+
+# install 'conda' command
+RUN apt-get update \
+    && apt-get install conda
+
+# create the FragMAX conda environment
+COPY environment.yml /tmp
+RUN . /opt/conda/etc/profile.d/conda.sh \
+    && conda env create -f /tmp/environment.yml \
+    && conda activate FragMAX \
+    && conda install -c conda-forge uwsgi=2.0.18
 
 RUN mkdir /app
-
-# install FragMAX webapp dependencies
-WORKDIR /app
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
 
 #
 # install FragMAX webapp files
 #
+WORKDIR /app
 COPY fragview fragview/
 COPY fragmax fragmax/
 COPY worker worker/
@@ -52,7 +67,7 @@ COPY deploy/site_settings.py site_settings.py
 RUN ln -s /data/visitors/biomax static/biomax
 RUN ln -s /mxn/groups/ispybstorage/pyarch static/pyarch
 # hack to serve css, js etc files from the 'material' package via nginx
-RUN ln -s /usr/local/lib/python3.6/dist-packages/material/static/material static/material
+RUN ln -s /opt/conda/envs/FragMAX/lib/python3.6/site-packages/material/static/material static/material
 # the django database is stored in a volume which is mounted at '/volume' at
 RUN ln -s /volume/db .
 
@@ -77,4 +92,5 @@ COPY deploy/supervisord.conf /etc/supervisor/supervisord.conf
 # for SSHing to HPC
 COPY --chown=root:1300 deploy/ssh_config /etc/ssh/ssh_config
 
-CMD [ "/usr/bin/supervisord", "--nodaemon", "--configuration", "/etc/supervisor/supervisord.conf" ]
+COPY deploy/start_supervisord.sh .
+CMD [ "/app/start_supervisord.sh" ]
