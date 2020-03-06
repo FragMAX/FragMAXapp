@@ -7,7 +7,7 @@ import shutil
 
 from django.shortcuts import render
 
-from fragview.projects import current_project, project_results_file, project_shift_dirs
+from fragview.projects import current_project, project_results_file
 from fragview.projects import project_results_dir, project_process_protein_dir
 from fragview import result_plots
 
@@ -236,29 +236,28 @@ def result_summary(proj):
     isaDict = dict()
     resultsList = list()
 
-    for shift_dir in project_shift_dirs(proj):
-        fmax_proc_dir = path.join(shift_dir, "fragmax", "process", proj.protein)
-        res_dir = path.join(shift_dir, "fragmax", "results", proj.protein)
+    fmax_proc_dir = project_process_protein_dir(proj)
+    res_dir = path.join(project_results_dir(proj), proj.protein)
 
-        xdsappLogs += glob(f"{fmax_proc_dir}/*/*/xdsapp/results*txt")
-        autoprocLogs += glob(f"{fmax_proc_dir}/*/*/autoproc/process.log")
-        dialsLogs += glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
-        xdsxscaleLogs += glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
-        # old way, still looking for datasets in the regular process folder, not fragmax
-        # fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
-        # EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
+    xdsappLogs += glob(f"{fmax_proc_dir}/*/*/xdsapp/results*txt")
+    autoprocLogs += glob(f"{fmax_proc_dir}/*/*/autoproc/process.log")
+    dialsLogs += glob(f"{fmax_proc_dir}/*/*/dials/LogFiles/*log")
+    xdsxscaleLogs += glob(f"{fmax_proc_dir}/*/*/xdsxscale/LogFiles/*XSCALE.log")
+    # old way, still looking for datasets in the regular process folder, not fragmax
+    # fastdpLogs += glob(f"{proc_dir}/*/*/fastdp/results/*.LP")
+    # EDNALogs += glob(f"{proc_dir}/*/*/EDNA_proc/results/*.LP")
 
-        # new way, looking for datasets inside the fragmax/process folder
-        # It wont work with old project unless fastdp and EDNA is synchronised with fragmax folder
-        fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
-        EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
+    # new way, looking for datasets inside the fragmax/process folder
+    # It wont work with old project unless fastdp and EDNA is synchronised with fragmax folder
+    fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
+    EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
 
-        allLogs = xdsappLogs + autoprocLogs + dialsLogs + xdsxscaleLogs + EDNALogs + fastdpLogs
-        # h5List += glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
-        resultsList += \
-            glob(f"{res_dir}**/*/dimple/final.pdb") + \
-            glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
-            glob(f"{res_dir}**/*/buster/refine.pdb")
+    allLogs = xdsappLogs + autoprocLogs + dialsLogs + xdsxscaleLogs + EDNALogs + fastdpLogs
+    # h5List += glob(f"{shift_dir}/raw/{proj.protein}/*/*master.h5")
+    resultsList += \
+        glob(f"{res_dir}**/*/dimple/final.pdb") + \
+        glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
+        glob(f"{res_dir}**/*/buster/refine.pdb")
 
     datasetList = sorted(set([x.split("/")[-3] for x in allLogs] + [x.split("/")[-4] for x in resultsList]),
                          key=lambda x: ("Apo" in x, x))
