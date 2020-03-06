@@ -901,12 +901,11 @@ def pandda_worker(method, proj):
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
 
     pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
-        "pandda", proj.protein, method, "selection.json"
-        )
+                                    "pandda", proj.protein, method, "selection.json")
 
     for dataset, pdb in selectedDict.items():
         if "buster" in pdb:
-            pdb=pdb.replace("final.pdb","refine.pdb")
+            pdb = pdb.replace("final.pdb", "refine.pdb")
         if os.path.exists(pdb):
             fset = dataset.split("-")[-1]
             script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
@@ -943,16 +942,16 @@ def pandda_worker(method, proj):
                 # output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
                 # flags = ""
                 # for i in output.splitlines():
-                    # if "H K L " in i:
-                        # flags = i.split()
+                #     if "H K L " in i:
+                #         flags = i.split()
                 # fsigf_Flag = ""
-                #if "F" in flags and "SIGF" in flags:
-                #fsigf_Flag = "maps.input.reflection_data.labels=F,SIGF"
+                # if "F" in flags and "SIGF" in flags:
+                # fsigf_Flag = "maps.input.reflection_data.labels=F,SIGF"
                 cmd = f"/data/staff/biomax/guslim/read_mtz_flags.py {hklin}"
                 process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
                 output, error = process.communicate()  # receive output from the python2 script
 
-                r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
+                # r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
                 fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
                 fsigf_Flag = "maps.input.reflection_data.labels='" + fsigf_Flag + "'"
                 print(fsigf_Flag)
