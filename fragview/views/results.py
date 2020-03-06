@@ -10,6 +10,7 @@ from django.shortcuts import render
 from fragview.projects import current_project, project_results_file
 from fragview.projects import project_results_dir, project_process_protein_dir
 from fragview import result_plots
+from fragview.views.utils import open_txt
 
 
 def show(request):
@@ -277,7 +278,7 @@ def result_summary(proj):
 
     for log in autoprocLogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
@@ -286,7 +287,7 @@ def result_summary(proj):
 
     for log in dialsLogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
@@ -295,7 +296,7 @@ def result_summary(proj):
 
     for log in xdsxscaleLogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
@@ -305,7 +306,7 @@ def result_summary(proj):
 
     for log in fastdpLogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
@@ -314,7 +315,7 @@ def result_summary(proj):
 
     for log in EDNALogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
