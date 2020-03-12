@@ -258,7 +258,8 @@
 
     <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
-    <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg">
+    {% comment %} <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg"> {% endcomment %}
+    <img class="ligpng svg" id="ligand" src="/fragment/{{ligand}}/image">
     <b><h6>{{name}} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>

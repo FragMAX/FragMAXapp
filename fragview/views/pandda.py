@@ -727,7 +727,7 @@ os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
             outp.write('module purge\n')
             outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
             outp.write('python ' + py_script + ' ' + proj.data_path() + ' ' + method + ' '
-                       + proj.protein + ' ' + proj.library + ' ' + ",".join(proj.shifts()) + '\n')
+                       + proj.protein + ' ' + proj.library.name + ' ' + ",".join(proj.shifts()) + '\n')
 
         t1 = threading.Thread(target=pandda_worker, args=(method, proj))
         t1.daemon = True
@@ -878,7 +878,7 @@ def pandda_worker(method, proj):
     header += '''module load CCP4 Phenix\n'''
 
     fragDict = dict()
-    for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library}/*"):
+    for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
         fragDict[_dir.split("/")[-1]] = _dir
 
     if "best" in method:
