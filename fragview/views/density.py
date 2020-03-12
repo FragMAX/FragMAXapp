@@ -34,14 +34,15 @@ def show(request):
     processM = pipeline.split("_")[0]
     refineM = pipeline.split("_")[1]
 
+    ligand = None
+
     if "apo" not in usracr.lower():
         ligbox = "block"
         ligfitbox = "block"
         rhofitbox = "block"
         rpos = 0
         lpos = 0
-        lig = usracr.split("-")[-1].split("_")[0]
-        ligsvg = project_static_url(proj) + "/fragmax/process/fragment/" + proj.library + "/" + lig + "/" + lig + ".svg"
+        ligand = usracr.split("-")[-1].split("_")[0]
 
         fitres_dir = path.join(proj.data_path(), "fragmax", "results", ligfit_dataset, processM, refineM)
         rhofit = path.join(fitres_dir, "rhofit", "best.pdb")
@@ -81,7 +82,6 @@ def show(request):
         ligfitscore = "-"
         ligcenter = "[]"
         rhocenter = "[]"
-        ligsvg = "/static/img/apo.png"
         ligbox = "none"
         rhofitbox = "none"
         ligfitbox = "none"
@@ -126,7 +126,7 @@ def show(request):
             "pdb": pdbout,
             "xyzlist": blist,
             "center": center,
-            "ligand": ligsvg,
+            "ligand": ligand,
             "rscore": rhofitscore,
             "lscore": ligfitscore,
             "rwork": r_work,

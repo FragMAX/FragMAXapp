@@ -188,8 +188,10 @@
     </div>
     </div>
     <div style="display:flex;">
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
-    <img class="ligpng svg" id="ligand" src="{{ligand}}" >
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+    {% if ligand %}
+      <img class="ligpng svg" id="ligand" src="/fragment/{{ ligand }}/image">
+    {% endif %}
     <b><h6>{{name }} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
