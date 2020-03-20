@@ -1,8 +1,8 @@
 import re
 from os import path
 from django import forms
-from fragview import projects, fraglib
-from .models import Project, PendingProject
+from fragview import projects, fraglib, encryption
+from .models import Project, PendingProject, EncryptionKey
 
 
 def _is_8_digits(str, subject="shift"):
@@ -184,12 +184,13 @@ class ProjectForm(forms.Form):
             self.cleaned_data["library_name"], self.cleaned_data["fragments"])
 
         # save the 'Project' model to DB
+        encrypted = self._is_encrypted()
         args = dict(
             protein=self.cleaned_data["protein"],
             library=library,
             proposal=self.cleaned_data["proposal"],
             shift=self.cleaned_data["shift"],
-            encrypted=self._is_encrypted())
+            encrypted=encrypted)
 
         # check if there is any shift_list specified
         shift_list = self.cleaned_data["shift_list"]
@@ -198,6 +199,12 @@ class ProjectForm(forms.Form):
 
         proj = Project(**args)
         proj.save()
+
+        if encrypted:
+            # encrypted mode enabled, generate encryption key
+            key = EncryptionKey(key=encryption.generate_key(),
+                                project=proj)
+            key.save()
 
         # add 'pending' entry, if requested
         if pending:

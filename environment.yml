@@ -15,6 +15,7 @@ dependencies:
   - redis=5.0.3
   - redis-py=3.3.11
   - pip=20.0.2
+  - pycryptodomex=3.9.7
   - pip:
     - django-static-jquery==2.1.4
     - pyfastcopy==1.0.3

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from .projects import shift_dir, project_model_file
+from . import encryption
 
 
 class Library(models.Model):
@@ -42,7 +43,7 @@ class Project(models.Model):
     shift = models.TextField()
     shift_list = models.TextField(blank=True)
     # 'encrypted mode' for data processing is enabled
-    encrypted = models.BooleanField()
+    encrypted = models.BooleanField(default=False)
 
     @staticmethod
     def get(proj_id):
@@ -85,6 +86,20 @@ class Project(models.Model):
         all_shifts = set(aditional_shifts).union([self.shift])
 
         return list(all_shifts)
+
+    def has_encryption_key(self):
+        """
+        convenience wrapper to check if this project have an encryption key uploaded
+        """
+        return self.encryption_key is not None
+
+    @property
+    def encryption_key(self):
+        """
+        convenience wrapper to get project's encryption key,
+        if no key is uploaded, None is returned
+        """
+        return getattr(self, "encryptionkey", None)
 
 
 class PendingProject(models.Model):
@@ -193,3 +208,8 @@ class PDB(models.Model):
         returns full path to the PDB file in the 'fragmax' project directory
         """
         return project_model_file(self.project, self.filename)
+
+
+class EncryptionKey(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+    key = models.BinaryField(max_length=encryption.KEY_SIZE)
