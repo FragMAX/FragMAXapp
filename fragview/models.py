@@ -41,6 +41,8 @@ class Project(models.Model):
     proposal = models.TextField()
     shift = models.TextField()
     shift_list = models.TextField(blank=True)
+    # 'encrypted mode' for data processing is enabled
+    encrypted = models.BooleanField()
 
     @staticmethod
     def get(proj_id):

@@ -23,6 +23,8 @@ class ProjectForm(forms.Form):
     proposal = forms.CharField()
     shift = forms.CharField()
     shift_list = forms.CharField(required=False)
+    # set required=False for this field, as it's not always submitted when unchecked
+    encrypted = forms.BooleanField(required=False)
 
     def __init__(self, data, files, model=None):
         self.model = model
@@ -32,7 +34,8 @@ class ProjectForm(forms.Form):
                 library_name=model.library.name,
                 proposal=model.proposal,
                 shift=model.shift,
-                shift_list=model.shift_list)
+                shift_list=model.shift_list,
+                encrypted=model.encrypted)
 
         super().__init__(data, files)
 
@@ -119,6 +122,17 @@ class ProjectForm(forms.Form):
     # actually exist
     #
 
+    def _is_encrypted(self):
+        """
+        returns true if form's 'encrypted' checkbox was checked
+        """
+        if "encrypted" not in self.cleaned_data:
+            # handle the cases when value is not submitted by the browser
+            # when 'encrypted' checkbox is unchecked
+            return False
+
+        return self.cleaned_data["encrypted"]
+
     def clean(self):
         if self.errors:
             # there were error(s) during the regexp validation,
@@ -174,7 +188,8 @@ class ProjectForm(forms.Form):
             protein=self.cleaned_data["protein"],
             library=library,
             proposal=self.cleaned_data["proposal"],
-            shift=self.cleaned_data["shift"])
+            shift=self.cleaned_data["shift"],
+            encrypted=self._is_encrypted())
 
         # check if there is any shift_list specified
         shift_list = self.cleaned_data["shift_list"]
