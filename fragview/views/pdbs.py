@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.db import transaction
 from django.db.utils import IntegrityError
+from fragview.fileio import open_proj_file
 from fragview.models import PDB
 from fragview.projects import current_project
 
@@ -65,7 +66,7 @@ def _store_uploaded_pdb(proj, pdb_file):
     pdb = _add_pdb_entry(proj, pdb_file.name)
 
     # save the file to fragmax project's models directory
-    with open(pdb.file_path(), "wb") as dest:
+    with open_proj_file(proj, pdb.file_path()) as dest:
         for chunk in pdb_file.chunks():
             dest.write(chunk)
     pre_process_PDB(proj, pdb_file.name, pdb.file_path())
@@ -80,7 +81,7 @@ def _fetch_from_rcsb(proj, pdb_id):
     pdb = _add_pdb_entry(proj, f"{pdb_id}.pdb", pdb_id)
 
     # save the file to fragmax project's models directory
-    with open(pdb.file_path(), "wb") as dest:
+    with open_proj_file(proj, pdb.file_path()) as dest:
         dest.write(pdb_data.encode())
     pre_process_PDB(proj, f"{pdb_id}.pdb", pdb.file_path())
 
