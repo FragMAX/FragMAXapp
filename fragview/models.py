@@ -1,3 +1,4 @@
+import base64
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from .projects import shift_dir, project_model_file
@@ -213,3 +214,27 @@ class PDB(models.Model):
 class EncryptionKey(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
     key = models.BinaryField(max_length=encryption.KEY_SIZE)
+
+
+class AccessToken(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    token = models.BinaryField(max_length=encryption.TOKEN_SIZE)
+    # TODO: add 'expiration time', e.g. time after which the token is no longer valid
+
+    @staticmethod
+    def add_token(project, token):
+        tok = AccessToken(project=project, token=token)
+        tok.save()
+
+        return tok
+
+    @staticmethod
+    def get_from_base64(b64_token):
+        tok = base64.b64decode(b64_token)
+        return AccessToken.objects.get(token=tok)
+
+    def as_base64(self):
+        """
+        get this token as base64 encoded string
+        """
+        return base64.b64encode(self.token).decode()

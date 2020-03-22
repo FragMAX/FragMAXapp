@@ -112,6 +112,8 @@ AUTHENTICATION_BACKENDS = [
     "fragview.auth.ISPyBBackend"
 ]
 
+OPEN_URLS = ["/crypt/"]
+
 # ISPyBBackend authentication settings
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
 ISPYB_AUTH_SITE = "MAXIV"

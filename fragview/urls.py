@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
-from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment
+from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt
 
 
 urlpatterns = [
@@ -67,5 +67,6 @@ urlpatterns = [
     path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
-    path('fragment/<fragment>/image', fragment.svg, name='fragment_svg')
+    path('fragment/<fragment>/image', fragment.svg, name='fragment_svg'),
+    path('crypt/', crypt.index),
 ]
