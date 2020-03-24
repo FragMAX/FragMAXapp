@@ -168,6 +168,11 @@ HPC_FRONT_END = "clu0-fe-0"
 # None means use currently logged in user
 HPC_USER = None
 
+#
+# the URL used to read and write encrypted data, e.g. https://fragmax/crypto/
+# must be set in site local settings 'site_settings.py'
+#
+CRYPT_URL = None
 
 # load site specific settings override, if any
 try:

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
-from fragview.encryption import generate_token
-from fragview.models import Project, AccessToken
+from fragview.models import Project
+from fragview import tokens
 
 
 class Command(BaseCommand):
@@ -19,5 +19,5 @@ class Command(BaseCommand):
         if not proj.encrypted:
             raise CommandError("encryption for project disabled, can't generate tokens")
 
-        tok = AccessToken.add_token(proj, generate_token())
+        tok = tokens.get_valid_token(proj)
         print(tok.as_base64())
