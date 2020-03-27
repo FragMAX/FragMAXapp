@@ -45,6 +45,10 @@ def project_process_dir(project):
     return path.join(project_fragmax_dir(project), "process")
 
 
+def project_fragments_dir(project):
+    return path.join(project_fragmax_dir(project), "fragments")
+
+
 def project_results_dir(project):
     return path.join(project_fragmax_dir(project), "results")
 

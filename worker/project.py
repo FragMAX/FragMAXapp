@@ -10,11 +10,11 @@ import subprocess
 from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger
-from worker import dist_lock
+from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
-from fragview.projects import project_shift_dirs, project_all_status_file
+from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 
 logger = get_task_logger(__name__)
 
@@ -36,6 +36,7 @@ def setup_project_files(proj_id):
 def _setup_project_files(proj):
     meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
+    _prepare_fragments(proj)
     _write_update_script(proj)
     _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
@@ -45,6 +46,13 @@ def _setup_project_files(proj):
 
 def _makedirs(dir_path):
     os.makedirs(dir_path, mode=0o770, exist_ok=True)
+
+
+def _prepare_fragments(proj):
+    frags_dir = project_fragments_dir(proj)
+    lib = proj.library
+
+    elbow.generate_cif_pdb(lib.fragment_set.all(), frags_dir)
 
 
 def _create_fragmax_folders(proj):
@@ -58,6 +66,7 @@ def _create_fragmax_folders(proj):
     _makedirs(path.join(fragmax_dir, "models"))
     _makedirs(path.join(fragmax_dir, "export"))
     _makedirs(path.join(fragmax_dir, "results"))
+    _makedirs(project_fragments_dir(proj))
     _makedirs(project_process_protein_dir(proj))
 
 
