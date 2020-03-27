@@ -15,6 +15,8 @@ RUN apt-get update \
     && echo "nslcd	nslcd/ldap-base	string dummy" | debconf-set-selections \
     && echo "libnss-ldapd	libnss-ldapd/nsswitch	multiselect	passwd, group, shadow" | debconf-set-selections \
     && apt-get -y  install \
+        # for troubleshooting
+        nano \
         # for LDAP authentication
         nslcd \
         # for accessing HPC
@@ -88,6 +90,9 @@ RUN sed -i 's/user .*;/user biomax-service MAX-Lab;/' /etc/nginx/nginx.conf
 
 # configure supervisord to start all required deamons
 COPY deploy/supervisord.conf /etc/supervisor/supervisord.conf
+
+# wrapper for running celery workes processes
+COPY deploy/start_celery_workers.sh .
 
 # for SSHing to HPC
 COPY --chown=root:1300 deploy/ssh_config /etc/ssh/ssh_config
