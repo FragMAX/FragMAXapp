@@ -3,6 +3,8 @@ import os
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
+from fragview.projects import project_fragment_cif, project_fragment_pdb
+from fragview.views.utils import write_script
 
 from glob import glob
 
@@ -61,12 +63,14 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
     header += "module purge\n"
     header += f"module load {softwares}\n"
 
-    for pdb in pdbList:
+    for num, pdb in enumerate(pdbList):
         rhofit_cmd = ""
         ligfit_cmd = ""
         fragID = pdb.split("/")[8].split("-")[-1].split("_")[0]
-        ligCIF = proj.data_path() + "/fragmax/process/fragment/" + proj.library + "/" + fragID + "/" + fragID + ".cif"
-        ligPDB = proj.data_path() + "/fragmax/process/fragment/" + proj.library + "/" + fragID + "/" + fragID + ".pdb"
+
+        ligCIF = project_fragment_cif(proj, fragID)
+        ligPDB = project_fragment_pdb(proj, fragID)
+
         rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
         ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
         mtz_input = pdb.replace(".pdb", ".mtz")
@@ -82,12 +86,13 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
             ligfit_cmd += f"cd {ligfit_outdir} \n"
             ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} fill=True clean_up=True \n"
 
-        with open(project_script(proj, "autoligand_" + sample + ".sh"), "w") as writeFile:
-            writeFile.write(header)
-            writeFile.write(rhofit_cmd)
-            writeFile.write(ligfit_cmd)
-            writeFile.write(project_update_status_script_cmds(proj, sample, softwares))
-            writeFile.write("\n\n")
-        script = project_script(proj, "autoligand_" + sample + ".sh")
+        script = project_script(proj, f"autoligand_{sample}_{num}.sh")
+        write_script(script,
+                     f"{header}" +
+                     f"{rhofit_cmd}" +
+                     f"{ligfit_cmd}" +
+                     project_update_status_script_cmds(proj, sample, softwares) +
+                     "\n\n")
+
         hpc.run_sbatch(script)
         # os.remove(script)

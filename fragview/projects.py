@@ -111,9 +111,12 @@ def project_xml_files(project):
             yield file
 
 
-def project_ligand_cif(project, ligand):
-    return path.join(
-        project.data_path(), "fragmax", "process", "fragment", project.library, ligand, f"{ligand}.cif")
+def project_fragment_cif(project, fragment):
+    return path.join(project_fragments_dir(project), f"{fragment}.cif")
+
+
+def project_fragment_pdb(project, fragment):
+    return path.join(project_fragments_dir(project), f"{fragment}.pdb")
 
 
 def project_model_path(project, pdb_file):

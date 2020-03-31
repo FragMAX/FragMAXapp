@@ -11,7 +11,7 @@ from glob import glob
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
-from fragview.projects import project_shift_dirs, project_static_url, project_model_path, project_ligand_cif
+from fragview.projects import project_shift_dirs, project_static_url, project_model_path, project_fragment_cif
 from fragview.projects import project_script
 from .utils import scrsplit
 
@@ -186,7 +186,7 @@ def submit(request):
             elif len(rho_ligandsmiles) > 17:
                 ligand = rho_ligandsmiles.replace("rho_ligandsmiles:", "")
 
-        rhofitINPUT = f" -rhofit {project_ligand_cif(proj, ligand)}"
+        rhofitINPUT = f" -rhofit {project_fragment_cif(proj, ligand)}"
 
         # Keep Hydrogen RhoFit
         keepH = ""
@@ -367,7 +367,7 @@ def submit(request):
             chdir = "cd " + "/".join(ppdout.split("/")[:-1])
             if "apo" not in ppddata.lower():
                 ligand = ppddata.split("/")[8].split("-")[-1]
-                rhofitINPUT = f" -rhofit {project_ligand_cif(proj, ligand)} {keepH}{clusterSearch}" \
+                rhofitINPUT = f" -rhofit {project_fragment_cif(proj, ligand)} {keepH}{clusterSearch}" \
                               f"{fitrefineMode}{postrefineMode}{scanChirals}{occRef}"
             if "apo" in ppddata.lower():
                 rhofitINPUT = ""
