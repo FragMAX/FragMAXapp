@@ -6,6 +6,7 @@ services:
       - fragmax
     ports:
       - 80:80
+      - 443:443
     volumes:
       - /etc/ssl/certs:/etc/ssl/certs
       - /etc/nslcd.conf:/etc/nslcd.conf
