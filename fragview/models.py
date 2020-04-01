@@ -215,6 +215,20 @@ class EncryptionKey(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
     key = models.BinaryField(max_length=encryption.KEY_SIZE)
 
+    def as_base64(self):
+        """
+        get this encryption key as base64 encoded string
+        """
+        return base64.b64encode(self.key).decode()
+
+    @staticmethod
+    def from_base64(proj, b64_key):
+        """
+        create EncryptionKey model object from base64 encoded key
+        """
+        bin_key = base64.b64decode(b64_key)
+        return EncryptionKey(project=proj, key=bin_key)
+
 
 class AccessToken(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

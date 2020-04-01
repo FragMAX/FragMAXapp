@@ -177,6 +177,7 @@
             Project<i class="material-icons" style="font-size:22px;color:white">dashboard</i>
         </a>
     </li>
+
     {% ifequal active_menu 'project' %}
         <li>
             <a href="/pdbs" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
@@ -188,6 +189,13 @@
                 Project info<i class="material-icons" style="font-size:22px;color:white">style</i>
             </a>
         </li>
+        {% if project.encrypted %}
+        <li>
+            <a href="/encryption" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                Encryption<i class="material-icons" style="font-size:22px;color:white">lock</i>
+            </a>
+        </li>
+        {% endif %}
     {% endifequal %}
 
       <li>

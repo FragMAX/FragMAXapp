@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'fragview.middleware.login_required',
     'fragview.middleware.no_projects_redirect',
+    'fragview.middleware.key_required_redirect',
 ]
 
 ROOT_URLCONF = 'fragmax.urls'

@@ -1,6 +1,7 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt, gen_pdbs
+from fragview.views import encryption
 
 
 urlpatterns = [
@@ -41,6 +42,12 @@ urlpatterns = [
     path('project/<int:id>/', projects.edit),
     path('project/new', projects.new, name='new_project'),
     path('project/current/<int:id>/', projects.set_current),
+
+    # encryption key management views
+    path('encryption/', encryption.show, name='encryption'),
+    path('encryption/key/', encryption.download_key),
+    path('encryption/key/upload/', encryption.upload_key),
+    path('encryption/key/forget/', encryption.forget_key),
 
     # PDBs management views
     path('pdbs/', pdbs.list, name='manage_pdbs'),

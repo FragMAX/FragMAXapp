@@ -41,7 +41,6 @@
             
             <div class="card-title">Proposal name: Fragment screening of {{project.protein}}</div><br>
             <table class="table bordered">
-                
                 <tbody>
                 <tr>
                     <th>Proposal Number</th>
@@ -75,10 +74,6 @@
                     <th>Protein sequence</th>
                     <td><a href="/static/userDataFiles/hCAII.fasta"> hCAII.fasta</a></td>                    
                 </tr>
-                <tr hidden>
-                    <th>Protein model</th>
-                    <td><a href="/static/userDataFiles/hCAII.pdb"> hCAII.pdb</a></td>                    
-                </tr>
                 <tr>
                     <th>Fragment Libraries</th>
                     <td>{{fraglib}}</td>                    
@@ -86,12 +81,15 @@
                 <tr>
                     <th>Experiment date</th>
                     <td>{{exp_date}}</td>
-                    
                 </tr>
-                
-                </tr>
-                
-            </tbody></table>
+                {% if project.encrypted %}
+                    <tr>
+                        <th>Data Processing</th>
+                        <td>Encrypted Mode</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
