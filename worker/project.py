@@ -13,8 +13,8 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
-from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
+from fragview.projects import UPDATE_STATUS_SCRIPT, project_data_collections_file, project_all_status_file
+from fragview.projects import project_shift_dirs, project_fragments_dir, project_scripts_dir
 
 logger = get_task_logger(__name__)
 
@@ -37,7 +37,7 @@ def _setup_project_files(proj):
     meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
     _prepare_fragments(proj)
-    _write_update_script(proj)
+    _copy_scripts(proj)
     _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
     _import_edna_fastdp(proj)
@@ -70,11 +70,23 @@ def _create_fragmax_folders(proj):
     _makedirs(project_process_protein_dir(proj))
 
 
-def _write_update_script(proj):
-    src_file = path.join(path.dirname(__file__), "data", UPDATE_STATUS_SCRIPT)
-    dst_file = project_update_status_script(proj)
+def _copy_script_files(proj, script_files):
+    data_dir = path.join(path.dirname(__file__), "data")
+    dest_dir = project_scripts_dir(proj)
 
-    shutil.copy(src_file, dst_file)
+    for file in script_files:
+        src_file = path.join(data_dir, file)
+        dst_file = path.join(dest_dir, file)
+        print(f"{src_file} -> {dst_file}")
+        shutil.copy(src_file, dst_file)
+
+
+def _copy_scripts(proj):
+    script_files = [UPDATE_STATUS_SCRIPT]
+    if proj.encrypted:
+        script_files += ["crypt_files.py", "crypt_files.sh"]
+
+    _copy_script_files(proj, script_files)
 
 
 def _parse_metafile(proj, metafile):
