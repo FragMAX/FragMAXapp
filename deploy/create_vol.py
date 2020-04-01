@@ -19,6 +19,11 @@ cp /init_volume/id_rsa /volume/ssh
 chmod 0500 /volume/ssh
 chmod 0600 /volume/ssh/id_rsa
 
+# https certificate files
+mkdir /volume/cert
+cp /init_volume/fragmax.crt /volume/cert
+cp /init_volume/fragmax.key /volume/cert
+
 # django database dir
 mkdir /volume/db
 
@@ -29,12 +34,19 @@ chown -R 1990:1300 /volume
 
 @contextmanager
 def temp_init_dir():
+    def _copy_to_temp(filename):
+        dest = path.join(temp_dir, filename)
+        copyfile(filename, dest)
+
     # prepare
     temp_dir = mkdtemp(prefix="FMAX")
 
     # RSA key file
-    key_file = path.join(temp_dir, "id_rsa")
-    copyfile(RSA_KEY_FILE, key_file)
+    _copy_to_temp(RSA_KEY_FILE)
+
+    # HTTPS certificate files
+    _copy_to_temp("fragmax.crt")
+    _copy_to_temp("fragmax.key")
 
     # volume set-up script
     script = path.join(temp_dir, SETUP_SCRIPT_NAME)
