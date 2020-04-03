@@ -4,6 +4,7 @@ import pypdb
 from django import urls
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.db import transaction
 from django.db.utils import IntegrityError
 from fragview.models import PDB
 from fragview.projects import current_project
@@ -81,17 +82,27 @@ def _fetch_from_rcsb(proj, pdb_id):
     with open(pdb.file_path(), "wb") as dest:
         dest.write(pdb_data.encode())
 
-
+#
+# Wrap the database operation of adding a new PDB entry into
+# a transaction.
+#
+# This way if we fail to write the PDB file to disk, the new
+# PDB entry will not be commited to the database.
+#
+@transaction.atomic
 def _process_add_request(request):
     proj = current_project(request)
     method = request.POST["method"]
 
-    if method == "upload_file":
-        _store_uploaded_pdb(proj, request.FILES["pdb"])
-        return
+    try:
+        if method == "upload_file":
+            _store_uploaded_pdb(proj, request.FILES["pdb"])
+            return
 
-    assert method == "fetch_online"
-    _fetch_from_rcsb(proj, request.POST["pdb_id"])
+        assert method == "fetch_online"
+        _fetch_from_rcsb(proj, request.POST["pdb_id"])
+    except FileNotFoundError as e:
+        raise PDBAddError(f"Internal error saving PDB file\n{e}")
 
 
 def add(request):
