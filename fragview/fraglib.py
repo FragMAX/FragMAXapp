@@ -41,11 +41,6 @@ def _parse_csv(csv_reader):
     return fragmens
 
 
-def parse_file(file_path):
-    with open(file_path, "r") as f:
-        return _parse_csv(csv.reader(f))
-
-
 def parse_uploaded_file(uploaded_file):
     def _uploaded_lines(uploaded_file):
         """
