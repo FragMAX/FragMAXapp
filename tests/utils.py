@@ -1,6 +1,7 @@
 import unittest
 from fragview import auth
 from django import test
+from fragview.models import Project, Library
 
 
 def identity(func):
@@ -38,6 +39,13 @@ class ViewTesterMixin:
         session = self.client.session
         session["proposals"] = [self.PROP1, self.PROP2]
         session.save()
+
+    def setup_project(self):
+        self.lib = Library(name="JBS")
+        self.lib.save()
+
+        self.proj = Project(protein="PRT", library=self.lib, proposal=self.PROP1, shift="20190808")
+        self.proj.save()
 
     def assert_contains_template(self, response, template_name):
         """

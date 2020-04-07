@@ -27,12 +27,7 @@ def _add_pdbs(project):
 class _PDBViewTester(test.TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
-
-        lib = Library(name="JBS")
-        lib.save()
-
-        self.proj = Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808")
-        self.proj.save()
+        self.setup_project()
 
 
 class TestIsValidPDBFilename(unittest.TestCase):

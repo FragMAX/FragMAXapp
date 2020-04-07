@@ -2,7 +2,6 @@ from os import path
 from unittest.mock import patch
 from django import test
 from django.urls import reverse
-from fragview.models import Project, Library
 from fragview.projects import project_raw_protein_dir, project_process_protein_dir, project_static_url
 from tests.utils import ViewTesterMixin
 
@@ -14,12 +13,7 @@ RUN = 1
 class TestImage(test.TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
-
-        lib = Library(name="Lbr")
-        lib.save()
-
-        self.proj = Project(protein="PrtN", library=lib, proposal=self.PROP1, shift=SHIFT)
-        self.proj.save()
+        self.setup_project()
 
         self.url = reverse("diffraction_image", args=[DATA_SET, RUN, 0])
 

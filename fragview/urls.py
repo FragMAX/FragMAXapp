@@ -64,5 +64,5 @@ urlpatterns = [
     path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
-    path('fragment/<fragment>/image', fragment.svg)
+    path('fragment/<fragment>/image', fragment.svg, name='fragment_svg')
 ]
