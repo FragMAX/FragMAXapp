@@ -458,21 +458,6 @@
                                         </div>
                                     </form>
                             </tr>
-                            <th class=" top-options">Ligand File</th>
-                            <td class=" top-options">
-                                <form id="swSelectionForrefinement">
-
-                                    <div class="checkbox" id="dials">
-                                        <label>
-                                            <input id="ligfromname" name="ligfromname" type="checkbox"
-                                                class="filled-in dt-checkboxes" value="ligfromnameValue" checked>
-                                            <span for="ligfromname">Get from sample name </span>
-                                        </label>
-                                    </div>
-
-                                </form>
-                            </td>
-                            </tr>
                             <tr>
                                 <th></th>
                                 <td style="padding-top:200px">
@@ -506,7 +491,6 @@
 </div>
 
 <p hidden id="pdbcontent"></p>
-<p hidden id="ligcontent"></p>
 <h6 style="padding-left:330px;">Click the tabs to change parameters for each software</h6>
 
 
@@ -1974,19 +1958,17 @@ $(document).ready(function () {
         //Ligand fit options
         var rhofitSW = ";;rhofitSW:" + document.getElementsByName("rhofitcheckboxname")[0].checked
         var ligfitSW = ";;ligfitSW:" + document.getElementsByName("phenixligfitcheckboxname")[0].checked
-        var ligandfile = ";;ligandfile:" + document.getElementById("ligcontent").innerHTML
         var fitprocess = ";;fitprocess:" + document.getElementsByName("fitprocess")[0].value
         var scanchirals = ";;scanchirals:" + document.getElementsByName("scanchirals")[0].value
         var customligfit = ";;customligfit:" + document.getElementsByName("customligfit")[0].value
-        var ligandfromname = ";;ligfromname:" + document.getElementsByName("ligfromname")[0].checked
+
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else {
             //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
-        var ligfitcmd = rhofitSW + ligfitSW + ligandfile + fitprocess + scanchirals + customligfit +
-            ligandfromname + dtsfilters
+        var ligfitcmd = rhofitSW + ligfitSW + fitprocess + scanchirals + customligfit + dtsfilters
 
         document.getElementsByName("submitligProc")[0].value = ligfitcmd
         console.log(ligfitcmd)

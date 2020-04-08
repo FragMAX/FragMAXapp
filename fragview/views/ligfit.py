@@ -15,8 +15,7 @@ def datasets(request):
     proj = current_project(request)
 
     userInput = str(request.GET.get("submitligProc"))
-    empty, rhofitSW, ligfitSW, ligandfile, fitprocess, scanchirals, customligfit, ligfromname, filters = \
-        userInput.split(";;")
+    empty, rhofitSW, ligfitSW, fitprocess, scanchirals, customligfit, filters = userInput.split(";;")
 
     useRhoFit = "False"
     useLigFit = "False"
