@@ -9,6 +9,7 @@ from django.shortcuts import render
 from fragview.projects import project_all_status_file, project_process_dir
 from fragview.projects import current_project, project_results_file, project_results_dir
 from fragview.projects import project_data_collections_file
+from fragview.xsdata import XSDataCollection
 
 
 def set_details(request):
@@ -23,11 +24,12 @@ def set_details(request):
 
     curp = proj.data_path()
     xmlfile = os.path.join(proj.data_path(), "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
-    datainfo = retrieve_parameters(xmlfile)
+    xsdata = XSDataCollection(xmlfile)
 
-    energy = format(12.4 / float(datainfo["wavelength"]), ".2f")
-    totalExposure = format(float(datainfo["exposureTime"]) * float(datainfo["numberOfImages"]), ".2f")
-    edgeResolution = str(float(datainfo["resolution"]) * 0.75625)
+    energy = format(12.4 / xsdata.wavelength, ".2f")
+    totalExposure = format(xsdata.exposureTime * xsdata.numberOfImages, ".2f")
+    edgeResolution = str(xsdata.resolution * 0.75625)
+
     ligpng = "/static/img/nolig.png"
     if "Apo" not in prefix.split("-"):
         ligpng = prefix.split("-")[-1]
@@ -36,11 +38,10 @@ def set_details(request):
     solventConc = "10%"
     soakTime = "2h"
 
-    snapshot1 = datainfo["snapshot1"].replace("/mxn/groups/ispybstorage/", "/static/")
-    if datainfo["snapshot2"] == "None":
-        snapshot2 = datainfo["snapshot1"].replace("/mxn/groups/ispybstorage/", "/static/")
-    else:
-        snapshot2 = datainfo["snapshot2"].replace("/mxn/groups/ispybstorage/", "/static/")
+    snapshots = [
+        spath.replace("/mxn/groups/ispybstorage/", "/static/")
+        for spath in xsdata.snapshots
+    ]
 
     half = int(float(images) / 200)
 
@@ -123,36 +124,9 @@ def set_details(request):
         "fragConc": fragConc,
         "solventConc": solventConc,
         "soakTime": soakTime,
-        "axisEnd": datainfo["axisEnd"],
-        "axisRange": datainfo["axisRange"],
-        "axisStart": datainfo["axisStart"],
-        "beamShape": datainfo["beamShape"],
-        "beamSizeSampleX": datainfo["beamSizeSampleX"],
-        "beamSizeSampleY": datainfo["beamSizeSampleY"],
-        "detectorDistance": datainfo["detectorDistance"],
-        "endTime": datainfo["endTime"],
-        "exposureTime": datainfo["exposureTime"],
-        "flux": datainfo["flux"],
-        "imageDirectory": datainfo["imageDirectory"],
-        "imagePrefix": datainfo["imagePrefix"],
-        "kappaStart": datainfo["kappaStart"],
-        "numberOfImages": datainfo["numberOfImages"],
-        "overlap": datainfo["overlap"],
-        "phiStart": datainfo["phiStart"],
-        "resolution": datainfo["resolution"],
-        "rotatioAxis": datainfo["rotatioAxis"],
-        "runStatus": datainfo["runStatus"],
-        "slitV": datainfo["slitV"],
-        "slitH": datainfo["slitH"],
-        "startTime": datainfo["startTime"],
-        "synchrotronMode": datainfo["synchrotronMode"],
-        "transmission": datainfo["transmission"],
-        "wavelength": datainfo["wavelength"],
-        "xbeampos": datainfo["xbeampos"],
-        "snapshot1": snapshot1,
-        "snapshot2": snapshot2,
+        "xsdata": xsdata,
+        "snapshots": snapshots,
         "diffraction_half": half,
-        "ybeampos": datainfo["ybeampos"],
         "energy": energy,
         "totalExposure": totalExposure,
         "edgeResolution": edgeResolution,
@@ -169,46 +143,6 @@ def set_details(request):
         "ednaOK": ednaOK,
         "fastdpOK": fastdpOK,
     })
-
-
-def retrieve_parameters(xmlfile):
-    with open(xmlfile, "r") as inp:
-        a = inp.readlines()
-
-    paramDict = dict()
-    paramDict["axisEnd"] = format(float(a[4].split("</")[0].split(">")[1]), ".1f")
-    paramDict["axisRange"] = format(float(a[5].split("</")[0].split(">")[1]), ".1f")
-    paramDict["axisStart"] = format(float(a[6].split("</")[0].split(">")[1]), ".1f")
-    paramDict["beamShape"] = a[7].split("</")[0].split(">")[1]
-    paramDict["beamSizeSampleX"] = format(float(a[8].split("</")[0].split(">")[1]) * 1000, ".0f")
-    paramDict["beamSizeSampleY"] = format(float(a[9].split("</")[0].split(">")[1]) * 1000, ".0f")
-    paramDict["detectorDistance"] = format(float(a[16].split("</")[0].split(">")[1]), ".2f")
-    paramDict["endTime"] = a[18].split("</")[0].split(">")[1]
-    paramDict["exposureTime"] = format(float(a[19].split("</")[0].split(">")[1]), ".3f")
-    paramDict["flux"] = a[22].split("</")[0].split(">")[1]
-    paramDict["imageDirectory"] = a[23].split("</")[0].split(">")[1]
-    paramDict["imagePrefix"] = a[24].split("</")[0].split(">")[1]
-    paramDict["kappaStart"] = format(float(a[26].split("</")[0].split(">")[1]), ".2f")
-    paramDict["numberOfImages"] = a[27].split("</")[0].split(">")[1]
-    paramDict["overlap"] = format(float(a[29].split("</")[0].split(">")[1]), ".1f")
-    paramDict["phiStart"] = format(float(a[30].split("</")[0].split(">")[1]), ".2f")
-    paramDict["resolution"] = format(float(a[32].split("</")[0].split(">")[1]), ".2f")
-    paramDict["rotatioAxis"] = a[33].split("</")[0].split(">")[1]
-    paramDict["runStatus"] = a[34].split("</")[0].split(">")[1]
-    paramDict["slitV"] = format(float(a[35].split("</")[0].split(">")[1]) * 1000, ".1f")
-    paramDict["slitH"] = format(float(a[36].split("</")[0].split(">")[1]) * 1000, ".1f")
-    paramDict["startTime"] = a[38].split("</")[0].split(">")[1]
-    paramDict["synchrotronMode"] = a[39].split("</")[0].split(">")[1]
-    paramDict["transmission"] = format(float(a[40].split("</")[0].split(">")[1]), ".3f")
-    paramDict["wavelength"] = format(float(a[41].split("</")[0].split(">")[1]), ".6f")
-    paramDict["xbeampos"] = format(float(a[42].split("</")[0].split(">")[1]), ".2f")
-    paramDict["snapshot1"] = a[43].split("</")[0].split(">")[1]
-    paramDict["snapshot2"] = a[44].split("</")[0].split(">")[1]
-    paramDict["snapshot3"] = a[45].split("</")[0].split(">")[1]
-    paramDict["snapshot4"] = a[46].split("</")[0].split(">")[1]
-    paramDict["ybeampos"] = format(float(a[47].split("</")[0].split(">")[1]), ".2f")
-
-    return paramDict
 
 
 def show_all(request):

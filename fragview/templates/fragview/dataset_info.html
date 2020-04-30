@@ -315,11 +315,6 @@
 
         </div>
     </div>
-
-    
-
-
-
 </div>
 </div>
         
@@ -338,9 +333,10 @@
                 <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
                 <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
         
-                <img class="myImg crystalsnap" id="snap1" src="{{snapshot1}}" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
-        
-                <img class="myImg crystalsnap" id="snap2" src="{{snapshot2}}" onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
+                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+                <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
+                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         
         
     </div>
@@ -370,15 +366,15 @@
                         </tr>
                         <tr>
                             <th># of images</th>
-                            <td>{{numberOfImages}}</td>
+                            <td>{{xsdata.numberOfImages}}</td>
                         </tr>
                         <tr>
                             <th>Start time</th>
-                            <td>{{startTime}} </td>
+                            <td>{{xsdata.startTime}} </td>
                         </tr>
                         <tr>
                             <th>End time</th>
-                            <td>{{endTime}}</td>
+                            <td>{{xsdata.endTime}}</td>
                         </tr>
                         <tr>
                             <th>Type of experiment</th>
@@ -386,7 +382,7 @@
                         </tr>
                         <tr>
                             <th>Wavelength</th>
-                            <td>{{wavelength}} Å </td>
+                            <td>{{xsdata.wavelength|floatformat:6}} Å</td>
                         </tr>
                         <tr>
                             <th>Energy</th>
@@ -394,19 +390,19 @@
                         </tr>
                         <tr>
                             <th>Phi Start</th>
-                            <td>{{axisStart}}° </td>
+                            <td>{{xsdata.axisStart}}°</td>
                         </tr>
                         <tr>
                             <th>Oscillation range</th>
-                            <td>{{axisRange}}° </td>
+                            <td>{{xsdata.axisRange}}°</td>
                         </tr>
                         <tr>
                             <th>Overlap</th>
-                            <td>{{overlap}}° </td>
+                            <td>{{xsdata.overlap|floatformat:1}}°</td>
                         </tr>
                         <tr>
                             <th>Exposure time</th>
-                            <td>{{exposureTime}} s </td>
+                            <td>{{xsdata.exposureTime|floatformat:3}} s</td>
                         </tr>
                         <tr>
                             <th>Total Exposure time</th>
@@ -414,35 +410,35 @@
                         </tr>
                         <tr>
                             <th>Estimated dose</th>
-                            <td>Not defined </td>
+                            <td>Not defined</td>
                         </tr>
                         <tr>
                             <th>Detector distance</th>
-                            <td>{{detectorDistance}} mm </td>
+                            <td>{{xsdata.detectorDistance|floatformat:2}} mm</td>
                         </tr>
                         <tr>
                             <th>Resolution at edge</th>
-                            <td>{{resolution}} Å </td>
+                            <td>{{xsdata.resolution|floatformat:2}} Å</td>
                         </tr>
                         <tr>
                             <th>Resolution at corner</th>
-                            <td>{{edgeResolution}} Å </td>
+                            <td>{{edgeResolution}} Å</td>
                         </tr>
                         <tr>
                             <th>Xbeam</th>
-                            <td>{{xbeampos}} mm</td>
+                            <td>{{xsdata.xbeam}} mm</td>
                         </tr>
                         <tr>
                             <th>Ybeam</th>
-                            <td>{{ybeampos}} mm</td>
+                            <td>{{xsdata.ybeam}} mm</td>
                         </tr>
                         <tr>
                             <th>Kappa</th>
-                            <td>0 </td>
+                            <td>0</td>
                         </tr>
                         <tr>
                             <th>Phi</th>
-                            <td>0 </td>
+                            <td>0</td>
                         </tr>
 
                     </tbody>
@@ -467,9 +463,8 @@
                         </tr>
                         <tr>
                             <th>Filling mode</td>
-                            <td>{{synchrotronMode}}</td>
+                            <td>{{xsdata.synchrotronMode}}</td>
                         </tr>
-
                         <tr>
                             <th>Beamline</td>
                             <td>BioMAX</td>
@@ -496,19 +491,19 @@
                         </tr>
                         <tr>
                             <th>Beam shape</td>
-                            <td>{{beamShape}}</td>
+                            <td>{{xsdata.beamShape}}</td>
                         </tr>
                         <tr>
                             <th>Beam transmission</td>
-                            <td>{{transmission}}%</td>
+                            <td>{{xsdata.transmission|floatformat:3}}%</td>
                         </tr>
                         <tr>
                             <th>Slit gap hor</td>
-                            <td>{{slitH}} μm</td>
+                            <td>{{xsdata.slitGapHorizontal|floatformat:1}} μm</td>
                         </tr>
                         <tr>
                             <th>Slit gap ver</td>
-                            <td>{{slitV}} μm</td>
+                            <td>{{xsdata.slitGapVertical|floatformat:1}} μm</td>
                         </tr>
                         <tr>
                             <th>Flux (estimated)</td>
@@ -516,7 +511,7 @@
                         </tr>
                         <tr>
                             <th>Beam size at sample (HxV)</td>
-                            <td>{{beamSizeSampleX}} μm x {{beamSizeSampleY}} μm</td>
+                            <td>{{xsdata.beamSizeSampleX}} μm x {{xsdata.beamSizeSampleY}} μm</td>
                         </tr>
                         <tr>
                             <th>Beam divergence (HxV)</td>
@@ -557,11 +552,6 @@
                         </tr>
                     </tbody>
                 </table>
-
-
-
-
-
             </div>
         </div>
     </div>
