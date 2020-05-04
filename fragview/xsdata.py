@@ -38,7 +38,7 @@ class XSDataCollection:
 
     @property
     def flux(self):
-        return self._float_tag("flux").replace("e+"," 10^")
+        return self._float_tag("flux").replace("e+", " 10^")
 
     @property
     def wavelength(self):
