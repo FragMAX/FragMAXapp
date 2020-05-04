@@ -34,9 +34,9 @@ def set_details(request):
     if "Apo" not in prefix.split("-"):
         ligpng = prefix.split("-")[-1]
 
-    fragConc = "10 mM"
-    solventConc = "10%"
-    soakTime = "2h"
+    fragConc = "N/A"
+    solventConc = "N/A"
+    soakTime = "N/A"
 
     snapshots = [
         spath.replace("/mxn/groups/ispybstorage/", "/static/")
