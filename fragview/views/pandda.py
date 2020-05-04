@@ -521,7 +521,7 @@ def giant(request):
 
     if not available_scores:
         # no panda scores files found
-        return render(request, "fragview/index.html")
+        return render(request, "fragview/")
 
     scoreDict = dict()
     for score in available_scores:
