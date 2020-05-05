@@ -91,6 +91,12 @@
   #viewer1 { left: 550px; }
   #viewer2 { right: 0; }
 
+  .ligandSVG{
+    padding-left: 7.5px;
+    position: absolute;
+    bottom: 10px;
+    width: 250px;
+  }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -233,12 +239,12 @@
         </div> 
       </div> 
 
-      {% comment %} <div style="padding-left:15px !important; padding-top:90px !important;">    
+      <div class="ligandSVG">    
           <div>
-            <h6>Expected ligand</h6>
+            <h5 style="text-align: center;">{{ligand}}</h5>
           </div>
-      <img class="ligpng svg" id="ligand" src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/fragment/{{project.library}}/{{ligand}}/{{ligand}}.svg" >
-      </div> {% endcomment %}
+          <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      </div> 
     </div>
 
 
@@ -258,17 +264,18 @@
 
     <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
-    {% comment %} <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg"> {% endcomment %}
-    <img class="ligpng svg" id="ligand" src="/fragment/{{ligand}}/image">
+    {% comment %} <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg"> 
+    <img class="ligpng svg" id="ligand" src="/fragment/{{ligand}}/image">{% endcomment %}
     <b><h6>{{name}} </h6></b>
-      <header id="hud">Electron density viewer. Press H for help.</header>
+  
+      <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
     </div>
     </div>
 
 
   <div id="viewer1" ><b>Event map<br></b></div>
   <div id="viewer2" ><b>Average map<br></b></div>
-  <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
+  <header id="hud"></header>
   <footer id="help"></footer>
     
     {% comment %} <div id="viewer"></div> {% endcomment %}

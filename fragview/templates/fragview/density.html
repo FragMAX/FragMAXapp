@@ -69,6 +69,12 @@
     -webkit-filter: contrast(0.5);
     filter: contrast(0.5);
     }
+    .ligandSVG{
+    padding-left: 5px;
+    position: absolute;
+    bottom: 10px;
+    width: 250px;
+  }
   </style>
 
   <script src="/static/libs/uglymol.js"></script>
@@ -77,9 +83,13 @@
 <body style="background-color: white">
 
     
-    
+  
     <div id="left-controlpanel" >
+      
       <div style="padding-left:30px !important;">
+        <div>
+          <h6><a href="/static/{{summary}}" target="_blank">Refinement Log</a></h6>          
+        </div>
         <div>
           <h6>Blob navigation</h6>
         </div>
@@ -148,7 +158,7 @@
       <div style="display:{{ligbox}};">
       <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
-          <h6>RhoFit</h6>
+          <h6>RhoFit - <a href="/static/{{rhofitlog}}" target="_blank">Log</a></h6>
         </div>
         <input class="btn " type="button" value="Show"  onclick="showrhofit();"></input> 
         <input class="btn" type="button" value="Hide"   onclick="hiderhofit();"></input> 
@@ -164,7 +174,7 @@
           
       <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
-          <h6>LigFit</h6>
+          <h6>LigandFit - <a href="/static/{{ligandfitlog}}" target="_blank">Log</a></h6>          
         </div>
         <input class="btn " type="button" value="Show" onclick="showligfit();"></input> 
         <input class="btn" type="button" value="Hide"  onclick="hideligfit();"></input> 
@@ -181,17 +191,22 @@
           <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
       </div>
-      {% comment %} <div style="padding:30px 0 0 30px">    
-          <h6>Dataset ligand</h6>     
-      <img style="text-align:center" class="ligpng" id="ligand" src="{{ligand}}" >
-      </div> {% endcomment %}
+     
+      {% if ligand %}
+      <div class="ligandSVG">    
+          <div>
+            <h5 style="text-align: center;">{{ligand}}</h5>
+          </div>
+          <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      </div> 
+      {% endif %}
     </div>
     </div>
     <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
-    {% if ligand %}
+    <!-- {% if ligand %}
       <img class="ligpng svg" id="ligand" src="/fragment/{{ ligand }}/image">
-    {% endif %}
+    {% endif %} -->
     <b><h6>{{name }} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
