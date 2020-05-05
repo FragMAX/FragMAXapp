@@ -521,18 +521,18 @@ def giant(request):
 
     if not available_scores:
         # no panda scores files found
-        return render(request, "fragview/")
+        return render(request, "fragview/projects/")
+    else:
+        scoreDict = dict()
+        for score in available_scores:
+            with open(score, "r") as readFile:
+                htmlcontent = "".join(readFile.readlines())
 
-    scoreDict = dict()
-    for score in available_scores:
-        with open(score, "r") as readFile:
-            htmlcontent = "".join(readFile.readlines())
+            htmlcontent = htmlcontent.replace('src="./residue_plots',
+                'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
+            scoreDict[score.split('/')[-3]] = htmlcontent
 
-        htmlcontent = htmlcontent.replace('src="./residue_plots',
-                                          'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
-        scoreDict[score.split('/')[-3]] = htmlcontent
-
-    return render(request, "fragview/pandda_giant.html", {"scores_plots": scoreDict})
+        return render(request, "fragview/pandda_giant.html", {"scores_plots": scoreDict})
 
 
 def analyse(request):
@@ -612,7 +612,7 @@ def fix_pandda_symlinks(proj):
                     shell=True)
 
     glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
-                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+        f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
     linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:

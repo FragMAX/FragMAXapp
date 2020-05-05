@@ -79,6 +79,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         proc2resOut += """#SBATCH -J Pro2Res\n"""
         proc2resOut += """#SBATCH -N1\n"""
         proc2resOut += """#SBATCH --cpus-per-task=2\n"""
+        proc2resOut += """#SBATCH --mem-per-cpu=5000\n"""
         proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
         proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
         proc2resOut += """module purge\n"""
@@ -121,7 +122,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
                 outp.write("\n\n")
 
             hpc.run_sbatch(script)
-            os.remove(script)
+            # os.remove(script)
     else:
         userPDB = "-"
 
@@ -129,8 +130,8 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
 def aimless_cmd(spacegroup, dstmtz):
     outdir = '/'.join(dstmtz.split('/')[:-1])
     cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
-          f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
-          f"{dstmtz} HKLOUT {dstmtz} | tee {outdir}/aimless.log"
+        f"{outdir}/pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
+        f"{dstmtz} HKLOUT {dstmtz} | tee {outdir}/aimless.log"
     return cmd
 
 
