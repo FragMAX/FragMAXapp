@@ -118,7 +118,7 @@ def log_viewer(request):
     downloadPath = f"/static/{logFile}"
     if path.exists(logFile):
         with open(logFile, "r") as r:
-            log="".join(r.readlines())
+            log = "".join(r.readlines())
     else:
         log=""
     return render(
