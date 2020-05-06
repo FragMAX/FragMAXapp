@@ -1,0 +1,24 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}Log Viewer{% endblock %}
+{% block content %}
+
+{% load static %}
+<style>
+.log{
+  font-family:"Lucida Console", Monaco, monospace;
+}
+
+</style>
+     
+{% if not downloadPath == "None" %}
+Log file - <a href="{{downloadPath}}"> {{dataset}} </a>
+{% endif %}
+<div class="log">
+{{log|linebreaks}}
+</div>
+{% endblock %}
+
+
+    

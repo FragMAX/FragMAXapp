@@ -1,5 +1,7 @@
 from glob import glob
 
+from os import path
+
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
@@ -107,4 +109,23 @@ def project_summary(request):
             "totaldata": totaldata,
             "fraglib": proj.library.name,
             "exp_date": natdate
+        })
+
+
+def log_viewer(request):
+    logFile = str(request.GET.get('logFile'))
+    logFile = f"/data/visitors/{logFile}"
+    downloadPath = f"/static/{logFile}"
+    if path.exists(logFile):
+        with open(logFile, "r") as r:
+            log="".join(r.readlines())
+    else:
+        log=""
+    return render(
+        request,
+        "fragview/log_viewer.html",
+        {
+            "log": log,
+            "dataset": logFile,
+            "downloadPath": downloadPath
         })
