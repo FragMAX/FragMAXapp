@@ -529,7 +529,7 @@ def giant(request):
                 htmlcontent = "".join(readFile.readlines())
 
             htmlcontent = htmlcontent.replace('src="./residue_plots',
-                'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
+                                              'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
             scoreDict[score.split('/')[-3]] = htmlcontent
 
         return render(request, "fragview/pandda_giant.html", {"scores_plots": scoreDict})
@@ -612,7 +612,7 @@ def fix_pandda_symlinks(proj):
                     shell=True)
 
     glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
-        f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
     linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:
@@ -771,7 +771,7 @@ def giant_score(proj, method):
     panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
     export_script = project_script(proj, "pandda-export.sh")
-    utils.write_script(export_script, header+panddaExport)
+    utils.write_script(export_script, header + panddaExport)
     hpc.frontend_run(export_script)
 
     header = '''#!/bin/bash\n'''
