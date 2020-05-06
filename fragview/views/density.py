@@ -606,10 +606,10 @@ def find_ligandfitting_log(res_dir):
     try:
         rhofitlog = glob(f"{res_dir}/rhofit/results.txt")[0].replace("/data/visitors/", "")
     except:
-        pass
+        rhofitlog = ""
     try:
         ligandfitlog = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")[0].replace("/data/visitors/", "")
     except:
-        pass
+        ligandfitlog = ""
     return rhofitlog, ligandfitlog
 
