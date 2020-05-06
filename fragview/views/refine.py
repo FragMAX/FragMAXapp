@@ -348,7 +348,7 @@ def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, cust
     buster_cmd = ""
     fsp_cmd = ""
     srcmtz = dstmtz
-    outdir = "/".join(dstmtz.split("/")[:-1])
+
     fsp = '''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine=''' + userPDB + \
           ''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 ''' + customreffspipe
 
@@ -368,7 +368,6 @@ def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, cust
                       " -TLS -nthreads 2 -d " + outdir + "/buster \n"
 
     if "fspipeline" in argsfit:
-        fsp_cmd += "cd " + outdir + "\n"
         fsp_cmd += fsp + "\n"
 
     return dimple_cmd + "\n" + buster_cmd + "\n" + fsp_cmd
