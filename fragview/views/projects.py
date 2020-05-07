@@ -114,6 +114,7 @@ def project_summary(request):
 
 def log_viewer(request):
     logFile = str(request.GET.get('logFile'))
+    logFile = "biomax" + logFile.split("biomax")[-1]
     logFile = f"/data/visitors/{logFile}"
     downloadPath = f"/static/{logFile}"
     if path.exists(logFile):

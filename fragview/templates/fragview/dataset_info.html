@@ -225,18 +225,18 @@
         </form>
         {% endif %}
         {% if xdsappOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{xdsappreport}}" name="dataHeader" size="1">XDSAPP</button>
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{xdsappreport}}" name="logFile" size="1" >XDSAPP</button>
         </form>
         {% endif %}
         {% if fastdpOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{fastdpreport}}" name="dataHeader" size="1">fastdp</button>
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1" >Fastdp</button>
         </form>
         {% endif %}
         {% if ednaOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{ednareport}}" name="dataHeader" size="1">EDNA</button>
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="btn-small" type="submit" value="{{ednareport}}" name="logFile" size="1" >EDNA</button>
         </form>
         {% endif %}
     </div>
@@ -507,7 +507,7 @@
                         </tr>
                         <tr>
                             <th>Flux (estimated)</td>
-                            <td>{{xsdata.flux|stringformat:".2e"}} ph/s</td>
+                            <td>{{xsdata.flux}} ph/s</td>
                         </tr>
                         <tr>
                             <th>Beam size at sample (HxV)</td>

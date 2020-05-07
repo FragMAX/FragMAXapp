@@ -3,7 +3,6 @@ from fragview.models import PDB
 from fragview.projects import current_project, project_raw_master_h5_files
 from glob import glob
 
-
 def processing_form(request):
     proj = current_project(request)
 
