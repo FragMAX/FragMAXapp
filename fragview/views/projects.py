@@ -121,7 +121,7 @@ def log_viewer(request):
         with open(logFile, "r") as r:
             log = "".join(r.readlines())
     else:
-        log=""
+        log = ""
     return render(
         request,
         "fragview/log_viewer.html",

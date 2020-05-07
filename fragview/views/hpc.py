@@ -104,4 +104,4 @@ def jobhistory(request):
 
     return render(request,
                   "fragview/jobhistory.html",
-                  {"logHistory":logHistory})
+                  {"logHistory": logHistory})

@@ -153,7 +153,7 @@ def show(request):
             "ligfitpdb": ligfit,
             "rhofitpdb": rhofit,
             "summary": summary,
-            "rhofitlog": rhofitlog, 
+            "rhofitlog": rhofitlog,
             "ligandfitlog": ligandfitlog
         })
 
@@ -601,15 +601,13 @@ def find_refinement_log(res_dir):
 
 
 def find_ligandfitting_log(res_dir):
-    rhofitlog = ""
-    ligandfitlog = ""
-    try:
-        rhofitlog = glob(f"{res_dir}/rhofit/results.txt")[0].replace("/data/visitors/", "")
-    except:
-        pass
-    try:
-        ligandfitlog = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")[0].replace("/data/visitors/", "")
-    except:
-        pass
-    return rhofitlog, ligandfitlog
-
+    rhofitSearch = glob(f"{res_dir}/rhofit/results.txt")
+    ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
+    if rhofitSearch:
+        rhofitlog = rhofitSearch[0].replace("/data/visitors/", "")
+    else:
+        rhofitlog = ""
+    if ligandfitSearch:
+        ligandfitlog = ligandfitSearch[0].replace("/data/visitors/", "")
+    else:
+        ligandfitlog = ""
