@@ -8,3 +8,6 @@ dump.rdb
 static/libs/._uglymol.js
 static/libs/._.DS_Store
 static/libs/._uglymol.js
+.idea/deployment.xml
+.idea/sshConfigs.xml
+.idea/webServers.xml
