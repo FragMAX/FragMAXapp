@@ -55,6 +55,7 @@ urlpatterns = [
 
     path('hpcstatus/', hpc.status, name='hpcstatus'),
     path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
+    path('jobhistory/', hpc.jobhistory, name='jobhistory'),
 
     path('dataproc_datasets/', process.datasets, name='dataproc_datasets'),
     path('refine_datasets/', refine.datasets, name='refine_datasets'),

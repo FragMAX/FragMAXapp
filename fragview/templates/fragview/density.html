@@ -77,9 +77,9 @@
   }
   button.link {
 	font-family: "Verdana" sans-serif;
-	font-size: 1em;
+	font-size: 1.1em;
 	text-align: left;
-	color: blue;
+	color: #039be5;
 	background: none;
 	margin: 0;
 	padding: 0;
@@ -97,11 +97,11 @@
   
     <div id="left-controlpanel" >
       
-      <div style="padding-left:30px !important;">
+      <div style="padding-left:30px !important;padding-top: 10px;">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform">
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
             <button  class="link" type="submit" value="{{summary}}" name="logFile" size="1" >Refinement Log</button>
-          </form>          
+          </form>
         </div>
         <div>
           <h6>Blob navigation</h6>
@@ -171,7 +171,7 @@
       <div style="display:{{ligbox}};">
       <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform">
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
             <h6> RhoFit - <button  class="link" type="submit" value="{{rhofitlog}}" name="logFile" size="1" >Log</button></h6>
           </form>        
         </div>
@@ -189,7 +189,7 @@
           
       <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform">
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
             <h6> LigandFit - <button  class="link" type="submit" value="{{ligandfitlog}}" name="logFile" size="1" >Log</button></h6>
           </form>        
         </div>

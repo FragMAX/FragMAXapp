@@ -1,6 +1,8 @@
-import glob
+from glob import glob
 import subprocess
-from time import sleep
+from time import sleep, ctime
+
+from os import path
 
 from django.shortcuts import render
 
@@ -25,7 +27,7 @@ def status(request):
                 log_pairs = [
                     item for it in
                     [
-                        glob.glob(f"{shift_dir}/fragmax/logs/*{jobid}*")
+                        glob(f"{shift_dir}/fragmax/logs/*{jobid}*")
                         for shift_dir in project_shift_dirs(proj)
                     ]
                     for item in it
@@ -82,3 +84,24 @@ def kill_job(request):
         request,
         "fragview/hpcstatus_jobkilled.html",
         {"command": output, "history": ""})
+
+
+def jobhistory(request):
+    proj = current_project(request)
+
+    logHistory = list()
+
+    log_dir = f"{proj.data_path()}/fragmax/logs"
+
+    for f in glob(f"{log_dir}/*"):
+        if "_" in f:
+            cdate = ctime(path.getmtime(f))
+            jobID = f.split("_")[-2]
+            logName = f.split("/")[-1].split(f"_{jobID}")[0]
+            errFile = f"{log_dir}/{logName}_{jobID}_err.txt"
+            outFile = f"{log_dir}/{logName}_{jobID}_out.txt"
+            logHistory.append([logName, jobID, cdate, errFile, outFile])
+
+    return render(request,
+                  "fragview/jobhistory.html",
+                  {"logHistory":logHistory})

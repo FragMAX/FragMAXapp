@@ -40,6 +40,17 @@
     .btn-right {
             float:right !important;
   }
+button.link {
+	font-family: "Verdana" sans-serif;
+	font-size: 1.1em;
+	text-align: left;
+	color: #039be5;
+	background: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
 </style>
 <h4>MAX IV HPC Status</h4>
 
@@ -47,7 +58,9 @@
 
 <div class="card">
   <div class="card-content">      
-      <div class="card-title">HPC Status for user: {{user}}<br>Proposal: {{proposal}}
+      <div class="card-title">HPC Status for user: {{user}}
+          <br>Proposal: {{proposal}}
+          <br><a href="/jobhistory" target="_blank">Job History</a>
           <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
       </div>
       <br>
@@ -79,11 +92,9 @@
               <td>{{TIME}}</td>
               <td>{{NODE}}</td>
               <td>{{NODEname}}</td>
-              {% comment %} <td><a href="#" onclick="readTextFile('{{StdOUT}}'); return false;">job_{{jobid}}.out</a></td> {% endcomment %}
               <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
               <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
-              {% comment %} <td><a href="#" onclick="readTextFile('{{StdERR}}'); return false;">job_{{jobid}}.err</a></td> {% endcomment %}
-              <td>          
+              <td>
                 <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
                     <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
                 </form>
@@ -94,19 +105,4 @@
       </table>
   </div>
 </div>
-
-
-<script>
-
-function readTextFile(file){
-    var win = window.open("", "LogWindow", "toolbar=yes,scrollbars=yes,resizable=yes,top=200,left=500,width=1400,height=800")   
-    if (file=="-"){
-      win.document.write('This job does not belong to your proposal or experiment ')
-      }
-    else {
-      win.document.write('<iframe src='+file+' frameborder="0" height="100%"width="100%"></iframe>')
-      }
-    
-}
-</script>
 {% endblock %}

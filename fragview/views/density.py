@@ -153,7 +153,7 @@ def show(request):
             "ligfitpdb": ligfit,
             "rhofitpdb": rhofit,
             "summary": summary,
-            "rhofitlog": rhofitlog,
+            "rhofitlog": rhofitlog, 
             "ligandfitlog": ligandfitlog
         })
 
@@ -432,7 +432,7 @@ def pandda(request):
         map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0].replace("/data/visitors/", "")
 
         summarypath = "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + \
-                      "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
+            "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
 
         return render(
             request,
@@ -482,7 +482,7 @@ def pandda_consensus(request):
         f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}/pandda/processed_datasets/" + \
         f"{dataset}{ddtag}_{run}/*BDC*ccp4"
     map2 = glob(glob_pattern)[0].replace("/data/visitors/", "")
-    average_map = map2.split("event")[0] + "ground-state-average-map.native.ccp4"
+    average_map = map2.split("event")[0]+"ground-state-average-map.native.ccp4"
     library = proj.library
     name = map2.split("/")[-2]
 
@@ -601,14 +601,15 @@ def find_refinement_log(res_dir):
 
 
 def find_ligandfitting_log(res_dir):
-    rhofitSearch = glob(f"{res_dir}/rhofit/results.txt")
-    ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
-    if rhofitSearch:
-        rhofitlog = rhofitSearch[0].replace("/data/visitors/", "")
-    else:
-        rhofitlog = ""
-    if ligandfitSearch:
-        ligandfitlog = ligandfitSearch[0].replace("/data/visitors/", "")
-    else:
-        ligandfitlog = ""
+    rhofitlog = ""
+    ligandfitlog = ""
+    try:
+        rhofitlog = glob(f"{res_dir}/rhofit/results.txt")[0].replace("/data/visitors/", "")
+    except:
+        pass
+    try:
+        ligandfitlog = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")[0].replace("/data/visitors/", "")
+    except:
+        pass
     return rhofitlog, ligandfitlog
+
