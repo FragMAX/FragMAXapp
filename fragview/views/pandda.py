@@ -638,7 +638,7 @@ def submit(request):
 
     if "analyse" in panddaCMD:
         function, proc, ref, complete, use_apo, use_dmso, use_cryo, use_CAD, ref_CAD, \
-        ign_errordts, keepup_last, ign_symlink = panddaCMD.split(";")
+            ign_errordts, keepup_last, ign_symlink = panddaCMD.split(";")
 
         method = proc + "_" + ref
 
