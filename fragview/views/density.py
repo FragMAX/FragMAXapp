@@ -611,3 +611,4 @@ def find_ligandfitting_log(res_dir):
         ligandfitlog = ligandfitSearch[0].replace("/data/visitors/", "")
     else:
         ligandfitlog = ""
+    return rhofitlog, ligandfitlog
