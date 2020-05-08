@@ -9,184 +9,207 @@
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    table-layout: fixed ;
-    width: 100% ;
+
   }
   th {
     text-align: center;
-  }
-  .td-download {
-    text-align: center;
+
   }
 
   td, th {
+    border: 1px solid #f0f0f0;
     padding: 8px;
-    height: 60px;
-    width: 25% ;
-
+      height: 60px;
 
   }
 
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  .container {
+    padding-left: 250px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+}
+ .section-title{
+     padding-top: 40px;
+ }
 </style>
-<h4>Results download page</h4>
-        
+<h4>PDB export page</h4>
+
 
 <div class="card">
-    <div class="card-content">
-        
-        <div class="card-title">Available downloads:</div><br>
-        <table class="table bordered ">
-            <thead>
-            <tr>
-                <th>File name</th>
-                <th>File content</th>                    
-                <th>Size</th>                    
-                <th>Last update</th>                    
-            </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="td-download ">project_this.tar.gz</td>
-                    <td class="td-download "><a href="#">content.txt</a></td>                    
-                    <td class="td-download ">1.5 Mb</td>                    
-                    <td class="td-download ">2019-09-17 13:29</td>                    
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-    <div class="card">
         <div class="card-content">
-            
-            <div class="card-title">Available downloads:</div><br>
-            <table class="table-opt no-border ">
-                <thead>
-                <tr>
-                    <th>Processed data</th>
-                    <th>Refinement</th>                    
-                    <th>Ligand fitting</th>                    
-                    
-                </tr>
-                </thead>
+
+            <div class="card-title section-title">Project details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
                 <tbody>
-                    <tr>
-                        <td class=" top-options">
-                            <form id="preprocessOptions" >
-                                    
-                                    <div class="checkbox" id="ignoreErrcheck">
-                                    <label>
-                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
-                                        <span for="ignoreErr">XDS_ASCII.HKL</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="keepupcheck" >
-                                    <label>
-                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
-                                        <span for="keepup">CORRECT and INTEGRATE logs</span>
-                                    </label>
-                                    </div>
-                                    
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
-                                        <span for="fixsym">Unmerged data</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Merged data</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Reciprocal lattice</span>
-                                    </label>
-                                    </div>
-                            </form> 
-                        </td>
-                        
-                        <td class=" top-options" valign="top">
-                            <form id="preprocessOptions" >
-                                    <h6>Structure Refinement</h6>
-                                    <div class="checkbox" id="ignoreErrcheck">
-                                    <label>
-                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
-                                        <span for="ignoreErr">final.pdb</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="keepupcheck" >
-                                    <label>
-                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
-                                        <span for="keepup">final.mtz</span>
-                                    </label>
-                                    </div>
-                                    
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Refinement log</span>
-                                    </label>
-                                    </div>
-                                    <h6>Blobs</h6>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Blobs search log</span>
-                                    </label>
-                                    </div>
-                            </form> 
-                        </td>
-
-
-                        <td class=" top-options">
-                            <form id="preprocessOptions" >
-                                    <h6>Auto fitting</h6>
-                                    <div class="checkbox" id="ignoreErrcheck">
-                                    <label>
-                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
-                                        <span for="ignoreErr">RhoFit ligand</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="keepupcheck" >
-                                    <label>
-                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
-                                        <span for="keepup">Phenix LigFit ligand</span>
-                                    </label>
-                                    </div>
-                                    <h6>PanDDA</h6>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Analyses</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
-                                        <span for="fixsym">Inspections</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
-                                        <span for="fixsym">Ligand scores</span>
-                                    </label>
-                                    </div>
-                                    <div class="checkbox" id="fixsymcheck">
-                                    <label>
-                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
-                                        <span for="fixsym">Refined ensembles</span>
-                                    </label>
-                                    </div>
-                            </form> 
-                        </td>                   
-                    </tr>
+                <tr>
+                    <th>Group Deposition ID</th>
+                    <td><input class="selectbox" name="group_dep_id" placeholder="G_1002099"></td>
+                </tr>
+                <tr>
+                    <th>Protein Full Name</th>
+                    <td><input class="selectbox" name="protein_full_name" placeholder="Proteinase K"></td>
+                </tr>
+                <tr>
+                    <th>Protein Name</th>
+                    <td>{{project.protein}}</td>
+                </tr>
+                <tr>
+                    <th>Library Full Name</th>
+                    <td><input class="selectbox" name="library_full_name" placeholder="Frag Xtal Screen"></td>
+                </tr>
+                <tr>
+                    <th>Keywords</th>
+                    <td><input class="selectbox" name="keywords" placeholder="Fragment screening, hydrolase, inhibition"></td>
+                </tr>
                 </tbody>
             </table>
+            <div class="card-title section-title">Publication details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr >
+                    <th>Citation title</th>
+                    <td>To be published</td>
+                </tr>
+                <tr >
+                    <th>Journal Abbreviation</th>
+                    <td>To be published</td>
+                </tr>
+                <tr>
+                    <th>Journal Volume</th>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <th>Pages</th>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <th>Year</th>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <th>PUBMED ID</th>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <th>DOI</th>
+                    <td>?</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="card-title section-title">Biological details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Organism scientific name</th>
+                    <td>Parengyodontium album</td>
+                </tr>
+                <tr>
+                    <th>Source Taxon ID</th>
+                    <td>37998</td>
+                </tr>
+                <tr>
+                    <th>Natural strain</th>
+                    <td>?</td>
+                </tr>
+                <tr>
+                    <th>Gene source name</th>
+                    <td>PROK</td>
+                </tr>
+                <tr>
+                    <th>Host scientific name</th>
+                    <td>Escherichia coli</td>
+                </tr>
+                <tr>
+                    <th>Host NCBI taxon id</th>
+                    <td>562</td>
+                </tr>
+                <tr>
+                    <th>UniProt database accession code</th>
+                    <td>P06873</td>
+                </tr>
+                <tr>
+                    <th>Aminoacid sequence number</th>
+                    <td>1-279</td>
+                </tr>
+                <tr>
+                    <th>Aminoacid sequence</th>
+                    <td>
+                        AAQTNAPWGLARISSTSPGTSTYYYDESAGQGSCVYVIDTGIEASHPE
+                        FEGRAQMVKTYYYSSRDGNGHGTHCAGTVGSRTYGVAKKTQLFGVKVL
+                        DDNGSGQYSTIIAGMDFVASDKNNRNCPKGVVASLSLGGGYSSSVNSA
+                        AARLQSSGVMVAVAAGNNNADARNYSPASEPSVCTVGASDRYDRRSSF
+                        SNYGSVLDIFGPGTDILSTWIGGSTRSISGTSMATPHVAGLAAYLMTL
+                        GKTTAASACRYIADTANKGDLSNIPFGTVNLLAYNNYQA</td>
+                </tr>
+                <tr>
+                    <th>Protein Function</th>
+                    <td>Hydrolase</td>
+                </tr>
+                <tr>
+                    <th>EC Number</th>
+                    <td>3.4.21.64</td>
+                </tr>
+                <tr>
+                    <th>Source method</th>
+                    <td>man</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="card-title section-title">Crystallisation details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Crystallisation condition </th>
+                    <td>1.25M ammonium sulfate, 0.1M Tris-HCl, pH 7.5</td>
+                </tr>
+                <tr>
+                    <th>Crystallistion temperature (K)</th>
+                    <td>290</td>
+                </tr>
+                <tr>
+                    <th>Crystallisation pH</th>
+                    <td>7.5</td>
+                </tr>
+                <tr>
+                    <th>Crystallisation method</th>
+                    <td>VAPOR DIFFUSION, SITTING DROP</td>
+                </tr>
+                </tbody>
+            </table>
+
+        <div class="card-title section-title">Authors information</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Author 1</th>
+                    <td>Someone</td>
+                </tr>
+
+            </tbody></table>
         </div>
-    </div>
 {% endblock %}
 
