@@ -243,8 +243,8 @@ def run_autoproc(proj, nodes, filters, options):
     header += """#SBATCH -N1\n"""
     header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch +"""_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch +"""_%j_err.txt\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
     header += f"""module load {softwares}\n\n"""
 
