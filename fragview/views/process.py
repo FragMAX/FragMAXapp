@@ -56,8 +56,7 @@ def datasets(request):
                 """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
                 """module purge \n"""
                 """module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                """python """ + project_script(
-                proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
+                """python """ + project_script(proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
                 proj.library + """' '""" + PDBID + """' '""" + spg + """' $1 $2 '""" + ",".join(dpSW) +
                 """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
 
@@ -378,7 +377,8 @@ def run_xdsxscale(proj, nodes, filters, options):
         script = \
             f"mkdir -p {outdir}/xdsxscale\n" \
             f"cd {outdir}/xdsxscale \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} nproc=40 image={h5master}:1:{nImg}" \
+            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} " \
+            f"nproc=40 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
@@ -475,7 +475,8 @@ def run_dials(proj, nodes, filters, options):
         script = \
             f"mkdir -p {outdir}/dials\n" \
             f"cd {outdir}/dials \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} nproc=48 image={h5master}:1:{nImg}" \
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} " \
+            f"nproc=48 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
