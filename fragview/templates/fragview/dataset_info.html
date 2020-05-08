@@ -148,6 +148,9 @@
 	border: none;
 	cursor: pointer;
     }
+    .logtab{
+        padding-bottom: 20px;
+    }
 </style>
 
 <style>
@@ -588,8 +591,8 @@
 
 
     </div>
-    <div id="EDNA" class="card tabcontent">
-        <div class="card-title">EDNA_proc Logs</div>
+    <div id="EDNA" class="card tabcontent ">
+        <div class="card-title logtab">EDNA_proc Logs</div>
         {% if ednaOK == "ready" %}
         {% for logName,logPath in ednaLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
@@ -598,8 +601,8 @@
         {% endfor %}
         {% endif %}
     </div>
-    <div id="fastdp" class="card tabcontent">
-        <div class="card-title">FastDP Logs</div>
+    <div id="fastdp" class="card tabcontent ">
+        <div class="card-title logtab">FastDP Logs</div>
         {% if fastdpOK == "ready" %}
         {% for logName,logPath in fastdpLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
@@ -608,8 +611,8 @@
         {% endfor %}
         {% endif %}
     </div>
-    <div id="DIALS" class="card tabcontent">
-        <div class="card-title">XIA2/Dials Logs</div>
+    <div id="DIALS" class="card tabcontent ">
+        <div class="card-title logtab">XIA2/Dials Logs</div>
         {% if dialsOK == "ready" %}
         {% for logName,logPath in dialsLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
@@ -618,8 +621,8 @@
         {% endfor %}
         {% endif %}
     </div>
-    <div id="XDS_XSCALE" class="card tabcontent">
-        <div class="card-title">XIA2/XDS_xscale Logs</div>
+    <div id="XDS_XSCALE" class="card tabcontent ">
+        <div class="card-title logtab">XIA2/XDS_xscale Logs</div>
         {% if xdsOK == "ready" %}
         {% for logName,logPath in xdsLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
@@ -628,8 +631,8 @@
         {% endfor %}
         {% endif %}
     </div>
-    <div id="XDSAPP" class="card tabcontent">
-        <div class="card-title">XDSAPP Logs</div>
+    <div id="XDSAPP" class="card tabcontent ">
+        <div class="card-title logtab">XDSAPP Logs</div>
         {% if xdsappOK == "ready" %}
         {% for logName,logPath in xdsappLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
@@ -638,8 +641,8 @@
         {% endfor %}
         {% endif %}
     </div>
-    <div id="autoPROC" class="card tabcontent">
-        <div class="card-title">autoPROC Logs</div>
+    <div id="autoPROC" class="card tabcontent ">
+        <div class="card-title logtab">autoPROC Logs</div>
         {% if autoprocOK == "ready" %}
         {% for logName,logPath in autoprocLogs %}
         <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
