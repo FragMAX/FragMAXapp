@@ -1,6 +1,6 @@
 {% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMAX - Data Analysis{% endblock %} {% block content %}
 
-<style>
+<style xmlns="http://www.w3.org/1999/html">
     .floatedTable {
         float: left;
     }
@@ -149,21 +149,21 @@
 <div>
     <div style="position:absolute; right: 50px">
         <h5>HPC Nodes</h5>
-        <div class="radio" id="nodes">
+        <div class="radio" id="nodes" >
             <label>
-                <input class="with-gap" id="1node" name="5node" type="radio" value="1" >
+                <input class="with-gap" id="1node" name="5node" type="radio" value="1" disabled>
                 <span class="item-label" for="1node">1</span>
             </label>
             <label>
-                <input class="with-gap" id="3node" name="5node" type="radio" value="5" >
+                <input class="with-gap" id="3node" name="5node" type="radio" value="3" checked disabled>
                 <span class="item-label" for="3node">3</span>
             </label>
             <label>
-                <input class="with-gap" id="6node" name="5node" type="radio" value="10"  checked>
+                <input class="with-gap" id="6node" name="5node" type="radio" value="6"   disabled>
                 <span class="item-label" for="6node">6</span>
             </label>
             <label>
-                <input class="with-gap" id="9node" name="5node" type="radio" value="25" >
+                <input class="with-gap" id="9node" name="5node" type="radio" value="9" disabled>
                 <span class="item-label" for="9node">9</span>
             </label>
         </div>
@@ -178,7 +178,11 @@
         <label style="padding-top: 10px;">
             <input id="processALLckbox" name="processALLckbox" type="checkbox" class="filled-in dt-checkboxes"
                 value="alldatasets" checked>
-            <span for="processALLckbox">Process all datasets </span>
+            <span for="processALLckbox">Process all datasets </span> </label>
+        <label style="padding-top: 10px; padding-left: 20px">
+            <input id="processALLNEWckbox" name="processALLNEWckbox" type="checkbox" class="filled-in dt-checkboxes"
+                value="allnewdatasets" >
+            <span for="processALLNEWckbox">Process new datasets </span></input>
         </label> {% comment %} <select class="selectbox datasetbox" id="dropdownDataset" name="dropdownDataset" disabled>
             <option disabled selected value> -- select a dataset -- </option>
             {% for datasetName in datasets %}
@@ -482,17 +486,16 @@
 
 <div class=" card_options">
     <div class="card tab">
-        <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
+        <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
+        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XIA2/XDS_XSCALE</button>
         <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
         <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
         <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
-        <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigFit</button>
+        <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
         <button class="tablinks" onclick="openMethod(event, 'PanDDA')">PanDDA</button>
-
         <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
         <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
 

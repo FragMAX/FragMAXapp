@@ -137,6 +137,17 @@
     .card-title {
         display:inline-flex !important;
     }
+    button.link {
+	font-family: "Verdana" sans-serif;
+	font-size: 1.1em;
+	text-align: left;
+	color: #039be5;
+	background: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+    }
 </style>
 
 <style>
@@ -557,7 +568,118 @@
     </div>
 </div>
 
+<h5 style="padding-left:310px;">Advanced log viewer</h5>
 
+<div class=" card_options">
+    <div class="card tab">
+        <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
+        <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
+        <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
+        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
+        <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
+        <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+<!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+        <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
+        <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
+        <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
+        <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>-->
+        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
+
+
+    </div>
+    <div id="EDNA" class="card tabcontent">
+        <div class="card-title">EDNA_proc Logs</div>
+        {% if ednaOK == "ready" %}
+        {% for logName,logPath in ednaLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div id="fastdp" class="card tabcontent">
+        <div class="card-title">FastDP Logs</div>
+        {% if fastdpOK == "ready" %}
+        {% for logName,logPath in fastdpLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div id="DIALS" class="card tabcontent">
+        <div class="card-title">XIA2/Dials Logs</div>
+        {% if dialsOK == "ready" %}
+        {% for logName,logPath in dialsLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div id="XDS_XSCALE" class="card tabcontent">
+        <div class="card-title">XIA2/XDS_xscale Logs</div>
+        {% if xdsOK == "ready" %}
+        {% for logName,logPath in xdsLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div id="XDSAPP" class="card tabcontent">
+        <div class="card-title">XDSAPP Logs</div>
+        {% if xdsappOK == "ready" %}
+        {% for logName,logPath in xdsappLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div id="autoPROC" class="card tabcontent">
+        <div class="card-title">autoPROC Logs</div>
+        {% if autoprocOK == "ready" %}
+        {% for logName,logPath in autoprocLogs %}
+        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+    </div>
+<!--    <div id="DIMPLE" class="card tabcontent">
+        <div class="card-title">DIMPLE Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>
+    <div id="BUSTER" class="card tabcontent">
+        <div class="card-title">BUSTER Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>
+    <div id="FSPipeline" class="card tabcontent">
+        <div class="card-title">FSpipeline Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>
+    <div id="RhoFit" class="card tabcontent">
+        <div class="card-title">RhoFit Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>
+    <div id="LigFit" class="card tabcontent">
+        <div class="card-title">LigandFit Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>
+    <div id="Pipedream" class="card tabcontent">
+        <div class="card-title">Pipedream Logs</div>
+        <p>file 1</p>
+        <p>file 2</p>
+    </div>-->
+
+</div>
 
 </body>
 
