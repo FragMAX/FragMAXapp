@@ -75,67 +75,31 @@ def set_details(request):
     autoprocOK = "no"
     ednaOK = "no"
     fastdpOK = "no"
-    fastdpLogs = ""
-    ednaLogs = ""
-    autoprocLogs = ""
-    xdsappLogs = ""
-    xdsLogs = ""
-    dialsLogs = ""
 
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/xdsapp/results_" + prefix + "_" + run + "_data.txt"):
         xdsappOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/xdsapp"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        xdsappLogs = list(zip(logNames, logPaths))
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/dials/xia2.html"):
         dialsOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/dials/LogFiles"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        dialsLogs = list(zip(logNames, logPaths))
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/xdsxscale/xia2.html"):
         xdsOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/xdsxscale/LogFiles"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        xdsLogs = list(zip(logNames, logPaths))
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/autoproc/summary.html"):
         autoprocOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/autoproc/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        autoprocLogs = list(zip(logNames, logPaths))
     if os.path.exists(
             curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" +
             run + "_1/EDNA_proc/results/ep_" + prefix + "_" + run + "_phenix_xtriage_noanom.log"):
         ednaOK = "ready"
-        searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" + \
-                     run + "_1/EDNA_proc/results/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        ednaLogs = list(zip(logNames, logPaths))
     if os.path.exists(
             curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" +
             run + "_1/fastdp/results/ap_" + prefix + "_run" + run + "_noanom_fast_dp.log"):
         fastdpOK = "ready"
-        searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + '_' + \
-                     run + "_1/fastdp/results/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        fastdpLogs = list(zip(logNames, logPaths))
 
     if "Apo" in prefix:
         soakTime = "Soaking not performed"
@@ -178,12 +142,6 @@ def set_details(request):
         "autoprocOK": autoprocOK,
         "ednaOK": ednaOK,
         "fastdpOK": fastdpOK,
-        "fastdpLogs": fastdpLogs,
-        "ednaLogs": ednaLogs,
-        "autoprocLogs": autoprocLogs,
-        "xdsappLogs": xdsappLogs,
-        "xdsLogs": xdsLogs,
-        "dialsLogs": dialsLogs
     })
 
 
