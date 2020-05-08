@@ -53,11 +53,11 @@ def datasets(request):
                 """#SBATCH -N1 \n"""
                 """#SBATCH --cpus-per-task=40 \n"""
                 """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_out.txt \n"""
-                                                       """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
-                                                                                              """module purge \n"""
-                                                                                              """module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                                                                                              """python """ + project_script(
-                    proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
+                """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
+                """module purge \n"""
+                """module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
+                """python """ + project_script(
+                proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
                 proj.library + """' '""" + PDBID + """' '""" + spg + """' $1 $2 '""" + ",".join(dpSW) +
                 """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
 
