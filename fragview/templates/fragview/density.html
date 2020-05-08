@@ -100,7 +100,10 @@
       <div style="padding-left:30px !important;padding-top: 10px;">
         <div>
           <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
-            <button  class="link" type="submit" value="{{summary}}" name="logFile" size="1" >Refinement Log</button>
+            <button  class="link" type="submit" value="{{refineLog}}" name="logFile" size="1" >Refinement Log</button>
+          </form>
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
+            <button  class="link" type="submit" value="{{pipelineLog}}" name="logFile" size="1" >Pipeline Log</button>
           </form>
         </div>
         <div>

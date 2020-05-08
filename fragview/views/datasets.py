@@ -87,7 +87,7 @@ def set_details(request):
             run + "/xdsapp/results_" + prefix + "_" + run + "_data.txt"):
         xdsappOK = "ready"
         searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/xdsapp"
+            run + "/xdsapp"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         xdsappLogs = list(zip(logNames, logPaths))
@@ -96,7 +96,7 @@ def set_details(request):
             run + "/dials/xia2.html"):
         dialsOK = "ready"
         searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/dials/LogFiles"
+            run + "/dials/LogFiles"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         dialsLogs = list(zip(logNames, logPaths))
@@ -105,7 +105,7 @@ def set_details(request):
             run + "/xdsxscale/xia2.html"):
         xdsOK = "ready"
         searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/xdsxscale/LogFiles"
+            run + "/xdsxscale/LogFiles"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         xdsLogs = list(zip(logNames, logPaths))
@@ -114,7 +114,7 @@ def set_details(request):
             run + "/autoproc/summary.html"):
         autoprocOK = "ready"
         searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-                     run + "/autoproc/"
+            run + "/autoproc/"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         autoprocLogs = list(zip(logNames, logPaths))
@@ -123,7 +123,7 @@ def set_details(request):
             run + "_1/EDNA_proc/results/ep_" + prefix + "_" + run + "_phenix_xtriage_noanom.log"):
         ednaOK = "ready"
         searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" + \
-                     run + "_1/EDNA_proc/results/"
+            run + "_1/EDNA_proc/results/"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         ednaLogs = list(zip(logNames, logPaths))
@@ -132,7 +132,7 @@ def set_details(request):
             run + "_1/fastdp/results/ap_" + prefix + "_run" + run + "_noanom_fast_dp.log"):
         fastdpOK = "ready"
         searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + '_' + \
-                     run + "_1/fastdp/results/"
+            run + "_1/fastdp/results/"
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         fastdpLogs = list(zip(logNames, logPaths))

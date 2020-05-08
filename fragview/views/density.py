@@ -24,7 +24,7 @@ def show(request):
     res_dir = path.join(project_results_dir(proj), "_".join(usracr.split("_")[:-2]), *pipeline.split("_"))
     mtzfd = path.join(res_dir, "final.mtz")
 
-    summary = find_refinement_log(res_dir)
+    refineLog, pipelineLog = find_refinement_log(res_dir)
     rhofitlog, ligandfitlog = find_ligandfitting_log(res_dir)
 
     if path.exists(path.join(res_dir, "final.pdb")):
@@ -152,7 +152,8 @@ def show(request):
             "rpos": rpos,
             "ligfitpdb": ligfit,
             "rhofitpdb": rhofit,
-            "summary": summary,
+            "refineLog": refineLog,
+            "pipelineLog": pipelineLog,
             "rhofitlog": rhofitlog,
             "ligandfitlog": ligandfitlog
         })
@@ -587,17 +588,21 @@ def pandda_consensus(request):
         })
 
 
-def find_refinement_log(res_dir):
-    logFile = ""
+def find_refinement_log(res_dir: object) -> object:
+    logFile = "a"
+    pipelineLog = "s"
     if "dimple" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/*refmac*log"))
         if logSearch != []:
-            logFile = logSearch[-1]
+            logFile = logSearch[-1].replace("/data/visitors/", "")
+            pipelineLog = "/".join(logFile.split("/")[:-1]) + "/dimple.log"
+
     if "fspipeline" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/*/*-*log"))
         if logSearch != []:
-            logFile = logSearch[-1]
-    return logFile.replace("/data/visitors/", "")
+            logFile = logSearch[-1].replace("/data/visitors/", "")
+            pipelineLog = "/".join(logFile.split("/")[:-1]) + "/fspipeline.log"
+    return logFile, pipelineLog
 
 
 def find_ligandfitting_log(res_dir):
