@@ -33,7 +33,8 @@ urlpatterns = [
     path('reciprocal_lattice/<sample>/<run>', reciprocal.show, name='reciprocal_lattice'),
 
     path('procReport/', datasets.proc_report, name='procReport'),
-    path('results_download/', misc.results_download, name='results_download'),
+    path('project_details/', misc.project_details, name='project_details'),
+    path('download_options/', misc.download_options, name='download_options'),
 
     # project management views
     path('projects/', projects.list, name='manage_projects'),

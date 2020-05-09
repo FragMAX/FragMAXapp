@@ -1,8 +1,12 @@
 from django.shortcuts import render
 
 
-def results_download(request):
-    return render(request, "fragview/results_download.html")
+def project_details(request):
+    return render(request, "fragview/project_details.html")
+
+
+def download_options(request):
+    return render(request, "fragview/download_options.html")
 
 
 def testfunc(request):

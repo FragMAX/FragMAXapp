@@ -1,4 +1,6 @@
+{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMAX - Data Analysis{% endblock %} {% block content %}
 
+<style xmlns="http://www.w3.org/1999/html">
     .floatedTable {
         float: left;
     }
@@ -1926,7 +1928,6 @@
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else {
-            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
