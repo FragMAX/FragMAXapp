@@ -81,9 +81,20 @@ def datasets(request):
         useautproc = dtprc_inp[4].split(":")[-1]
         spacegroup = dtprc_inp[5].split(":")[-1]
         cellparam = dtprc_inp[6].split(":")[-1].replace("(", "").replace(")", "")
-        filters = dtprc_inp[-1].split(":")[-1]
+        friedel_law = dtprc_inp[7].split(":")[-1]
+        filters = dtprc_inp[12].split(":")[-1]
+        customxds = dtprc_inp[13].split(":")[-1]
+        customautoproc = dtprc_inp[14].split(":")[-1]
+        customdials = dtprc_inp[15].split(":")[-1]
+        customxdsapp = dtprc_inp[16].split(":")[-1]
         options = {"spacegroup": spacegroup,
-                   "cellparam": cellparam}
+                   "cellparam": cellparam,
+                   "friedel_law": friedel_law,
+                   "customxds": customxds,
+                   "customautoproc": customautoproc,
+                   "customdials": customdials,
+                   "customxdsapp": customxdsapp
+                   }
         nodes = 3
         if filters != "ALL":
             nodes = 1
@@ -203,10 +214,14 @@ def run_xdsapp(proj, nodes, filters, options):
             spg = f"--spacegroup='{spacegroup} {cellpar}'"
         else:
             spg = ""
+        if options["customxdsapp"] != "":
+            customxdsapp = options["customxdsapp"]
+        else:
+            customxdsapp = ""
         script = \
             f"mkdir -p {outdir}/xdsapp\n" \
             f"cd {outdir}/xdsapp\n" \
-            f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} {spg} --delphi=10 " \
+            f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} {spg} {customxdsapp} --delphi=10 " \
             f"--fried=True --range=1\\ {nImg}\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
 
@@ -274,6 +289,10 @@ def run_autoproc(proj, nodes, filters, options):
             unit_cell = f"cell='{cellpar}'"
         else:
             unit_cell = ""
+        if options["customautoproc"] != "":
+            customautoproc = options["customautoproc"]
+        else:
+            customautoproc = ""
         script = \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
@@ -281,8 +300,8 @@ def run_autoproc(proj, nodes, filters, options):
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
             f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
-            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {spg} {unit_cell} -d {outdir}/autoproc\n''' + \
-            project_update_status_script_cmds(proj, sample, softwares)
+            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {spg} {unit_cell} {customautoproc} ''' + \
+            f'''-d {outdir}/autoproc\n''' + project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
 
@@ -374,10 +393,14 @@ def run_xdsxscale(proj, nodes, filters, options):
             unit_cell = f"unit_cell={cellpar}"
         else:
             unit_cell = ""
+        if options["customxds"] != "":
+            customxds = options["customxds"]
+        else:
+            customxds = ""
         script = \
             f"mkdir -p {outdir}/xdsxscale\n" \
             f"cd {outdir}/xdsxscale \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} " \
+            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} " \
             f"nproc=40 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
@@ -472,10 +495,14 @@ def run_dials(proj, nodes, filters, options):
             unit_cell = f"unit_cell={cellpar}"
         else:
             unit_cell = ""
+        if options["customdials"] != "":
+            customdials = options["customdials"]
+        else:
+            customdials = ""
         script = \
             f"mkdir -p {outdir}/dials\n" \
             f"cd {outdir}/dials \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} " \
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} " \
             f"nproc=48 image={h5master}:1:{nImg}" \
             f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)

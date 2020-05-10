@@ -151,19 +151,19 @@
         <h5>HPC Nodes</h5>
         <div class="radio" id="nodes" >
             <label>
-                <input class="with-gap" id="1node" name="5node" type="radio" value="1" disabled>
+                <input class="with-gap" disabled id="1node" name="5node" type="radio" value="1">
                 <span class="item-label" for="1node">1</span>
             </label>
             <label>
-                <input class="with-gap" id="3node" name="5node" type="radio" value="3" checked disabled>
+                <input checked class="with-gap" disabled id="3node" name="5node" type="radio" value="3">
                 <span class="item-label" for="3node">3</span>
             </label>
             <label>
-                <input class="with-gap" id="6node" name="5node" type="radio" value="6"   disabled>
+                <input class="with-gap" disabled id="6node" name="5node" type="radio"   value="6">
                 <span class="item-label" for="6node">6</span>
             </label>
             <label>
-                <input class="with-gap" id="9node" name="5node" type="radio" value="9" disabled>
+                <input class="with-gap" disabled id="9node" name="5node" type="radio" value="9">
                 <span class="item-label" for="9node">9</span>
             </label>
         </div>
@@ -176,14 +176,14 @@
     <h7 style="padding-left:330px;">&bull; BioMAX autoprocessing statistics is displayed in the bottom of the page</h7> {% endcomment %}
     <div style="padding-left:310px;display: flex">
         <label style="padding-top: 10px;">
-            <input id="processALLckbox" name="processALLckbox" type="checkbox" class="filled-in dt-checkboxes"
-                value="alldatasets" checked>
+            <input checked class="filled-in dt-checkboxes" id="processALLckbox" name="processALLckbox"
+                type="checkbox" value="alldatasets">
             <span for="processALLckbox">Process all datasets </span> </label>
         <label style="padding-top: 10px; padding-left: 20px">
-            <input id="processALLNEWckbox" name="processALLNEWckbox" type="checkbox" class="filled-in dt-checkboxes"
+            <input class="filled-in dt-checkboxes" id="processALLNEWckbox" name="processALLNEWckbox" type="checkbox"
                 value="allnewdatasets" >
             <span for="processALLNEWckbox">Process new datasets </span></input>
-        </label> {% comment %} <select class="selectbox datasetbox" id="dropdownDataset" name="dropdownDataset" disabled>
+        </label> {% comment %} <select class="selectbox datasetbox" disabled id="dropdownDataset" name="dropdownDataset">
             <option disabled selected value> -- select a dataset -- </option>
             {% for datasetName in datasets %}
             <option value={{datasetName}}>{{datasetName}}</option>
@@ -195,7 +195,7 @@
             <button class="tablinks" onclick="openDatasets(event, 'Datasets')">Select dataset</button>
             <button class="tablinks" onclick="openDatasets(event, 'HideDatasets')">Hide</button>
         </div>
-        <div id="Datasets" class="card tabcontent">
+        <div class="card tabcontent" id="Datasets">
 
 
             <div id="tablecontainer">
@@ -207,7 +207,7 @@
                         <tr>
                             <td style="width:20px">
                                 <label>
-                        <input id="checkSelection{{datasetName}}" name="checkSel" type="checkbox" class="filled-in dt-checkboxes"><span></span>
+                        <input class="filled-in dt-checkboxes" id="checkSelection{{datasetName}}" name="checkSel" type="checkbox"><span></span>
                     </label>
                             </td>
                             <td>
@@ -225,7 +225,7 @@
 
 
 <!-- The Modal -->
-<div id="myModal" class="modal">
+<div class="modal" id="myModal">
     <span class="close">&times;</span>
     <img class="modal-content" id="img01">
     <div id="caption"></div>
@@ -248,38 +248,38 @@
                                     <div>
                                         <div class="checkbox " id="pipedream">
                                             <label>
-                                                    <input id="pipedreamcheckboxinputproc"
-                                                        name="pipedreamcheckboxname" type="checkbox"
-                                                        class="ligandform filled-in dt-checkboxes pipedreamcheck" value="pipedream">
+                                                    <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
+                                                        id="pipedreamcheckboxinputproc" name="pipedreamcheckboxname"
+                                                        type="checkbox" value="pipedream">
                                                     <span for="pipedreamcheckboxinputproc">Pipedream </span>
                                                 </label>
                                         </div>
                                         <div class="checkbox" id="dials">
                                             <label>
-                                                    <input id="dialscheckboxinput" name="dialscheckboxname"
-                                                        type="checkbox" class="processform filled-in dt-checkboxes" value="dials">
+                                                    <input class="processform filled-in dt-checkboxes" id="dialscheckboxinput"
+                                                        name="dialscheckboxname" type="checkbox" value="dials">
                                                     <span for="dialscheckboxinput">XIA2/DIALS </span>
                                                 </label>
                                         </div>
                                         <div class="checkbox" id="xdsxscale">
                                             <label>
-                                                    <input id="xdsxscalecheckboxinput" name="xdsxscalecheckboxname"
-                                                        type="checkbox" class="processform filled-in dt-checkboxes"
+                                                    <input class="processform filled-in dt-checkboxes" id="xdsxscalecheckboxinput"
+                                                        name="xdsxscalecheckboxname" type="checkbox"
                                                         value="xdsxscale">
                                                     <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE </span>
                                                 </label>
                                         </div>
                                         <div class="checkbox" id="xdsapp">
                                             <label>
-                                                    <input id="xdsappcheckboxinput" name="xdsappcheckboxname"
-                                                        type="checkbox" class="processform filled-in dt-checkboxes" value="xdsapp">
+                                                    <input class="processform filled-in dt-checkboxes" id="xdsappcheckboxinput"
+                                                        name="xdsappcheckboxname" type="checkbox" value="xdsapp">
                                                     <span for="xdsappcheckboxinput">XDSAPP </span>
                                                 </label>
                                         </div>
                                         <div class="checkbox" id="autoproc">
                                             <label>
-                                                    <input id="autoproccheckboxinput" name="autoproccheckboxname"
-                                                        type="checkbox" class="processform filled-in dt-checkboxes"
+                                                    <input class="processform filled-in dt-checkboxes" id="autoproccheckboxinput"
+                                                        name="autoproccheckboxname" type="checkbox"
                                                         value="autoproc">
                                                     <span for="autoproccheckboxinput">autoProc </span>
                                                 </label>
@@ -302,8 +302,8 @@
                             <tr>
                                 <th></th>
                                 <td style="padding-top:50px">
-                                    <form action="/dataproc_datasets/" method="get" id="dtprocBtn" name="dataprocButton" size="1" target="_blank">
-                                        <button class="btn-large  btn-right" type="submit" onsubmit="return dataproc()" value="No Software Selected" id="submitdtProc" name="submitdtProc" size="1" disabled>Run data
+                                    <form action="/dataproc_datasets/" id="dtprocBtn" method="get" name="dataprocButton" size="1" target="_blank">
+                                        <button class="btn-large  btn-right" disabled id="submitdtProc" name="submitdtProc" onsubmit="return dataproc()" size="1" type="submit" value="No Software Selected">Run data
                                             processing</button>
                                     </form>
                                 </td>
@@ -319,7 +319,7 @@
 
                 <div class="card-content card-content-left">
                     <div class="card-title">Structure Refinement</div>
-                    <form action="/refine_datasets/" method="get" id="rfprocBtn" name="rfprocButton" size="1" target="_blank">
+                    <form action="/refine_datasets/" id="rfprocBtn" method="get" name="rfprocButton" size="1" target="_blank">
                         <table class="optionstable">
                             <col width="8%">
                             <col width="17%">
@@ -331,32 +331,32 @@
                                         <div>
                                             <div class="checkbox " id="pipedream">
                                                 <label>
-                                                    <input id="pipedreamcheckboxinputref"
-                                                        name="pipedreamcheckboxname" type="checkbox"
-                                                        class="ligandform filled-in dt-checkboxes pipedreamcheck" value="pipedream">
+                                                    <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
+                                                        id="pipedreamcheckboxinputref" name="pipedreamcheckboxname"
+                                                        type="checkbox" value="pipedream">
                                                     <span for="pipedreamcheckboxinputref">Pipedream </span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="dials">
                                                 <label>
-                                                        <input id="dimplecheckboxinput" name="dimplecheckboxname"
-                                                            type="checkbox" class="refineform filled-in dt-checkboxes"
+                                                        <input class="refineform filled-in dt-checkboxes" id="dimplecheckboxinput"
+                                                            name="dimplecheckboxname" type="checkbox"
                                                             value="dimple">
                                                         <span for="dimplecheckboxinput">Dimple </span>
                                                     </label>
                                             </div>
                                             <div class="checkbox" id="xdsxscale">
                                                 <label>
-                                                        <input id="bustercheckboxinput" name="bustercheckboxname"
-                                                            type="checkbox" class="refineform filled-in dt-checkboxes"
+                                                        <input class="refineform filled-in dt-checkboxes" id="bustercheckboxinput"
+                                                            name="bustercheckboxname" type="checkbox"
                                                             value="buster">
                                                         <span for="bustercheckboxinput">BUSTER </span>
                                                     </label>
                                             </div>
                                             <div class="checkbox" id="autoproc">
                                                 <label>
-                                                        <input id="fspcheckboxinput" name="fspcheckboxname"
-                                                            type="checkbox" class="refineform filled-in dt-checkboxes" value="fsp">
+                                                        <input class="refineform filled-in dt-checkboxes" id="fspcheckboxinput"
+                                                            name="fspcheckboxname" type="checkbox" value="fsp">
                                                         <span for="fspcheckboxinput">FSpipeline </span>
                                                     </label>
                                             </div>
@@ -367,7 +367,7 @@
                                 <tr>
                                     <th class=" top-options">PDB model</th>
                                     <td class=" top-options">
-                                        <select class="refineform selectbox" name="dropdownModel" id="dropdownModel">
+                                        <select class="refineform selectbox" id="dropdownModel" name="dropdownModel">
                                             {% for pdb in pdbs %}
                                                 <option value="{{pdb.id}}">{{pdb.filename}}</option>
                                             {% endfor %}
@@ -382,8 +382,8 @@
                                         </label>
                                         <div class="checkbox" id="aimless">
                                             <label>
-                                                <input id="aimlesscheckboxinput" name="aimlesscheckboxname"
-                                                    type="checkbox" class="filled-in dt-checkboxes" value="aimless">
+                                                <input class="filled-in dt-checkboxes" id="aimlesscheckboxinput"
+                                                    name="aimlesscheckboxname" type="checkbox" value="aimless">
                                                 <span for="aimlesscheckboxinput">Run aimless </span>
                                             </label>
                                         </div>
@@ -392,7 +392,7 @@
                                 <tr>
                                     <th></th>
                                     <td style="padding-top:20px">
-                                        <button class="btn-large  btn-right" type="submit" onsubmit="return refineproc()" value="No Software Selected" id="submitrfProc" name="submitrfProc" size="1" disabled>Run refinement</button>
+                                        <button class="btn-large  btn-right" disabled id="submitrfProc" name="submitrfProc" onsubmit="return refineproc()" size="1" type="submit" value="No Software Selected">Run refinement</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -419,32 +419,32 @@
                                         <div>
                                             <div class="checkbox " id="pipedream">
                                                 <label>
-                                                    <input id="pipedreamcheckboxinputlig"
-                                                        name="pipedreamcheckboxname" type="checkbox"
-                                                        class="ligandform filled-in dt-checkboxes pipedreamcheck" value="pipedream">
+                                                    <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
+                                                        id="pipedreamcheckboxinputlig" name="pipedreamcheckboxname"
+                                                        type="checkbox" value="pipedream">
                                                     <span for="pipedreamcheckboxinputlig">Pipedream </span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="rhofit">
                                                 <label>
-                                                    <input id="rhofitcheckboxinput" name="rhofitcheckboxname"
-                                                        type="checkbox" class="ligandform filled-in dt-checkboxes" value="rhofit">
+                                                    <input class="ligandform filled-in dt-checkboxes" id="rhofitcheckboxinput"
+                                                        name="rhofitcheckboxname" type="checkbox" value="rhofit">
                                                     <span for="rhofitcheckboxinput">RhoFit </span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="ligfit">
                                                 <label>
-                                                    <input id="phenixligfitcheckboxinput"
-                                                        name="phenixligfitcheckboxname" type="checkbox"
-                                                        class="ligandform filled-in dt-checkboxes" value="phenixligfit">
+                                                    <input class="ligandform filled-in dt-checkboxes"
+                                                        id="phenixligfitcheckboxinput" name="phenixligfitcheckboxname"
+                                                        type="checkbox" value="phenixligfit">
                                                     <span for="phenixligfitcheckboxinput">Phenix LigFit </span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="pandda">
                                                 <label>
-                                                    <input id="panddacheckboxinput"
-                                                        name="panddacheckboxname" type="checkbox"
-                                                        class="ligandform filled-in dt-checkboxes" value="panddaanalysis">
+                                                    <input class="ligandform filled-in dt-checkboxes"
+                                                        id="panddacheckboxinput" name="panddacheckboxname"
+                                                        type="checkbox" value="panddaanalysis">
                                                     <span for="panddacheckboxinput">PanDDA </span>
                                                 </label>
                                             </div>
@@ -455,8 +455,8 @@
                             <tr>
                                 <th></th>
                                 <td style="padding-top:200px">
-                                    <form action="/ligfit_datasets/" method="get" id="ligprocBtn" name="ligprocButton" size="1" target="_blank">
-                                        <button class="btn-large  btn-right" type="submit" onsubmit="return ligandfitproc()" value="No Software Selected" id="submitligProc" name="submitligProc" size="1" disabled>Run ligand fitting</button>
+                                    <form action="/ligfit_datasets/" id="ligprocBtn" method="get" name="ligprocButton" size="1" target="_blank">
+                                        <button class="btn-large  btn-right" disabled id="submitligProc" name="submitligProc" onsubmit="return ligandfitproc()" size="1" type="submit" value="No Software Selected">Run ligand fitting</button>
                                     </form>
                                 </td>
                             </tr>
@@ -469,8 +469,8 @@
 
         {% comment %}
         <div class="bottom-right">
-            <form action="/dataproc_datasets/" method="get" id="allprocBtn" name="allprocButton" size="1" target="_blank">
-                <button class="btn-large maxivorange btn-right" type="submit" onsubmit="return dataprocess()" value="No Software Selected " name="submitallProc" size="1">Run All</button>
+            <form action="/dataproc_datasets/" id="allprocBtn" method="get" name="allprocButton" size="1" target="_blank">
+                <button class="btn-large maxivorange btn-right" name="submitallProc" onsubmit="return dataprocess()" size="1" type="submit" value="No Software Selected ">Run All</button>
             </form>
 
 
@@ -502,8 +502,8 @@
 
     </div>
 
-    <div id="DIALS" class="card tabcontent">
-        <div class="card-title">Dials Options</div>
+    <div class="card tabcontent" id="DIALS">
+        <div class="card-title">XIA2/Dials Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -512,7 +512,7 @@
                     <th class=" top-options">Friedel law</th>
                     <td class=" top-options">
                         <select class="selectbox" name="friedel">
-                            <option value="true" selected>True</option>
+                            <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
                     </td>
@@ -539,14 +539,14 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc-dials" placeholder="default: None"></input>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="XDS_XSCALE" class="card tabcontent">
-        <div class="card-title">XDS/XSCALE Options</div>
+    <div class="card tabcontent" id="XDS_XSCALE">
+        <div class="card-title">XIA2/XDS-XSCALE Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -555,7 +555,7 @@
                     <th class=" top-options">Friedel law</th>
                     <td class=" top-options">
                         <select class="selectbox" name="friedel">
-                            <option value="true" selected>True</option>
+                            <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
                     </td>
@@ -582,13 +582,13 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc-xds" placeholder="default: None"></input>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="autoPROC" class="card tabcontent">
+    <div class="card tabcontent" id="autoPROC">
         <div class="card-title">autoPROC Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -598,7 +598,7 @@
                     <th class=" top-options">Friedel law</th>
                     <td class=" top-options">
                         <select class="selectbox" name="friedel">
-                            <option value="true" selected>True</option>
+                            <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
                     </td>
@@ -625,13 +625,13 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc-autoproc" placeholder="default: None"></input>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="XDSAPP" class="card tabcontent">
+    <div class="card tabcontent" id="XDSAPP">
         <div class="card-title">XDSAPP Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -641,7 +641,7 @@
                     <th class=" top-options">Friedel law</th>
                     <td class=" top-options">
                         <select class="selectbox" name="friedel">
-                            <option value="true" selected>True</option>
+                            <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
                     </td>
@@ -668,13 +668,13 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customdataproc" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customdataproc-xdsapp" placeholder="default: None"></input>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="DIMPLE" class="card tabcontent">
+    <div class="card tabcontent" id="DIMPLE">
         <div class="card-title">Dimple Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -685,16 +685,16 @@
                     <td class=" top-options">
                         <div class="radio" id="dimpleSlow">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Normal</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">Slow</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slowest" name="slowest" type="radio" value="2" disabled>
+                                <input class="with-gap" disabled id="slowest" name="slowest" type="radio" value="2">
                                 <span class="item-label" for="slowest">Slowest</span>
                             </label>
                         </div>
@@ -708,23 +708,23 @@
                             <div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="arpwarp" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="arpwarpcheckboxinput"
+                                            name="arpwarpcheckboxname" type="checkbox" value="arpwarp">
                                         <span for="arpwarpcheckboxinput">use ARP/wARP </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="cootwater" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="cootwatercheckboxinput"
+                                            name="cootwatercheckboxname" type="checkbox" value="cootwater">
                                         <span for="cootwatercheckboxinput">use Coot </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname"
-                                            type="checkbox" class="filled-in dt-checkboxes" value="phenixwater"
-                                            disabled>
+                                        <input class="filled-in dt-checkboxes" disabled
+                                            id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox"
+                                            value="phenixwater">
                                         <span for="phenixwatercheckboxinput">use Phenix </span>
                                     </label>
                                 </div>
@@ -735,22 +735,22 @@
                 <tr>
                     <th class=" top-options">Refmac keywords</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="refmac-key" placeholder="default: None" disabled></input>
+                        <input class="selectbox" disabled name="refmac-key" placeholder="default: None"></input>
                     </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Remove HETATM</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="refrescutoff" placeholder="default: False" disabled></input>
+                        <input class="selectbox" disabled name="refrescutoff" placeholder="default: False"></input>
                     </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Rigid body cycles</th>
                     <td class=" top-options">
-                        {% comment %} <input class="selectbox" name="refrescutoff" placeholder="default: 10" disabled></input> {% endcomment %}
+                        {% comment %} <input class="selectbox" disabled name="refrescutoff" placeholder="default: 10"></input> {% endcomment %}
                         <div style="display: flex;">
                             <p style="width: 30px;"><span id="rigidvalue"></span></p>
-                            <input type="range" min="1" max="20" value="10" class="slider" id="rigidRange">
+                            <input class="slider" id="rigidRange" max="20" min="1" type="range" value="10">
                         </div>
 
                     </td>
@@ -758,29 +758,29 @@
                 <tr>
                     <th class=" top-options">Jelly body cycles</th>
                     <td class=" top-options">
-                        {% comment %} <input class="selectbox" name="refrescutoff" placeholder="default: 4" disabled></input> {% endcomment %}
+                        {% comment %} <input class="selectbox" disabled name="refrescutoff" placeholder="default: 4"></input> {% endcomment %}
                         <div style="display: flex;">
                             <p style="width: 30px;"><span id="jellyvalue"></span></p>
-                            <input type="range" min="1" max="15" value="4" class="slider" id="jellyRange">
+                            <input class="slider" id="jellyRange" max="15" min="1" type="range" value="4">
                         </div>
                     </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Threshold for MR</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
+                        <input class="selectbox" disabled name="mrthresh" placeholder="default: 0.4"></input>
                     </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Resolution cutoff</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="refrescutoff" placeholder="default: None" disabled></input>
+                        <input class="selectbox" disabled name="refrescutoff" placeholder="default: None"></input>
                     </td>
                 </tr>
                 <tr>
                     <th class=" top-options">Nr of Molecules for MR</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="refrescutoff" placeholder="default: 1" disabled></input>
+                        <input class="selectbox" disabled name="refrescutoff" placeholder="default: 1"></input>
                     </td>
                 </tr>
 
@@ -790,14 +790,14 @@
 
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customrefine-dimple" placeholder="default: None"></input>
                     </td>
                 </tr>
 
             </tbody>
         </table>
     </div>
-    <div id="BUSTER" class="card tabcontent">
+    <div class="card tabcontent" id="BUSTER">
         <div class="card-title">BUSTER Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -811,23 +811,23 @@
                             <div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="arpwarp" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="arpwarpcheckboxinput"
+                                            name="arpwarpcheckboxname" type="checkbox" value="arpwarp">
                                         <span for="arpwarpcheckboxinput">use ARP/wARP </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="cootwater" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="cootwatercheckboxinput"
+                                            name="cootwatercheckboxname" type="checkbox" value="cootwater">
                                         <span for="cootwatercheckboxinput">use Coot </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname"
-                                            type="checkbox" class="filled-in dt-checkboxes" value="phenixwater"
-                                            disabled>
+                                        <input class="filled-in dt-checkboxes" disabled
+                                            id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox"
+                                            value="phenixwater">
                                         <span for="phenixwatercheckboxinput">use Phenix </span>
                                     </label>
                                 </div>
@@ -840,7 +840,7 @@
                     <tr>
                         <th class=" top-options">Refinement mode</th>
                         <td class=" top-options">
-                            <select class="selectbox" name="refMode" disabled>
+                            <select class="selectbox" disabled name="refMode">
                             <option disabled selected value> -- select an option -- </option>
                             <option value="refslow">Extra (Slowest)</option>
                             <option value="refslow">Normal (Slow)</option>
@@ -851,13 +851,13 @@
                     <tr>
                         <th class=" top-options">Threshold for MR</th>
                         <td class=" top-options">
-                            <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
+                            <input class="selectbox" disabled name="mrthresh" placeholder="default: 0.4"></input>
                         </td>
                     </tr>
                     <tr>
                         <th class=" top-options">Resolution cutoff</th>
                         <td class=" top-options">
-                            <input class="selectbox" name="refrescutoff" placeholder="default: None" disabled></input>
+                            <input class="selectbox" disabled name="refrescutoff" placeholder="default: None"></input>
                         </td>
                     </tr>
 
@@ -865,14 +865,14 @@
 
                     <tr class="custompar">
                         <th class=" top-options">Custom parameters</th>
-                        <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input>
+                        <td class=" top-options"><input class="selectbox" name="customrefine-buster" placeholder="default: None"></input>
                         </td>
                     </tr>
 
             </tbody>
         </table>
     </div>
-    <div id="FSPipeline" class="card tabcontent">
+    <div class="card tabcontent" id="FSPipeline">
         <div class="card-title">FSPipeline Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -886,23 +886,23 @@
                             <div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="arpwarpcheckboxinput" name="arpwarpcheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="arpwarp" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="arpwarpcheckboxinput"
+                                            name="arpwarpcheckboxname" type="checkbox" value="arpwarp">
                                         <span for="arpwarpcheckboxinput">use ARP/wARP </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="cootwatercheckboxinput" name="cootwatercheckboxname" type="checkbox"
-                                            class="filled-in dt-checkboxes" value="cootwater" disabled>
+                                        <input class="filled-in dt-checkboxes" disabled id="cootwatercheckboxinput"
+                                            name="cootwatercheckboxname" type="checkbox" value="cootwater">
                                         <span for="cootwatercheckboxinput">use Coot </span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="arpwarp">
                                     <label>
-                                        <input id="phenixwatercheckboxinput" name="phenixwatercheckboxname"
-                                            type="checkbox" class="filled-in dt-checkboxes" value="phenixwater"
-                                            disabled>
+                                        <input class="filled-in dt-checkboxes" disabled
+                                            id="phenixwatercheckboxinput" name="phenixwatercheckboxname" type="checkbox"
+                                            value="phenixwater">
                                         <span for="phenixwatercheckboxinput">use Phenix </span>
                                     </label>
                                 </div>
@@ -916,8 +916,8 @@
                     <td class=" top-options">
                         <div class="checkbox" id="originalMTZ">
                             <label>
-                                <input id="orimtzcheckboxinput" name="orimtzcheckboxname"
-                                    type="checkbox" class="filled-in dt-checkboxes" value="orimtz" disabled>
+                                <input class="filled-in dt-checkboxes" disabled
+                                    id="orimtzcheckboxinput" name="orimtzcheckboxname" type="checkbox" value="orimtz">
                                 <span for="orimtzcheckboxinput"></span>
                             </label>
                         </div>
@@ -929,12 +929,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspMR">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Yes</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">No</span>
                             </label>
                         </div>
@@ -945,12 +945,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspRMh">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Yes</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">No</span>
                             </label>
                         </div>
@@ -961,12 +961,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspRMl">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Yes</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">No</span>
                             </label>
                         </div>
@@ -977,12 +977,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspRMw">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Yes</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">No</span>
                             </label>
                         </div>
@@ -994,12 +994,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspSA">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="0" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="0">
                                 <span class="item-label" for="normal">Yes</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="1" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="1">
                                 <span class="item-label" for="slow">No</span>
                             </label>
                         </div>
@@ -1011,7 +1011,7 @@
                     <td class=" top-options">
                         <div style="display: flex;">
                             <p style="width: 30px;"><span id="fspcBlobvalue"></span></p>
-                            <input type="range" min="0" max="50" value="15" class="slider" id="fspcb">
+                            <input class="slider" id="fspcb" max="50" min="0" type="range" value="15">
                         </div>
                     </td>
                 </tr>
@@ -1020,12 +1020,12 @@
                     <td class=" top-options">
                         <div class="radio" id="fspCootMAP">
                             <label>
-                                <input class="with-gap" id="normal" name="normal" type="radio" value="1" disabled
-                                    checked>
+                                <input checked class="with-gap" disabled id="normal" name="normal" type="radio"
+                                    value="1">
                                 <span class="item-label" for="normal">2Fo-Fc</span>
                             </label>
                             <label>
-                                <input class="with-gap" id="slow" name="slow" type="radio" value="2" disabled>
+                                <input class="with-gap" disabled id="slow" name="slow" type="radio" value="2">
                                 <span class="item-label" for="slow">3Fo-2Fc</span>
                             </label>
                         </div>
@@ -1036,7 +1036,7 @@
                     <td class=" top-options">
                         <div style="display: flex;">
                             <p style="width: 30px;"><span id="fspcDiffvalue"></span></p>
-                            <input type="range" min="0" max="10" value="5" class="slider" id="fspcd">
+                            <input class="slider" id="fspcd" max="10" min="0" type="range" value="5">
                         </div>
                     </td>
                 </tr>
@@ -1044,19 +1044,19 @@
                 <tr>
                     <th class=" top-options">Threshold for MR</th>
                     <td class=" top-options">
-                        <input class="selectbox" name="mrthresh" placeholder="default: 0.4" disabled></input>
+                        <input class="selectbox" disabled name="mrthresh" placeholder="default: 0.4"></input>
                     </td>
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customrefine" placeholder="default: None"></input>
+                    <td class=" top-options"><input class="selectbox" name="customrefine-fsp" placeholder="default: None"></input>
                     </td>
                 </tr>
 
             </tbody>
         </table>
     </div>
-    <div id="RhoFit" class="card tabcontent">
+    <div class="card tabcontent" id="RhoFit">
         <div class="card-title">RhoFit Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
@@ -1085,15 +1085,15 @@
                     </tr>
                     <tr class="custompar">
                         <th class=" top-options">Custom parameters</th>
-                        <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input>
+                        <td class=" top-options"><input class="selectbox" name="customligfit-rhofit" placeholder="default: None"></input>
                         </td>
                     </tr>
 
             </tbody>
         </table>
     </div>
-    <div id="LigFit" class="card tabcontent">
-        <div class="card-title">LigFit Options</div>
+    <div class="card tabcontent" id="LigFit">
+        <div class="card-title">LigandFit Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -1121,14 +1121,14 @@
                     </tr>
                     <tr class="custompar">
                         <th class=" top-options">Custom parameters</th>
-                        <td class=" top-options"><input class="selectbox" name="customligfit" placeholder="default: None"></input>
+                        <td class=" top-options"><input class="selectbox" name="customligfit-ligfit" placeholder="default: None"></input>
                         </td>
                     </tr>
 
             </tbody>
         </table>
     </div>
-    <div id="PanDDA" class="card tabcontent">
+    <div class="card tabcontent" id="PanDDA">
         <div class="card-title">PanDDA Options</div>
         <div class="flexdiv_options  ">
             <div class="flex-left">
@@ -1145,45 +1145,45 @@
                                         <div class="col s12 required inline" id="processing_method">
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                            <input class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp" checked="checked">
-                                                                <span class="item-label" for="xdsapp_radio">XDSAPP</span>
-                                                            </label>
+                                                <input checked="checked" class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp">
+                                                    <span class="item-label" for="xdsapp_radio">XDSAPP</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                <input class="with-gap" id="autoproc_radio" name="proc_type" type="radio" value="autoproc">
-                                                                    <span class="item-label" for="autoproc_radio">autoPROC</span>
-                                                                </label>
+                                                <input class="with-gap" id="autoproc_radio" name="proc_type" type="radio" value="autoproc">
+                                                    <span class="item-label" for="autoproc_radio">autoPROC</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                    <input class="with-gap" id="dials_radio" name="proc_type" type="radio" value="dials">
-                                                                        <span class="item-label" for="dials_radio">XIA2/DIALS</span>
-                                                                    </label>
+                                                <input class="with-gap" id="dials_radio" name="proc_type" type="radio" value="dials">
+                                                    <span class="item-label" for="dials_radio">XIA2/DIALS</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                        <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="xdsxscale">
-                                                                            <span class="item-label" for="xdsxscale_radio">XIA2/XDS</span>
-                                                                        </label>
+                                                <input class="with-gap" id="xdsxscale_radio" name="proc_type" type="radio" value="xdsxscale">
+                                                    <span class="item-label" for="xdsxscale_radio">XIA2/XDS</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                            <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="EDNA">
-                                                                                <span class="item-label" for="edna_proc_radio">EDNA_proc</span>
-                                                                            </label>
+                                                <input class="with-gap" id="edna_proc_radio" name="proc_type" type="radio" value="EDNA">
+                                                    <span class="item-label" for="edna_proc_radio">EDNA_proc</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                                <input class="with-gap" id="fastdp_radio" name="proc_type" type="radio" value="fastdp">
-                                                                                    <span class="item-label" for="fastdp_radio">fastdp</span>
-                                                                                </label>
+                                                <input class="with-gap" id="fastdp_radio" name="proc_type" type="radio" value="fastdp">
+                                                    <span class="item-label" for="fastdp_radio">fastdp</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                                                    <input class="with-gap" id="bestdp_radio" name="proc_type" type="radio" value="bestdp">
-                                                                                        <span class="item-label" for="bestdp_radio">Best</span>
-                                                                                    </label>
+                                                <input class="with-gap" id="bestdp_radio" name="proc_type" type="radio" value="bestdp">
+                                                    <span class="item-label" for="bestdp_radio">Best</span>
+                                                </label>
                                             </div>
                                         </div>
                                     </td>
@@ -1194,27 +1194,27 @@
                                         <div class="col s12 required inline" id="refinement_method">
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                                                        <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple" checked="checked">
-                                                                                            <span class="item-label" for="dimple_radio">Dimple</span>
-                                                                                        </label>
+                                                    <input checked="checked" class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
+                                                    <span class="item-label" for="dimple_radio">Dimple</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                                                            <input class="with-gap" id="fspipeline_radio" name="ref_type" type="radio" value="fspipeline">
-                                                                                                <span class="item-label" for="fspipeline_radio">FSpipeline</span>
-                                                                                            </label>
+                                                    <input class="with-gap" id="fspipeline_radio" name="ref_type" type="radio" value="fspipeline">
+                                                    <span class="item-label" for="fspipeline_radio">FSpipeline</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                                                                <input class="with-gap" id="buster_radio" name="ref_type" type="radio" value="buster">
-                                                                                                    <span class="item-label" for="buster_radio">BUSTER</span>
-                                                                                                </label>
+                                                    <input class="with-gap" id="buster_radio" name="ref_type" type="radio" value="buster">
+                                                    <span class="item-label" for="buster_radio">BUSTER</span>
+                                                </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                                                                    <input class="with-gap" id="bestproc_radio" name="ref_type" type="radio" value="bestproc">
-                                                                                                        <span class="item-label" for="bestproc_radio">Best</span>
-                                                                                                    </label>
+                                                    <input class="with-gap" id="bestproc_radio" name="ref_type" type="radio" value="bestproc">
+                                                    <span class="item-label" for="bestproc_radio">Best</span>
+                                                </label>
                                             </div>
                                         </div>
                                     </td>
@@ -1225,10 +1225,10 @@
                                     </th>
                                     <td class=" top-options">
                                         <select class="selectbox" name="compdatasets">
-                                                                                                <option disabled value="true"> -- select an option -- </option>
-                                                                                                <option selected value="true">Yes</option>
-                                                                                                <option value="false">No</option>
-                                                                                            </select>
+                                            <option disabled value="true"> -- select an option -- </option>
+                                            <option selected value="true">Yes</option>
+                                            <option value="false">No</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1237,21 +1237,21 @@
                                         <form id="groundstate">
                                             <div class="checkbox" id="groundStateModel">
                                                 <label>
-                                                                                                        <input id="apoGS" name="apoGS" type="checkbox" class="filled-in dt-checkboxes" value="apoGS" checked>
-                                                                                                            <span for="apoGS">Use known Apo</span>
-                                                                                                        </label>
+                                                <input checked class="filled-in dt-checkboxes" id="apoGS" name="apoGS" type="checkbox" value="apoGS">
+                                                    <span for="apoGS">Use known Apo</span>
+                                                </label>
                                             </div>
                                             <div class="checkbox" id="dmsoGScheck">
                                                 <label>
-                                                                                                            <input id="dmsoGS" name="dmsoGS" type="checkbox" class="filled-in dt-checkboxes" value="dmsoGS" checked>
-                                                                                                                <span for="dmsoGS">Use Cryo/DMSO datasets</span>
-                                                                                                            </label>
+                                                <input checked class="filled-in dt-checkboxes" id="dmsoGS" name="dmsoGS" type="checkbox" value="dmsoGS">
+                                                    <span for="dmsoGS">Use Cryo/DMSO datasets</span>
+                                                </label>
                                             </div>
                                             <div class="checkbox" id="cryoGScheck">
                                                 <label>
-                                                                                                                <input id="cryoGS" name="cryoGS" type="checkbox" class="filled-in dt-checkboxes" value="cryoGS" checked>
-                                                                                                                    <span for="cryoGS">Reprocess using datasets without Z-map peaks</span>
-                                                                                                                </label>
+                                                <input checked class="filled-in dt-checkboxes" id="cryoGS" name="cryoGS" type="checkbox" value="cryoGS">
+                                                    <span for="cryoGS">Reprocess using datasets without Z-map peaks</span>
+                                                </label>
                                             </div>
                                         </form>
                                     </td>
@@ -1302,19 +1302,19 @@
                                         <form id="preprocessOptions">
                                             <div class="checkbox" id="ignoreErrcheck">
                                                 <label>
-                                                                                                                            <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
+                                                                                                                            <input checked class="filled-in dt-checkboxes" id="ignoreErr" name="ignoreErr" type="checkbox" value="ignoreErr">
                                                                                                                                 <span for="ignoreErr">Auto remove dataset with problems</span>
                                                                                                                             </label>
                                             </div>
                                             <div class="checkbox" id="keepupcheck">
                                                 <label>
-                                                                                                                                <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup">
+                                                                                                                                <input class="filled-in dt-checkboxes" id="keepup" name="keepup" type="checkbox" value="keepup">
                                                                                                                                 <span for="keepup">Continue last analysis</span>
                                                                                                                             </label>
                                             </div>
                                             <div class="checkbox" id="fixsymcheck">
                                                 <label>
-                                                                                                                                <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                                                                                                                <input class="filled-in dt-checkboxes" id="fixsym" name="fixsym" type="checkbox" value="fixsym">
                                                                                                                                 <span for="fixsym">Ignore symlink issues</span>
                                                                                                                             </label>
                                             </div>
@@ -1332,8 +1332,8 @@
                     </div>
                 </div>
                 <div class="bottom-right">
-                    <form action="/submit_pandda/" method="get" id="sendpandda" name="sendpandda" size="1" target="_blank">
-                        <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="pipedreamInput" name="panddaform" size="1">Run PanDDA</button>
+                    <form action="/submit_pandda/" id="sendpandda" method="get" name="sendpandda" size="1" target="_blank">
+                        <button class="btn-large maxivorange" name="panddaform" onsubmit="return panddasetup()" size="1" type="submit" value="pipedreamInput">Run PanDDA</button>
                     </form>
                 </div>
             </div>
@@ -1367,7 +1367,7 @@
                                         <form id="groundstate">
                                             <div class="checkbox" id="makerestraints">
                                                 <label>
-                                                                                                                                            <input id="allRestraint" name="allRestraint" type="checkbox" class="filled-in dt-checkboxes" value="allRestraint" checked>
+                                                                                                                                            <input checked class="filled-in dt-checkboxes" id="allRestraint" name="allRestraint" type="checkbox" value="allRestraint">
                                                                                                                                                 <span for="allRestraint">Create all restraints</span>
                                                                                                                                             </label>
                                             </div>
@@ -1385,25 +1385,25 @@
                                     </th>
                                     <td class=" top-options">
                                         <div style="display:flex">
-                                            <select class="selectbox" name="compdatasets" disabled>
-                                                                                                                                        <option selected disabled value="true"> -- PDB1 -- </option>
+                                            <select class="selectbox" disabled name="compdatasets">
+                                                                                                                                        <option disabled selected value="true"> -- PDB1 -- </option>
                                                                                                                                         <option value="true">pdbmodel</option>
                                                                                                                                         <option value="false">None</option>
                                                                                                                                     </select>
-                                            <select class="selectbox" name="compdatasets" disabled>
-                                                                                                                                        <option selected disabled value="true"> -- MTZ1 -- </option>
+                                            <select class="selectbox" disabled name="compdatasets">
+                                                                                                                                        <option disabled selected value="true"> -- MTZ1 -- </option>
                                                                                                                                         <option value="true">mtzfile</option>
                                                                                                                                         <option value="false">No</option>
                                                                                                                                     </select>
                                         </div>
                                         <div style="display:flex">
-                                            <select class="selectbox" name="compdatasets" disabled>
-                                                                                                                                        <option selected disabled value="true"> -- PDB2 -- </option>
+                                            <select class="selectbox" disabled name="compdatasets">
+                                                                                                                                        <option disabled selected value="true"> -- PDB2 -- </option>
                                                                                                                                         <option value="true">pdbmodel</option>
                                                                                                                                         <option value="false">No</option>
                                                                                                                                     </select>
-                                            <select class="selectbox" name="compdatasets" disabled>
-                                                                                                                                        <option selected disabled value="true"> -- MTZ2 -- </option>
+                                            <select class="selectbox" disabled name="compdatasets">
+                                                                                                                                        <option disabled selected value="true"> -- MTZ2 -- </option>
                                                                                                                                         <option value="true">mtzfile</option>
                                                                                                                                         <option value="false">No</option>
                                                                                                                                     </select>
@@ -1440,15 +1440,15 @@
                                             </div>
                                             <div class="radio" id="confref_type">
                                                 <label>
-                                                                                                                                                            <input class="with-gap" id="manualradio" name="confproc_type" type="radio" value="manual">
-                                                                                                                                                                <span class="item-label" for="manualradio">Manual refine</span>
-                                                                                                                                                            </label>
+                                            <input class="with-gap" id="manualradio" name="confproc_type" type="radio" value="manual">
+                                                <span class="item-label" for="manualradio">Manual refine</span>
+                                            </label>
                                             </div>
                                             <div class="radio" id="confref_type">
                                                 <label>
-                                                                                                                                                                <input class="with-gap" id="norefineradio" name="confproc_type" type="radio" value="none" checked="checked">
-                                                                                                                                                                    <span class="item-label" for="norefineradio">No refine</span>
-                                                                                                                                                                </label>
+                                                <input checked="checked" class="with-gap" id="norefineradio" name="confproc_type" type="radio" value="none">
+                                                    <span class="item-label" for="norefineradio">No refine</span>
+                                                </label>
                                             </div>
                                         </div>
                                     </td>
@@ -1456,35 +1456,35 @@
                                 <tr>
                                     <th class=" top-options">Dataset cluster</th>
                                     <td class=" top-options">
-                                        <select class="selectbox" id="datasetCluster" name="datasetCluster" disabled>
-                                                                                                                                                            <option selected disabled value="no"> -- select an option -- </option>
-                                                                                                                                                            <option value="Yes">Yes</option>
-                                                                                                                                                            <option value="no">No</option>
-                                                                                                                                                        </select>
+                                        <select class="selectbox" disabled id="datasetCluster" name="datasetCluster">
+                                        <option disabled selected value="no"> -- select an option -- </option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th class=" top-options">Score models</th>
                                     <td class=" top-options">
                                         <select class="selectbox" name="giantscore">
-                                                                                                                                                            <option selected value="Yes">Yes</option>
-                                                                                                                                                            <option value="No">No</option>
-                                                                                                                                                        </select>
+                                        <option selected value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select>
                                     </td>
                                     <tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="bottom-right">
-                        <form action="/submit_pandda/" method="get" id="sendgiant" name="sendgiant" size="1" target="_blank">
-                            <button class="btn-large maxivorange" type="submit" onsubmit="return panddasetup()" value="giantinput" name="giantform" size="1">Run Giant PanDDA</button>
+                        <form action="/submit_pandda/" id="sendgiant" method="get" name="sendgiant" size="1" target="_blank">
+                            <button class="btn-large maxivorange" name="giantform" onsubmit="return panddasetup()" size="1" type="submit" value="giantinput">Run Giant PanDDA</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="Pipedream" class="card tabcontent">
+    <div class="card tabcontent" id="Pipedream">
         <div class="card-title">Pipedream Options</div>
 
 
@@ -1590,8 +1590,8 @@
                                 <tr>
                                     <th class=" top-options">PDB Model</th>
                                     <td class=" top-options">
-                                        {% comment %} <input type="file" id="myPDBFile"></input> {% endcomment %}
-                                        <input type='file' accept=".pdb,.mmcif" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' />
+                                        {% comment %} <input id="myPDBFile" type="file"></input> {% endcomment %}
+                                        <input accept=".pdb,.mmcif" onchange='onChooseFile(event, onFileLoad.bind(this, "pdbcontent"))' type='file' />
 
                                     </td>
                                 </tr>
@@ -1610,8 +1610,8 @@
                                 <tr>
                                     <th class=" top-options">MTZ Reference</th>
                                     <td class=" top-options">
-                                        {% comment %} <input type="file" id="myHKLFile"></input> {% endcomment %}
-                                        <input type='file' accept=".mtz" onchange='onChooseFile(event, onFileLoad.bind(this, "mtzcontent"))' />
+                                        {% comment %} <input id="myHKLFile" type="file"></input> {% endcomment %}
+                                        <input accept=".mtz" onchange='onChooseFile(event, onFileLoad.bind(this, "mtzcontent"))' type='file' />
 
                                     </td>
                                 </tr>
@@ -1643,7 +1643,7 @@
                                     <th class=" top-options">Brute-force TF</th>
                                     <td class=" top-options">
                                         <select class="selectbox" name="btf">
-                            <option value="false" selected value>False</option>
+                            <option selected value="false" value>False</option>
                             <option value="true">True</option>
                         </select>
                                     </td>
@@ -1659,7 +1659,7 @@
                                     <th class=" top-options">Angular range for RF</th>
                                     <td class=" top-options">
                                         <select class="selectbox" name="bigrotrange">
-                            <option value="false" selected value>False</option>
+                            <option selected value="false" value>False</option>
                             <option value="true">True</option>
                         </select>
                                     </td>
@@ -1670,20 +1670,20 @@
                                         <form id="pdbredooptions">
                                             <div class="checkbox" id="dials">
                                                 <label>
-                                    <input id="remediateckbx" name="remediateckbx" type="checkbox" class="filled-in dt-checkboxes" value="remediate">
+                                    <input class="filled-in dt-checkboxes" id="remediateckbx" name="remediateckbx" type="checkbox" value="remediate">
                                     <span for="dimplecheckboxinput">SideAide refit</span>
                                 </label>
                                             </div>
                                             <div class="checkbox" id="xdsxscale">
                                                 <label>
-                                    <input id="sidechainbuildckbx" name="sidechainbuildckbx" type="checkbox" class="filled-in dt-checkboxes" value="sidechainbuild">
+                                    <input class="filled-in dt-checkboxes" id="sidechainbuildckbx" name="sidechainbuildckbx" type="checkbox" value="sidechainbuild">
                                     <span for="bustercheckboxinput">SideAide rebuild </span>
                                 </label>
                                             </div>
 
                                             <div class="checkbox" id="autoproc">
                                                 <label>
-                                    <input id="runpepflipckbx" name="runpepflipckbx" type="checkbox" class="filled-in dt-checkboxes" value="runpepflip">
+                                    <input class="filled-in dt-checkboxes" id="runpepflipckbx" name="runpepflipckbx" type="checkbox" value="runpepflip">
                                     <span for="fspcheckboxinput">PepFlip check and correct </span>
                                 </label>
                                             </div>
@@ -1699,7 +1699,7 @@
                                 <tr>
                                     <th></th>
                                     <td style="padding-top:20px">
-                                        <input type="button" class="btn btn-right" value="Run refinement"> </input>
+                                        <input class="btn btn-right" type="button" value="Run refinement"> </input>
                                     </td>
                                 </tr> {% endcomment %}
                             </tbody>
@@ -1739,7 +1739,7 @@
 
                                             <div class="checkbox" id="dials">
                                                 <label>
-                            <input id="ligfromname" name="ligfromname" type="checkbox" class="filled-in dt-checkboxes" value="ligfromnameValue">
+                            <input class="filled-in dt-checkboxes" id="ligfromname" name="ligfromname" type="checkbox" value="ligfromnameValue">
                             <span for="ligfromname">Get from sample name </span>
                         </label>
                                             </div>
@@ -1783,7 +1783,7 @@
                                                                             <th class=" top-options">Refine ligand occupancy</th>
                                                                             <td class=" top-options">
                                                                                 <select class="selectbox" name="nooccref">                    
-                        <option value="true" selected value>True</option>
+                        <option selected value="true" value>True</option>
                         <option value="false">False</option>
                         
                     </select>
@@ -1801,32 +1801,32 @@
                         <option value="ligfitquick">Quick</option>
                         <option value="ligfitthorough">Thorough</option>
                     </select>
-                                                                                </td>
-                                                                                <tr>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class=" top-options">Scan chirals</th>
-                                                                                    <td class=" top-options">
-                                                                                        <select class="selectbox" name="scanchirals">
-                        <option disabled selected value> -- select an option -- </option>
+                                    </td>
+                                    <tr>
+                                    </tr>
+                                    <tr>
+                                        <th class=" top-options">Scan chirals</th>
+                                        <td class=" top-options">
+                                            <select class="selectbox" name="scanchirals">
+                <option disabled selected value> -- select an option -- </option>
                         <option value="true">Yes</option>
                         <option value="false">No</option>
                     </select>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                <tr class="custompar">
-                                                                                    <th class=" top-options">Custom parameters</th>
-                                                                                    <td class=" top-options"><input class="selectbox" name="customrhofit" placeholder="default: None"></input>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                {% comment %}
-                                                                                <tr>
-                                                                                    <th></th>
-                                                                                    <td style="padding-top:20px">
+                                </td>
+                            </tr>
+                            <tr class="custompar">
+                                <th class=" top-options">Custom parameters</th>
+                                <td class=" top-options"><input class="selectbox" name="customrhofit" placeholder="default: None"></input>
+                                </td>
+                            </tr>
+                            {% comment %}
+                            <tr>
+                                <th></th>
+                                <td style="padding-top:20px">
 
-                                                                                        <input type="button" class="btn btn-right" value="Run ligand fitting"> </input>
-                                                                                    </td>
-                                                                                </tr> {% endcomment %}
+                                    <input class="btn btn-right" type="button" value="Run ligand fitting"> </input>
+                                </td>
+                            </tr> {% endcomment %}
 
                             </tbody>
                         </table>
@@ -1836,8 +1836,8 @@
             </div>
             {% comment %}
             <div class="bottom-right">
-                <form action="/submit_pipedream/" method="get" id="sendpipedreamBtn" name="sendpipedreamBtn" size="1">
-                    <button class="btn-large maxivorange" type="submit" onsubmit="return submit_pipedream()" value="pipedreamInput" name="ppdform" size="1">Run Pipedream</button>
+                <form action="/submit_pipedream/" id="sendpipedreamBtn" method="get" name="sendpipedreamBtn" size="1">
+                    <button class="btn-large maxivorange" name="ppdform" onsubmit="return submit_pipedream()" size="1" type="submit" value="pipedreamInput">Run Pipedream</button>
                 </form>
             </div> {% endcomment %}
 
@@ -1925,13 +1925,18 @@
         var rescutoff = ";;rescutoff:" + document.getElementsByName("rescutoff")[0].value
         var cccutoff = ";;cccutoff:" + document.getElementsByName("cccutoff")[0].value
         var isigicutoff = ";;isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
+        var customxds = ";;customxds:" + document.getElementsByName("customdataproc-xds")[0].value
+        var customxdsapp = ";;customxdsapp:" + document.getElementsByName("customdataproc-xdsapp")[0].value
+        var customdials = ";;customxdsdials:" + document.getElementsByName("customdataproc-dials")[0].value
+        var customautoproc = ";;customxdsautoproc:" + document.getElementsByName("customdataproc-autoproc")[0].value
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else {
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
-            datarange + rescutoff + cccutoff + isigicutoff + dtsfilters
+            datarange + rescutoff + cccutoff + isigicutoff + dtsfilters + customxds + customautoproc + customdials +
+            customxdsapp
         document.getElementsByName("submitdtProc")[0].value = dtproccmd
 
     }
@@ -2091,7 +2096,8 @@
     $(".refineform").on("input", function(e) {
         if (document.getElementById("fspcheckboxinput").checked +
             document.getElementById("bustercheckboxinput").checked +
-            document.getElementById("dimplecheckboxinput").checked != 0 && document.getElementsByName("dropdownModel")[0].value) {
+            document.getElementById("dimplecheckboxinput").checked != 0 &&
+            document.getElementsByName("dropdownModel")[0].value) {
             document.getElementById("submitrfProc").disabled = false;
         } else {
             document.getElementById("submitrfProc").disabled = true;
@@ -2099,7 +2105,10 @@
     });
 
     $('.processform').on('input', function(e) {
-        if (document.getElementById("dialscheckboxinput").checked + document.getElementById("xdsxscalecheckboxinput").checked + document.getElementById("xdsappcheckboxinput").checked + document.getElementById("autoproccheckboxinput").checked != 0) {
+        if (document.getElementById("dialscheckboxinput").checked +
+            document.getElementById("xdsxscalecheckboxinput").checked +
+            document.getElementById("xdsappcheckboxinput").checked +
+            document.getElementById("autoproccheckboxinput").checked != 0) {
             document.getElementById("submitdtProc").disabled = false;
         } else {
             document.getElementById("submitdtProc").disabled = true;
@@ -2107,7 +2116,8 @@
     });
 
     $('.ligandform').on('input', function(e) {
-        if (document.getElementById("rhofitcheckboxinput").checked + document.getElementById("phenixligfitcheckboxinput").checked != 0) {
+        if (document.getElementById("rhofitcheckboxinput").checked +
+            document.getElementById("phenixligfitcheckboxinput").checked != 0) {
             document.getElementById("submitligProc").disabled = false;
         } else {
             document.getElementById("submitligProc").disabled = true;
@@ -2132,11 +2142,6 @@
             checkboxes[i].checked = source.checked;
         }
     }
-
-    // { % comment % }
-    // $('#tablecontainer').columnize({
-    //     columns: 2
-    // }) { % endcomment % }
 
     function getCheckedBoxes(chkboxName) {
         var checkboxes = document.getElementsByName(chkboxName);
@@ -2176,7 +2181,9 @@
         var keepup_last = document.getElementById("keepup").checked
         var ign_symlink = document.getElementById("fixsym").checked
 
-        var out = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" + use_apo + ";" + use_dmso + ";" + use_cryo + ";" + use_CAD + ";" + ref_CAD + ";" + ign_errordts + ";" + keepup_last + ";" + ign_symlink
+        var out = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
+            use_apo + ";" + use_dmso + ";" + use_cryo + ";" + use_CAD + ";" + ref_CAD + ";" +
+            ign_errordts + ";" + keepup_last + ";" + ign_symlink
         document.getElementsByName("panddaform")[0].value = out
 
     }
