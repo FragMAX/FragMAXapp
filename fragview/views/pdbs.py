@@ -163,7 +163,7 @@ def pre_process_PDB(project, filename, pdb):
 
     nohet_filename = filename.replace(".pdb", "_noHETATM.pdb")
     args = dict(project=project, filename=nohet_filename)
-    
+
     try:
         pdb = PDB(**args)
         pdb.save()
