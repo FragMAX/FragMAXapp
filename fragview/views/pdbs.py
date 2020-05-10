@@ -68,6 +68,7 @@ def _store_uploaded_pdb(proj, pdb_file):
     with open(pdb.file_path(), "wb") as dest:
         for chunk in pdb_file.chunks():
             dest.write(chunk)
+    pre_process_PDB(proj, pdb_file.name, pdb.file_path())
 
 
 def _fetch_from_rcsb(proj, pdb_id):
@@ -81,6 +82,7 @@ def _fetch_from_rcsb(proj, pdb_id):
     # save the file to fragmax project's models directory
     with open(pdb.file_path(), "wb") as dest:
         dest.write(pdb_data.encode())
+    pre_process_PDB(proj, f"{pdb_id}.pdb", pdb.file_path())
 
 #
 # Wrap the database operation of adding a new PDB entry into
@@ -142,3 +144,30 @@ def edit(request, id):
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})
+
+
+def pre_process_PDB(project, filename, pdb):
+    """
+    Remove all atoms not ATOM record from
+    the provided pdb. Saves as _noHETATM
+    """
+    with open(pdb, "r") as readfile:
+        originalPDB = readfile.readlines()
+
+    outpdb = pdb.replace(".pdb", "_noHETATM.pdb")
+
+    with open(outpdb, "w") as writefile:
+        for line in originalPDB:
+            if "ATOM" in line:
+                writefile.write(line)
+
+    nohet_filename = filename.replace(".pdb", "_noHETATM.pdb")
+    args = dict(project=project, filename=nohet_filename)
+    
+    try:
+        pdb = PDB(**args)
+        pdb.save()
+    except IntegrityError:
+        # here we assume that 'unique filename per project' constrain is violated,
+        # as we don't have any other constrains for the PDB table
+        raise PDBAddError(f"Model file '{nohet_filename}' already exists in the project.")
