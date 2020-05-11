@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from os import path
 
 
 def project_details(request):
