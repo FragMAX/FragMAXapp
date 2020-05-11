@@ -6,7 +6,7 @@ from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4
 urlpatterns = [
     # use 'project summary' view as the landing page
     path('', projects.project_summary, name='project_summary'),
-    path('log_viewer/', projects.log_viewer, name='log_viewer'),
+    path('log_viewer/', misc.log_viewer, name='log_viewer'),
 
     path('testpage/', misc.testfunc, name='testpage'),
 
