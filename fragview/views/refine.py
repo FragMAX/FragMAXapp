@@ -60,7 +60,12 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
     filters = filters.split(":")[-1]
     if filters == "ALL":
         filters = ""
-
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     if userPDB != "":
         if useFSP:
             argsfit += "fspipeline"

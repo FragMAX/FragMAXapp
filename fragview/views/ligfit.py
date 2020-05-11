@@ -42,7 +42,12 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
         filters = filters.split(":")[-1]
     if filters == "ALL":
         filters = ""
-
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     fitmethod = ""
     if useLigFit == "True":
         fitmethod += "ligfit"
