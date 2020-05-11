@@ -3,6 +3,7 @@ import time
 import xmltodict
 import threading
 import subprocess
+from glob import glob
 from os import path
 from django.shortcuts import render
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
@@ -187,7 +188,7 @@ def run_xdsapp(proj, nodes, filters, options):
                              sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
-        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -261,7 +262,7 @@ def run_autoproc(proj, nodes, filters, options):
                              sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
-        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -369,7 +370,7 @@ def run_xdsxscale(proj, nodes, filters, options):
                              sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
-        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -476,7 +477,7 @@ def run_dials(proj, nodes, filters, options):
                              sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
-        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
+        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
