@@ -82,7 +82,7 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         proc2resOut = ""
         proc2resOut += """#!/bin/bash\n"""
         proc2resOut += """#!/bin/bash\n"""
-        proc2resOut += """#SBATCH -t 04:00:00\n"""
+        proc2resOut += """#SBATCH -t 12:00:00\n"""
         proc2resOut += """#SBATCH -J Refine_FragMAX\n"""
         proc2resOut += """#SBATCH -N1\n"""
         proc2resOut += """#SBATCH --cpus-per-task=2\n"""
