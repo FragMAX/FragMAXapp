@@ -1894,11 +1894,19 @@
         $("#processALLckbox").click(function() {
             if ($(this).is(":checked")) {
                 $("#dropdownDataset").prop("disabled", true);
+                $("#processALLNEWckbox").prop("checked", false);
                 openDatasets(event, 'HideDatasets')
             } else {
                 $("#dropdownDataset").prop("disabled", false);
                 openDatasets(event, 'Datasets')
             }
+        });
+    });
+    $(document).ready(function() {
+        $("#processALLNEWckbox").click(function() {
+            if ($(this).is(":checked")) {
+                $("#processALLckbox").prop("checked", false);
+            } 
         });
     });
 
@@ -1936,7 +1944,10 @@
         var customautoproc = ";;customxdsautoproc:" + document.getElementsByName("customdataproc-autoproc")[0].value
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
+        } else if (document.getElementById("processALLNEWckbox").checked) {
+            var dtsfilters = ";;filters:NEW"
         } else {
+            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
         }
         var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
@@ -1963,6 +1974,8 @@
         var customreffspipe = ";;customrefinefspipe:" + document.getElementsByName("customrefine")[2].value
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
+        } else if (document.getElementById("processALLNEWckbox").checked) {
+            var dtsfilters = ";;filters:NEW"
         } else {
             //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
@@ -1986,6 +1999,8 @@
 
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
+        } else if (document.getElementById("processALLNEWckbox").checked) {
+            var dtsfilters = ";;filters:NEW"
         } else {
             //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
             var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");

@@ -181,6 +181,13 @@ def run_xdsapp(proj, nodes, filters, options):
 
     if filters == "ALL":
         filters = ""
+
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -249,6 +256,12 @@ def run_autoproc(proj, nodes, filters, options):
 
     if filters == "ALL":
         filters = ""
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -351,6 +364,12 @@ def run_xdsxscale(proj, nodes, filters, options):
 
     if filters == "ALL":
         filters = ""
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -452,7 +471,12 @@ def run_dials(proj, nodes, filters, options):
 
     if filters == "ALL":
         filters = ""
-
+    if filters == "NEW":
+        processedDatasets = [x.split("/")[-1] for x in
+                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        allDatasets = [x.split("/")[-2] for x in
+                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        newDatasets = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
