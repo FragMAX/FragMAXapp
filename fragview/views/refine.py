@@ -1,4 +1,5 @@
 import os
+import time
 import pyfastcopy  # noqa
 import threading
 from glob import glob
@@ -76,28 +77,34 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
 
         datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")
         datasetList = sorted(Filter(datasetList, filters.split(",")))
+        epoch = str(round(time.time()))
 
         proc2resOut = ""
         proc2resOut += """#!/bin/bash\n"""
         proc2resOut += """#!/bin/bash\n"""
         proc2resOut += """#SBATCH -t 04:00:00\n"""
-        proc2resOut += """#SBATCH -J Pro2Res\n"""
+        proc2resOut += """#SBATCH -J Refine_FragMAX\n"""
         proc2resOut += """#SBATCH -N1\n"""
         proc2resOut += """#SBATCH --cpus-per-task=2\n"""
         proc2resOut += """#SBATCH --mem-per-cpu=5000\n"""
-        proc2resOut += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/process2results_%j_out.txt\n"""
-        proc2resOut += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/process2results_%j_err.txt\n"""
-        proc2resOut += """module purge\n"""
-        proc2resOut += f"""module load {softwares}\n\n"""
-        proc2resOut += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
+
 
         aimless = bool(aimlessopt)
         for dataset in datasetList:
             sample = dataset.split("/")[-2]
             script = project_script(proj, f"proc2res_{sample}.sh")
+
+            epoch = str(round(time.time()))
+            slctd_sw = argsfit.replace("none", "")
+            p2rOut = ""
+            p2rOut += """#SBATCH -o """ + proj.data_path() + f"/fragmax/logs/{sample}_{slctd_sw}_{epoch}_%j_out.txt\n"
+            p2rOut += """#SBATCH -e """ + proj.data_path() + f"/fragmax/logs/{sample}_{slctd_sw}_{epoch}_%j_err.txt\n"
+            p2rOut += """module purge\n"""
+            p2rOut += f"""module load {softwares}\n\n"""
+            p2rOut += '''echo export TMPDIR=''' + proj.data_path() + '''/fragmax/logs/\n\n'''
             with open(script, "w") as outp:
                 outp.write(proc2resOut)
-
+                outp.write(p2rOut)
                 edna = find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
                                  customrefdimple)
                 fastdp = find_fastdp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
