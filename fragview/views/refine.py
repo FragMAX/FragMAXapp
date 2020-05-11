@@ -88,7 +88,6 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
         proc2resOut += """#SBATCH --cpus-per-task=2\n"""
         proc2resOut += """#SBATCH --mem-per-cpu=5000\n"""
 
-
         aimless = bool(aimlessopt)
         for dataset in datasetList:
             sample = dataset.split("/")[-2]
