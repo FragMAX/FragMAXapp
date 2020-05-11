@@ -34,10 +34,16 @@ def status(request):
                 ]
 
                 stdErr, stdOut = sorted(log_pairs)
-                stdErr = stdErr.replace("/data/visitors/", "/static/")
-                stdOut = stdOut.replace("/data/visitors/", "/static/")
+                if path.exists(stdErr):
+                    stdErr = stdErr.replace("/data/visitors/", "/static/")
+                else:
+                    stdErr = "None"
+                if path.exists(stdOut):
+                    stdOut = stdOut.replace("/data/visitors/", "/static/")
+                else:
+                    stdOut = "None"
             except Exception:
-                stdErr, stdOut = ["-", "-"]
+                stdErr, stdOut = ["None", "None"]
 
             hpcList.append([jobid, partition, name, user, ST, TIME, NODE, NODEn, stdErr, stdOut])
 

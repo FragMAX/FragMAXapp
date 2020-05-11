@@ -83,6 +83,8 @@ button.link {
           </thead>
           <tbody>          
           {% for jobid,partition,name,user,ST,TIME,NODE,NODEname,StdERR,StdOUT in hpcList %} 
+            {% if StdERR != "None" %}
+
             <tr>
               <td>{{jobid}}</td>
               <td>{{partition}}</td>
@@ -94,13 +96,15 @@ button.link {
               <td>{{NODEname}}</td>
               <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
               <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
+
               <td>
                 <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
                     <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
                 </form>
               </td>
-            </tr>     
-            {% endfor %}       
+            </tr>
+            {% endif %}
+          {% endfor %}
           </tbody>
       </table>
   </div>
