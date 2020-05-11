@@ -12,6 +12,8 @@ from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview import versions
 
+from worker import setup_project_files
+
 
 def set_details(request):
     proj = current_project(request)
@@ -472,6 +474,7 @@ def resync_status_project(proj):
         *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
           for p in proj.shifts()]))
 
+    setup_project_files.delay(proj.id)
     for h5 in h5s:
         dataset, run = (h5.split("/")[-1][:-10].split("_"))
         statusDict = get_dataset_status(proj, dataset, run)
