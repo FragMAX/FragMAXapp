@@ -88,14 +88,21 @@ def kill_job(request):
 
 def jobhistory(request):
     proj = current_project(request)
-
+    # new logs are saved with a pattern based name
+    # Dataset_software_epochTime_jobID_err.txt
     logHistory = list()
 
     log_dir = f"{proj.data_path()}/fragmax/logs"
 
-    for f in glob(f"{log_dir}/*"):
+    for f in glob(f"{log_dir}/*out.txt"):
         if "_" in f:
-            cdate = ctime(path.getmtime(f))
+            try:
+                epoch = f.split("/")[-1].split("_")[2]
+                cdate = ctime(epoch)
+            except TypeError:
+                cdate = ctime(path.getmtime(f))
+            except IndexError:
+                cdate = ctime(path.getmtime(f))
             jobID = f.split("_")[-2]
             logName = f.split("/")[-1].split(f"_{jobID}")[0]
             errFile = f"{log_dir}/{logName}_{jobID}_err.txt"
