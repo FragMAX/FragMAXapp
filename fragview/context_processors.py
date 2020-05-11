@@ -29,7 +29,7 @@ class ActiveMenuCtx:
     If URL matches some group, we add that group's name as 'active_menu' template context variable.
     """
     URL_REGEXP = \
-        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/$)"  # URLs for pages under 'project' menu
+        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/$)"  # URLs for pages under 'project' menu
 
     def __init__(self):
         self.url_regexp = re.compile(self.URL_REGEXP)
