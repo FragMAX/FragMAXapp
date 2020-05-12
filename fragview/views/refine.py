@@ -62,8 +62,10 @@ def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegrou
     if filters == "ALL":
         filters = ""
     if filters == "NEW":
-        processedDatasets = [x.split("/")[-1] for x in
-                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
+        refinedDatasets = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/dimple") + \
+                          glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/fspipeline") + \
+                          glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/buster")
+        processedDatasets = set(["/".join(x.split("/")[:-1]) for x in refinedDatasets])
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
