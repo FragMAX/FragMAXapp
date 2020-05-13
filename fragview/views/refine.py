@@ -134,9 +134,8 @@ rm -rf $WORK_DIR
             xdsapp = find_xdsapp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
                                  customrefbuster, customrefdimple)
 
-            # TODO: add crypto support to xdscscale
-            # xdsxscale = find_xdsxscale(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
-            #                            customrefbuster, customrefdimple)
+            xdsxscale = find_xdsxscale(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
+                                       customrefbuster, customrefdimple)
 
             dials = find_dials(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
                                customrefbuster, customrefdimple)
@@ -144,11 +143,8 @@ rm -rf $WORK_DIR
             autoproc = find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
                                      customrefbuster, customrefdimple)
 
-            for part_cmd in [edna, fastdp, xdsapp, dials, autoproc]:
+            for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
                 outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
-
-            # outp.write(xdsxscale)
-            # outp.write("\n\n")
 
             outp.write(project_update_status_script_cmds(proj, sample, softwares))
             outp.write("\n\n")
@@ -229,27 +225,23 @@ def find_dials(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffs
 
 def find_xdsxscale(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
                    customrefdimple):
-    srcmtz = None
-    dstmtz = None
     aimless_c = ""
-    xdsxscale_cmd = ""
-    refine_cmd = ""
     out_cmd = ""
+    res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/xdsxscale/"
     srcmtz = dataset + "xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
-    dstmtz = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/xdsxscale/" + dataset.split("/")[
-        -2] + "_xdsxscale_merged.mtz"
+    dstmtz = dataset.split("/")[-2] + "_xdsxscale_merged.mtz"
     if os.path.exists(srcmtz):
-        outdir = "/".join(dstmtz.split("/")[:-1])
-        cdtooutdir = "cd " + outdir
         cmd = aimless_cmd(spacegroup, dstmtz)
-        mkdir = f'mkdir -p {outdir}'
         copy = f'cp {srcmtz} {dstmtz}'
         if aimless:
             aimless_c = f'{cmd}'
-        xdsxscale_cmd = mkdir + "\n" + cdtooutdir + "\n" + copy + "\n" + aimless_c + "\n"
+        xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
-        out_cmd = xdsxscale_cmd + "\n" + refine_cmd
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
+
+        out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+
     return out_cmd
 
 
