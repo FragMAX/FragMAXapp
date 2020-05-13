@@ -4,6 +4,8 @@ from django.conf import settings
 from .proposals import get_proposals
 
 UPDATE_STATUS_SCRIPT = "update_status.py"
+READ_MTZ_FLAGS = "read_mtz_flags.py"
+PANDDA_WORKER = "pandda_prepare_runs.py"
 
 
 def current_project(request):
@@ -90,6 +92,18 @@ def project_script(project, script_file):
 
 def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
+
+
+def project_read_mtz_flags(project, hklin):
+    return \
+        project_script(project, READ_MTZ_FLAGS) + \
+        f" {hklin}"
+
+
+def project_pandda_worker(project, method):
+    return "python " + \
+        project_script(project, PANDDA_WORKER) + \
+        f" {project.data_path()} {method} {project.protein}"
 
 
 def project_update_status_script_cmds(project, sample, softwares):
