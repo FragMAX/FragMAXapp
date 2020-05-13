@@ -82,7 +82,6 @@ $(document).ready(function()
                 {% csrf_token %}
                 <table class="table bordered">
                     <tbody>
-
                     <tr>
                         <th>Protein</th>
                         <td>
@@ -156,6 +155,26 @@ $(document).ready(function()
                             <div class="err_msg">{{ form.shift_list.errors }}</div>
                         </td>
                     </tr>
+                    <tr>
+                        <th>Data Processing</th>
+                        <td>
+                            <div class="checkbox">
+                            <label>
+                                <input name="encrypted"
+                                       type="checkbox"
+                                       class="filled-in dt-checkboxes"
+                                       {% if form.encrypted.value %}checked{% endif %}
+                                       {% comment %}
+                                           changing 'encrypted' mode for existing project is not supported for now
+                                       {% endcomment %}
+                                       {% if project_id %}disabled{% endif %}
+                                >
+                                <span>Encrypted Mode</span>
+                            </label>
+                            </div>
+                        </td>
+                    </tr>
+
                     </tbody>
                 </table>
 

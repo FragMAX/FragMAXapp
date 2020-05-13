@@ -9,7 +9,7 @@ from django.shortcuts import render
 
 from fragview.projects import current_project, project_results_file
 from fragview.projects import project_results_dir, project_process_protein_dir
-from fragview import result_plots
+from fragview import result_plots, fileio
 from fragview.views.utils import open_txt
 
 
@@ -55,12 +55,11 @@ def result_summary(proj):
         kb = entry.split("/")[9]
         if kb == "EDNA_proc":
             kb = "edna"  # Updates the name of EDNA taken from file path for isaDict reference
+
         isa = isaDict[ka][kb]
 
         if "dimple" in usracr:
-            with open(entry, "r") as inp:
-                pdb_file = inp.readlines()
-            for line in pdb_file:
+            for line in fileio.read_text_lines(proj, entry):
                 if "REMARK   3   FREE R VALUE                     :" in line:
                     r_free = line.split()[-1]
                     r_free = str("{0:.2f}".format(float(r_free)))
@@ -88,10 +87,8 @@ def result_summary(proj):
                     spg = "".join(line.split()[7:])
 
             entry = entry.replace("final.pdb", "dimple.log")
-            with open(entry, "r") as inp:
-                dimple_log = inp.readlines()
             blist = []
-            for n, line in enumerate(dimple_log):
+            for n, line in enumerate(fileio.read_text_lines(proj, entry)):
                 if line.startswith("blobs: "):
                     blist = line.split(":")[-1].rstrip()
 
@@ -327,6 +324,10 @@ def result_summary(proj):
 
     with open(project_results_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
+
+        # TODO: drop 'pdbout', 'dif_map' and 'nat_map' columns, they are probably not used
+        # TODO: anymore, we use 'dataset' and 'pipeline' columns to derive paths to these files
+
         writer.writerow(
             ["usracr", "pdbout", "dif_map", "nat_map", "spg", "resolution", "ISa", "r_work", "r_free", "bonds",
              "angles", "a", "b", "c", "alpha", "beta", "gamma", "blist", "dataset", "pipeline", "rhofitscore",

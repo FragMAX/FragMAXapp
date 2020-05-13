@@ -57,6 +57,10 @@ def project_models_dir(project):
     return path.join(project_fragmax_dir(project), "models")
 
 
+def project_scripts_dir(project):
+    return path.join(project.data_path(), "fragmax", "scripts")
+
+
 def project_model_file(project, model_file):
     return path.join(project_models_dir(project), model_file)
 
@@ -81,7 +85,7 @@ def project_script(project, script_file):
     """
     generate full path to a file named 'script_file' inside project's script directory
     """
-    return path.join(project.data_path(), "fragmax", "scripts", script_file)
+    return path.join(project_scripts_dir(project), script_file)
 
 
 def project_update_status_script(project):

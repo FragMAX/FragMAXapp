@@ -1,6 +1,8 @@
 import re
 from os import path
+from django.http import HttpResponse
 from django.shortcuts import redirect
+from fragview import fileio
 from fragview.projects import current_project, project_static_url, project_results_dir, project_process_protein_dir
 from worker.ccp4 import mtz_to_map
 
@@ -15,19 +17,14 @@ def _ccp4_filename(name, type):
 
 def map(request, dataset, process, refine, type):
     """
-    generates CCP4 map from MTZ data
+    load MTZ data, decrypting it if needed
     """
     proj = current_project(request)
 
-    mtz_path = path.join(project_results_dir(proj), dataset, process, refine)
-    # start generation task and wait for it to complete
-    mtz_to_map.delay(mtz_path, "final.mtz").wait()
+    mtz_path = path.join(project_results_dir(proj), dataset, process, refine,  _ccp4_filename("final", type))
 
-    # redirect to the generated CCP4 file
-    redirect_url = path.join(project_static_url(proj), "fragmax", "results", dataset,
-                             process, refine, _ccp4_filename("final", type))
-
-    return redirect(redirect_url)
+    return HttpResponse(fileio.read_proj_file(proj, mtz_path),
+                        content_type="application/octet-stream")
 
 
 def pipedream_map(request, sample, process, type):

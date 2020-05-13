@@ -1,6 +1,7 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
-from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment
+from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt, gen_pdbs
+from fragview.views import encryption
 
 
 urlpatterns = [
@@ -42,11 +43,20 @@ urlpatterns = [
     path('project/new', projects.new, name='new_project'),
     path('project/current/<int:id>/', projects.set_current),
 
+    # encryption key management views
+    path('encryption/', encryption.show, name='encryption'),
+    path('encryption/key/', encryption.download_key),
+    path('encryption/key/upload/', encryption.upload_key),
+    path('encryption/key/forget/', encryption.forget_key),
+
     # PDBs management views
     path('pdbs/', pdbs.list, name='manage_pdbs'),
     path('pdb/<int:id>', pdbs.edit),
     path('pdb/add', pdbs.add),
     path('pdb/new', pdbs.new),
+
+    # generated PDB access views
+    path('pdbs/final/<dataset>/<process>/<refine>', gen_pdbs.final),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
@@ -67,5 +77,6 @@ urlpatterns = [
     path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
-    path('fragment/<fragment>/image', fragment.svg, name='fragment_svg')
+    path('fragment/<fragment>/image', fragment.svg, name='fragment_svg'),
+    path('crypt/', crypt.index),
 ]

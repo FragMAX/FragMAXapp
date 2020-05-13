@@ -106,5 +106,5 @@ def project_summary(request):
             "totalapo": totalapo,
             "totaldata": totaldata,
             "fraglib": proj.library.name,
-            "exp_date": natdate
+            "exp_date": natdate,
         })

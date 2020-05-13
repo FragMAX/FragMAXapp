@@ -1,6 +1,8 @@
+import base64
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from .projects import shift_dir, project_model_file
+from . import encryption
 
 
 class Library(models.Model):
@@ -41,6 +43,8 @@ class Project(models.Model):
     proposal = models.TextField()
     shift = models.TextField()
     shift_list = models.TextField(blank=True)
+    # 'encrypted mode' for data processing is enabled
+    encrypted = models.BooleanField(default=False)
 
     @staticmethod
     def get(proj_id):
@@ -83,6 +87,20 @@ class Project(models.Model):
         all_shifts = set(aditional_shifts).union([self.shift])
 
         return list(all_shifts)
+
+    def has_encryption_key(self):
+        """
+        convenience wrapper to check if this project have an encryption key uploaded
+        """
+        return self.encryption_key is not None
+
+    @property
+    def encryption_key(self):
+        """
+        convenience wrapper to get project's encryption key,
+        if no key is uploaded, None is returned
+        """
+        return getattr(self, "encryptionkey", None)
 
 
 class PendingProject(models.Model):
@@ -191,3 +209,46 @@ class PDB(models.Model):
         returns full path to the PDB file in the 'fragmax' project directory
         """
         return project_model_file(self.project, self.filename)
+
+
+class EncryptionKey(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+    key = models.BinaryField(max_length=encryption.KEY_SIZE)
+
+    def as_base64(self):
+        """
+        get this encryption key as base64 encoded string
+        """
+        return base64.b64encode(self.key).decode()
+
+    @staticmethod
+    def from_base64(proj, b64_key):
+        """
+        create EncryptionKey model object from base64 encoded key
+        """
+        bin_key = base64.b64decode(b64_key)
+        return EncryptionKey(project=proj, key=bin_key)
+
+
+class AccessToken(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    token = models.BinaryField(max_length=encryption.TOKEN_SIZE)
+    # TODO: add 'expiration time', e.g. time after which the token is no longer valid
+
+    @staticmethod
+    def add_token(project, token):
+        tok = AccessToken(project=project, token=token)
+        tok.save()
+
+        return tok
+
+    @staticmethod
+    def get_from_base64(b64_token):
+        tok = base64.b64decode(b64_token)
+        return AccessToken.objects.get(token=tok)
+
+    def as_base64(self):
+        """
+        get this token as base64 encoded string
+        """
+        return base64.b64encode(self.token).decode()

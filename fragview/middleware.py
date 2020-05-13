@@ -4,6 +4,10 @@ from django.conf import settings
 from fragview import projects
 
 
+def _open_urls():
+    return [settings.LOGIN_URL] + settings.OPEN_URLS
+
+
 def login_required(get_response):
     """
     middleware, that requires login for all URLs except:
@@ -12,11 +16,10 @@ def login_required(get_response):
     * URL listed in 'OPEN_URLS' setting
     """
     login_url = settings.LOGIN_URL
-    open_urls = [login_url] + getattr(settings, "OPEN_URLS", [])
 
     def check_login(request):
         if not request.user.is_authenticated and \
-                request.path_info not in open_urls:
+                request.path_info not in _open_urls():
             return redirect(login_url + "?next=" + request.path)
 
         return get_response(request)
@@ -37,8 +40,7 @@ def no_projects_redirect(get_response):
         new_proj_url,
         manage_projects_url,
         urls.reverse("logout"),
-        urls.reverse("login"),
-    ]
+    ] + _open_urls()
 
     def _get_redirect_url(request):
         if projects.have_pending_projects(request):
@@ -53,3 +55,40 @@ def no_projects_redirect(get_response):
         return get_response(request)
 
     return check_current_project
+
+
+def key_required_redirect(get_response):
+    """
+    middleware that check if currently selected is in encrypted mode
+    and does not have it's encryption key uploaded, in that case
+    redirect user to key upload page
+    """
+    def _is_excluded_url(url):
+        excluded_prefixes = [
+            "/encryption/",          # avoid redirection loop
+            settings.LOGIN_URL,      # no user thus no current project
+            urls.reverse("logout"),  # no current project when logging out
+            "/project",              # exclude all project management URLs
+            "/crypt/"                # crypt I/O use tokens rather then user authentication
+        ]
+
+        for excluded_prefix in excluded_prefixes:
+            if url.startswith(excluded_prefix):
+                return True
+
+        return False
+
+    def _key_needed(request):
+        proj = projects.current_project(request)
+        if not proj.encrypted:
+            return False
+
+        return not proj.has_encryption_key()
+
+    def check_encryption_key(request):
+        if _is_excluded_url(request.path_info) or not _key_needed(request):
+            return get_response(request)
+
+        return redirect(urls.reverse("encryption"))
+
+    return check_encryption_key
