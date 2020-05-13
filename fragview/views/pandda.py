@@ -5,6 +5,7 @@ import pyfastcopy  # noqa
 import shutil
 import threading
 import json
+import time
 import subprocess
 from os import path
 from glob import glob
@@ -15,7 +16,8 @@ from django.shortcuts import render
 from fragview import hpc
 from fragview.views import utils
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir
+from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
+
 
 
 def processing_form(request):
@@ -649,74 +651,14 @@ def submit(request):
                 shutil.rmtree(os.path.join(res_dir, "pandda_backup"))
             shutil.move(res_pandda, os.path.join(res_dir, "pandda_backup"))
 
-        py_script = project_script(proj, "pandda_worker.py")
-        with open(py_script, "w") as outp:
-            outp.write('''# noqa E501
-import os
-import glob
-import sys
-import subprocess
-import shutil
-import multiprocessing
-path=sys.argv[1]
-method=sys.argv[2]
-acr=sys.argv[3]
-fraglib=sys.argv[4]
-shiftList=sys.argv[5].split(",")
-proposal=path.split("/")[4]
-noZmapmode=True
-initpass=True
-ground_state_entries=','.join([x.split("/")[-1] for x in glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/*Apo*")])
-def pandda_run(method,ground_state_entries,initpass):
-    os.chdir(path+"/fragmax/results/pandda/"+acr+"/"+method)
-    if len(ground_state_entries.split(","))<40:
-        command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' cpus=16 "
-    else:
-        command="pandda.analyse data_dirs='"+path+"/fragmax/results/pandda/"+acr+"/"+method+"/*' ground_state_datasets='"+ground_state_entries+"' cpus=16 "
-    subprocess.call(command, shell=True)
-    if len(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))>0:
-        lastlog=sorted(glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/logs/*.log"))[-1]
-        with open(lastlog,"r") as logfile:
-            log=logfile.readlines()
-        badDataset=dict()
-        for line in log:
-            if "Structure factor column"  in line:
-                bd=line.split(" has ")[0].split("in dataset ")[-1]
-                bdpath=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+bd+"*")
-                badDataset[bd]=bdpath
-            if "Failed to align dataset" in line:
-                bd=line.split("Failed to align dataset ")[1].rstrip()
-                bdpath=glob.glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+bd+"*")
-                badDataset[bd]=bdpath
-            if "Writing PanDDA End-of-Analysis Summary" in line and noZmapmode==True and initpass==True:
-                with open(path+"/fragmax/results/pandda/"+acr+"/"+method+"/pandda/analyses/pandda_analyse_events.csv","r") as readFile:
-                    events=csv.reader(readFile)
-                    events=[x for x in events][1:]
-                noZmap=[x[0] for x in events]
-                alldts=[x.split("/")[-1] for x in glob(path+"/fragmax/results/pandda/"+acr+"/"+method+"/"+acr+"*")]
-                newGroundStates=",".join(list(set(alldts) - set(noZmap)))
-                initpass=False
-                pandda_run(method,newGroundStates,initpass)
-
-        for k,v in badDataset.items():
-            if len(v)>0 and initpass==True:
-                if os.path.exists(v[0]):
-                    shutil.rmtree(v[0])
-                    if os.path.exists(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k):
-                        shutil.rmtree(path+"/fragmax/process/pandda/ignored_datasets/"+method+"/"+k)
-                pandda_run(method,ground_state_entries,initpass)
-pandda_run(method,ground_state_entries,initpass)
-os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
-'''
-                       )
-
+        epoch = str(round(time.time()))
         script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
         methodshort = proc[:2] + ref[:2]
-        log_prefix = os.path.join(proj.data_path(), "fragmax", "logs", f"panddarun_{proj.protein}{method}_%j_")
+        log_prefix = os.path.join(proj.data_path(), "fragmax", "logs", f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
         with open(script, "w") as outp:
             outp.write('#!/bin/bash\n')
             outp.write('#!/bin/bash\n')
-            outp.write('#SBATCH -t 08:00:00\n')
+            outp.write('#SBATCH -t 16:00:00\n')
             outp.write('#SBATCH -J PDD' + methodshort + '\n')
             outp.write('#SBATCH --exclusive\n')
             outp.write('#SBATCH -N1\n')
@@ -726,8 +668,7 @@ os.system('chmod -R g+rw '+path+'/fragmax/results/pandda/')
             outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
             outp.write('module purge\n')
             outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
-            outp.write('python ' + py_script + ' ' + proj.data_path() + ' ' + method + ' '
-                       + proj.protein + ' ' + proj.library.name + ' ' + ",".join(proj.shifts()) + '\n')
+            outp.write(project_pandda_worker(proj, method) + '\n')
 
         t1 = threading.Thread(target=pandda_worker, args=(method, proj))
         t1.daemon = True
@@ -818,7 +759,7 @@ def giant_score(proj, method):
                            f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
 
         line += "\nsbatch  --dependency=afterany:$jid1 " + script
-        line += "\nsleep 0.1"
+        line += "\nsleep 0.05"
 
     pandda_score_script = project_script(proj, "pandda-score.sh")
     giant_worker_script = project_script(proj, "giant_worker.sh")
@@ -870,12 +811,6 @@ def pandda_worker(method, proj):
     # header+='''#SBATCH --nice=25\n'''
     header += '''#SBATCH --cpus-per-task=1\n'''
     header += '''#SBATCH --mem=2500\n'''
-    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_prepare_''' + \
-              proj.protein + '''_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_prepare_''' + \
-              proj.protein + '''_%j_err.txt\n'''
-    header += '''module purge\n'''
-    header += '''module load CCP4 Phenix\n'''
 
     fragDict = dict()
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
@@ -890,7 +825,8 @@ def pandda_worker(method, proj):
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
     else:
         method_dir = method.replace("_", "/")
-        datasetList = set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/*/*/*/final.pdb")])
+        datasetList = set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"
+                                                          f"/*/*/final.pdb")])
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/*/final.pdb"))
@@ -909,8 +845,15 @@ def pandda_worker(method, proj):
         if os.path.exists(pdb):
             fset = dataset.split("-")[-1]
             script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
+            epoch = str(round(time.time()))
             with open(script, "w") as writeFile:
+                sb_head = ""
+                sb_head += f'''#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt\n'''
+                sb_head += f'''#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt\n'''
+                sb_head += '''module purge\n'''
+                sb_head += '''module load CCP4 Phenix\n'''
                 writeFile.write(header)
+                writeFile.write(sb_head)
                 frag = dataset.split("-")[-1].split("_")[0]
                 hklin = pdb.replace(".pdb", ".mtz")
                 output_dir = os.path.join(proj.data_path(), "fragmax", "results",
@@ -937,24 +880,13 @@ def pandda_worker(method, proj):
                 freerflag = '''echo -e "COMPLETE FREE=''' + freeRflag + ''' \\nEND" | freerflag hklin ''' + \
                             hklout + ''' hklout ''' + hklout_rfill
 
-                # Find F and SIGF flags for phenix maps
-                # cmd = """mtzdmp """ + hklout_rfill
-                # output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
-                # flags = ""
-                # for i in output.splitlines():
-                #     if "H K L " in i:
-                #         flags = i.split()
-                # fsigf_Flag = ""
-                # if "F" in flags and "SIGF" in flags:
-                # fsigf_Flag = "maps.input.reflection_data.labels=F,SIGF"
-                cmd = f"/data/staff/biomax/guslim/read_mtz_flags.py {hklin}"
+                cmd = project_read_mtz_flags(proj, hklin)
                 process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
                 output, error = process.communicate()  # receive output from the python2 script
 
                 # r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
                 fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
                 fsigf_Flag = "maps.input.reflection_data.labels='" + fsigf_Flag + "'"
-                print(fsigf_Flag)
                 phenix_maps = \
                     "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + " " + \
                     fsigf_Flag + "; mv " + hklout + " " + \
