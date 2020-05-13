@@ -12,7 +12,7 @@ from fragview.projects import current_project
 
 #
 # PDB files uploaded by the user must match this regexp,
-# to prevent wierd issues, as we use the filename to derive paths.
+# to prevent weird issues, as we use the filename to derive paths.
 #
 # Let's be restrictive for now.
 # Only alphanumeric characters allowed and '.pdb' is the only allowed
