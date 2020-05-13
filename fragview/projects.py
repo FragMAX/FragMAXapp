@@ -101,18 +101,40 @@ def project_update_status_script_cmds(project, sample, softwares):
         f"module load {softwares}\n"
 
 
+def shifts_raw_master_h5_files(project, shifts):
+    """
+    generate a list of .h5 image files from the 'raw' directory
+    for specified shits
+
+    shifts - list of shift
+    """
+    shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
+    for sdir in shift_dirs:
+        for file in glob.glob(f"{sdir}/raw/{project.protein}/*/*master.h5"):
+            yield file
+
+
 def project_raw_master_h5_files(project):
-    for shift_dir in project_shift_dirs(project):
-        for file in glob.glob(f"{shift_dir}/raw/{project.protein}/*/*master.h5"):
+    return shifts_raw_master_h5_files(project, project.shifts())
+
+
+def shifts_xml_files(project, shifts):
+    """
+    generate a list of metadata collection xml files for
+    the specified project's shifts
+
+    shifts - list of shift
+    """
+    shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
+    for sdir in shift_dirs:
+        for file in glob.glob(
+                f"{sdir}**/process/{project.protein}/**/**/fastdp/cn**/"
+                f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
             yield file
 
 
 def project_xml_files(project):
-    for shift_dir in project_shift_dirs(project):
-        for file in glob.glob(
-                f"{shift_dir}**/process/{project.protein}/**/**/fastdp/cn**/"
-                f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
-            yield file
+    return shifts_xml_files(project, project.shifts())
 
 
 def project_fragment_cif(project, fragment):

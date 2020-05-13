@@ -101,7 +101,8 @@ class TestEdit(_ProjectTestCase):
         self.assertEqual("/projects/", resp.url)
 
     @mock.patch("os.path.isdir")
-    def test_modify(self, _):
+    @mock.patch("fragview.views.projects.add_new_shifts")
+    def test_new_shift(self, add_task_mock, _):
         # make sure the projects shift list is empty
         self.assertEqual("", self.proj.shift_list)
 
@@ -120,6 +121,13 @@ class TestEdit(_ProjectTestCase):
         # check that project's shift list was stored in the DB
         proj = Project.objects.get(id=self.proj.id)
         self.assertEqual(SHIFT, proj.shift_list)
+
+        # project should go into pending state
+        pend_proj = PendingProject.objects.get(project=proj.id)
+        self.assertIsNotNone(pend_proj)
+
+        # check that 'add_new_shift' task was started
+        add_task_mock.delay.assert_called_once_with(proj.id, [SHIFT])
 
     def test_modify_invalid(self):
         """

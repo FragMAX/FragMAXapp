@@ -2,7 +2,7 @@ import re
 from os import path
 from django import forms
 from fragview import projects, fraglib, encryption
-from .models import Project, PendingProject, EncryptionKey
+from .models import Project, EncryptionKey
 
 
 def _is_8_digits(str, subject="shift"):
@@ -178,7 +178,7 @@ class ProjectForm(forms.Form):
 
         self.model.save()
 
-    def save(self, pending=True):
+    def save(self):
         # save the library
         library = fraglib.save_new_library(
             self.cleaned_data["library_name"], self.cleaned_data["fragments"])
@@ -205,9 +205,5 @@ class ProjectForm(forms.Form):
             key = EncryptionKey(key=encryption.generate_key(),
                                 project=proj)
             key.save()
-
-        # add 'pending' entry, if requested
-        if pending:
-            PendingProject(project=proj).save()
 
         return proj

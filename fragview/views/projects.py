@@ -9,16 +9,31 @@ from fragview.forms import ProjectForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
 
-from worker import setup_project_files
+from worker import setup_project_files, add_new_shifts
 
 
-def list(request):
+def show(request):
     """
     projects list page, aka 'manage projects' page
     """
     return render(request,
                   "fragview/projects.html",
                   {"pending_projects": PendingProject.get_projects()})
+
+
+def _update_project(form):
+    old_shifts = set(form.model.shifts())
+
+    form.update()
+    new_shifts = set(form.model.shifts())
+
+    added = new_shifts - old_shifts
+
+    if len(added) > 0:  # new shift added
+        # put the project into 'pending' state
+        form.model.set_pending()
+        # start importing datasets from the new shift(s)
+        add_new_shifts.delay(form.model.id, list(added))
 
 
 def edit(request, id):
@@ -33,7 +48,7 @@ def edit(request, id):
         action = request.POST["action"]
         if action == "modify":
             if form.is_valid():
-                form.update()
+                _update_project(form)
                 return redirect("/projects/")
         elif action == "delete":
             proj.delete()
@@ -60,7 +75,8 @@ def new(request):
     if not form.is_valid():
         return render(request, "fragview/project.html", {"form": form})
 
-    proj = form.save(pending=True)
+    proj = form.save()
+    proj.set_pending()
     setup_project_files.delay(proj.id)
 
     return redirect("/projects/")

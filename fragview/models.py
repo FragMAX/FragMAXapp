@@ -66,6 +66,9 @@ class Project(models.Model):
     def set_ready(self):
         PendingProject.remove_pending(self)
 
+    def set_pending(self):
+        PendingProject(project=self).save()
+
     def icon_num(self):
         return self.id % self.PROJ_ICONS_NUMBER
 

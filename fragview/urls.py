@@ -38,7 +38,7 @@ urlpatterns = [
     path('download_options/', misc.download_options, name='download_options'),
 
     # project management views
-    path('projects/', projects.list, name='manage_projects'),
+    path('projects/', projects.show, name='manage_projects'),
     path('project/<int:id>/', projects.edit),
     path('project/new', projects.new, name='new_project'),
     path('project/current/<int:id>/', projects.set_current),

@@ -7,11 +7,12 @@ from fragview import forms
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from fragview import projects
-from fragview.models import PendingProject
+from fragview.models import Project
 
 
 PROPOSAL = "12345678"
 PROTEIN = "MyProt"
+LIBRARY = "JBS"
 SHIFT = "00000000"
 SHIFT_1 = "00000001"
 SHIFT_2 = "00000002"
@@ -36,7 +37,7 @@ class FormTesterMixin:
 
     def _request(self,
                  protein=PROTEIN,
-                 library_name="JBS",
+                 library_name=LIBRARY,
                  proposal=PROPOSAL,
                  shift=SHIFT,
                  shift_list=f"{SHIFT_1},{SHIFT_2}"):
@@ -74,30 +75,20 @@ class TestProjectFormSave(test.TestCase, FormTesterMixin):
             valid = proj_form.is_valid()
             self.assertTrue(valid)  # sanity check that form _is_ valid
 
-            return proj_form.save(pending=True)
+            return proj_form.save()
 
     def test_save(self):
         """
-        test saving form as pending project, and check
-        it's pending status in the database
+        test saving project form, and check
+        that the database was updated
         """
         proj = self.save_form()
 
-        # save project should be in pending state
-        pend_proj = PendingProject.objects.get(project=proj.id)
-        self.assertIsNotNone(pend_proj)
-
-    def test_set_ready(self):
-        """
-        test setting project 'ready' and check it's pending
-        state is dropped from the database
-        """
-        proj = self.save_form()
-
-        proj.set_ready()
-
-        pend_proj = PendingProject.objects.filter(project=1)
-        self.assertFalse(pend_proj.exists())
+        # check that database entry looks reasonable
+        db_proj = Project.get(proj_id=proj.id)
+        self.assertEqual(db_proj.protein, PROTEIN)
+        self.assertEqual(db_proj.proposal, PROPOSAL)
+        self.assertEqual(db_proj.library.name, LIBRARY)
 
 
 class TestProjectForm(unittest.TestCase, FormTesterMixin):

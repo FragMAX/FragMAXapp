@@ -4,7 +4,6 @@ import csv
 from glob import glob
 import pyfastcopy  # noqa
 import shutil
-import itertools
 import xmltodict
 import subprocess
 from pathlib import Path
@@ -13,8 +12,9 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, project_data_collections_file, project_all_status_file
-from fragview.projects import project_shift_dirs, project_fragments_dir, project_scripts_dir
+from fragview.projects import UPDATE_STATUS_SCRIPT, project_data_collections_file
+from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
+from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
 
 logger = get_task_logger(__name__)
 
@@ -33,6 +33,28 @@ def setup_project_files(proj_id):
         proj.set_ready()
 
 
+@celery.task
+def add_new_shifts(proj_id, shifts):
+    try:
+        proj = Project.get(proj_id)
+    except Project.DoesNotExist:
+        logger.warning(f"warning: no project with ID {proj_id}, will add new shift(s)")
+        return
+
+    with dist_lock.acquire(f"add_new_shifts|{proj_id}"):
+        logger.info(f"import new shifts {shifts} to {proj.protein}-{proj.library.name} ({proj.id})")
+        _add_new_shifts_files(proj, shifts)
+        proj.set_ready()
+
+
+def _add_new_shifts_files(proj, shifts):
+    meta_files = list(shifts_xml_files(proj, shifts))
+    _copy_collection_metadata_files(proj, meta_files)
+    _write_data_collections_file(proj, project_xml_files(proj))
+    _import_edna_fastdp(proj, shifts)
+    _write_project_status(proj)
+
+
 def _setup_project_files(proj):
     meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
@@ -40,7 +62,7 @@ def _setup_project_files(proj):
     _copy_scripts(proj)
     _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
-    _import_edna_fastdp(proj)
+    _import_edna_fastdp(proj, proj.shifts())
     _write_project_status(proj)
 
 
@@ -151,13 +173,10 @@ def _copy_collection_metadata_files(proj, meta_files):
         shutil.copyfile(mfile, dest_file)
 
 
-def _import_edna_fastdp(proj):
+def _import_edna_fastdp(proj, shifts):
     # Copy data from beamline auto processing to fragmax folders
     # Should be run in a different thread
-    h5s = list(itertools.chain(
-        *[glob(f"/data/visitors/biomax/{proj.proposal}/{shift}/raw/{proj.protein}/"
-               f"{proj.protein}*/{proj.protein}*master.h5")
-            for shift in proj.shifts()]))
+    h5s = list(shifts_raw_master_h5_files(proj, shifts))
 
     logger.info(f"importing EDNA/fast_dp results for {len(h5s)} datasets")
     num_of_datasets = len(h5s)
