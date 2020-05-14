@@ -20,6 +20,7 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertListEqual(xsdata.snapshots, EXPECTED_SNAPSHOTS)
         self.assertAlmostEqual(xsdata.axisStart, 2.70001e+02)
         self.assertAlmostEqual(xsdata.axisEnd, 6.300010e+02)
+        self.assertAlmostEqual(xsdata.flux, 2.7e+12)
         self.assertAlmostEqual(xsdata.wavelength, 9.762530e-01)
         self.assertAlmostEqual(xsdata.exposureTime, 1.100000e-02)
         self.assertAlmostEqual(xsdata.resolution, 1.600000e+00)
