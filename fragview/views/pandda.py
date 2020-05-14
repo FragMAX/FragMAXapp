@@ -19,6 +19,16 @@ from fragview.projects import current_project, project_results_dir, project_scri
 from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
 
 
+def str2bool(v):
+    if not type(v) == bool:
+        if v.lower() in ("yes", "true", "t", "1"):
+            return True
+        else:
+            return False
+    else:
+        return v
+
+
 def processing_form(request):
     proj = current_project(request)
 
@@ -38,7 +48,7 @@ def inspect(request):
     glob_pattern = f"{res_dir}/*/pandda/analyses/html_summaries/*inspect.html"
     proc_methods = [x.split("/")[-5] for x in glob(glob_pattern)]
 
-    if proc_methods == []:
+    if not proc_methods:
         localcmd = f"cd {proj.data_path()}/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
         return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
 
@@ -554,9 +564,9 @@ def analyse(request):
         if len(glob(panda_results_path + "/" + methods + "/pandda/analyses-*")) > 0:
             last = sorted(glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
             if os.path.exists(last + "/html_summaries/pandda_analyse.html"):
-                time = datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
-                if time > newest:
-                    newest = time
+                cur_time = datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
+                if cur_time > newest:
+                    newest = cur_time
                     newestpath = last
                     newestmethod = methods
 
@@ -639,24 +649,31 @@ def submit(request):
 
     if "analyse" in panddaCMD:
         function, proc, ref, complete, use_apo, use_dmso, reproZmaps, use_CAD, ref_CAD, \
-        ign_errordts, keepup_last, ign_symlink, PanDDAfilter = panddaCMD.split(";")
+            ign_errordts, keepup_last, ign_symlink, PanDDAfilter, min_dataset, customPanDDA = panddaCMD.split(";")
+
+        method = proc + "_" + ref
 
         if PanDDAfilter == "null":
             useSelected = False
         else:
             useSelected = True
-        method = proc + "_" + ref
+
+        if min_dataset.isnumeric():
+            min_dataset = int(min_dataset)
+        else:
+            min_dataset = 40
 
         options = {
             "method": method,
-            "useApos": use_apo,
+            "useApos": str2bool(use_apo),
             "useSelected": useSelected,
-            "reprocessZmap": reproZmaps,
+            "reprocessZmap": str2bool(reproZmaps),
             "initpass": False,
-            "min_datasets": 40,
+            "min_datasets": min_dataset,
             "rerun_state": False,
-            "complete_results": complete,
-            "dtsfilter": PanDDAfilter
+            "complete_results": str2bool(complete),
+            "dtsfilter": PanDDAfilter,
+            "customPanDDA": customPanDDA
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -685,7 +702,7 @@ def submit(request):
             outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
             outp.write(project_pandda_worker(proj, options) + '\n')
 
-        t1 = threading.Thread(target=pandda_worker, args=(method, proj))
+        t1 = threading.Thread(target=pandda_worker, args=(proj, method, options))
         t1.daemon = True
         t1.start()
 
@@ -755,6 +772,9 @@ def giant_score(proj, method):
         dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
         cpcmd3 = "cp -f " + src + " " + dst
+        make_restraints = ""
+        quick_refine = ""
+        frag = ""
         if "Apo" not in _dir:
             try:
                 ens = glob(_dir + "/*ensemble*.pdb")[0]
@@ -767,7 +787,6 @@ def giant_score(proj, method):
             except Exception:
                 make_restraints = ""
                 quick_refine = ""
-
         script = project_script(proj, f"giant_pandda_{frag}.sh")
         utils.write_script(script,
                            f"{header}\n"
@@ -816,7 +835,7 @@ def giant_score(proj, method):
     hpc.frontend_run(giant_worker_script)
 
 
-def pandda_worker(method, proj):
+def pandda_worker(proj, method, options):
     rn = str(randint(10000, 99999))
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
@@ -837,7 +856,7 @@ def pandda_worker(method, proj):
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
         }
         for dataset in selectedDict.keys():
-            selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
+            selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
     else:
         method_dir = method.replace("_", "/")
         datasetList = set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"
@@ -849,7 +868,7 @@ def pandda_worker(method, proj):
         missingDict = set(datasetList) - set(selectedDict)
 
         for dataset in missingDict:
-            selectedDict[dataset] = get_best_alt_dataset(proj, dataset)
+            selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
 
     pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
                                     "pandda", proj.protein, method, "selection.json")
@@ -932,8 +951,12 @@ def pandda_worker(method, proj):
     # os.remove(script)
 
 
-def get_best_alt_dataset(proj, dataset):
-    optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb")
+def get_best_alt_dataset(proj, dataset, options):
+    if options["complete_results"]:
+        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb")
+    else:
+        proc, ref = options["method"].split("_")
+        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
     rwork_res = list()
     r_work = ""
     resolution = ""
@@ -943,13 +966,11 @@ def get_best_alt_dataset(proj, dataset):
         for pdb in optionList:
             with open(pdb, "r") as readFile:
                 pdb_file = readFile.readlines()
-                print("ok")
             for line in pdb_file:
                 if "REMARK Final:" in line:
                     r_work = line.split()[4]
                 if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
                     resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
-            print(resolution)
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]
