@@ -17,6 +17,10 @@ from worker import setup_project_files
 
 
 def set_details(request):
+    def _logs(logs_dir):
+        log_paths = [x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x]
+        return [(path.basename(p), p) for p in log_paths]
+
     proj = current_project(request)
 
     dataset = str(request.GET["proteinPrefix"])
@@ -52,9 +56,6 @@ def set_details(request):
 
     # getreports
     scurp = curp.replace("/data/visitors/", "/static/")
-    xdsappreport = \
-        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + \
-        "/xdsapp/results_" + prefix + "_" + run + "_data.txt"
 
     dialsreport = \
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/dials/xia2.html"
@@ -79,61 +80,44 @@ def set_details(request):
     xdsLogs = ""
     dialsLogs = ""
 
-    if os.path.exists(
-            curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
-            run + "/xdsapp/results_" + prefix + "_" + run + "_data.txt"):
+    # XDSAPP logs
+    xdsapp_dir = path.join(dataset_dir, "xdsapp")
+    xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
+    if path.exists(xdsappreport):
         xdsappOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-            run + "/xdsapp"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        xdsappLogs = list(zip(logNames, logPaths))
+        xdsappLogs = _logs(xdsapp_dir)
 
-    if os.path.exists(
-            curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
-            run + "/dials/xia2.html"):
+    # DIALS logs
+    dials_dir = path.join(dataset_dir, "dials")
+    if path.exists(path.join(dials_dir, "xia2.html")):
         dialsOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-            run + "/dials/LogFiles"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        dialsLogs = list(zip(logNames, logPaths))
+        dialsLogs = _logs(path.join(dials_dir, "LogFiles"))
 
-    if os.path.exists(
-            curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
-            run + "/xdsxscale/xia2.html"):
+    # XDS/XSCALE logs
+    xds_dir = path.join(dataset_dir, "xdsxscale")
+    if path.exists(path.join(xds_dir, "xia2.html")):
         xdsOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-            run + "/xdsxscale/LogFiles"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        xdsLogs = list(zip(logNames, logPaths))
+        xdsLogs = _logs(path.join(xds_dir, "LogFiles"))
 
-    if os.path.exists(
-            curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
-            run + "/autoproc/summary.html"):
+    # autoPROC logs
+    autoproc_dir = path.join(dataset_dir, "autoproc")
+    if path.exists(path.join(autoproc_dir, "summary.html")):
         autoprocOK = "ready"
-        searchPath = curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + \
-            run + "/autoproc/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        autoprocLogs = list(zip(logNames, logPaths))
+        autoprocLogs = _logs(autoproc_dir)
 
     # EDNA logs
     edna_dir = path.join(dataset_dir, "edna")
     ednareport = path.join(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
     if path.exists(ednareport):
         ednaOK = "ready"
-        logPaths = [x for x in glob(f"{edna_dir}/*") if "txt" in x or "LP" in x or "log" in x]
-        ednaLogs = [(path.basename(p), p) for p in logPaths]
+        ednaLogs = _logs(edna_dir)
 
     # Fast DP reports
     fastdp_dir = path.join(dataset_dir, "fastdp")
     fastdpreport = path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
     if path.exists(fastdpreport):
         fastdpOK = "ready"
-        logPaths = [x for x in glob(f"{fastdp_dir}/*") if "txt" in x or "LP" in x or "log" in x]
-        fastdpLogs = [(path.basename(p), p) for p in logPaths]
+        fastdpLogs = _logs(fastdp_dir)
 
     if "Apo" in prefix:
         soakTime = "Soaking not performed"
