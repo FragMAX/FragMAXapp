@@ -183,18 +183,18 @@
             <input class="filled-in dt-checkboxes" id="processALLNEWckbox" name="processALLNEWckbox" type="checkbox"
                 value="allnewdatasets" >
             <span for="processALLNEWckbox">Process new datasets </span></input>
-        </label> {% comment %} <select class="selectbox datasetbox" disabled id="dropdownDataset" name="dropdownDataset">
-            <option disabled selected value> -- select a dataset -- </option>
-            {% for datasetName in datasets %}
-            <option value={{datasetName}}>{{datasetName}}</option>
-            {% endfor %}
-        </select> {% endcomment %}
+        </label>
+        <label style="padding-top: 10px; padding-left: 20px">
+            <input class="filled-in dt-checkboxes" id="checkALLdatasets" name="checkALLdatasets"
+                type="checkbox" value="chckalldatasets">
+            <span for="checkALLdatasets">Select ALL datasets </span> </label>
     </div>
     <div class=" card_options">
         <div class="card tab">
             <button class="tablinks" onclick="openDatasets(event, 'Datasets')">Select dataset</button>
             <button class="tablinks" onclick="openDatasets(event, 'HideDatasets')">Hide</button>
         </div>
+
         <div class="card tabcontent" id="Datasets">
 
 
@@ -1920,7 +1920,16 @@
             }
         });
     });
+    $(document).ready(function() {
+        $("#checkALLdatasets").click(function() {
+            if ($(this).is(":checked")) {
+                checkAll()
+            } else {
+                checkNone()
 
+            }
+        });
+    });
 
 
 
@@ -2176,6 +2185,18 @@
         }
         // Return the array if it is non-empty, or null
         return checkboxesChecked.length > 0 ? checkboxesChecked : null;
+    }
+    function checkAll() {
+       var chckboxes = document.getElementsByName("checkSel");
+       for (var i = 0; i < chckboxes.length; i++) {
+          chckboxes[i].checked = true;
+       }
+    }
+    function checkNone() {
+       var chckboxes = document.getElementsByName("checkSel");
+       for (var i = 0; i < chckboxes.length; i++) {
+          chckboxes[i].checked = false;
+       }
     }
 </script>
 
