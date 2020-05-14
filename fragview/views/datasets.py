@@ -1,12 +1,13 @@
 import os
 import csv
+from os import path
 from glob import glob
 import pyfastcopy  # noqa
 import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_process_dir
+from fragview.projects import project_all_status_file, project_process_dir, project_process_protein_dir
 from fragview.projects import current_project, project_results_file, project_results_dir
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
@@ -22,8 +23,9 @@ def set_details(request):
     prefix = dataset.split(";")[0]
     images = dataset.split(";")[1]
     run = dataset.split(";")[2]
-
     images = str(int(images) / 2)
+
+    dataset_dir = path.join(project_process_protein_dir(proj), prefix, f"{prefix}_{run}")
 
     curp = proj.data_path()
     xmlfile = os.path.join(proj.data_path(), "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml")
@@ -64,14 +66,6 @@ def set_details(request):
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + \
         "/autoproc/summary.html"
 
-    ednareport = \
-        scurp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" + run + \
-        "_1/EDNA_proc/results/ep_" + prefix + "_" + run + "_phenix_xtriage_noanom.log"
-
-    fastdpreport = \
-        scurp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" + run + \
-        "_1/fastdp/results/ap_" + prefix + "_run" + run + "_noanom_fast_dp.log"
-
     xdsappOK = "no"
     dialsOK = "no"
     xdsOK = "no"
@@ -94,6 +88,7 @@ def set_details(request):
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         xdsappLogs = list(zip(logNames, logPaths))
+
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/dials/xia2.html"):
@@ -103,6 +98,7 @@ def set_details(request):
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         dialsLogs = list(zip(logNames, logPaths))
+
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/xdsxscale/xia2.html"):
@@ -112,6 +108,7 @@ def set_details(request):
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         xdsLogs = list(zip(logNames, logPaths))
+
     if os.path.exists(
             curp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" +
             run + "/autoproc/summary.html"):
@@ -121,24 +118,22 @@ def set_details(request):
         logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
         logNames = [x.split("/")[-1] for x in logPaths]
         autoprocLogs = list(zip(logNames, logPaths))
-    if os.path.exists(
-            curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" +
-            run + "_1/EDNA_proc/results/ep_" + prefix + "_" + run + "_phenix_xtriage_noanom.log"):
+
+    # EDNA logs
+    edna_dir = path.join(dataset_dir, "edna")
+    ednareport = path.join(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
+    if path.exists(ednareport):
         ednaOK = "ready"
-        searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" + \
-            run + "_1/EDNA_proc/results/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        ednaLogs = list(zip(logNames, logPaths))
-    if os.path.exists(
-            curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + "_" +
-            run + "_1/fastdp/results/ap_" + prefix + "_run" + run + "_noanom_fast_dp.log"):
+        logPaths = [x for x in glob(f"{edna_dir}/*") if "txt" in x or "LP" in x or "log" in x]
+        ednaLogs = [(path.basename(p), p) for p in logPaths]
+
+    # Fast DP reports
+    fastdp_dir = path.join(dataset_dir, "fastdp")
+    fastdpreport = path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
+    if path.exists(fastdpreport):
         fastdpOK = "ready"
-        searchPath = curp + "/process/" + proj.protein + "/" + prefix + "/xds_" + prefix + '_' + \
-            run + "_1/fastdp/results/"
-        logPaths = [x for x in glob(f"{searchPath}/*") if "txt" in x or "LP" in x or "log" in x]
-        logNames = [x.split("/")[-1] for x in logPaths]
-        fastdpLogs = list(zip(logNames, logPaths))
+        logPaths = [x for x in glob(f"{fastdp_dir}/*") if "txt" in x or "LP" in x or "log" in x]
+        fastdpLogs = [(path.basename(p), p) for p in logPaths]
 
     if "Apo" in prefix:
         soakTime = "Soaking not performed"
