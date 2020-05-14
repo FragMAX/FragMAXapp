@@ -1150,7 +1150,7 @@
                                         <div class="col s12 required inline" id="processing_method">
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                <input checked="checked" class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp">
+                                                <input class="with-gap" id="xdsapp_radio" name="proc_type" type="radio" value="xdsapp">
                                                     <span class="item-label" for="xdsapp_radio">XDSAPP</span>
                                                 </label>
                                             </div>
@@ -1186,7 +1186,7 @@
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                <input class="with-gap" id="bestdp_radio" name="proc_type" type="radio" value="bestdp">
+                                                <input checked="checked" class="with-gap" id="bestdp_radio" name="proc_type" type="radio" value="bestdp">
                                                     <span class="item-label" for="bestdp_radio">Best</span>
                                                 </label>
                                             </div>
@@ -1199,7 +1199,7 @@
                                         <div class="col s12 required inline" id="refinement_method">
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                    <input checked="checked" class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
+                                                    <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
                                                     <span class="item-label" for="dimple_radio">Dimple</span>
                                                 </label>
                                             </div>
@@ -1217,7 +1217,7 @@
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                    <input class="with-gap" id="bestproc_radio" name="ref_type" type="radio" value="bestproc">
+                                                    <input checked="checked" class="with-gap" id="bestproc_radio" name="ref_type" type="radio" value="bestproc">
                                                     <span class="item-label" for="bestproc_radio">Best</span>
                                                 </label>
                                             </div>
@@ -1255,16 +1255,10 @@
                                             <div class="checkbox" id="proczMapscheck">
                                                 <label>
                                                 <input checked class="filled-in dt-checkboxes" id="proczMaps" name="proczMaps" type="checkbox" value="proczMaps">
-                                                    <span for="proczMaps">Reprocess using datasets without Z-map peaks</span>
+                                                    <span for="proczMaps">Reprocess using datasets without peaks in Z-map</span>
                                                 </label>
                                             </div>
                                         </form>
-                                    </td>
-                                </tr>
-                                <tr class="custompar">
-                                    <th class=" top-options">Custom parameters</th>
-                                    <td class=" top-options">
-                                        <input class="selectbox" name="customdataproc" placeholder="default: None"></input>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1326,10 +1320,16 @@
                                         </form>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <th class=" top-options">Minimum dataset for building ground state</th>
+                                    <td class=" top-options">
+                                        <input class="selectbox" id="min_datasets" placeholder="default: 40"></input>
+                                    </td>
+                                </tr>
                                 <tr class="custompar">
                                     <th class=" top-options">Custom parameters</th>
                                     <td class=" top-options">
-                                        <input class="selectbox" name="custombuster" placeholder="default: None"></input>
+                                        <input class="selectbox" id="PanDDAcustom" placeholder="default: None"></input>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1343,6 +1343,7 @@
                 </div>
             </div>
         </div>
+        <hr>
         <div class="card-title">Giant PanDDA</div>
         <div class="flexdiv_options  ">
             <div class="flex-left">
@@ -2192,7 +2193,7 @@
 
         var use_apo = document.getElementById("apoGS").checked
         var use_dmso = document.getElementById("dmsoGS").checked
-        var use_cryo = document.getElementById("proczMaps").checked
+        var proczMaps = document.getElementById("proczMaps").checked
 
         var use_CAD = document.getElementById("use_CAD").value
         var ref_CAD = document.getElementById("refine_popMTZ").value
@@ -2200,10 +2201,14 @@
         var ign_errordts = document.getElementById("ignoreErr").checked
         var keepup_last = document.getElementById("keepup").checked
         var ign_symlink = document.getElementById("fixsym").checked
+        var min_datasets = document.getElementById("min_datasets").value
+        var PanDDAcustom = document.getElementById("PanDDAcustom").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
-            use_apo + ";" + use_dmso + ";" + use_cryo + ";" + use_CAD + ";" + ref_CAD + ";" +
+            use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
             ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter
+            + ";" + min_datasets + ";" + PanDDAcustom
+
         document.getElementsByName("panddaform")[0].value = PanDDAout
 
     }
