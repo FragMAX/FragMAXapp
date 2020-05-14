@@ -255,3 +255,10 @@ class AccessToken(models.Model):
         get this token as base64 encoded string
         """
         return base64.b64encode(self.token).decode()
+
+
+class ProjectDetails(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    protein_name = models.TextField()
+    # the official PDB ID, as assigned by Protein Data Bank organization
+    group_dep_id = models.TextField()
