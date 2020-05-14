@@ -1,8 +1,9 @@
 import os
-from glob import glob
+import csv
 import sys
 import subprocess
 import shutil
+from glob import glob
 from ast import literal_eval
 
 # CLI Arguments
@@ -84,15 +85,13 @@ def find_bad_dataset(lastlog, options):
     return badDataset
 
 
-
-
 def pandda_run(method, options):
     ground_state_parameter = ground_state_entries(options)
 
     os.chdir(path + "/fragmax/results/pandda/" + protein + "/" + method)
 
     command = "pandda.analyse data_dirs='" + path + "/fragmax/results/pandda/" + protein + "/" + options["method"] + \
-              "/*' " + ground_state_parameter + " cpus=16 "
+              "/*' " + ground_state_parameter + " " + options["customPanDDA"] + " cpus=16 "
     print(command)
     subprocess.call(command, shell=True)
     if len(glob(path + "/fragmax/results/pandda/" + protein + "/" + options["method"] + "/pandda/logs/*.log")) > 0:
