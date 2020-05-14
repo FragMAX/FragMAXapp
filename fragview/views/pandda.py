@@ -19,7 +19,6 @@ from fragview.projects import current_project, project_results_dir, project_scri
 from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
 
 
-
 def processing_form(request):
     proj = current_project(request)
 
@@ -639,10 +638,26 @@ def submit(request):
         return render(request, "fragview/jobs_submitted.html", {"command": giantCMD})
 
     if "analyse" in panddaCMD:
-        function, proc, ref, complete, use_apo, use_dmso, use_cryo, use_CAD, ref_CAD, \
-            ign_errordts, keepup_last, ign_symlink = panddaCMD.split(";")
+        function, proc, ref, complete, use_apo, use_dmso, reproZmaps, use_CAD, ref_CAD, \
+        ign_errordts, keepup_last, ign_symlink, PanDDAfilter = panddaCMD.split(";")
 
+        if PanDDAfilter == "null":
+            useSelected = False
+        else:
+            useSelected = True
         method = proc + "_" + ref
+
+        options = {
+            "method": method,
+            "useApos": use_apo,
+            "useSelected": useSelected,
+            "reprocessZmap": reproZmaps,
+            "initpass": False,
+            "min_datasets": 40,
+            "rerun_state": False,
+            "complete_results": complete,
+            "dtsfilter": PanDDAfilter
+        }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
@@ -668,7 +683,7 @@ def submit(request):
             outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
             outp.write('module purge\n')
             outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
-            outp.write(project_pandda_worker(proj, method) + '\n')
+            outp.write(project_pandda_worker(proj, options) + '\n')
 
         t1 = threading.Thread(target=pandda_worker, args=(method, proj))
         t1.daemon = True
@@ -803,7 +818,6 @@ def giant_score(proj, method):
 
 def pandda_worker(method, proj):
     rn = str(randint(10000, 99999))
-
     header = '''#!/bin/bash\n'''
     header += '''#!/bin/bash\n'''
     header += '''#SBATCH -t 00:15:00\n'''
@@ -817,6 +831,7 @@ def pandda_worker(method, proj):
         fragDict[_dir.split("/")[-1]] = _dir
 
     if "best" in method:
+        print("FragMAXapp will select best datasets")
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
@@ -838,7 +853,6 @@ def pandda_worker(method, proj):
 
     pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
                                     "pandda", proj.protein, method, "selection.json")
-
     for dataset, pdb in selectedDict.items():
         if "buster" in pdb:
             pdb = pdb.replace("final.pdb", "refine.pdb")
@@ -915,7 +929,7 @@ def pandda_worker(method, proj):
         writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
-    os.remove(script)
+    # os.remove(script)
 
 
 def get_best_alt_dataset(proj, dataset):
@@ -923,17 +937,19 @@ def get_best_alt_dataset(proj, dataset):
     rwork_res = list()
     r_work = ""
     resolution = ""
-    if optionList == []:
+    if not optionList:
         return ""
     else:
         for pdb in optionList:
             with open(pdb, "r") as readFile:
                 pdb_file = readFile.readlines()
+                print("ok")
             for line in pdb_file:
                 if "REMARK Final:" in line:
                     r_work = line.split()[4]
                 if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
                     resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+            print(resolution)
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]
