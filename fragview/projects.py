@@ -1,5 +1,6 @@
 import glob
 from os import path
+from shutil import copyfile
 from django.conf import settings
 from .proposals import get_proposals
 
@@ -94,16 +95,30 @@ def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
 
 
+def copy_missing_script(project, python_script):
+    # This copy function should be removed after a few users copy files to their folders.
+
+    if not path.exists(f"{project.data_path()}/fragmax/scripts/{python_script}"):
+        copyfile(f"/data/staff/biomax/webapp/static/scripts/{python_script}",
+                 f"{project.data_path()}/fragmax/scripts/{python_script}")
+
+
 def project_read_mtz_flags(project, hklin):
+    # This copy function should be removed after a few users copy files to their folders.
+
+    copy_missing_script(project, READ_MTZ_FLAGS)
     return \
         project_script(project, READ_MTZ_FLAGS) + \
         f" {hklin}"
 
 
-def project_pandda_worker(project, method):
+def project_pandda_worker(project, options):
+    # This copy function should be removed after a few users copy files to their folders.
+
+    copy_missing_script(project, PANDDA_WORKER)
     return "python " + \
         project_script(project, PANDDA_WORKER) + \
-        f" {project.data_path()} {method} {project.protein}"
+        f' {project.data_path()} {project.protein} "{options}"'
 
 
 def project_update_status_script_cmds(project, sample, softwares):
