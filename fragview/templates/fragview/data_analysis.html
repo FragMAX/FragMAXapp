@@ -1252,10 +1252,10 @@
                                                     <span for="dmsoGS">Use Cryo/DMSO datasets</span>
                                                 </label>
                                             </div>
-                                            <div class="checkbox" id="cryoGScheck">
+                                            <div class="checkbox" id="proczMapscheck">
                                                 <label>
-                                                <input checked class="filled-in dt-checkboxes" id="cryoGS" name="cryoGS" type="checkbox" value="cryoGS">
-                                                    <span for="cryoGS">Reprocess using datasets without Z-map peaks</span>
+                                                <input checked class="filled-in dt-checkboxes" id="proczMaps" name="proczMaps" type="checkbox" value="proczMaps">
+                                                    <span for="proczMaps">Reprocess using datasets without Z-map peaks</span>
                                                 </label>
                                             </div>
                                         </form>
@@ -1283,7 +1283,7 @@
                                 <tr>
                                     <th class=" top-options">Fill missing reflections with CAD</th>
                                     <td class=" top-options">
-                                        <select class="selectbox" id="use_CAD" name="use_CAD">
+                                        <select class="selectbox" id="use_CAD" name="use_CAD" disabled>
                                                                                                                     <option disabled value="yes"> -- select an option -- </option>
                                                                                                                     <option selected value="yes">Yes</option>
                                                                                                                     <option value="no">No</option>
@@ -1293,7 +1293,7 @@
                                 <tr>
                                     <th class=" top-options">Refine populated MTZ</th>
                                     <td class=" top-options">
-                                        <select class="selectbox" id="refine_popMTZ" name="refine_popMTZ">
+                                        <select class="selectbox" id="refine_popMTZ" name="refine_popMTZ" disabled>
                                                                                                                     <option disabled value="no"> -- select an option -- </option>
                                                                                                                     <option selected value="phenixRefine">Phenix.Refine</option>
                                                                                                                     <option value="refmac">Refmac</option>
@@ -2192,7 +2192,7 @@
 
         var use_apo = document.getElementById("apoGS").checked
         var use_dmso = document.getElementById("dmsoGS").checked
-        var use_cryo = document.getElementById("cryoGS").checked
+        var use_cryo = document.getElementById("proczMaps").checked
 
         var use_CAD = document.getElementById("use_CAD").value
         var ref_CAD = document.getElementById("refine_popMTZ").value
@@ -2200,11 +2200,11 @@
         var ign_errordts = document.getElementById("ignoreErr").checked
         var keepup_last = document.getElementById("keepup").checked
         var ign_symlink = document.getElementById("fixsym").checked
-
-        var out = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
+        var PanDDAfilter = "" + getCheckedBoxes("checkSel");
+        var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + use_cryo + ";" + use_CAD + ";" + ref_CAD + ";" +
-            ign_errordts + ";" + keepup_last + ";" + ign_symlink
-        document.getElementsByName("panddaform")[0].value = out
+            ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter
+        document.getElementsByName("panddaform")[0].value = PanDDAout
 
     }
 
