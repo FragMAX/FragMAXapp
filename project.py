@@ -13,7 +13,8 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, project_update_status_script, project_data_collections_file
+from fragview.projects import UPDATE_STATUS_SCRIPT, READ_MTZ_FLAGS, PANDDA_WORKER
+from fragview.projects import project_update_status_script, project_data_collections_file
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 
 logger = get_task_logger(__name__)
@@ -71,8 +72,9 @@ def _create_fragmax_folders(proj):
 
 
 def _write_update_script(proj):
-    src_file = path.join(path.dirname(__file__), "data", UPDATE_STATUS_SCRIPT)
-    dst_file = project_update_status_script(proj)
+    for script_file in [UPDATE_STATUS_SCRIPT, READ_MTZ_FLAGS, PANDDA_WORKER]:
+        src_file = path.join(path.dirname(__file__), "data", script_file)
+        dst_file = project_update_status_script(proj)
 
     shutil.copy(src_file, dst_file)
 
