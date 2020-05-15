@@ -1,6 +1,7 @@
 import os
 import re
 import pypdb
+from os import path
 from django import urls
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -18,7 +19,7 @@ from fragview.projects import current_project
 # Only alphanumeric characters allowed and '.pdb' is the only allowed
 # file extension.
 #
-VALID_PDB_FNAME_REGEXP = r"^([a-z0-9])+\.pdb$"
+VALID_PDB_FNAME_REGEXP = r"^([a-z0-9_])+\.pdb$"
 
 
 class PDBAddError(Exception):
@@ -61,29 +62,38 @@ def _add_pdb_entry(project, filename, pdb_id=None):
     return pdb
 
 
-def _store_uploaded_pdb(proj, pdb_file):
-    # record new PDB model in the database
-    pdb = _add_pdb_entry(proj, pdb_file.name)
-
-    # save the file to fragmax project's models directory
-    with open_proj_file(proj, pdb.file_path()) as dest:
-        for chunk in pdb_file.chunks():
-            dest.write(chunk)
-    pre_process_PDB(proj, pdb_file.name, pdb.file_path())
-
-
-def _fetch_from_rcsb(proj, pdb_id):
+def _fetch_from_rcsb(pdb_id):
     pdb_data = pypdb.get_pdb_file(pdb_id, filetype="pdb")
     if pdb_data is None:
         raise PDBAddError(f"no PDB with ID '{pdb_id}' found")
 
-    # record new PDB model in the database
-    pdb = _add_pdb_entry(proj, f"{pdb_id}.pdb", pdb_id)
+    return pdb_data.encode()
 
-    # save the file to fragmax project's models directory
-    with open_proj_file(proj, pdb.file_path()) as dest:
-        dest.write(pdb_data.encode())
-    pre_process_PDB(proj, f"{pdb_id}.pdb", pdb.file_path())
+
+def _assemble_chunks(upload_file):
+    data = b""
+    for chunk in upload_file.chunks():
+        data += chunk
+
+    return data
+
+
+def _save_pdb(proj, pdb_id, filename, pdb_data):
+    name = path.splitext(filename)[0]
+    nohet_filename = f"{name}_noHETATM.pdb"
+
+    orig_pdb = _add_pdb_entry(proj, filename, pdb_id)
+    nohet_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
+
+    # write original pdb file 'as-is' to models folder
+    with open_proj_file(proj, orig_pdb.file_path()) as dest:
+        dest.write(pdb_data)
+
+    # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
+    with open_proj_file(proj, nohet_pdb.file_path()) as dest:
+        for line in pdb_data.splitlines(keepends=True):
+            if line.startswith(b"ATOM"):
+                dest.write(line)
 
 #
 # Wrap the database operation of adding a new PDB entry into
@@ -99,11 +109,18 @@ def _process_add_request(request):
 
     try:
         if method == "upload_file":
-            _store_uploaded_pdb(proj, request.FILES["pdb"])
-            return
+            uploaded = request.FILES["pdb"]
+            data = _assemble_chunks(uploaded)
+            filename = uploaded.name
+            pdb_id = None
+        else:
+            assert method == "fetch_online"
+            pdb_id = request.POST["pdb_id"]
+            data = _fetch_from_rcsb(pdb_id)
+            filename = f"{pdb_id}.pdb"
 
-        assert method == "fetch_online"
-        _fetch_from_rcsb(proj, request.POST["pdb_id"])
+        _save_pdb(proj, pdb_id, filename, data)
+
     except FileNotFoundError as e:
         raise PDBAddError(f"Internal error saving PDB file\n{e}")
 
@@ -145,30 +162,3 @@ def edit(request, id):
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})
-
-
-def pre_process_PDB(project, filename, pdb):
-    """
-    Remove all atoms not ATOM record from
-    the provided pdb. Saves as _noHETATM
-    """
-    with open(pdb, "r") as readfile:
-        originalPDB = readfile.readlines()
-
-    outpdb = pdb.replace(".pdb", "_noHETATM.pdb")
-
-    with open(outpdb, "w") as writefile:
-        for line in originalPDB:
-            if "ATOM" in line:
-                writefile.write(line)
-
-    nohet_filename = filename.replace(".pdb", "_noHETATM.pdb")
-    args = dict(project=project, filename=nohet_filename)
-
-    try:
-        pdb = PDB(**args)
-        pdb.save()
-    except IntegrityError:
-        # here we assume that 'unique filename per project' constrain is violated,
-        # as we don't have any other constrains for the PDB table
-        raise PDBAddError(f"Model file '{nohet_filename}' already exists in the project.")

@@ -1,16 +1,9 @@
-import io
-import os
-import shutil
-import tempfile
 import unittest
-from unittest import mock
 from unittest.mock import patch, Mock
 from django import test
 from django.urls import reverse
-from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile
 from fragview.views import pdbs
 from fragview.models import Project, Library, PDB
-from fragview.projects import project_models_dir
 from tests.utils import ViewTesterMixin
 
 
@@ -166,34 +159,28 @@ class TestEditView(_PDBViewTester):
 class TestNewView(_PDBViewTester):
     PDB_FILE = "1AB2.pdb"
     PDB_ID = "2ID3"
+    PDB_DATA = b"fake-mews"
 
-    def test_upload_file(self):
+    @patch("fragview.views.pdbs._save_pdb")
+    def test_upload_file(self, save_pdb_mock):
         """
         test uploading adding local PDB file
         """
         # create a mocked 'file-like' object
         pdb_file = Mock()
         pdb_file.name = self.PDB_FILE
+        pdb_file.read.return_value = self.PDB_DATA
 
-        with patch("fragview.views.pdbs._store_uploaded_pdb") as uploaded_mock:
-            resp = self.client.post("/pdb/new", dict(method="upload_file", pdb=pdb_file))
+        resp = self.client.post("/pdb/new", dict(method="upload_file", pdb=pdb_file))
 
-            # check for OK response
-            self.assertEqual(200, resp.status_code)
+        # check for OK response
+        self.assertEqual(200, resp.status_code)
 
-            #
-            # check that _store_uploaded_pdb() mock was called with reasonable arguments
-            #
-            uploaded_mock.assert_called_once_with(self.proj, mock.ANY)
+        # check that _save_pdb() was called with correct args
+        save_pdb_mock.assert_called_once_with(self.proj, None, self.PDB_FILE, self.PDB_DATA)
 
-            # get the second unnamed call argument to the mock
-            second_arg = uploaded_mock.call_args[0][1]
-
-            # check that 'upload pdb' argument seems correct
-            self.assertEqual(second_arg.name, self.PDB_FILE)
-            self.assertIsInstance(second_arg, UploadedFile)
-
-    def test_fetch_online(self):
+    @patch("fragview.views.pdbs._save_pdb")
+    def test_fetch_online(self, save_pdb_mock):
         """
         test the case when PDB is fetched online from RCSB database
         """
@@ -204,7 +191,11 @@ class TestNewView(_PDBViewTester):
             self.assertEqual(200, resp.status_code)
 
             # check that _fetch_from_rcsb() was called with correct args
-            fetch_mock.assert_called_once_with(self.proj, self.PDB_ID)
+            fetch_mock.assert_called_once_with(self.PDB_ID)
+
+            # check that _save_pdb() was called with correct args
+            save_pdb_mock.assert_called_once_with(
+                self.proj, self.PDB_ID, f"{self.PDB_ID}.pdb", fetch_mock.return_value)
 
     def test_invalid_new(self):
         """
@@ -221,91 +212,26 @@ class TestNewView(_PDBViewTester):
         self.assertRegexpMatches(resp.content.decode(), "^Invalid PDB filename")
 
 
-class _UploadedPDBTester(test.TestCase):
-    """
-    utility class for tests on adding new PDB files
-    """
-    PDB_FILE = "1ZY9.pdb"
-    PDB_CONTENT = b"dummy-pdb-content"
-
-    def setUp(self):
-        lib = Library(name="JBS")
-        lib.save()
-
-        self.proj = Project(protein="PRT", library=lib, proposal="20210102", shift="20190808")
-        self.proj.save()
-
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
-
-    def _assert_pdb_file(self, file_path, contents):
-        # check that correct PDB file with correct content have been created
-        with open(file_path, "rb") as f:
-            self.assertEqual(f.read(), contents)
-
-
-class TestStoreUploadedPdb(_UploadedPDBTester):
-    """
-    test _store_uploaded_pdb() function
-    """
-    def test_upload_ok(self):
-        """
-        test when uploaded PDB file is stored successfully
-        """
-        # set-up a simulated uploaded file object
-        mem_file = InMemoryUploadedFile(
-            io.BytesIO(self.PDB_CONTENT), "pdb", self.PDB_FILE, None, len(self.PDB_CONTENT), None)
-
-        with self.settings(PROPOSALS_DIR=self.temp_dir):
-            # create 'fragmax models' directory
-            os.makedirs(project_models_dir(self.proj))
-
-            # add new uploaded PDB file
-            pdbs._store_uploaded_pdb(self.proj, mem_file)
-
-            # the PDB file should be listed in the database
-            pdb = PDB.objects.get(filename=self.PDB_FILE)
-
-            # check that PDB was stored on disk
-            self._assert_pdb_file(pdb.file_path(), self.PDB_CONTENT)
-
-    def test_upload_error(self):
-        """
-        test when uploaded PDB file have invalid file name
-        """
-        mem_file = InMemoryUploadedFile(io.BytesIO(), "pdb", "invalid.file", None, 0, None)
-
-        with self.assertRaisesRegex(pdbs.PDBAddError, "^Invalid PDB filename"):
-            pdbs._store_uploaded_pdb(self.proj, mem_file)
-
-
 @patch("pypdb.get_pdb_file")
-class TestFetchFromRCSB(_UploadedPDBTester):
+class TestFetchFromRCSB(test.TestCase):
     """
     test _fetch_from_rcsb() function
     """
     PDB_ID = "1XY8"
+    PDB_CONTENT = "dummy-pdb-content"
 
     def test_ok(self, get_pdb_mock):
         """
         test when we successfully fetch PDB from RCSB
         """
-        get_pdb_mock.return_value = self.PDB_CONTENT.decode()
+        get_pdb_mock.return_value = self.PDB_CONTENT
 
-        with self.settings(PROPOSALS_DIR=self.temp_dir):
-            # create 'fragmax models' directory
-            os.makedirs(project_models_dir(self.proj))
+        # fetch from RCSB
+        data = pdbs._fetch_from_rcsb(self.PDB_ID)
 
-            # fetch from RCSB
-            pdbs._fetch_from_rcsb(self.proj, self.PDB_ID)
-
-            # the PDB file should be listed in the database
-            pdb = PDB.objects.get(pdb_id=self.PDB_ID)
-
-            # check that PDB was stored on disk
-            self._assert_pdb_file(pdb.file_path(), self.PDB_CONTENT)
+        # check results and calls
+        self.assertEqual(data.decode(), self.PDB_CONTENT)
+        get_pdb_mock.assert_called_once_with(self.PDB_ID, filetype="pdb")
 
     def test_pdb_not_found(self, get_pdb_mock):
         """
@@ -314,4 +240,4 @@ class TestFetchFromRCSB(_UploadedPDBTester):
         get_pdb_mock.return_value = None
 
         with self.assertRaisesRegex(pdbs.PDBAddError, "^no PDB with ID '1XY8' found"):
-            pdbs._fetch_from_rcsb(self.proj, self.PDB_ID)
+            pdbs._fetch_from_rcsb(self.PDB_ID)
