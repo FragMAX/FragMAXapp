@@ -35,6 +35,7 @@ urlpatterns = [
 
     path('procReport/', datasets.proc_report, name='procReport'),
     path('project_details/', misc.project_details, name='project_details'),
+    path('library_view/', misc.library_view, name='library_view'),
     path('download_options/', misc.download_options, name='download_options'),
 
     # project management views
