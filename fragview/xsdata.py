@@ -29,6 +29,10 @@ class XSDataCollection:
         return self._snapshots
 
     @property
+    def imageDirectory(self):
+        return self.node["imageDirectory"]
+
+    @property
     def axisStart(self):
         return self._float_tag("axisStart")
 
