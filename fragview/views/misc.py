@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.conf import settings
 from os import path
 
 
@@ -19,15 +20,15 @@ def ugly(request):
 
 
 def log_viewer(request):
-    logFile = str(request.GET.get('logFile'))
-    logFile = "biomax" + logFile.split("biomax")[-1]
-    logFile = f"/data/visitors/{logFile}"
-    downloadPath = f"/static/{logFile}"
+    logFile = request.GET["logFile"]
+    downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
+
     if path.exists(logFile):
         with open(logFile, "r") as r:
-            log = "".join(r.readlines())
+            log = r.read()
     else:
         log = ""
+
     return render(
         request,
         "fragview/log_viewer.html",

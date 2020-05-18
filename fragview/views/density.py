@@ -588,26 +588,28 @@ def pandda_consensus(request):
         })
 
 
-def find_refinement_log(res_dir: object) -> object:
+def find_refinement_log(res_dir):
     logFile = "refinelog"
     pipelineLog = "pipelinelong"
+
     if "dimple" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/*refmac*log"))
         if logSearch:
-            logFile = logSearch[-1].replace("/data/visitors/", "")
+            logFile = logSearch[-1]
             pipelineLog = "/".join(logFile.split("/")[:-1]) + "/dimple.log"
 
     if "fspipeline" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/*/*-*log"))
         if logSearch:
-            logFile = logSearch[-1].replace("/data/visitors/", "")
-            pipelineLog = "/".join(logFile.split("/")[:-1]) + "/fspipeline.log"
+            logFile = logSearch[-1]
+            pipelineLog = path.join(path.dirname(path.dirname(logFile)), "fspipeline.log")
 
     if "buster" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/refine.log"))
         if logSearch:
             logFile = logSearch[-1].replace("/data/visitors/", "")
             pipelineLog = logSearch[-1].replace("/data/visitors/", "")
+
     return logFile, pipelineLog
 
 
