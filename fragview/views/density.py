@@ -607,8 +607,8 @@ def find_refinement_log(res_dir):
     if "buster" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/refine.log"))
         if logSearch:
-            logFile = logSearch[-1].replace("/data/visitors/", "")
-            pipelineLog = logSearch[-1].replace("/data/visitors/", "")
+            logFile = logSearch[-1]
+            pipelineLog = logSearch[-1]
 
     return logFile, pipelineLog
 
