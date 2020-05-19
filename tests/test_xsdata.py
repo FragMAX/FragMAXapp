@@ -35,6 +35,7 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertAlmostEqual(xsdata.slitGapVertical, 5.000000e+01)
         self.assertAlmostEqual(xsdata.slitGapHorizontal, 5.000000e+01)
         self.assertEqual(xsdata.numberOfImages, 3600)
+        self.assertEqual(xsdata.imageDirectory, "/img/dir/")
         self.assertEqual(xsdata.beamShape, "ellipse")
         self.assertEqual(xsdata.startTime, "2020-04-01 09:55:25+02:00")
         self.assertEqual(xsdata.endTime, "2020-04-01 09:56:44+02:00")
