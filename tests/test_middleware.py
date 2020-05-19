@@ -71,6 +71,73 @@ class TestLoginRequired(MiddlewareTestsMixin, unittest.TestCase):
         self._assert_no_redirect(res)
 
 
+class TestKeyRequired(MiddlewareTestsMixin, unittest.TestCase):
+    """
+    test key_required_redirect() middleware
+    """
+
+    # use 'staticmethod' to create unbound function call to middleware factory function,
+    # otherwise 'MIDDLEWARE' becomes a class method
+    MIDDLEWARE = staticmethod(middleware.key_required_redirect)
+
+    def _get_proj_mock(self, encrypted, has_key=False):
+        """
+        utility function to create project object mock
+        """
+        proj_mock = mock.Mock()
+        proj_mock.encrypted = encrypted
+        proj_mock.has_encryption_key.return_value = has_key
+
+        return proj_mock
+
+    def test_encrypted_haz_key(self):
+        """
+        test the case when accessing an encrypted project which have encryption key
+        currently uploaded
+        """
+        request = self._request_mock()
+        request.user.get_current_project.return_value = self._get_proj_mock(True, True)
+
+        res = self.middleware_callable(request)
+        self._assert_no_redirect(res)
+
+    def test_encrypted_no_key(self):
+        """
+        test the case when accessing an encrypted project which don't have encryption key
+        currently uploaded
+        """
+        request = self._request_mock()
+        request.user.get_current_project.return_value = self._get_proj_mock(True)
+
+        res = self.middleware_callable(request)
+
+        # check that we were redirected to 'upload encryption key' page
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, urls.reverse("encryption"))
+
+    def test_plaintext_proj(self):
+        """
+        test the case when accessing plain-text aka unencrypted project
+        :return:
+        """
+        request = self._request_mock()
+        request.user.get_current_project.return_value = self._get_proj_mock(False)
+
+        res = self.middleware_callable(request)
+        self._assert_no_redirect(res)
+
+    def test_excluded_url(self):
+        """
+        test requesting 'excluded' url for an encrypted project which don't have
+        an encryption key
+        """
+        request = self._request_mock("/project")
+        request.user.get_current_project.return_value = self._get_proj_mock(True)
+
+        res = self.middleware_callable(request)
+        self._assert_no_redirect(res)
+
+
 class TestNoProjectsRedirect(MiddlewareTestsMixin, test.TestCase):
     """
     test no_projects_redirect() middleware
