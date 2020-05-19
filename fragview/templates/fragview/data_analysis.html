@@ -151,19 +151,19 @@
         <h5>HPC Nodes</h5>
         <div class="radio" id="nodes" >
             <label>
-                <input class="with-gap" disabled id="1node" name="5node" type="radio" value="1">
+                <input class="with-gap" disabled id="1node" name="node_number" type="radio" value="1">
                 <span class="item-label" for="1node">1</span>
             </label>
             <label>
-                <input checked class="with-gap" disabled id="3node" name="5node" type="radio" value="3">
+                <input checked class="with-gap" disabled id="3node" name="node_number" type="radio" value="3">
                 <span class="item-label" for="3node">3</span>
             </label>
             <label>
-                <input class="with-gap" disabled id="6node" name="5node" type="radio"   value="6">
+                <input class="with-gap" disabled id="6node" name="node_number" type="radio"   value="6">
                 <span class="item-label" for="6node">6</span>
             </label>
             <label>
-                <input class="with-gap" disabled id="9node" name="5node" type="radio" value="9">
+                <input class="with-gap" disabled id="9node" name="node_number" type="radio" value="9">
                 <span class="item-label" for="9node">9</span>
             </label>
         </div>
@@ -1952,6 +1952,8 @@
         var customxdsapp = ";;customxdsapp:" + document.getElementsByName("customdataproc-xdsapp")[0].value
         var customdials = ";;customxdsdials:" + document.getElementsByName("customdataproc-dials")[0].value
         var customautoproc = ";;customxdsautoproc:" + document.getElementsByName("customdataproc-autoproc")[0].value
+        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
+
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else if (document.getElementById("processALLNEWckbox").checked) {
@@ -1962,7 +1964,7 @@
         }
         var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
             datarange + rescutoff + cccutoff + isigicutoff + dtsfilters + customxds + customautoproc + customdials +
-            customxdsapp
+            customxdsapp + node_number
         document.getElementsByName("submitdtProc")[0].value = dtproccmd
 
     }
@@ -1982,6 +1984,8 @@
         var customrefdimple = ";;customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
         var customrefbuster = ";;customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
         var customreffspipe = ";;customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
+        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
+
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"
         } else if (document.getElementById("processALLNEWckbox").checked) {
@@ -2006,6 +2010,7 @@
         var fitprocess = ";;fitprocess:" + document.getElementsByName("fitprocess")[0].value
         var scanchirals = ";;scanchirals:" + document.getElementsByName("scanchirals")[0].value
         var customligfit = ";;customligfit:" + document.getElementsByName("customligfit")[0].value
+        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
 
         if (document.getElementById("processALLckbox").checked) {
             var dtsfilters = ";;filters:ALL"

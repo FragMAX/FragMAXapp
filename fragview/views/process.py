@@ -88,6 +88,7 @@ def datasets(request):
         customautoproc = dtprc_inp[14].split(":")[-1]
         customdials = dtprc_inp[15].split(":")[-1]
         customxdsapp = dtprc_inp[16].split(":")[-1]
+        node_number = dtprc_inp[17].split(":")[-1]
         options = {"spacegroup": spacegroup,
                    "cellparam": cellparam,
                    "friedel_law": friedel_law,
@@ -96,7 +97,11 @@ def datasets(request):
                    "customdials": customdials,
                    "customxdsapp": customxdsapp
                    }
-        nodes = 3
+        nodes = node_number
+        if not nodes.isnumeric():
+            nodes = 3
+        else:
+            nodes = int(nodes)
         if filters != "ALL":
             nodes = 1
         if usexdsapp == "true":
