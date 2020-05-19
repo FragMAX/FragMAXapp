@@ -4,6 +4,7 @@
 {% block title %}FragMAX - Library view{% endblock %}
 
 {% block content %}
+<script src="/static/libs/3Dmol-min.js"></script>
 <style>
 
 .ligpng {
@@ -81,6 +82,12 @@ body {
 .fragSMILES {
     text-align: center;
 }
+.mol-container {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  z-index: 2;
+}
 </style>
 <h4>{{project.library.name}} Library</h4>
 <div class="card ">
@@ -89,20 +96,27 @@ body {
         <button class="btn-large center" style="margin-top: 30px;" type="submit" onsubmit="" value="Save" name="Save_button" size="1">Upload</button>
     </form>
 </div>
+
+
 <div class="container">
   <div class="grid-row">
     {% for fragment_name, fragment_smiles in project_fragments.items %}
 
             <div class="grid-item">
-              <a class="wrapping-link" href="/fragment/{{ fragment_name }}/image"></a>
+<!--             -->
               <div class="card grid-item-wrapper">
                 <div class="grid-item-container">
                     <table>
-                      <tr>
+                        <tr>
                           <td class="fragID"><h5>{{ fragment_name }}</h5></td>
                       </tr>
                       <tr>
-                        <td><img class="ligpng" src="/fragment/{{ fragment_name }}/image"/></td>
+                        <td>
+                            <div id="container-{{ fragment_name }}" class="mol-container" >
+                                <input class="ligpng" type="image"
+                                       src="/fragment/{{ fragment_name }}/image" onclick="load{{ fragment_name }}()" />
+                            </div>
+                        </td>
                       </tr>
                       <tr>
                         <td class="fragSMILES">{{fragment_smiles}}</td>
@@ -119,5 +133,29 @@ body {
 
   </div>
 </div>
+
+<script>
+  let config = { backgroundColor: '0xffffff' };
+{% for fragment_name, fragment_smiles in project_fragments.items %}
+function load{{fragment_name}}(){
+  let element{{fragment_name}} = $('#container-{{fragment_name}}');
+  let viewer{{fragment_name}} = $3Dmol.createViewer( element{{fragment_name}}, config );
+  let pdbUri{{fragment_name}} = '/static/biomax/20190887/20200502/fragmax/fragments/{{fragment_name}}.pdb';
+  jQuery.ajax( pdbUri{{fragment_name}}, {
+    success: function(data) {
+      let v = viewer{{fragment_name}};
+      v.addModel( data, "pdb" );                       /* load data */
+      v.setStyle({}, {stick: {}});  /* style all atoms */
+      v.zoomTo();                                      /* set camera */
+      v.render();                                      /* render scene */
+      v.zoom(1.0, 1000);                               /* slight zoom */
+    },
+    error: function(hdr, status, err) {
+      console.error( "Failed to load PDB " + pdbUri{{fragment_name}} + ": " + err );
+    },
+  });
+  }
+  {% endfor %}
+</script>
 {% endblock %}
 
