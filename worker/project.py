@@ -1,6 +1,8 @@
 import os
 from os import path
+import grp
 import csv
+import stat
 from glob import glob
 import pyfastcopy  # noqa
 import shutil
@@ -77,11 +79,37 @@ def _prepare_fragments(proj):
     elbow.generate_cif_pdb(lib.fragment_set.all(), frags_dir)
 
 
+def _make_fragmax_dir(proj):
+    """
+    create the 'fragmax' directory and make sure it:
+
+      - it's owner group is set to the proposal group
+      - the SETGID bit is set
+
+    this ownership and permission makes all the files created under
+    the fragmax folder accessible to all users in the proposal group
+    """
+    fragmax_dir = path.join(proj.data_path(), "fragmax")
+
+    # look-up proposal group ID
+    proposal_group = grp.getgrnam(f"{proj.proposal}-group")
+
+    os.mkdir(fragmax_dir)
+    # set owner group
+    os.chown(fragmax_dir, -1, proposal_group.gr_gid)
+    # make sure SETGID bit is set
+    os.chmod(fragmax_dir,
+             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+             stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+
+    return fragmax_dir
+
+
 def _create_fragmax_folders(proj):
     """
     create folders that fragmax will use for dataprocessing
     """
-    fragmax_dir = path.join(proj.data_path(), "fragmax")
+    fragmax_dir = _make_fragmax_dir(proj)
 
     _makedirs(path.join(fragmax_dir, "logs"))
     _makedirs(path.join(fragmax_dir, "scripts"))
