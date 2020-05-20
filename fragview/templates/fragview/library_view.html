@@ -140,7 +140,7 @@ body {
 function load{{fragment_name}}(){
   let element{{fragment_name}} = $('#container-{{fragment_name}}');
   let viewer{{fragment_name}} = $3Dmol.createViewer( element{{fragment_name}}, config );
-  let pdbUri{{fragment_name}} = '/static/biomax/20190887/20200502/fragmax/fragments/{{fragment_name}}.pdb';
+  let pdbUri{{fragment_name}} = '{{data_path}}/fragmax/fragments/{{fragment_name}}.pdb';
   jQuery.ajax( pdbUri{{fragment_name}}, {
     success: function(data) {
       let v = viewer{{fragment_name}};

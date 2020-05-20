@@ -15,9 +15,11 @@ def library_view(request):
     fragments = [x.split("/")[-1].replace(".cif", "") for x in glob(f"{proj.data_path()}/fragmax/fragments/*cif")]
     lib = proj.library
     project_fragments = {x: lib.get_fragment(x).smiles for x in fragments}
+    data_path = proj.data_path().replace("/data/visitors/", "/static/")
 
     return render(request, "fragview/library_view.html", {
-        "project_fragments": project_fragments
+        "project_fragments": project_fragments,
+        "data_path": data_path
     })
 
 
