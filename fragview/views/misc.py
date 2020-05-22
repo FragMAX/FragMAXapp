@@ -12,7 +12,8 @@ def project_details(request):
 def library_view(request):
     proj = current_project(request)
 
-    fragments = [x.split("/")[-1].replace(".cif", "") for x in glob(f"{proj.data_path()}/fragmax/fragments/*cif")]
+    fragments = sorted([x.split("/")[-1].replace(".cif", "") for x
+                        in glob(f"{proj.data_path()}/fragmax/fragments/*cif")])
     lib = proj.library
     project_fragments = {x: lib.get_fragment(x).smiles for x in fragments}
     data_path = proj.data_path().replace("/data/visitors/", "/static/")
