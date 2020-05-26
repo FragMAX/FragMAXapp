@@ -74,7 +74,7 @@ button.link {
             <tr>
               <td>{{logName}}</td>
               <td>{{jID}}</td>
-              <td>{{cDate}}</td>
+              <td>{{cDate|date:"Y-m-d H:i:s"}}</td>
 
               <td><form action="/log_viewer/" method="get" id="logFileform" target="_blank">
                     <button  class="link" type="submit" value="{{out}}" name="logFile" size="1" >output File</button>
@@ -97,7 +97,7 @@ const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
 // do the work...
 document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
     const table = th.closest('table');
-    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+    Array.from(table.querySelectorAll('tr')).slice(1)
         .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
         .forEach(tr => table.appendChild(tr) );
 })));

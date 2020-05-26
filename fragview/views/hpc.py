@@ -1,6 +1,7 @@
 from glob import glob
 import subprocess
-from time import sleep, ctime
+from datetime import datetime
+from time import sleep
 
 from os import path
 
@@ -103,17 +104,22 @@ def jobhistory(request):
     for f in glob(f"{log_dir}/*out.txt"):
         if "_" in f:
             try:
-                epoch = f.split("/")[-1].split("_")[2]
-                cdate = ctime(epoch)
-            except TypeError:
-                cdate = ctime(path.getmtime(f))
-            except IndexError:
-                cdate = ctime(path.getmtime(f))
+                epoch = int(f.split("/")[-1].split("_")[-3])
+            except (IndexError, ValueError):
+                # handle old-style log files,
+                # where epoch was not included into the filename
+                epoch = path.getmtime(f)
+
             jobID = f.split("_")[-2]
             logName = f.split("/")[-1].split(f"_{jobID}")[0]
             errFile = f"{log_dir}/{logName}_{jobID}_err.txt"
             outFile = f"{log_dir}/{logName}_{jobID}_out.txt"
-            logHistory.append([logName, jobID, cdate, errFile, outFile])
+
+            logHistory.append([logName, jobID, datetime.fromtimestamp(epoch), errFile, outFile])
+
+    # sort jobs by date, newest first
+    logHistory.sort(key=lambda e: e[2],
+                    reverse=True)
 
     return render(request,
                   "fragview/jobhistory.html",
