@@ -35,7 +35,7 @@ def _forward_output(output, stream):
     stream.buffer.write(output)
 
 
-def frontend_run(command):
+def frontend_run(command, forward=True):
     """
     run shell command on HPC front-end host,
     the shell command's stdout and stderr will be dumped to our stdout and stderr streams
@@ -44,9 +44,12 @@ def frontend_run(command):
     # TODO: check exit code and bubble up error on exit code != 0
     stdout, stderr, _ = _ssh_on_frontend(command)
 
-    # forward stdout and stderr outputs, for traceability
-    _forward_output(stdout, sys.stdout)
-    _forward_output(stderr, sys.stderr)
+    if forward:
+        # forward stdout and stderr outputs, for traceability
+        _forward_output(stdout, sys.stdout)
+        _forward_output(stderr, sys.stderr)
+    else:
+        return stdout, stderr
 
 
 def jobs_list(logged_in_user):

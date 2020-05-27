@@ -97,7 +97,6 @@ def project_update_status_script(project):
 
 def copy_missing_script(project, python_script):
     # This copy function should be removed after a few users copy files to their folders.
-
     if not path.exists(f"{project.data_path()}/fragmax/scripts/{python_script}"):
         copyfile(f"/data/staff/biomax/webapp/static/scripts/{python_script}",
                  f"{project.data_path()}/fragmax/scripts/{python_script}")

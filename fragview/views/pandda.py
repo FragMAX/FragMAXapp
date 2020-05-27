@@ -681,7 +681,7 @@ def submit(request):
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
-        if not options["reprocessing"]:
+        if not options["reprocessing"] and path.exists(res_pandda):
             shutil.rmtree(res_pandda)
 
         epoch = str(round(time.time()))
@@ -854,6 +854,7 @@ def pandda_worker(proj, method, options):
 
     if "best" in method:
         print("FragMAXapp will select best datasets")
+
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
@@ -899,10 +900,9 @@ def pandda_worker(proj, method, options):
 
                 cmdcp1 = f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
 
-                cmd = """mtzdmp """ + hklin
-                output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
+                output, _ = hpc.frontend_run(f"module load CCP4; mtzdmp {hklin}", False)
 
-                for i in output.splitlines():
+                for i in output.decode().splitlines():
                     if "A )" in i:
                         resHigh = i.split()[-3]
                     if "free" in i.lower() and "flag" in i.lower():
@@ -917,8 +917,7 @@ def pandda_worker(proj, method, options):
                             hklout + ''' hklout ''' + hklout_rfill
 
                 cmd = project_read_mtz_flags(proj, hklin)
-                process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-                output, error = process.communicate()  # receive output from the python2 script
+                output, error = hpc.frontend_run(cmd, forward=False)
 
                 # r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
                 fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
