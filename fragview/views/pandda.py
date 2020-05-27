@@ -17,6 +17,7 @@ from fragview import hpc
 from fragview.views import utils
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
+from fragview.projects import project_fragments_dir
 
 
 def str2bool(v):
@@ -846,6 +847,8 @@ def pandda_worker(proj, method, options):
     header += '''#SBATCH --mem=2500\n'''
 
     fragDict = dict()
+    fragments_path = project_fragments_dir(proj)
+
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
         fragDict[_dir.split("/")[-1]] = _dir
 
@@ -937,17 +940,11 @@ def pandda_worker(proj, method, options):
                     frag_pdb = f"{frag}.pdb"
                     dest_dir = os.path.join(
                         proj.data_path(), "fragmax", "results", "pandda", proj.protein, method, dataset)
-<<<<<<< Updated upstream
 
-                    writeFile.write(
-                        f"cp {os.path.join(fragDict[frag], frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
-                        f"cp {os.path.join(fragDict[frag], frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
-=======
                     if os.path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
                         writeFile.write(
                             f"cp {os.path.join(fragments_path, frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
                             f"cp {os.path.join(fragments_path, frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
->>>>>>> Stashed changes
 
             hpc.run_sbatch(script)
             # os.remove(script)
