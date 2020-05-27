@@ -668,20 +668,20 @@ def submit(request):
             "useApos": str2bool(use_apo),
             "useSelected": useSelected,
             "reprocessZmap": str2bool(reproZmaps),
-            "initpass": False,
+            "initpass": True,
             "min_datasets": min_dataset,
             "rerun_state": False,
             "complete_results": str2bool(complete),
             "dtsfilter": PanDDAfilter,
-            "customPanDDA": customPanDDA
+            "customPanDDA": customPanDDA,
+            "reprocessing": False,
+            "reprocessing_mode": "reload"
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
-        if os.path.exists(res_pandda):
-            if os.path.exists(os.path.join(res_dir, "pandda_backup")):
-                shutil.rmtree(os.path.join(res_dir, "pandda_backup"))
-            shutil.move(res_pandda, os.path.join(res_dir, "pandda_backup"))
+        if not options["reprocessing"]:
+            shutil.rmtree(res_pandda)
 
         epoch = str(round(time.time()))
         script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
@@ -937,10 +937,17 @@ def pandda_worker(proj, method, options):
                     frag_pdb = f"{frag}.pdb"
                     dest_dir = os.path.join(
                         proj.data_path(), "fragmax", "results", "pandda", proj.protein, method, dataset)
+<<<<<<< Updated upstream
 
                     writeFile.write(
                         f"cp {os.path.join(fragDict[frag], frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
                         f"cp {os.path.join(fragDict[frag], frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
+=======
+                    if os.path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
+                        writeFile.write(
+                            f"cp {os.path.join(fragments_path, frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
+                            f"cp {os.path.join(fragments_path, frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
+>>>>>>> Stashed changes
 
             hpc.run_sbatch(script)
             # os.remove(script)
