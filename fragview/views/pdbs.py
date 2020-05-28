@@ -95,6 +95,7 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
             if line.startswith(b"ATOM"):
                 dest.write(line)
 
+
 #
 # Wrap the database operation of adding a new PDB entry into
 # a transaction.

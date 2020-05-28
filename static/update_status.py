@@ -11,7 +11,7 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         "/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*/*mtz".format(
             proposal=proposal, shift=shift, protein=protein, dataset=dataset, run=run))
     dps3 = glob("/data/visitors/biomax/{proposal}/{shift}/process/{protein}/{dataset}/*/*/results/*mtz*".format(
-        proposal=proposal, shift=shift, protein=protein, dataset=dataset, run=run))
+        proposal=proposal, shift=shift, protein=protein, dataset=dataset))
     dp_full = set(
         [x.split("/")[11] for x in dps1 + dps2] + [x.split("/")[10].replace("EDNA_proc", "edna") for x in dps3 if
                                                    "autoPROC" not in x])

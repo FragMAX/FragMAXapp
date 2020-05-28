@@ -221,4 +221,4 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
 
         _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT, PROTEIN))
         with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "protein", f"data for protein '.*' not found")
+            self._assertValidationError(proj_form, "protein", "data for protein '.*' not found")
