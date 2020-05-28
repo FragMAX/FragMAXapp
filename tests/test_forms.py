@@ -40,7 +40,9 @@ class FormTesterMixin:
                  library_name=LIBRARY,
                  proposal=PROPOSAL,
                  shift=SHIFT,
-                 shift_list=f"{SHIFT_1},{SHIFT_2}"):
+                 shift_list=f"{SHIFT_1},{SHIFT_2}",
+                 fragmenst_file_data="B2a,N#Cc1c(cccc1)O",
+                 encrypted=False):
 
         req = self.ReqsFactory.post(
             "/",  # we don't really care about the URL here
@@ -48,22 +50,23 @@ class FormTesterMixin:
                  library_name=library_name,
                  proposal=proposal,
                  shift=shift,
-                 shift_list=shift_list))
+                 shift_list=shift_list,
+                 encrypted=encrypted))
 
-        frags_file = SimpleUploadedFile("frags.csv", "B2a,N#Cc1c(cccc1)O".encode())
+        frags_file = SimpleUploadedFile("frags.csv", fragmenst_file_data.encode())
         req.FILES["fragments_file"] = frags_file
 
         return req
 
 
 class TestProjectFormSave(test.TestCase, FormTesterMixin):
-    def save_form(self):
+    def save_form(self, encrypted=False):
         """
         create project form and save it as pending project
 
         :return: created 'Project' database model object
         """
-        request = self._request()
+        request = self._request(encrypted=encrypted)
 
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
@@ -89,6 +92,23 @@ class TestProjectFormSave(test.TestCase, FormTesterMixin):
         self.assertEqual(db_proj.protein, PROTEIN)
         self.assertEqual(db_proj.proposal, PROPOSAL)
         self.assertEqual(db_proj.library.name, LIBRARY)
+        self.assertFalse(db_proj.encrypted)
+        self.assertIsNone(db_proj.encryption_key)
+
+    def test_save_encrypted(self):
+        """
+        test saving project form, with encryption enabled, and check
+        that the database was updated
+        """
+        proj = self.save_form(encrypted=True)
+
+        # check that database entry looks reasonable
+        db_proj = Project.get(proj_id=proj.id)
+        self.assertEqual(db_proj.protein, PROTEIN)
+        self.assertEqual(db_proj.proposal, PROPOSAL)
+        self.assertEqual(db_proj.library.name, LIBRARY)
+        self.assertTrue(db_proj.encrypted)
+        self.assertIsNotNone(db_proj.encryption_key)
 
 
 class TestProjectForm(unittest.TestCase, FormTesterMixin):
@@ -151,6 +171,34 @@ class TestProjectForm(unittest.TestCase, FormTesterMixin):
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         self._assertValidationError(proj_form, "protein", "invalid characters,.*")
+
+    def test_no_library_file(self):
+        """
+        test the case when no fragment library file is provided
+        """
+        request = self._request()
+
+        with mock.patch("os.path.isdir") as isdir:
+            # mock isdir() to report that all directories exist
+            isdir.return_value = True
+
+            proj_form = forms.ProjectForm(request.POST, {})
+
+            self._assertValidationError(proj_form, "fragments_file", "please specify fragments definitions file")
+
+    def test_library_file_parse_err(self):
+        """
+        test the case when provided fragment library file have parse errors
+        """
+        request = self._request(fragmenst_file_data="NO_COMMAS")
+
+        with mock.patch("os.path.isdir") as isdir:
+            # mock isdir() to report that all directories exist
+            isdir.return_value = True
+
+            proj_form = forms.ProjectForm(request.POST, request.FILES)
+
+            self._assertValidationError(proj_form, "fragments_file", "unexpected number of cells")
 
     def test_proposal_invalid_exp(self):
         """
