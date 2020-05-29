@@ -6,6 +6,7 @@ import shutil
 import threading
 import json
 import time
+import tempfile
 import subprocess
 from os import path
 from glob import glob
@@ -15,6 +16,7 @@ from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
 from fragview.views import utils
+from fragview.fileio import read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
 from fragview.projects import project_fragments_dir
@@ -900,13 +902,7 @@ def pandda_worker(proj, method, options):
 
                 cmdcp1 = f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
 
-                output, _ = hpc.frontend_run(f"module load CCP4; mtzdmp {hklin}", False)
-
-                for i in output.decode().splitlines():
-                    if "A )" in i:
-                        resHigh = i.split()[-3]
-                    if "free" in i.lower() and "flag" in i.lower():
-                        freeRflag = i.split()[-1]
+                resHigh, freeRflag = _read_mtz_file(proj, hklin)
 
                 cad_fill = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 ''' + \
                            resHigh + '''" | cad hklin1 ''' + hklin + ''' hklout ''' + hklout
@@ -954,6 +950,38 @@ def pandda_worker(proj, method, options):
     # os.remove(script)
 
 
+def _read_mtz_file(proj, mtz_file):
+    with tempfile.NamedTemporaryFile(suffix=".mtz", delete=False) as f:
+        temp_name = f.name
+        f.write(read_proj_file(proj, mtz_file))
+
+    stdout = subprocess.run(["mtzdmp", temp_name], stdout=subprocess.PIPE).stdout
+
+    for i in stdout.decode().splitlines():
+        if "A )" in i:
+            resHigh = i.split()[-3]
+        if "free" in i.lower() and "flag" in i.lower():
+            freeRflag = i.split()[-1]
+
+    # make sure unencrypted MTZ is removed as soon as possible
+    os.remove(temp_name)
+
+    return resHigh, freeRflag
+
+
+def _get_pdb_data(proj, pdb_file):
+    r_work = ""
+    resolution = ""
+
+    for line in read_text_lines(proj, pdb_file):
+        if "REMARK Final:" in line:
+            r_work = line.split()[4]
+        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+            resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+
+    return r_work, resolution
+
+
 def get_best_alt_dataset(proj, dataset, options):
     if options["complete_results"]:
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb")
@@ -961,19 +989,12 @@ def get_best_alt_dataset(proj, dataset, options):
         proc, ref = options["method"].split("_")
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
     rwork_res = list()
-    r_work = ""
-    resolution = ""
+
     if not optionList:
         return ""
     else:
         for pdb in optionList:
-            with open(pdb, "r") as readFile:
-                pdb_file = readFile.readlines()
-            for line in pdb_file:
-                if "REMARK Final:" in line:
-                    r_work = line.split()[4]
-                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-                    resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+            r_work, resolution = _get_pdb_data(proj, pdb)
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]
