@@ -65,13 +65,13 @@ COPY fragmax fragmax/
 COPY worker worker/
 COPY static static/
 COPY manage.py deploy/migrate_db.sh ./
-COPY deploy/site_settings.py site_settings.py
 RUN ln -s /data/visitors/biomax static/biomax
 RUN ln -s /mxn/groups/ispybstorage/pyarch static/pyarch
 # hack to serve css, js etc files from the 'material' package via nginx
 RUN ln -s /opt/conda/envs/FragMAX/lib/python3.6/site-packages/material/static/material static/material
-# the django database is stored in a volume which is mounted at '/volume' at
+# the django database and site settings file are stored in a volume which is mounted at '/volume' at
 RUN ln -s /volume/db .
+RUN ln -s /volume/site_settings.py .
 
 # change owernershop of all app files to biomax-service:MAX-Lab
 # use hardcoded UID/GID as we don't have access to symbolic names
