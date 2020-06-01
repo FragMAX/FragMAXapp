@@ -320,7 +320,7 @@ def run_autoproc(proj, nodes, filters, options):
             f"rm -rf {outdir}/\n" \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} {friedel} {spg} {unit_cell}''' + \
+            f'''process -h5 {h5master} {friedel} {spg} {unit_cell} ''' + \
             f'''autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
             f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
