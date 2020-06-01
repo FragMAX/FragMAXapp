@@ -18,8 +18,9 @@ from fragview import hpc
 from fragview.views import utils
 from fragview.fileio import read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
+from fragview.projects import project_process_dir, project_pandda_worker
 from fragview.projects import project_fragments_dir
+from worker.scripts import read_mtz_flags_path
 
 
 def str2bool(v):
@@ -903,6 +904,7 @@ def pandda_worker(proj, method, options):
                 cmdcp1 = f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
 
                 resHigh, freeRflag = _read_mtz_file(proj, hklin)
+                return
 
                 cad_fill = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 ''' + \
                            resHigh + '''" | cad hklin1 ''' + hklin + ''' hklout ''' + hklout
@@ -951,6 +953,9 @@ def pandda_worker(proj, method, options):
 
 
 def _read_mtz_file(proj, mtz_file):
+
+    print(f"READ MTZ {mtz_file} ")
+
     with tempfile.NamedTemporaryFile(suffix=".mtz", delete=False) as f:
         temp_name = f.name
         f.write(read_proj_file(proj, mtz_file))
@@ -962,6 +967,10 @@ def _read_mtz_file(proj, mtz_file):
             resHigh = i.split()[-3]
         if "free" in i.lower() and "flag" in i.lower():
             freeRflag = i.split()[-1]
+
+    print(f"READ MTZ script '{read_mtz_flags_path()}'")
+    stdout = subprocess.run([read_mtz_flags_path(), temp_name], stdout=subprocess.PIPE).stdout
+    print(f"MTZ FLAGZ {stdout}")
 
     # make sure unencrypted MTZ is removed as soon as possible
     os.remove(temp_name)
