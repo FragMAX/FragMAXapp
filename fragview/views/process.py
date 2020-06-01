@@ -302,7 +302,7 @@ def run_autoproc(proj, nodes, filters, options):
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
-            spg = f"symm = '{spacegroup}'"
+            spg = f"symm='{spacegroup}'"
         else:
             spg = ""
         if options["cellparam"] != "":
@@ -319,11 +319,12 @@ def run_autoproc(proj, nodes, filters, options):
         script = \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} {friedel} autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
+            f'''process -h5 {h5master} {friedel} {spg} {unit_cell}''' + \
+            f'''autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
             f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
-            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {spg} {unit_cell} {customautoproc} ''' + \
+            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} ''' + \
             f'''-d {outdir}/autoproc\n''' + project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
