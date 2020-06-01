@@ -21,7 +21,7 @@ def map(request, dataset, process, refine, type):
     """
     proj = current_project(request)
 
-    mtz_path = path.join(project_results_dir(proj), dataset, process, refine,  _ccp4_filename("final", type))
+    mtz_path = path.join(project_results_dir(proj), dataset, process, refine, _ccp4_filename("final", type))
 
     return HttpResponse(fileio.read_proj_file(proj, mtz_path),
                         content_type="application/octet-stream")

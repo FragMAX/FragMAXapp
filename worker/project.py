@@ -162,7 +162,7 @@ def _parse_metafile(proj, metafile):
         snaps = "noSnapshots"
     col_path = node["imageDirectory"]
 
-    return dataset, sample, col_path, run, img_num, resolution,  snaps
+    return dataset, sample, col_path, run, img_num, resolution, snaps
 
 
 def _write_data_collections_file(proj, meta_files):

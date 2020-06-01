@@ -72,7 +72,7 @@ def _do_upload_dir(args):
     dest_dir = args.dest_file
 
     for full_path in _dir_tree(top_dir):
-        relative_path = full_path[len(top_dir)+1:]
+        relative_path = full_path[len(top_dir) + 1:]
         dest_path = path.join(dest_dir, relative_path)
         _upload_file(args.url, args.auth_tok, full_path, dest_path)
 

@@ -9,7 +9,7 @@ def _make_diffraction_image(h5_source_file, dest_pic_file):
         # diffraction picture already generated
         return
 
-    cmd = ["adxv", "-sa", "-slabs", "10", "-weak_data", h5_source_file,  dest_pic_file]
+    cmd = ["adxv", "-sa", "-slabs", "10", "-weak_data", h5_source_file, dest_pic_file]
     subprocess.run(cmd)
 
 

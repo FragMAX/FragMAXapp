@@ -77,9 +77,9 @@ def kill_job(request):
             prosw = [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
         except Exception:
             prosw = "Unknown"
-        output += "<tr><td>" + "</td><td>".join(i.split())+"</td><td>" + prosw + \
+        output += "<tr><td>" + "</td><td>".join(i.split()) + "</td><td>" + prosw + \
                   "</td><td><a href='/static" + stdout_file + "'> job_" + i.split()[0] + \
-                  "_out.txt</a></td><td><a href='/static" + stderr_file+"'>job_"+i.split()[0]+"""_err.txt</a></td><td>
+                  "_out.txt</a></td><td><a href='/static" + stderr_file + "'>job_" + i.split()[0] + """_err.txt</a></td><td>
 
         <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
             <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
