@@ -3,8 +3,6 @@ from __future__ import print_function
 from iotbx.reflection_file_reader import any_reflection_file
 from sys import argv
 
-# mtz="/data/visitors/biomax/20180479/20190622/fragmax/results/pandda/AR/
-# bestdp_bestproc/AR-F2XEntry-H01a_1/final_rfill.mtz"
 
 mtz = argv[1]
 

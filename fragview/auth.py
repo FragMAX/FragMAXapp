@@ -37,7 +37,7 @@ def _check_ispyb_error_message(response):
         return
 
     logging.warning(
-        f"unexpected response from ISPyB\n" +
+        "unexpected response from ISPyB\n" +
         f"{response.status_code} {response.reason}\n{response.text}")
 
 

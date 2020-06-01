@@ -68,7 +68,7 @@ class TestEditNotFound(_ProjectTestCase):
         self.assertEqual(404, resp.status_code)
 
     def test_post(self):
-        resp = self.client.post(f"/project/23/", dict(action="modify"))
+        resp = self.client.post("/project/23/", dict(action="modify"))
         self.assertEqual(404, resp.status_code)
 
 

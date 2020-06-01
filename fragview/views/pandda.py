@@ -825,7 +825,7 @@ def giant_score(proj, method):
         src = path.join(res_dir, dataset, "final_original.mtz")
         dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
-        body += f"\ncp -f " + src + " " + dst
+        body += "\ncp -f " + src + " " + dst
 
     scorecmd = \
         f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"

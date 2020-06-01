@@ -127,7 +127,7 @@ class TestEditView(_PDBViewTester):
         """
         test loading 'PDB info' page for unknown PDB
         """
-        resp = self.client.get(f"/pdb/123")
+        resp = self.client.get("/pdb/123")
 
         self.assertEqual(404, resp.status_code)
 

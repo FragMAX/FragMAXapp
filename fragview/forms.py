@@ -122,17 +122,6 @@ class ProjectForm(forms.Form):
     # actually exist
     #
 
-    def _is_encrypted(self):
-        """
-        returns true if form's 'encrypted' checkbox was checked
-        """
-        if "encrypted" not in self.cleaned_data:
-            # handle the cases when value is not submitted by the browser
-            # when 'encrypted' checkbox is unchecked
-            return False
-
-        return self.cleaned_data["encrypted"]
-
     def clean(self):
         if self.errors:
             # there were error(s) during the regexp validation,
@@ -184,7 +173,7 @@ class ProjectForm(forms.Form):
             self.cleaned_data["library_name"], self.cleaned_data["fragments"])
 
         # save the 'Project' model to DB
-        encrypted = self._is_encrypted()
+        encrypted = self.cleaned_data["encrypted"]
         args = dict(
             protein=self.cleaned_data["protein"],
             library=library,
