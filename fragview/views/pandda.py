@@ -16,7 +16,7 @@ from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
 from fragview.views import utils, crypt_shell
-from fragview.fileio import read_text_lines, read_proj_file
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_fragments_dir
 from worker.scripts import read_mtz_flags_path
@@ -868,8 +868,6 @@ def pandda_worker(proj, method, options):
         for dataset in missingDict:
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
 
-    pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
-                                    "pandda", proj.protein, method, "selection.json")
     for dataset, pdb in selectedDict.items():
         if "buster" in pdb:
             pdb = pdb.replace("final.pdb", "refine.pdb")
@@ -881,8 +879,14 @@ def pandda_worker(proj, method, options):
 
             hpc.run_sbatch(script)
             # os.remove(script)
-    with open(pandda_selection, "w") as writeFile:
-        writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
+
+    pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
+    os.makedirs(pandda_dir, exist_ok=True)
+
+    with open_proj_file(proj, path.join(pandda_dir, "selection.json")) as f:
+        json_str = json.dumps(selectedDict)
+        f.write(json_str.encode())
+
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
     # os.remove(script)
