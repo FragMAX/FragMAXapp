@@ -15,11 +15,10 @@ from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
-from fragview.views import utils
+from fragview.views import utils, crypt_shell
 from fragview.fileio import read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir, project_pandda_worker
-from fragview.projects import project_fragments_dir
+from fragview.projects import project_process_dir, project_fragments_dir
 from worker.scripts import read_mtz_flags_path
 
 
@@ -841,16 +840,8 @@ def giant_score(proj, method):
 
 def pandda_worker(proj, method, options):
     rn = str(randint(10000, 99999))
-    header = '''#!/bin/bash\n'''
-    header += '''#!/bin/bash\n'''
-    header += '''#SBATCH -t 00:15:00\n'''
-    header += '''#SBATCH -J PnD''' + rn + '''\n'''
-    # header+='''#SBATCH --nice=25\n'''
-    header += '''#SBATCH --cpus-per-task=1\n'''
-    header += '''#SBATCH --mem=2500\n'''
 
     fragDict = dict()
-    fragments_path = project_fragments_dir(proj)
 
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
         fragDict[_dir.split("/")[-1]] = _dir
@@ -882,66 +873,11 @@ def pandda_worker(proj, method, options):
     for dataset, pdb in selectedDict.items():
         if "buster" in pdb:
             pdb = pdb.replace("final.pdb", "refine.pdb")
-        if os.path.exists(pdb):
-            fset = dataset.split("-")[-1]
-            script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
-            epoch = str(round(time.time()))
-            with open(script, "w") as writeFile:
-                sb_head = ""
-                sb_head += f'''#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt\n'''
-                sb_head += f'''#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt\n'''
-                sb_head += '''module purge\n'''
-                sb_head += '''module load CCP4 Phenix\n'''
-                writeFile.write(header)
-                writeFile.write(sb_head)
-                frag = dataset.split("-")[-1].split("_")[0]
-                hklin = pdb.replace(".pdb", ".mtz")
-                output_dir = os.path.join(proj.data_path(), "fragmax", "results",
-                                          "pandda", proj.protein, method, dataset)
-                os.makedirs(output_dir, exist_ok=True)
-                hklout = os.path.join(output_dir, "final.mtz")
 
-                cmdcp1 = f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
-
-                resHigh, freeRflag = _read_mtz_file(proj, hklin)
-                return
-
-                cad_fill = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 ''' + \
-                           resHigh + '''" | cad hklin1 ''' + hklin + ''' hklout ''' + hklout
-                uniqueify = '''uniqueify -f ''' + freeRflag + ''' ''' + hklout + ''' ''' + hklout
-                hklout_rfill = hklout.replace(".mtz", "_rfill.mtz")
-
-                freerflag = '''echo -e "COMPLETE FREE=''' + freeRflag + ''' \\nEND" | freerflag hklin ''' + \
-                            hklout + ''' hklout ''' + hklout_rfill
-
-                cmd = project_read_mtz_flags(proj, hklin)
-                output, error = hpc.frontend_run(cmd, forward=False)
-
-                # r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
-                fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
-                fsigf_Flag = "maps.input.reflection_data.labels='" + fsigf_Flag + "'"
-                phenix_maps = \
-                    "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + " " + \
-                    fsigf_Flag + "; mv " + hklout + " " + \
-                    hklout.replace(".mtz", "_original.mtz") + "; mv " + \
-                    hklout.replace(".mtz", "_map_coeffs.mtz") + " " + hklout
-
-                writeFile.write(cmdcp1 + "\n")
-                writeFile.write(cad_fill + "\n")
-                writeFile.write(uniqueify + "\n")
-                writeFile.write(freerflag + "\n")
-                writeFile.write(phenix_maps + "\n")
-
-                if "Apo" not in dataset:
-                    frag_cif = f"{frag}.cif"
-                    frag_pdb = f"{frag}.pdb"
-                    dest_dir = os.path.join(
-                        proj.data_path(), "fragmax", "results", "pandda", proj.protein, method, dataset)
-
-                    if os.path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
-                        writeFile.write(
-                            f"cp {os.path.join(fragments_path, frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
-                            f"cp {os.path.join(fragments_path, frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
+        if path.exists(pdb):
+            hklin = pdb.replace(".pdb", ".mtz")
+            resHigh, freeRflag, fsigf_Flag = _read_mtz_file(proj, hklin)
+            script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag)
 
             hpc.run_sbatch(script)
             # os.remove(script)
@@ -952,10 +888,74 @@ def pandda_worker(proj, method, options):
     # os.remove(script)
 
 
+def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag):
+    mtz = path.join(path.dirname(pdb), "final.mtz")
+    fset = dataset.split("-")[-1]
+    epoch = round(time.time())
+    output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
+    script = f"pandda_prepare_{proj.protein}{fset}.sh"
+
+    copy_frags_cmd = ""
+
+    if "Apo" not in dataset:
+        fragments_path = project_fragments_dir(proj)
+        frag = dataset.split("-")[-1].split("_")[0]
+        frag_cif = path.join(fragments_path, f"{frag}.cif")
+        frag_pdb = path.join(fragments_path, f"{frag}.pdb")
+
+        if path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
+            copy_frags_cmd = \
+                f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
+
+    body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 00:15:00
+#SBATCH -J PnD{rn}
+#SBATCH --nice=25
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2500
+#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
+#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
+
+{crypt_shell.crypt_cmd(proj)}
+
+DEST_DIR="{output_dir}"
+WORK_DIR=$(mktemp -d)
+cd $WORK_DIR
+
+{crypt_shell.fetch_file(proj, pdb, "final.pdb")}
+{crypt_shell.fetch_file(proj, mtz, "final.mtz")}
+
+module purge
+module load CCP4 Phenix
+
+echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
+    cad hklin1 final.mtz hklout final.mtz
+
+uniqueify -f {freeRflag} final.mtz final.mtz
+
+echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
+    freerflag hklin final.mtz hklout final_rfill.mtz
+
+phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
+mv final.mtz final_original.mtz
+mv final_map_coeffs.mtz final.mtz
+
+{copy_frags_cmd}
+
+mkdir -p $DEST_DIR
+{crypt_shell.upload_dir(proj, output_dir)}
+
+rm -rf $WORK_DIR
+"""
+
+    script = project_script(proj, script)
+    utils.write_script(script, body)
+
+    return script
+
+
 def _read_mtz_file(proj, mtz_file):
-
-    print(f"READ MTZ {mtz_file} ")
-
     with tempfile.NamedTemporaryFile(suffix=".mtz", delete=False) as f:
         temp_name = f.name
         f.write(read_proj_file(proj, mtz_file))
@@ -968,14 +968,13 @@ def _read_mtz_file(proj, mtz_file):
         if "free" in i.lower() and "flag" in i.lower():
             freeRflag = i.split()[-1]
 
-    print(f"READ MTZ script '{read_mtz_flags_path()}'")
     stdout = subprocess.run([read_mtz_flags_path(), temp_name], stdout=subprocess.PIPE).stdout
-    print(f"MTZ FLAGZ {stdout}")
+    fsigf_Flag = stdout.decode("utf-8").split()[1].split(":")[-1]
 
     # make sure unencrypted MTZ is removed as soon as possible
     os.remove(temp_name)
 
-    return resHigh, freeRflag
+    return resHigh, freeRflag, fsigf_Flag
 
 
 def _get_pdb_data(proj, pdb_file):
