@@ -23,7 +23,7 @@ def write_script(fname, contents):
         # set umask that allow us to set all user and group access bits
         old_umask = os.umask(0o007)
 
-        with os.fdopen(os.open(fname, os.O_CREAT | os.O_RDWR, mode), "w") as f:
+        with os.fdopen(os.open(fname, os.O_CREAT | os.O_TRUNC | os.O_RDWR, mode), "w") as f:
             print(f"writing script file {fname}")
             f.write(contents)
     finally:
