@@ -1,6 +1,5 @@
 import glob
 from os import path
-# from shutil import copyfile
 from django.conf import settings
 from .proposals import get_proposals
 
@@ -63,6 +62,10 @@ def project_scripts_dir(project):
     return path.join(project.data_path(), "fragmax", "scripts")
 
 
+def project_logs_dir(project):
+    return path.join(project_fragmax_dir(project), "logs")
+
+
 def project_model_file(project, model_file):
     return path.join(project_models_dir(project), model_file)
 
@@ -90,33 +93,15 @@ def project_script(project, script_file):
     return path.join(project_scripts_dir(project), script_file)
 
 
+def project_log_path(project, log_file):
+    """
+    generate full path to a file name 'log_file' inside project's logs directory
+    """
+    return path.join(project_logs_dir(project), log_file)
+
+
 def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
-
-
-# def copy_missing_script(project, python_script):
-#     # This copy function should be removed after a few users copy files to their folders.
-#     if not path.exists(f"{project.data_path()}/fragmax/scripts/{python_script}"):
-#         copyfile(f"/data/staff/biomax/webapp/static/scripts/{python_script}",
-#                  f"{project.data_path()}/fragmax/scripts/{python_script}")
-#
-#
-# def project_read_mtz_flags(project, hklin):
-#     # This copy function should be removed after a few users copy files to their folders.
-#
-#     copy_missing_script(project, READ_MTZ_FLAGS)
-#     return \
-#         project_script(project, READ_MTZ_FLAGS) + \
-#         f" {hklin}"
-
-
-def project_pandda_worker(project, options):
-    # This copy function should be removed after a few users copy files to their folders.
-
-    # copy_missing_script(project, PANDDA_WORKER)
-    return "python " + \
-        project_script(project, PANDDA_WORKER) + \
-        f' {project.data_path()} {project.protein} "{options}"'
 
 
 def project_update_status_script_cmds(project, sample, softwares):

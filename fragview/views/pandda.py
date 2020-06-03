@@ -18,7 +18,7 @@ from fragview import hpc
 from fragview.views import utils, crypt_shell
 from fragview.fileio import open_proj_file, read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir, project_fragments_dir
+from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
 from worker.scripts import read_mtz_flags_path
 
 
@@ -686,30 +686,50 @@ def submit(request):
         if not options["reprocessing"] and path.exists(res_pandda):
             shutil.rmtree(res_pandda)
 
-        epoch = str(round(time.time()))
-        script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
         methodshort = proc[:2] + ref[:2]
-        log_prefix = os.path.join(proj.data_path(), "fragmax", "logs", f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
-        with open(script, "w") as outp:
-            outp.write('#!/bin/bash\n')
-            outp.write('#!/bin/bash\n')
-            outp.write('#SBATCH -t 16:00:00\n')
-            outp.write('#SBATCH -J PDD' + methodshort + '\n')
-            outp.write('#SBATCH --exclusive\n')
-            outp.write('#SBATCH -N1\n')
-            outp.write('#SBATCH --cpus-per-task=48\n')
-            outp.write('#SBATCH --mem=220000\n')
-            outp.write('#SBATCH -o ' + log_prefix + 'out.txt\n')
-            outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
-            outp.write('module purge\n')
-            outp.write('module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
-            outp.write(project_pandda_worker(proj, options) + '\n')
+        _write_main_script(proj, method, methodshort, options)
 
         t1 = threading.Thread(target=pandda_worker, args=(proj, method, options))
         t1.daemon = True
         t1.start()
 
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
+
+
+def _write_main_script(proj, method, methodshort, options):
+    script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
+
+    epoch = round(time.time())
+    log_prefix = project_log_path(proj, f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
+    data_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
+
+    pandda_script = project_script(proj, PANDDA_WORKER)
+
+    body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 16:00:00
+#SBATCH -J PDD{methodshort}
+#SBATCH --exclusive
+#SBATCH -N1
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=220000
+#SBATCH -o {log_prefix}out.txt
+#SBATCH -e {log_prefix}err.txt
+
+{crypt_shell.crypt_cmd(proj)}
+
+WORK_DIR=$(mktemp -d)
+cd $WORK_DIR
+
+{crypt_shell.fetch_dir(proj, data_dir, ".")}
+
+module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+python {pandda_script} $WORK_DIR {proj.protein} "{options}"
+
+$CRYPT_CMD upload_dir $WORK_DIR/pandda {data_dir}/pandda
+rm -rf "$WORK_DIR"
+"""
+    utils.write_script(script, body)
 
 
 def giant_score(proj, method):

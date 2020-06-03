@@ -20,6 +20,13 @@ def fetch_file(proj, src_file, dest_file):
     return f"$CRYPT_CMD fetch {src_file} {dest_file}"
 
 
+def fetch_dir(proj, src, dest):
+    if not proj.encrypted:
+        return f"cp -vr {src}/* {dest}"
+
+    return f"$CRYPT_CMD fetch_dir {src} {dest}"
+
+
 def upload_dir(proj, res_dir):
     if proj.encrypted:
         return f"$CRYPT_CMD upload_dir $WORK_DIR {res_dir}\n"
