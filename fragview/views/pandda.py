@@ -550,6 +550,16 @@ def giant(request):
 
 
 def analyse(request):
+    def _latest_analysis(proj, method):
+        pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+        paths = sorted(glob(path.join(pandda_dir, "analyses-*")))
+
+        if not paths:
+            # no analyses directory found
+            return None
+
+        return paths[-1]
+
     proj = current_project(request)
     panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
 
@@ -576,37 +586,39 @@ def analyse(request):
     method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
-        if os.path.exists(newestpath + "/html_summaries/pandda_analyse.html"):
-            with open(newestpath + "/html_summaries/pandda_analyse.html", "r") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+        pandda_html = path.join(newestpath, "html_summaries", "pandda_analyse.html")
 
-                return render(request, 'fragview/pandda_analyse.html',
-                              {"opencmd": localcmd, 'proc_methods': proc_methods,
-                               'Report': a.replace("PANDDA Processing Output",
-                                                   "PANDDA Processing Output for " + newestmethod)})
-        else:
+        if not path.exists(pandda_html):
+            # no pandda analysis results found
             running = [x.split("/")[10] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+            return render(request, 'fragview/pandda_notready.html', {"Report": "<br>".join(running)})
 
-    else:
-        if os.path.exists(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
-                      "r") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "cd " + panda_results_path + "/" + method + "/pandda/; pandda.inspect"
+        a = read_proj_file(proj, pandda_html).decode()
+        localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+        return render(request, 'fragview/pandda_analyse.html',
+                      {"opencmd": localcmd, 'proc_methods': proc_methods,
+                       'Report': a.replace("PANDDA Processing Output",
+                                           "PANDDA Processing Output for " + newestmethod)})
 
-            return render(
-                request,
-                "fragview/pandda_analyse.html",
-                {
-                    "opencmd": localcmd, "proc_methods": proc_methods,
-                    "Report": a.replace("PANDDA Processing Output",
-                                        "PANDDA Processing Output for " + method)
-                })
-        else:
-            running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+    # specific method was requested
+
+    analysis_dir = _latest_analysis(proj, method)
+    if analysis_dir is None:
+        running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
+        return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
+    pandda_html = path.join(analysis_dir, "html_summaries", "pandda_analyse.html")
+    a = read_proj_file(proj, pandda_html).decode()
+    localcmd = "cd " + panda_results_path + "/" + method + "/pandda/; pandda.inspect"
+
+    return render(
+        request,
+        "fragview/pandda_analyse.html",
+        {
+            "opencmd": localcmd, "proc_methods": proc_methods,
+            "Report": a.replace("PANDDA Processing Output",
+                                "PANDDA Processing Output for " + method)
+        })
 
 
 def fix_pandda_symlinks(proj):
