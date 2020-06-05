@@ -9,157 +9,344 @@
 {% block content %}
 
 <style>
-.center
-{
-    display: block;
-    padding-top: 50px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 65%;
-}
+    input {
+        width: 66.66% !important;
+    }
+    .col-md-8 {
+        -ms-flex: 0 0 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    /* BASIC */
+    .loginbox {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      padding-top: 40px;
+    }
+    .fragmaxlogo {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      padding-top: 40px;
+    }
 
-.text-head
-{
-    position: absolute;
-    bottom: 20px;
-    left: 300px;
-}
-td, th
-{
-    padding: 5px 5px;
-    display: table-cell;
-    text-align: left;
-    vertical-align: middle;
-    border-radius: 2px;
-    font-size: 12px;
-    font-size: 0.85vw;
-}
-.top-options {
-    font-size: 15px !important;
-}
-.flex-center {
-    margin-left:10px;
-    max-width:750px;
-    width: 60%
-}
 
-.content
-{
-    margin: auto !important;
-    max-width: 100% !important;
-    width: 100% !important;
-}
 
-.card_options
-{
-    padding-left: 310px  !important;
 
-    max-width: calc(100% - 50px)  !important;
-    {% comment %} min-width: 1600px; {% endcomment %}
-}
+    a {
+      color: #92BADD;
+      display:inline-block;
+      text-decoration: none;
+      font-weight: 500;
+    }
 
-.flexdiv_options
-{
-    display: flex;
-    padding-left: 40px;
-}
+    h2 {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display:inline-block;
+      margin: 40px 8px 10px 8px;
+      color: #cccccc;
+    }
 
-.selectbox
-{
-    display: flex !important;
-}
+    .loginlogo {
+      padding-top: 20px;
+    }
 
-.optionstable
-{
-    border-collapse: separate;
-    border-spacing: 0;
-}
+    /* STRUCTURE */
 
-.bottom-right
-{
-    right: 30;
-    bottom: 20;
-    position: absolute;
-}
+    .wrapper {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      min-height: 100%;
+      padding: 20px;
+    }
 
-.maxivorange
-{
-    background-color: #fea901;
-}
+    #formContent {
+      -webkit-border-radius: 10px 10px 10px 10px;
+      border-radius: 10px 10px 10px 10px;
+      background: #fff;
+      padding: 30px;
+      width: 90%;
+      max-width: 450px;
+      position: relative;
+      padding: 0px;
+      -webkit-box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+      box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+      text-align: center;
+    }
 
-.card-title
-{
-    display:inline-flex !important;
-}
+    #formFooter {
+      background-color: #f6f6f6;
+      border-top: 1px solid #dce8f1;
+      padding: 25px;
+      text-align: center;
+      -webkit-border-radius: 0 0 10px 10px;
+      border-radius: 0 0 10px 10px;
+    }
 
-.alert
-{
-    color: red;
-}
+
+
+    /* TABS */
+
+    h2.inactive {
+      color: #cccccc;
+    }
+
+    h2.active {
+      color: #0d0d0d;
+      border-bottom: 2px solid #5fbae9;
+    }
+
+
+
+    /* FORM TYPOGRAPHY*/
+
+    input[type=button], input[type=submit], input[type=reset]  {
+      background-color: #feb627;
+      border: none;
+      color: white;
+      padding: 15px 80px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      text-transform: uppercase;
+      font-size: 13px;
+      -webkit-box-shadow: 0 10px 30px 0 rgba(95,186,233,0.4);
+      box-shadow: 0 10px 30px 0 rgba(95,186,233,0.4);
+      -webkit-border-radius: 5px 5px 5px 5px;
+      border-radius: 5px 5px 5px 5px;
+      margin: 5px 20px 40px 20px;
+      -webkit-transition: all 0.3s ease-in-out;
+      -moz-transition: all 0.3s ease-in-out;
+      -ms-transition: all 0.3s ease-in-out;
+      -o-transition: all 0.3s ease-in-out;
+      transition: all 0.3s ease-in-out;
+    }
+
+    input[type=button]:hover, input[type=submit]:hover, input[type=reset]:hover  {
+      background-color: #fea901;
+    }
+
+    input[type=button]:active, input[type=submit]:active, input[type=reset]:active  {
+      -moz-transform: scale(0.95);
+      -webkit-transform: scale(0.95);
+      -o-transform: scale(0.95);
+      -ms-transform: scale(0.95);
+      transform: scale(0.95);
+    }
+
+    input[type=text] {
+      background-color: #f6f6f6;
+      border: none;
+      color: #0d0d0d;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 5px;
+      width: 85%;
+      border: 2px solid #f6f6f6;
+      -webkit-transition: all 0.5s ease-in-out;
+      -moz-transition: all 0.5s ease-in-out;
+      -ms-transition: all 0.5s ease-in-out;
+      -o-transition: all 0.5s ease-in-out;
+      transition: all 0.5s ease-in-out;
+      -webkit-border-radius: 5px 5px 5px 5px;
+      border-radius: 5px 5px 5px 5px;
+    }
+
+    input[type=text]:focus {
+      background-color: #fff;
+      border-bottom: 2px solid #5fbae9;
+    }
+
+    input[type=text]:placeholder {
+      color: #cccccc;
+    }
+
+
+
+    /* ANIMATIONS */
+
+    /* Simple CSS3 Fade-in-down Animation */
+    .fadeInDown {
+      -webkit-animation-name: fadeInDown;
+      animation-name: fadeInDown;
+      -webkit-animation-duration: 0.75s;
+      animation-duration: 0.75s;
+      -webkit-animation-fill-mode: both;
+      animation-fill-mode: both;
+    }
+
+    @-webkit-keyframes fadeInDown {
+      0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -100%, 0);
+      }
+      100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+      }
+    }
+
+    @keyframes fadeInDown {
+      0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -100%, 0);
+      }
+      100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+      }
+    }
+
+    /* Simple CSS3 Fade-in Animation */
+    @-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    .fadeIn {
+      opacity:0;
+      -webkit-animation:fadeIn ease-in 0.1;
+      -moz-animation:fadeIn ease-in 0.1;
+      animation:fadeIn ease-in 1;
+
+      -webkit-animation-fill-mode:forwards;
+      -moz-animation-fill-mode:forwards;
+      animation-fill-mode:forwards;
+
+      -webkit-animation-duration:0.1s;
+      -moz-animation-duration:0.1s;
+      animation-duration:0.1s;
+    }
+
+    .fadeIn.first {
+      -webkit-animation-delay: 0.05s;
+      -moz-animation-delay: 0.05s;
+      animation-delay: 0.05s;
+    }
+
+    .fadeIn.second {
+      -webkit-animation-delay: 0.6s;
+      -moz-animation-delay: 0.6s;
+      animation-delay: 0.6s;
+    }
+
+
+
+    /* Simple CSS3 Fade-in Animation */
+    .underlineHover:after {
+      display: block;
+      left: 0;
+      bottom: -10px;
+      width: 0;
+      height: 2px;
+      background-color: #56baed;
+      content: "";
+      transition: width 0.2s;
+    }
+
+    .underlineHover:hover {
+      color: #fea90;
+    }
+
+    .underlineHover:hover:after{
+      width: 100%;
+    }
+
+
+
+    /* OTHERS */
+
+    *:focus {
+        outline: none;
+    }
+
+    #icon {
+      width:60%;
+    }
+
+    .alert
+    {
+        color: red;
+    }
+
 </style>
 
-<div style="padding-left:200px">
-    <img src="{% static 'img/logo.svg' %}" class="center"/>
-<div>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+<div class="fadeIn second fragmaxlogo">
+      <img src="{% static 'img/logo.svg' %}" id="icon" alt="Site Icon" style="min-width: 600px; max-height: 250px;"/>
+    </div>
+<div class="loginbox fadeInDown">
+  <div id="formContent">
+    <!-- Tabs Titles -->
 
-<div>
+    <!-- Icon -->
+    <div class="fadeIn first loginlogo">
+      <img src="{% static 'userPics/bl_site.png' %}" id="icon" alt="Site Icon" />
+    </div>
 
-    <h6 style="padding-left:310px;">Login with your DUO account.</h6>
+    <!-- Login Form -->
+    <p class="loginlogo">Login with your DUO account.</p>
 
-    {# display login error message, if any #}
-    {% if form.errors %}
-        <h6 style="padding-left:310px;">
-            {% for error in form.non_field_errors %}
-                <div class="alert"><strong>{{ error|escape }}</strong></div>
-            {% endfor %}
-        </h6>
-    {% endif %}
 
+    <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+
+        <input class="fadeIn first" id="id_username" name="username"
+            {% if form.username.value is not None %}
+                value="{{ form.username.value }}"
+            {% endif %}
+                placeholder="login"/>
+
+        <input class="fadeIn first" id="id_password" name="password" type="password"
+            {% if form.password.value is not None %}
+                value="{{ form.password.value }}"
+            {% endif %}
+                placeholder="password" />
+      <input type="submit" class="fadeIn first" value="Log In">
+    </form>
+
+    <!-- Remind Passowrd -->
+    <div id="formFooter">
+        {# display login error message, if any #}
+        {% if form.errors %}
+            <h6 >
+                {% for error in form.non_field_errors %}
+                    <div class="alert"><strong>{{ error|escape }}</strong></div>
+                {% endfor %}
+            </h6>
+        {% endif %}
+      <a class="underlineHover" href="https://duo.maxiv.lu.se">Forgot Password?</a>
+    </div>
+
+  </div>
 </div>
 
-<form class="card_options" action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-    <div class="flexdiv_options card">
 
-        <div class="flex-center">
-            <div class="card-content card-content-center">
-                <table class="optionstable" >
-                    <col width="10%">
-                    <col width="90%">
-                    <tbody>
-                        <tr>
-                            <th class=" top-options">Username</th>
-                            <td class=" top-options">
-                                <label>
-                                    <input class="selectbox" id="id_username" name="username"
-                                        {% if form.username.value is not None %}
-                                            value="{{ form.username.value }}"
-                                        {% endif %}
-                                    />
-                                </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class=" top-options">Password</th>
-                            <td class=" top-options">
-                                <label>
-                                    <input class="selectbox" id="id_password" name="password" type="password"
-                                        {% if form.password.value is not None %}
-                                            value="{{ form.password.value }}"
-                                        {% endif %}
-                                    />
-                                </label>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="bottom-right">
-            <button class="btn-large maxivorange" type="submit" size="1">Login</button>
-        </div>
 
-    </div>
-</form>
+
+
+
+
+
 
 {% endblock %}
