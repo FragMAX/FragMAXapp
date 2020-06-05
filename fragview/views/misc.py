@@ -1,9 +1,8 @@
-from os import path
-from glob import glob
 from django.shortcuts import render
 from django.conf import settings
+from os import path
 from fragview.projects import current_project
-from fragview.views.utils import open_txt
+from glob import glob
 
 
 def project_details(request):
@@ -42,7 +41,7 @@ def log_viewer(request):
     downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
 
     if path.exists(logFile):
-        with open_txt(logFile) as r:
+        with open(logFile, "r") as r:
             log = r.read()
     else:
         log = ""

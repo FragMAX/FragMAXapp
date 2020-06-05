@@ -11,7 +11,7 @@ from fragview.models import PDB
 from .utils import Filter
 
 
-DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz\n"
+DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz"
 
 
 def datasets(request):
@@ -106,7 +106,6 @@ module load {softwares}
 
     cleanup_cmd = \
 """
-# clean-up
 cd
 rm -rf $WORK_DIR
 """  # noqa E128
@@ -162,10 +161,9 @@ def aimless_cmd(spacegroup, dstmtz):
     return cmd
 
 
-def _upload_result_cmd(proj, res_dir):
-    return f"# upload results\n" + \
-           f"rm $WORK_DIR/model.pdb\n" + \
-           f"{crypt_shell.upload_dir(proj, res_dir)}"
+def _upload_cmd(res_dir):
+    return "rm $WORK_DIR/model.pdb\n" + \
+           f"$CRYPT_CMD upload_dir $WORK_DIR {res_dir}\n"
 
 
 def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
@@ -196,7 +194,7 @@ def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customre
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
         out_cmd = f"{autoproc_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
@@ -219,7 +217,7 @@ def find_dials(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffs
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
 
         out_cmd = f"{dials_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
@@ -241,8 +239,7 @@ def find_xdsxscale(proj, dataset, aimless, spacegroup, argsfit, userPDB, customr
         xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
-
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
 
         out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
@@ -273,7 +270,7 @@ def find_xdsapp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreff
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
 
         out_cmd = f"{xdsapp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
     return out_cmd
@@ -303,8 +300,7 @@ def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffsp
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
-
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
         out_cmd = f"{edna_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
@@ -333,7 +329,7 @@ def find_fastdp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreff
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
 
         out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
