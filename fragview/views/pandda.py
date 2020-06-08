@@ -698,6 +698,9 @@ def submit(request):
         if not options["reprocessing"] and path.exists(res_pandda):
             shutil.rmtree(res_pandda)
 
+        if options["reprocessing"] and path.exists(res_dir):
+            shutil.rmtree(res_dir)
+
         methodshort = proc[:2] + ref[:2]
         _write_main_script(proj, method, methodshort, options)
 
