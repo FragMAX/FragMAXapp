@@ -27,9 +27,9 @@ def fetch_dir(proj, src, dest):
     return f"$CRYPT_CMD fetch_dir {src} {dest}"
 
 
-def upload_dir(proj, res_dir):
+def upload_dir(proj, src_dir, res_dir):
     if proj.encrypted:
-        return f"$CRYPT_CMD upload_dir $WORK_DIR {res_dir}\n"
+        return f"$CRYPT_CMD upload_dir {src_dir} {res_dir}\n"
 
     # project is in unencrypted mode
     if not res_dir.startswith(project_fragmax_dir(proj)):
@@ -40,4 +40,4 @@ def upload_dir(proj, res_dir):
 
     return f"rm -rf {res_dir}\n" + \
            f"mkdir -p {parent_dir}\n" + \
-           f"cp -r $WORK_DIR {res_dir}\n"
+           f"cp -r {src_dir} {res_dir}\n"

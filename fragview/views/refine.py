@@ -165,7 +165,7 @@ def aimless_cmd(spacegroup, dstmtz):
 def _upload_result_cmd(proj, res_dir):
     return f"# upload results\n" + \
            f"rm $WORK_DIR/model.pdb\n" + \
-           f"{crypt_shell.upload_dir(proj, res_dir)}"
+           f"{crypt_shell.upload_dir(proj, '$WORK_DIR', res_dir)}"
 
 
 def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,

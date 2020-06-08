@@ -738,7 +738,7 @@ cd $WORK_DIR
 module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
 python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 
-$CRYPT_CMD upload_dir $WORK_DIR/pandda {data_dir}/pandda
+{crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
 rm -rf "$WORK_DIR"
 """
     utils.write_script(script, body)
@@ -980,7 +980,7 @@ mv final_map_coeffs.mtz final.mtz
 {copy_frags_cmd}
 
 mkdir -p $DEST_DIR
-{crypt_shell.upload_dir(proj, output_dir)}
+{crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
 
 rm -rf $WORK_DIR
 """
