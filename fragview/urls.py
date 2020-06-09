@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
-from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt, gen_pdbs
+from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt, result_pdbs
 from fragview.views import encryption
 
 
@@ -57,7 +57,7 @@ urlpatterns = [
     path('pdb/new', pdbs.new),
 
     # generated PDB access views
-    path('pdbs/final/<dataset>/<process>/<refine>', gen_pdbs.final),
+    path('pdbs/final/<dataset>/<process>/<refine>', result_pdbs.final),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
