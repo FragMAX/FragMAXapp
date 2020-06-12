@@ -12,6 +12,67 @@ def _is_8_digits(str, subject="shift"):
     return str
 
 
+class RefineForm(forms.Form):
+    useDimple = forms.BooleanField(required=False)
+    useBuster = forms.BooleanField(required=False)
+    useFSpipeline = forms.BooleanField(required=False)
+    refSpaceGroup = forms.CharField(required=False)
+    datasetsFilter = forms.CharField(required=False)
+    customRefDimple = forms.CharField(required=False)
+    customRefBuster = forms.CharField(required=False)
+    customRefFspipe = forms.CharField(required=False)
+    runAimless = forms.BooleanField(required=False)
+
+    # PDB model field is a drop-down, but we treat it as integer, as
+    # we don't want to bother with validating the provided model ID
+    pdbModel = forms.IntegerField()
+
+    # note: this properties are only valid after call to is_valid()
+
+    def _get_field(self, name):
+        return self.cleaned_data[name]
+
+    @property
+    def use_dimple(self):
+        return self._get_field("useDimple")
+
+    @property
+    def use_buster(self):
+        return self._get_field("useBuster")
+
+    @property
+    def use_fspipeline(self):
+        return self._get_field("useFSpipeline")
+
+    @property
+    def pdb_model(self):
+        return self._get_field("pdbModel")
+
+    @property
+    def ref_space_group(self):
+        return self._get_field("refSpaceGroup")
+
+    @property
+    def datasets_filter(self):
+        return self._get_field("datasetsFilter")
+
+    @property
+    def custom_dimple(self):
+        return self._get_field("customRefDimple")
+
+    @property
+    def custom_buster(self):
+        return self._get_field("customRefBuster")
+
+    @property
+    def custom_fspipe(self):
+        return self._get_field("customRefFspipe")
+
+    @property
+    def run_aimless(self):
+        return self._get_field("runAimless")
+
+
 class ProjectForm(forms.Form):
     model = None
 

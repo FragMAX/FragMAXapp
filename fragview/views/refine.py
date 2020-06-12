@@ -4,10 +4,12 @@ import pyfastcopy  # noqa
 import threading
 from glob import glob
 from django.shortcuts import render
+from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.views import crypt_shell
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.models import PDB
+from fragview.forms import RefineForm
 from .utils import Filter
 
 
@@ -17,48 +19,32 @@ DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz\n"
 def datasets(request):
     proj = current_project(request)
 
-    userInput = str(request.GET.get("submitrfProc"))
-    empty, dimpleSW, fspSW, busterSW, refinemode, mrthreshold, refinerescutoff, userPDB, refspacegroup, filters, \
-        customrefdimple, customrefbuster, customreffspipe, aimlessopt = userInput.split(";;")
+    form = RefineForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 
-    if "false" in dimpleSW:
-        useDIMPLE = False
-    else:
-        useDIMPLE = True
-    if "false" in fspSW:
-        useFSP = False
-    else:
-        useFSP = True
-    if "false" in busterSW:
-        useBUSTER = False
-    else:
-        useBUSTER = True
+    pdbmodel = PDB.get(form.pdb_model)
 
-    db_id = userPDB.replace("pdbmodel:", "")
-    pdbmodel = PDB.get(db_id)
+    worker_args = (
+        proj, form.use_dimple, form.use_fspipeline, form.use_buster, pdbmodel.file_path(),
+        form.ref_space_group, form.datasets_filter, form.custom_dimple, form.custom_buster, form.custom_fspipe,
+        form.run_aimless
+    )
 
-    spacegroup = refspacegroup.replace("refspacegroup:", "")
-    t1 = threading.Thread(target=run_structure_solving,
-                          args=(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel.file_path(),
-                                spacegroup, filters, customrefdimple, customrefbuster, customreffspipe, aimlessopt))
+    t1 = threading.Thread(target=run_structure_solving, args=worker_args)
     t1.daemon = True
     t1.start()
-    outinfo = "<br>".join(userInput.split(";;"))
 
-    return render(
-        request,
-        "fragview/jobs_submitted.html",
-        {"command": outinfo})
+    return render(request, "fragview/jobs_submitted.html")
 
 
 def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
-                          customrefbuster, customreffspipe, aimlessopt):
+                          customrefbuster, customreffspipe, aimless):
     # Modules list for HPC env
     softwares = "PReSTO autoPROC BUSTER"
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
-    aimlessopt = aimlessopt.split("aimlessopt:")[-1]
     argsfit = "none"
 
     filters = filters.split(":")[-1]
@@ -111,7 +97,6 @@ cd
 rm -rf $WORK_DIR
 """  # noqa E128
 
-    aimless = bool(aimlessopt)
     for dataset in datasetList:
         sample = dataset.split("/")[-2]
         script = project_script(proj, f"proc2res_{sample}.sh")

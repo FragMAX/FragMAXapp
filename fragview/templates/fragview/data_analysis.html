@@ -319,7 +319,15 @@
 
                 <div class="card-content card-content-left">
                     <div class="card-title">Structure Refinement</div>
-                    <form action="/refine_datasets/" id="rfprocBtn" method="get" name="rfprocButton" size="1" target="_blank">
+                    <form action="/refine_datasets/" id="rfprocBtn"
+                          method="post" name="rfprocButton" size="1" target="_blank">
+
+                        {% csrf_token %}
+                        <input type="hidden" name="datasetsFilter"/>
+                        <input type="hidden" name="customRefDimple"/>
+                        <input type="hidden" name="customRefBuster"/>
+                        <input type="hidden" name="customRefFspipe"/>
+
                         <table class="optionstable">
                             <col width="8%">
                             <col width="17%">
@@ -334,30 +342,28 @@
                                                     <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
                                                         id="pipedreamcheckboxinputref" name="pipedreamcheckboxname"
                                                         type="checkbox" value="pipedream">
-                                                    <span for="pipedreamcheckboxinputref">Pipedream </span>
+                                                    <span for="pipedreamcheckboxinputref">Pipedream</span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="dials">
                                                 <label>
                                                         <input class="refineform filled-in dt-checkboxes" id="dimplecheckboxinput"
-                                                            name="dimplecheckboxname" type="checkbox"
-                                                            value="dimple">
-                                                        <span for="dimplecheckboxinput">Dimple </span>
+                                                            name="useDimple" type="checkbox">
+                                                        <span for="dimplecheckboxinput">Dimple</span>
                                                     </label>
                                             </div>
                                             <div class="checkbox" id="xdsxscale">
                                                 <label>
                                                         <input class="refineform filled-in dt-checkboxes" id="bustercheckboxinput"
-                                                            name="bustercheckboxname" type="checkbox"
-                                                            value="buster">
-                                                        <span for="bustercheckboxinput">BUSTER </span>
+                                                            name="useBuster" type="checkbox">
+                                                        <span for="bustercheckboxinput">BUSTER</span>
                                                     </label>
                                             </div>
                                             <div class="checkbox" id="autoproc">
                                                 <label>
                                                         <input class="refineform filled-in dt-checkboxes" id="fspcheckboxinput"
-                                                            name="fspcheckboxname" type="checkbox" value="fsp">
-                                                        <span for="fspcheckboxinput">FSpipeline </span>
+                                                            name="useFSpipeline" type="checkbox">
+                                                        <span for="fspcheckboxinput">FSpipeline</span>
                                                     </label>
                                             </div>
                                         </div>
@@ -367,7 +373,7 @@
                                 <tr>
                                     <th class=" top-options">PDB model</th>
                                     <td class=" top-options">
-                                        <select class="refineform selectbox" id="dropdownModel" name="dropdownModel">
+                                        <select class="refineform selectbox" name="pdbModel">
                                             {% for pdb in pdbs %}
                                                 <option value="{{pdb.id}}">{{pdb.filename}}</option>
                                             {% endfor %}
@@ -378,12 +384,12 @@
                                     <th class=" top-options">Space group</th>
                                     <td class=" top-options">
                                         <label>
-                                        <input class="refineform selectbox" name="refspacegroup" placeholder="P43212" ></input>   
+                                        <input class="refineform selectbox" name="refSpaceGroup" placeholder="P43212"/>
                                         </label>
                                         <div class="checkbox" id="aimless">
                                             <label>
                                                 <input class="filled-in dt-checkboxes" id="aimlesscheckboxinput"
-                                                    name="aimlesscheckboxname" type="checkbox" value="aimless">
+                                                    name="runAimless" type="checkbox" value="aimless">
                                                 <span for="aimlesscheckboxinput">Run aimless </span>
                                             </label>
                                         </div>
@@ -392,7 +398,11 @@
                                 <tr>
                                     <th></th>
                                     <td style="padding-top:20px">
-                                        <button class="btn-large  btn-right" disabled id="submitrfProc" name="submitrfProc" onsubmit="return refineproc()" size="1" type="submit" value="No Software Selected">Run refinement</button>
+                                        <button class="btn-large btn-right" disabled id="submitrfProc"
+                                                name="submitrfProc" onsubmit="return refineproc()" size="1"
+                                                type="submit">
+                                            Run refinement
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1973,32 +1983,27 @@
 
     f2.onsubmit = function refineproc() {
         //Refinement options
-        var dimpleSW = ";;dimpleSW:" + document.getElementsByName("dimplecheckboxname")[0].checked
-        var fspSW = ";;fspSW:" + document.getElementsByName("fspcheckboxname")[0].checked
-        var busterSW = ";;busterSW:" + document.getElementsByName("bustercheckboxname")[0].checked
         var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
         var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
         var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
-        var pdbmodel = ";;pdbmodel:" + document.getElementsByName("dropdownModel")[0].value
-        var refspacegroup = ";;refspacegroup:" + document.getElementsByName("refspacegroup")[0].value
-        var customrefdimple = ";;customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
-        var customrefbuster = ";;customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
-        var customreffspipe = ";;customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
+
+        var customrefdimple = "customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
+        var customrefbuster = "customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
+        var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
         var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
 
         if (document.getElementById("processALLckbox").checked) {
-            var dtsfilters = ";;filters:ALL"
+            var dtsfilters = "filters:ALL"
         } else if (document.getElementById("processALLNEWckbox").checked) {
-            var dtsfilters = ";;filters:NEW"
+            var dtsfilters = "filters:NEW"
         } else {
-            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
-            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
+            var dtsfilters = "filters:" + getCheckedBoxes("checkSel");
         }
-        var aimlessopt = ";;aimlessopt:" + document.getElementById("aimlesscheckboxinput").checked.toString()
-        var refinecmd = dimpleSW + fspSW + busterSW + refinemode + mrthreshold + refinerescutoff + pdbmodel +
-            refspacegroup + dtsfilters + customrefdimple + customrefbuster + customreffspipe + aimlessopt
-        document.getElementsByName("submitrfProc")[0].value = refinecmd
 
+        document.getElementsByName("customRefDimple")[0].value = customrefdimple;
+        document.getElementsByName("customRefBuster")[0].value = customrefbuster;
+        document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
+        document.getElementsByName("datasetsFilter")[0].value = dtsfilters;
     }
 
     var f3 = document.getElementById("ligprocBtn");
@@ -2131,8 +2136,7 @@
     $(".refineform").on("input", function(e) {
         if (document.getElementById("fspcheckboxinput").checked +
             document.getElementById("bustercheckboxinput").checked +
-            document.getElementById("dimplecheckboxinput").checked != 0 &&
-            document.getElementsByName("dropdownModel")[0].value) {
+            document.getElementById("dimplecheckboxinput").checked != 0) {
             document.getElementById("submitrfProc").disabled = false;
         } else {
             document.getElementById("submitrfProc").disabled = true;
