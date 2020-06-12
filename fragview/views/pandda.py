@@ -722,7 +722,7 @@ def _write_main_script(proj, method, methodshort, options):
 
     body = f"""#!/bin/bash
 #!/bin/bash
-#SBATCH -t 16:00:00
+#SBATCH -t 99:00:00
 #SBATCH -J PDD{methodshort}
 #SBATCH --exclusive
 #SBATCH -N1
