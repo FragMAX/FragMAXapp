@@ -237,6 +237,18 @@
             <div>
                 <div class="card-content card-content-left">
                     <div class="card-title">Data processing</div>
+                    <form action="/dataproc_datasets/" id="dtprocBtn" method="post"
+                          name="dataprocButton" size="1" target="_blank">
+
+                        {% csrf_token %}
+                        <input type="hidden" name="datasetsFilter" id="dtsFilterProc"/>
+                        <input type="hidden" name="hpcNodes" id="hpcNodesProc"/>
+                        <input type="hidden" name="friedelLaw" id="friedelLawProc"/>
+                        <input type="hidden" name="customXds" id="customXds"/>
+                        <input type="hidden" name="customAutoProc" id="customAutoProc"/>
+                        <input type="hidden" name="customDials" id="customDials"/>
+                        <input type="hidden" name="customXdsApp" id="customXdsApp"/>
+
                     <table class="optionstable">
                         <col width="8%">
                         <col width="17%">
@@ -246,7 +258,7 @@
                                 <td class=" top-options">
                                     <br>
                                     <div>
-                                        <div class="checkbox " id="pipedream">
+                                        <div class="checkbox" id="pipedream">
                                             <label>
                                                     <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
                                                         id="pipedreamcheckboxinputproc" name="pipedreamcheckboxname"
@@ -256,33 +268,31 @@
                                         </div>
                                         <div class="checkbox" id="dials">
                                             <label>
-                                                    <input class="processform filled-in dt-checkboxes" id="dialscheckboxinput"
-                                                        name="dialscheckboxname" type="checkbox" value="dials">
-                                                    <span for="dialscheckboxinput">XIA2/DIALS </span>
-                                                </label>
+                                                <input class="processform filled-in dt-checkboxes" id="dialscheckboxinput"
+                                                       name="useDials" type="checkbox">
+                                                <span for="dialscheckboxinput">XIA2/DIALS</span>
+                                            </label>
                                         </div>
                                         <div class="checkbox" id="xdsxscale">
                                             <label>
-                                                    <input class="processform filled-in dt-checkboxes" id="xdsxscalecheckboxinput"
-                                                        name="xdsxscalecheckboxname" type="checkbox"
-                                                        value="xdsxscale">
-                                                    <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE </span>
-                                                </label>
+                                                <input class="processform filled-in dt-checkboxes" id="xdsxscalecheckboxinput"
+                                                       name="useXdsxscale" type="checkbox">
+                                                <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE</span>
+                                            </label>
                                         </div>
                                         <div class="checkbox" id="xdsapp">
                                             <label>
-                                                    <input class="processform filled-in dt-checkboxes" id="xdsappcheckboxinput"
-                                                        name="xdsappcheckboxname" type="checkbox" value="xdsapp">
-                                                    <span for="xdsappcheckboxinput">XDSAPP </span>
-                                                </label>
+                                                <input class="processform filled-in dt-checkboxes" id="xdsappcheckboxinput"
+                                                       name="useXdsapp" type="checkbox" value="xdsapp">
+                                                <span for="xdsappcheckboxinput">XDSAPP</span>
+                                            </label>
                                         </div>
                                         <div class="checkbox" id="autoproc">
                                             <label>
-                                                    <input class="processform filled-in dt-checkboxes" id="autoproccheckboxinput"
-                                                        name="autoproccheckboxname" type="checkbox"
-                                                        value="autoproc">
-                                                    <span for="autoproccheckboxinput">autoProc </span>
-                                                </label>
+                                                <input class="processform filled-in dt-checkboxes" id="autoproccheckboxinput"
+                                                       name="useAutoproc" type="checkbox">
+                                                <span for="autoproccheckboxinput">autoProc </span>
+                                            </label>
                                         </div>
                                     </div>
                                 </td>
@@ -290,26 +300,28 @@
                             <tr>
                                 <th class=" top-options">Space group</th>
                                 <td class=" top-options">
-                                    <input class="selectbox" name="spacegroup" placeholder="P43212"></input>
+                                    <input class="selectbox" name="spaceGroup" placeholder="P43212"/>
                                 </td>
                             </tr>
 
                             <tr>
                                 <th class=" top-options">Cell parameters</th>
-                                <td class=" top-options"><input class="selectbox" name="cellparam" placeholder="(a, b, c, α, β, γ)"></input>
+                                <td class=" top-options">
+                                    <input class="selectbox" name="cellParams" placeholder="(a, b, c, α, β, γ)"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th></th>
                                 <td style="padding-top:50px">
-                                    <form action="/dataproc_datasets/" id="dtprocBtn" method="get" name="dataprocButton" size="1" target="_blank">
-                                        <button class="btn-large  btn-right" disabled id="submitdtProc" name="submitdtProc" onsubmit="return dataproc()" size="1" type="submit" value="No Software Selected">Run data
-                                            processing</button>
-                                    </form>
+                                    <button class="btn-large  btn-right" disabled id="submitdtProc" name="submitdtProc"
+                                            onsubmit="return dataproc()" size="1" type="submit">
+                                        Run data processing
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                    </form>
                 </div>
             </div>
         </div>
@@ -323,7 +335,7 @@
                           method="post" name="rfprocButton" size="1" target="_blank">
 
                         {% csrf_token %}
-                        <input type="hidden" name="datasetsFilter"/>
+                        <input type="hidden" name="datasetsFilter" id="dtsFilterRefine"/>
                         <input type="hidden" name="customRefDimple"/>
                         <input type="hidden" name="customRefBuster"/>
                         <input type="hidden" name="customRefFspipe"/>
@@ -475,17 +487,6 @@
                 </div>
             </div>
         </div>
-
-
-        {% comment %}
-        <div class="bottom-right">
-            <form action="/dataproc_datasets/" id="allprocBtn" method="get" name="allprocButton" size="1" target="_blank">
-                <button class="btn-large maxivorange btn-right" name="submitallProc" onsubmit="return dataprocess()" size="1" type="submit" value="No Software Selected ">Run All</button>
-            </form>
-
-
-        </div> {% endcomment %}
-
     </div>
 
 </div>
@@ -1941,42 +1942,42 @@
         });
     });
 
+    function getDtsFilters() {
+        if (document.getElementById("processALLckbox").checked) {
+            return "ALL";
+        }
 
+        if (document.getElementById("processALLNEWckbox").checked) {
+            return "NEW";
+        }
+
+        return getCheckedBoxes("checkSel");
+    }
 
     var f = document.getElementById("dtprocBtn");
 
     f.onsubmit = function dataproc() {
-        //Data proc options
-        var dialsSW = ";;dials:" + document.getElementsByName("dialscheckboxname")[0].checked
-        var xdsxscaleSW = ";;xdsxscale:" + document.getElementsByName("xdsxscalecheckboxname")[0].checked
-        var xdsappSW = ";;xdsapp:" + document.getElementsByName("xdsappcheckboxname")[0].checked
-        var autoprocSW = ";;autoproc:" + document.getElementsByName("autoproccheckboxname")[0].checked
-        var spacegroup = ";;spacegroup:" + document.getElementsByName("spacegroup")[0].value
-        var cellparam = ";;cellparam:" + document.getElementsByName("cellparam")[0].value
-        var friedel = ";;friedel:" + document.getElementsByName("friedel")[0].value
+
+        /* Data proc options */
+        var friedel = document.getElementsByName("friedel")[0].value
         var datarange = ";;datarange:" + document.getElementsByName("datarange")[0].value
         var rescutoff = ";;rescutoff:" + document.getElementsByName("rescutoff")[0].value
         var cccutoff = ";;cccutoff:" + document.getElementsByName("cccutoff")[0].value
         var isigicutoff = ";;isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
-        var customxds = ";;customxds:" + document.getElementsByName("customdataproc-xds")[0].value
-        var customxdsapp = ";;customxdsapp:" + document.getElementsByName("customdataproc-xdsapp")[0].value
-        var customdials = ";;customxdsdials:" + document.getElementsByName("customdataproc-dials")[0].value
-        var customautoproc = ";;customxdsautoproc:" + document.getElementsByName("customdataproc-autoproc")[0].value
-        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
+        var customxds = document.getElementsByName("customdataproc-xds")[0].value
+        var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
+        var customdials = document.getElementsByName("customdataproc-dials")[0].value
+        var customautoproc = document.getElementsByName("customdataproc-autoproc")[0].value
+        var node_number = document.querySelector('input[name="node_number"]:checked').value;
 
-        if (document.getElementById("processALLckbox").checked) {
-            var dtsfilters = ";;filters:ALL"
-        } else if (document.getElementById("processALLNEWckbox").checked) {
-            var dtsfilters = ";;filters:NEW"
-        } else {
-            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
-            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
-        }
-        var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
-            datarange + rescutoff + cccutoff + isigicutoff + dtsfilters + customxds + customautoproc + customdials +
-            customxdsapp + node_number
-        document.getElementsByName("submitdtProc")[0].value = dtproccmd
+        $("#friedelLawProc").val(friedel);
+        $("#hpcNodesProc").val(node_number);
+        $("#dtsFilterProc").val(getDtsFilters());
 
+        $("#customXds").val(customxds);
+        $("#customAutoProc").val(customautoproc);
+        $("#customDials").val(customdials);
+        $("#customXdsApp").val(customxdsapp);
     }
 
     var f2 = document.getElementById("rfprocBtn");
@@ -1992,18 +1993,10 @@
         var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
         var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
 
-        if (document.getElementById("processALLckbox").checked) {
-            var dtsfilters = "filters:ALL"
-        } else if (document.getElementById("processALLNEWckbox").checked) {
-            var dtsfilters = "filters:NEW"
-        } else {
-            var dtsfilters = "filters:" + getCheckedBoxes("checkSel");
-        }
-
         document.getElementsByName("customRefDimple")[0].value = customrefdimple;
         document.getElementsByName("customRefBuster")[0].value = customrefbuster;
         document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
-        document.getElementsByName("datasetsFilter")[0].value = dtsfilters;
+        $("#dtsFilterRefine").val(getDtsFilters());
     }
 
     var f3 = document.getElementById("ligprocBtn");

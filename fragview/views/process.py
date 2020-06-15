@@ -2,133 +2,63 @@ import os
 import time
 import xmltodict
 import threading
-import subprocess
 from glob import glob
 from os import path
 from django.shortcuts import render
+from django.http import HttpResponseBadRequest
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
 from fragview import hpc, versions
+from fragview.forms import ProcessForm
 from .utils import scrsplit, Filter
 
 
 def datasets(request):
     proj = current_project(request)
 
-    allprc = str(request.GET.get("submitallProc"))
-    dtprc = str(request.GET.get("submitdtProc"))
-    if allprc != "None":
-        userinputs = allprc.split(";;")
-        dpSW = list()
-        dpSW.append("xdsapp") if ("true" in userinputs[3]) else False
-        dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
-        dpSW.append("dials") if ("true" in userinputs[1]) else False
-        dpSW.append("autoproc") if ("true" in userinputs[4]) else False
-        if dpSW == []:
-            dpSW = [""]
+    form = ProcessForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 
-        rfSW = list()
-        rfSW.append("dimple") if ("true" in userinputs[12]) else False
-        rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
-        rfSW.append("buster") if ("true" in userinputs[14]) else False
-        if rfSW == []:
-            rfSW = [""]
+    filters = form.datasets_filter
+    nodes = form.hpc_nodes
 
-        lfSW = list()
-        lfSW.append("rhofit") if ("true" in userinputs[19]) else False
-        lfSW.append("ligfit") if ("true" in userinputs[20]) else False
-        if lfSW == []:
-            lfSW = [""]
+    options = {
+        "spacegroup": form.space_group,
+        "cellparam": form.cell_params,
+        "friedel_law": form.friedel_law,
+        "customxds": form.custom_xds,
+        "customautoproc": form.custom_autoproc,
+        "customdials": form.custom_dials,
+        "customxdsapp": form.custom_xdsapp
+    }
 
-        PDBID = userinputs[18].split(":")[-1]
+    if filters != "ALL":
+        nodes = 1
 
-        spg = userinputs[5].split(":")[-1]
-        pnodes = 10
-        shell_script = project_script(proj, "processALL.sh")
-        with open(shell_script, "w") as outp:
-            outp.write(
-                """#!/bin/bash \n"""
-                """#!/bin/bash \n"""
-                """#SBATCH -t 99:55:00 \n"""
-                """#SBATCH -J FragMAX \n"""
-                """#SBATCH --exclusive \n"""
-                """#SBATCH -N1 \n"""
-                """#SBATCH --cpus-per-task=40 \n"""
-                """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_out.txt \n"""
-                """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
-                """module purge \n"""
-                """module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                """python """ + project_script(proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
-                proj.library + """' '""" + PDBID + """' '""" + spg + """' $1 $2 '""" + ",".join(dpSW) +
-                """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
+    if form.use_xdsapp:
+        t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        for node in range(pnodes):
-            command = 'echo "module purge | module load CCP4 autoPROC DIALS XDSAPP | sbatch ' + \
-                      shell_script + " " + str(node) + " " + str(pnodes) + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command, shell=True)
-            time.sleep(0.2)
-        return render(request, 'fragview/testpage.html', {
-            'dpSW': "<br>".join(dpSW),
-            'rfSW': "<br>".join(rfSW),
-            'lfSW': "<br>".join(lfSW),
-            "pdb": PDBID,
-            "sym": spg
-        })
+    if form.use_dials:
+        t = threading.Thread(target=run_dials, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-    if dtprc != "None":
-        dtprc_inp = dtprc.split(";;")
-        usedials = dtprc_inp[1].split(":")[-1]
-        usexdsxscale = dtprc_inp[2].split(":")[-1]
-        usexdsapp = dtprc_inp[3].split(":")[-1]
-        useautproc = dtprc_inp[4].split(":")[-1]
-        spacegroup = dtprc_inp[5].split(":")[-1]
-        cellparam = dtprc_inp[6].split(":")[-1].replace("(", "").replace(")", "")
-        friedel_law = dtprc_inp[7].split(":")[-1]
-        filters = dtprc_inp[12].split(":")[-1]
-        customxds = dtprc_inp[13].split(":")[-1]
-        customautoproc = dtprc_inp[14].split(":")[-1]
-        customdials = dtprc_inp[15].split(":")[-1]
-        customxdsapp = dtprc_inp[16].split(":")[-1]
-        node_number = dtprc_inp[17].split(":")[-1]
-        options = {"spacegroup": spacegroup,
-                   "cellparam": cellparam,
-                   "friedel_law": friedel_law,
-                   "customxds": customxds,
-                   "customautoproc": customautoproc,
-                   "customdials": customdials,
-                   "customxdsapp": customxdsapp
-                   }
-        nodes = node_number
-        if not nodes.isnumeric():
-            nodes = 3
-        else:
-            nodes = int(nodes)
-        if filters != "ALL":
-            nodes = 1
-        if usexdsapp == "true":
-            t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
-        if usedials == "true":
-            t = threading.Thread(target=run_dials, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
+    if form.use_autoproc:
+        t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        if useautproc == "true":
-            t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
+    if form.use_xdsxscale:
+        t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        if usexdsxscale == "true":
-            t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
-
-        return render(
-            request,
-            "fragview/dataproc_datasets.html",
-            {"allproc": "Jobs submitted using " + str(nodes) + " per method"})
-
-    return render(request, "fragview/dataproc_datasets.html", {"allproc": ""})
+    return render(
+        request,
+        "fragview/dataproc_datasets.html",
+        {"allproc": "Jobs submitted using " + str(nodes) + " per method"})
 
 
 def run_xdsapp(proj, nodes, filters, options):

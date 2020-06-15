@@ -5,19 +5,92 @@ from fragview import projects, fraglib, encryption
 from .models import Project, EncryptionKey
 
 
-def _is_8_digits(str, subject="shift"):
-    if re.match("^\\d{8}$", str) is None:
-        raise forms.ValidationError(f"invalid {subject} '{str}', should be 8 digits")
+class _ProcJobForm(forms.Form):
+    datasetsFilter = forms.CharField(required=False)
+    hpcNodes = forms.IntegerField()
 
-    return str
+    def _get_field(self, name):
+        return self.cleaned_data[name]
+
+    # note: this properties are only valid after call to is_valid()
+
+    @property
+    def datasets_filter(self):
+        return self._get_field("datasetsFilter")
+
+    @property
+    def hpc_nodes(self):
+        return self._get_field("hpcNodes")
 
 
-class RefineForm(forms.Form):
+class ProcessForm(_ProcJobForm):
+    useDials = forms.BooleanField(required=False)
+    useXdsxscale = forms.BooleanField(required=False)
+    useXdsapp = forms.BooleanField(required=False)
+    useAutoproc = forms.BooleanField(required=False)
+    spaceGroup = forms.CharField(required=False)
+    cellParams = forms.CharField(required=False)
+    friedelLaw = forms.CharField(required=False)
+    customXds = forms.CharField(required=False)
+    customAutoProc = forms.CharField(required=False)
+    customDials = forms.CharField(required=False)
+    customXdsApp = forms.CharField(required=False)
+
+    def _get_field(self, name):
+        return self.cleaned_data[name]
+
+    # note: this properties are only valid after call to is_valid()
+
+    @property
+    def use_dials(self):
+        return self._get_field("useDials")
+
+    @property
+    def use_xdsxscale(self):
+        return self._get_field("useXdsxscale")
+
+    @property
+    def use_xdsapp(self):
+        return self._get_field("useXdsapp")
+
+    @property
+    def use_autoproc(self):
+        return self._get_field("useAutoproc")
+
+    @property
+    def space_group(self):
+        return self._get_field("spaceGroup")
+
+    @property
+    def cell_params(self):
+        return self._get_field("cellParams")
+
+    @property
+    def friedel_law(self):
+        return self._get_field("friedelLaw")
+
+    @property
+    def custom_xds(self):
+        return self._get_field("customXds")
+
+    @property
+    def custom_autoproc(self):
+        return self._get_field("customAutoProc")
+
+    @property
+    def custom_dials(self):
+        return self._get_field("customDials")
+
+    @property
+    def custom_xdsapp(self):
+        return self._get_field("customXdsApp")
+
+
+class RefineForm(_ProcJobForm):
     useDimple = forms.BooleanField(required=False)
     useBuster = forms.BooleanField(required=False)
     useFSpipeline = forms.BooleanField(required=False)
     refSpaceGroup = forms.CharField(required=False)
-    datasetsFilter = forms.CharField(required=False)
     customRefDimple = forms.CharField(required=False)
     customRefBuster = forms.CharField(required=False)
     customRefFspipe = forms.CharField(required=False)
@@ -28,9 +101,6 @@ class RefineForm(forms.Form):
     pdbModel = forms.IntegerField()
 
     # note: this properties are only valid after call to is_valid()
-
-    def _get_field(self, name):
-        return self.cleaned_data[name]
 
     @property
     def use_dimple(self):
@@ -53,10 +123,6 @@ class RefineForm(forms.Form):
         return self._get_field("refSpaceGroup")
 
     @property
-    def datasets_filter(self):
-        return self._get_field("datasetsFilter")
-
-    @property
     def custom_dimple(self):
         return self._get_field("customRefDimple")
 
@@ -71,6 +137,13 @@ class RefineForm(forms.Form):
     @property
     def run_aimless(self):
         return self._get_field("runAimless")
+
+
+def _is_8_digits(str, subject="shift"):
+    if re.match("^\\d{8}$", str) is None:
+        raise forms.ValidationError(f"invalid {subject} '{str}', should be 8 digits")
+
+    return str
 
 
 class ProjectForm(forms.Form):
