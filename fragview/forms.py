@@ -23,6 +23,19 @@ class _ProcJobForm(forms.Form):
         return self._get_field("hpcNodes")
 
 
+class LigfitForm(_ProcJobForm):
+    useRhoFit = forms.BooleanField(required=False)
+    usePhenixLigfit = forms.BooleanField(required=False)
+
+    @property
+    def use_rho_fit(self):
+        return self._get_field("useRhoFit")
+
+    @property
+    def use_phenix_ligfit(self):
+        return self._get_field("usePhenixLigfit")
+
+
 class ProcessForm(_ProcJobForm):
     useDials = forms.BooleanField(required=False)
     useXdsxscale = forms.BooleanField(required=False)

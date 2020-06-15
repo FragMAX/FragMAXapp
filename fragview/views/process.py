@@ -17,7 +17,7 @@ def datasets(request):
 
     form = ProcessForm(request.POST)
     if not form.is_valid():
-        return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
+        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
     filters = form.datasets_filter
     nodes = form.hpc_nodes

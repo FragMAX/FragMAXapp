@@ -336,6 +336,7 @@
 
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterRefine"/>
+                        <input type="hidden" name="hpcNodes" id="hpcNodesRefine"/>
                         <input type="hidden" name="customRefDimple"/>
                         <input type="hidden" name="customRefBuster"/>
                         <input type="hidden" name="customRefFspipe"/>
@@ -429,6 +430,12 @@
             <div>
                 <div class="card-content card-content-right">
                     <div class="card-title">Ligand fitting</div>
+                    <form action="/ligfit_datasets/" id="ligprocBtn" method="post"
+                          name="ligprocButton" size="1" target="_blank">
+
+                        {% csrf_token %}
+                        <input type="hidden" name="datasetsFilter" id="dtsFilterLigfit"/>
+                        <input type="hidden" name="hpcNodes" id="hpcNodesLigfit"/>
                     <table class="optionstable">
                         <col width="8%">
                         <col width="17%">
@@ -449,17 +456,17 @@
                                             </div>
                                             <div class="checkbox" id="rhofit">
                                                 <label>
-                                                    <input class="ligandform filled-in dt-checkboxes" id="rhofitcheckboxinput"
-                                                        name="rhofitcheckboxname" type="checkbox" value="rhofit">
-                                                    <span for="rhofitcheckboxinput">RhoFit </span>
+                                                    <input class="ligandform filled-in dt-checkboxes"
+                                                           id="rhofitcheckboxinput" name="useRhoFit" type="checkbox">
+                                                    <span for="rhofitcheckboxinput">RhoFit</span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="ligfit">
                                                 <label>
                                                     <input class="ligandform filled-in dt-checkboxes"
-                                                        id="phenixligfitcheckboxinput" name="phenixligfitcheckboxname"
-                                                        type="checkbox" value="phenixligfit">
-                                                    <span for="phenixligfitcheckboxinput">Phenix LigFit </span>
+                                                        id="phenixligfitcheckboxinput" name="usePhenixLigfit"
+                                                        type="checkbox">
+                                                    <span for="phenixligfitcheckboxinput">Phenix LigFit</span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="pandda">
@@ -477,13 +484,15 @@
                             <tr>
                                 <th></th>
                                 <td style="padding-top:200px">
-                                    <form action="/ligfit_datasets/" id="ligprocBtn" method="get" name="ligprocButton" size="1" target="_blank">
-                                        <button class="btn-large  btn-right" disabled id="submitligProc" name="submitligProc" onsubmit="return ligandfitproc()" size="1" type="submit" value="No Software Selected">Run ligand fitting</button>
-                                    </form>
+                                    <button class="btn-large  btn-right" disabled id="submitligProc"
+                                            name="submitligProc" onsubmit="return ligandfitproc()" size="1" type="submit">
+                                        Run ligand fitting
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1954,6 +1963,10 @@
         return getCheckedBoxes("checkSel");
     }
 
+    function getHpcNodes() {
+        return document.querySelector('input[name="node_number"]:checked').value;
+    }
+
     var f = document.getElementById("dtprocBtn");
 
     f.onsubmit = function dataproc() {
@@ -1968,10 +1981,9 @@
         var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
         var customdials = document.getElementsByName("customdataproc-dials")[0].value
         var customautoproc = document.getElementsByName("customdataproc-autoproc")[0].value
-        var node_number = document.querySelector('input[name="node_number"]:checked').value;
 
         $("#friedelLawProc").val(friedel);
-        $("#hpcNodesProc").val(node_number);
+        $("#hpcNodesProc").val(getHpcNodes());
         $("#dtsFilterProc").val(getDtsFilters());
 
         $("#customXds").val(customxds);
@@ -1991,37 +2003,21 @@
         var customrefdimple = "customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
         var customrefbuster = "customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
         var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
-        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
 
         document.getElementsByName("customRefDimple")[0].value = customrefdimple;
         document.getElementsByName("customRefBuster")[0].value = customrefbuster;
         document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
+
+        $("#hpcNodesRefine").val(getHpcNodes());
         $("#dtsFilterRefine").val(getDtsFilters());
     }
 
     var f3 = document.getElementById("ligprocBtn");
 
     f3.onsubmit = function ligandfitproc() {
-        //Ligand fit options
-        var rhofitSW = ";;rhofitSW:" + document.getElementsByName("rhofitcheckboxname")[0].checked
-        var ligfitSW = ";;ligfitSW:" + document.getElementsByName("phenixligfitcheckboxname")[0].checked
-        var fitprocess = ";;fitprocess:" + document.getElementsByName("fitprocess")[0].value
-        var scanchirals = ";;scanchirals:" + document.getElementsByName("scanchirals")[0].value
-        var customligfit = ";;customligfit:" + document.getElementsByName("customligfit")[0].value
-        var node_number = ";;node_number:" + document.querySelector('input[name="node_number"]:checked').value;
-
-        if (document.getElementById("processALLckbox").checked) {
-            var dtsfilters = ";;filters:ALL"
-        } else if (document.getElementById("processALLNEWckbox").checked) {
-            var dtsfilters = ";;filters:NEW"
-        } else {
-            //var dtsfilters = ";filters:" + document.getElementsByName("dropdownDataset")[0].value
-            var dtsfilters = ";;filters:" + getCheckedBoxes("checkSel");
-        }
-        var ligfitcmd = rhofitSW + ligfitSW + fitprocess + scanchirals + customligfit + dtsfilters
-
-        document.getElementsByName("submitligProc")[0].value = ligfitcmd
-        console.log(ligfitcmd)
+        /* Ligand fit options */
+        $("#hpcNodesLigfit").val(getHpcNodes());
+        $("#dtsFilterLigfit").val(getDtsFilters());
     }
 
     // { % comment % }
