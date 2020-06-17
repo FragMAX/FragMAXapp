@@ -230,14 +230,23 @@
     </li>
     <li>
         <a href="/pandda_analyse" class="collapsible-header sidenav-links" data-turbolinks="false">
-            PanDDa analyse<i class="material-icons" style="font-size:22px;color:white">pets</i>
+            PanDDa<i class="material-icons" style="font-size:22px;color:white">pets</i>
         </a>
     </li>
-    <li>
-        <a href="/pandda_inspect" class="collapsible-header sidenav-links" data-turbolinks="false">
-            PanDDa inspect<i class="material-icons" style="font-size:22px;color:white">pets</i>
-        </a>
-    </li>
+
+    {% ifequal active_menu 'pandda' %}
+        <li>
+            <a href="/pandda_analyse" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                Analyse<i class="material-icons" style="font-size:22px;color:white">equalizer</i>
+            </a>
+        </li>
+        <li>
+            <a href="/pandda_inspect" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                Inspect<i class="material-icons" style="font-size:22px;color:white">search</i>
+            </a>
+        </li>
+    {% endifequal %}
+
     <li>
         <a href="/pandda_giant" class="collapsible-header sidenav-links" data-turbolinks="false">
             Giant PanDDa<i class="material-icons" style="font-size:22px;color:white">insert_chart</i>
