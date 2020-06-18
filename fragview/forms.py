@@ -49,9 +49,6 @@ class ProcessForm(_ProcJobForm):
     customDials = forms.CharField(required=False)
     customXdsApp = forms.CharField(required=False)
 
-    def _get_field(self, name):
-        return self.cleaned_data[name]
-
     # note: this properties are only valid after call to is_valid()
 
     @property

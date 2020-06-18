@@ -29,7 +29,7 @@ def is_dir_mock(non_exist_dir):
     return _isdir
 
 
-class FormTesterMixin:
+class ProjFormTesterMixin:
     """
     Utility Mixin for testing Project Form class
     """
@@ -59,7 +59,98 @@ class FormTesterMixin:
         return req
 
 
-class TestProjectFormSave(test.TestCase, FormTesterMixin):
+class JobsFormTesterMixin:
+    DS_FILTER = "set1,set2"
+    ReqsFactory = RequestFactory()
+
+    def _request(self, args):
+        return self.ReqsFactory.post(
+            "/",  # we don't really care about the URL here
+            {**dict(hpcNodes=42), **args})
+
+
+class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
+    def test_rho_fit(self):
+        request = self._request(dict(useRhoFit="on"))
+
+        form = forms.LigfitForm(request.POST)
+
+        valid = form.is_valid()
+        self.assertTrue(valid)
+        self.assertEqual(form.hpc_nodes, 42)
+        self.assertTrue(form.use_rho_fit)
+        self.assertFalse(form.use_phenix_ligfit)
+
+    def test_use_both(self):
+        request = self._request(dict(datasetsFilter=self.DS_FILTER, useRhoFit="on", usePhenixLigfit="on"))
+
+        form = forms.LigfitForm(request.POST)
+
+        valid = form.is_valid()
+        self.assertTrue(valid)
+        self.assertEqual(form.datasets_filter, self.DS_FILTER)
+        self.assertTrue(form.use_rho_fit)
+        self.assertTrue(form.use_phenix_ligfit)
+
+
+class TestProcessForm(test.TestCase, JobsFormTesterMixin):
+    def test_form(self):
+        request = self._request(
+            dict(useDials="on",
+                 useXdsapp="on",
+                 spaceGroup="SGRP",
+                 cellParams="cellpy",
+                 friedelLaw="true",
+                 customXds="cXds",
+                 customDials="dlsdl"))
+
+        form = forms.ProcessForm(request.POST)
+        valid = form.is_valid()
+        self.assertTrue(valid)
+
+        self.assertTrue(form.use_dials)
+        self.assertFalse(form.use_xdsxscale)
+        self.assertTrue(form.use_xdsapp)
+        self.assertFalse(form.use_autoproc)
+
+        self.assertEqual(form.space_group, "SGRP")
+        self.assertEqual(form.cell_params, "cellpy")
+        self.assertEqual(form.friedel_law, "true")
+
+        self.assertEqual(form.custom_xds, "cXds")
+        self.assertEqual(form.custom_autoproc, "")
+        self.assertEqual(form.custom_dials, "dlsdl")
+        self.assertEqual(form.custom_xdsapp, "")
+
+
+class TestRefineForm(test.TestCase, JobsFormTesterMixin):
+    def test_form(self):
+        request = self._request(
+            dict(useDimple="on",
+                 useBuster="on",
+                 refSpaceGroup="SGRP",
+                 pdbModel="32",
+                 customRefDimple="ddimp",
+                 customRefBuster="busta"))
+
+        form = forms.RefineForm(request.POST)
+        valid = form.is_valid()
+        print(form.errors)
+        self.assertTrue(valid)
+
+        self.assertTrue(form.use_dimple)
+        self.assertTrue(form.use_buster)
+        self.assertFalse(form.use_fspipeline)
+        self.assertFalse(form.run_aimless)
+
+        self.assertEqual(form.pdb_model, 32)
+        self.assertEqual(form.ref_space_group, "SGRP")
+        self.assertEqual(form.custom_dimple, "ddimp")
+        self.assertEqual(form.custom_buster, "busta")
+        self.assertEqual(form.custom_fspipe, "")
+
+
+class TestProjectFormSave(test.TestCase, ProjFormTesterMixin):
     def save_form(self, encrypted=False):
         """
         create project form and save it as pending project
@@ -111,7 +202,7 @@ class TestProjectFormSave(test.TestCase, FormTesterMixin):
         self.assertIsNotNone(db_proj.encryption_key)
 
 
-class TestProjectForm(unittest.TestCase, FormTesterMixin):
+class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
     def _assertValidationError(self, form, field, expected_error_regexp):
         self.assertFalse(form.is_valid())
