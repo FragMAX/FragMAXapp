@@ -247,7 +247,7 @@ def run_autoproc(proj, nodes, filters, options):
         else:
             friedel = "-noANO"
         script = \
-            f"rm -rf {outdir}/\n" \
+            f"rm -rf {outdir}/autoproc\n" \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
             f'''process -h5 {h5master} {friedel} {spg} {unit_cell} ''' + \
