@@ -89,13 +89,17 @@ cd $WORK_DIR
 module purge
 module load {softwares}
 """  # noqa E128
-
-    cleanup_cmd = \
-"""
+    def cleanup_cmd(argsfit):
+        rm_cmd = """
 # clean-up
 cd
-rm -rf $WORK_DIR
 """  # noqa E128
+        if "dimple" in argsfit:
+            rm_cmd += "rm -rf $WORK_DIR/dimple\n"
+        if "fspipeline" in argsfit:
+            rm_cmd += "rm -rf $WORK_DIR/fspipeline\n"
+    return rm_cmd
+    
 
     for dataset in datasetList:
         sample = dataset.split("/")[-2]
@@ -129,7 +133,7 @@ rm -rf $WORK_DIR
 
             autoproc = find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe,
                                      customrefbuster, customrefdimple)
-
+            cleanup_cmd = cleanup_cmd(argsfit)
             for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
                 outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
 
