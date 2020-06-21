@@ -92,13 +92,11 @@ module load {softwares}
 
     def cleanup_cmd(argsfit):
         rm_cmd = "#clean up\ncd\n"
-        
         if "dimple" in argsfit:
             rm_cmd += "rm -rf $WORK_DIR/dimple\n"
         if "fspipeline" in argsfit:
             rm_cmd += "rm -rf $WORK_DIR/fspipeline\n"
-    return rm_cmd
-    
+        return rm_cmd
 
     for dataset in datasetList:
         sample = dataset.split("/")[-2]
