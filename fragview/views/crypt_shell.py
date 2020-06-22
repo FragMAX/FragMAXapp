@@ -10,7 +10,7 @@ def crypt_cmd(proj):
 
     crypt_files = project_script(proj, "crypt_files.sh")
     token = tokens.get_valid_token(proj)
-    return f"CRYPT_CMD='{crypt_files} {settings.CRYPT_URL} {token.as_base64()}'"
+    return f"CRYPT_CMD='{crypt_files} {settings.CRYPT_URL} {token.as_base64()}'\n"
 
 
 def fetch_file(proj, src_file, dest_file):
