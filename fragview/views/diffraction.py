@@ -15,6 +15,16 @@ def _find_h5_file(proj, dataset, run, h5_data_num):
     return None
 
 
+def _find_cbf_file(proj, dataset, run, cbf_data_num):
+
+    cbf_file = path.join(proj.data_path(), "raw", proj.protein, dataset, f"{dataset}_{run}_{cbf_data_num}.cbf")
+    if path.isfile(cbf_file):
+        return cbf_file
+
+    # H5 file not found
+    return None
+
+
 def image(request, dataset, run, image_num):
     """
     generated diffraction jpeg picture for given dataset run and specified 'angle'
@@ -23,18 +33,21 @@ def image(request, dataset, run, image_num):
     """
     proj = current_project(request)
 
-    h5_data_num = f"{image_num:06d}"
+    # h5_data_num = f"{image_num:06d}"
+    cbf_data_num = f"{image_num:04d}"
 
-    h5_file = _find_h5_file(proj, dataset, run, h5_data_num)
-    if h5_file is None:
-        return HttpResponseNotFound("H5 file found")
-
-    jpeg_name = f"diffraction_{run}_{h5_data_num}.jpeg"
+    # h5_file = _find_h5_file(proj, dataset, run, h5_data_num)
+    cbf_file = _find_cbf_file(proj, dataset, run, cbf_data_num)
+    # if h5_file is None:
+    #     return HttpResponseNotFound("H5 file found")
+    if cbf_file is None:
+        return HttpResponseNotFound("CBF file found")
+    jpeg_name = f"diffraction_{run}_{cbf_data_num}.jpeg"
     jpeg_file = path.join(project_process_protein_dir(proj), dataset, jpeg_name)
     jpeg_url = path.join(project_static_url(proj), "fragmax", "process", proj.protein, dataset, jpeg_name)
 
     # request worker to generate diffraction jpeg and wait until it's completed
-    get_diffraction.delay(h5_file, jpeg_file).wait()
+    get_diffraction.delay(cbf_file, jpeg_file).wait()
 
     # redirect client to the generated jpeg file
     return redirect(jpeg_url)

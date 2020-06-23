@@ -122,8 +122,10 @@ ISPYB_AUTH_SITE = "MAXIV"
 AUTH_USER_MODEL = "fragview.User"
 
 # root path to where proposals data is stored
-PROPOSALS_DIR = "/data/visitors/biomax"
+# PROPOSALS_DIR = "/data/visitors/biomax"
 
+# HZB data path
+PROPOSALS_DIR = "/data/fragmaxrpc/user"
 # after login, when no 'next' url is known, goto the 'front' page
 LOGIN_REDIRECT_URL = "/"
 # when logged out, goto login page
@@ -150,7 +152,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    '/data/visitors/biomax/',
+    '/data/fragmaxrpc/user',
 ]
 
 #
@@ -164,7 +166,10 @@ CELERY_RESULT_BACKEND = "redis://localhost"
 #
 
 # the host we use to manage jobs on HPC
-HPC_FRONT_END = "clu0-fe-0"
+# HPC_FRONT_END = "clu0-fe-0"
+
+# HZB has no slurm, but jobs can be sent to HKL8 machine
+HPC_FRONT_END = "hkl8"
 # user name for issuing jobs,
 # None means use currently logged in user
 HPC_USER = None

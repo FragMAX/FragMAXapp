@@ -262,3 +262,8 @@ class ProjectDetails(models.Model):
     protein_name = models.TextField()
     # the official PDB ID, as assigned by Protein Data Bank organization
     group_dep_id = models.TextField()
+
+
+class HZB_user_details(models.Model):
+    username = models.TextField()
+    password = models.TextField()

@@ -38,6 +38,12 @@
     height:88px;
     width:88px;
   }
+  .color-legend {
+      line-height: 0.8 !important;
+      position: absolute;
+      right: 80px;
+      top: 20px;
+  }
 </style>
   <div>
     <h4>Data Collection Overview</h4> 
@@ -45,7 +51,12 @@
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Update Project Database</button>
       </form>
-      </div>
+    </div>
+    <div class="color-legend">
+        <p align="left" ><font size="6" color="green">&#9679;</font><font size="4"> Successful</font></p>
+        <p align="left" ><font size="6" color="#fdd835">&#9679;</font><font size="4"> Not started</font></p>
+        <p align="left" ><font size="6" color="#f44336">&#9679;</font><font size="4"> Failed</font></p>
+    </div>
   </div>
   <p></p>
 
@@ -70,7 +81,7 @@
   <th>Resolution</sub> [&Aring;]</th>
   <th>Frames</th>
   {% comment %} <th>Path</th>   {% endcomment %}
-  <th>Crystal Picture</th>  
+  <th hidden>Crystal Picture</th>
   <th>Ligand</th>
 
   </tr>
@@ -99,7 +110,7 @@
     {% comment %} <td><p>{{ path }}{{ acr }}_{{run}}_master.h5</p></td> {% endcomment %}
 
     
-    <td>
+    <td hidden>
       <a href={{ snap }} target="_blank">
           <img class="crystalsnap" id="snap1" src={{ snap }} onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
       </a>

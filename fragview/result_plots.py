@@ -26,8 +26,8 @@ def _make_isas_plot(rst, unq, png_file):
 def _make_rfactors_plot(rst, unq, png_file):
     plt.figure(figsize=(30, 10), dpi=150)
 
-    sns.lineplot(x="dataset", y="r_free", data=rst, ci=66, label="Rfree", color="#82be00")
-    ax = sns.lineplot(x="dataset", y="r_work", data=rst, ci=66, label="Rwork", color="#fea901")
+    sns.lineplot(x="dataset", y="r_free", data=rst, ci=66,  label="Rfree", color="#82be00")
+    ax = sns.lineplot(x="dataset", y="r_work", data=rst, ci=66,  label="Rwork", color="#fea901")
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
 

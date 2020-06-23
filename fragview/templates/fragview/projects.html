@@ -67,7 +67,7 @@ tr {
                 <tr style="background-color: white;">
                     <th>Protein - Library</th>
                     <th>Proposal</th>
-                    <th>Shift</th>
+                    <th hidden>Shift</th>
                 </tr>
             </thead>
 
@@ -84,7 +84,7 @@ tr {
                     </a>
                 </td>
                 <td>{{ proj.proposal }}</td>
-                <td>{{ proj.shift }}</td>
+                <td hidden>{{ proj.shift }}</td>
             </tr>
             {% endfor %}
 
@@ -111,7 +111,7 @@ tr {
                         </a>
                     </td>
                     <td>{{ proj.proposal }}</td>
-                    <td>{{ proj.shift }}</td>
+                    <td hidden>{{ proj.shift }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

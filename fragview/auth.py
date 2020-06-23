@@ -19,6 +19,10 @@ from json.decoder import JSONDecodeError
 from django.conf import settings
 from fragview.models import User
 from .proposals import set_proposals
+from fragview import versions
+from fragview.models import HZB_user_details as hzb_auth
+
+BL_site = versions.BL_site
 
 
 def _expected_ispyb_err_msg(error_msg):
@@ -37,7 +41,7 @@ def _check_ispyb_error_message(response):
         return
 
     logging.warning(
-        "unexpected response from ISPyB\n" +
+        f"unexpected response from ISPyB\n" +
         f"{response.status_code} {response.reason}\n{response.text}")
 
 
@@ -58,6 +62,10 @@ def _ispyb_authenticate(auth_host, site, user, password):
         return
 
     return jsn["token"]
+
+
+def _hzb_authenticate(user,password):
+    return hzb_auth.objects.filter(username=user, password=password).exists()
 
 
 def _get_mx_proposals(proposals):
@@ -118,17 +126,20 @@ class ISPyBBackend:
         return user
 
     def authenticate(self, request, username, password):
-        token = _ispyb_authenticate(
-            settings.ISPYB_AUTH_HOST,
-            settings.ISPYB_AUTH_SITE,
-            username, password)
+        # token = _ispyb_authenticate(
+        #     settings.ISPYB_AUTH_HOST,
+        #     settings.ISPYB_AUTH_SITE,
+        #     username, password)
 
-        if token is None:
+        token = _hzb_authenticate(username, password)
+        if token is None or token is False:
             # autenticaton failed
             return None
 
         # get user's proposals from ISPyB
-        proposals = _ispyb_get_proposals(settings.ISPYB_AUTH_HOST, token)
+        # proposals = _ispyb_get_proposals(settings.ISPYB_AUTH_HOST, token)
+        # HZB uses username as path to the folder instead of proposal number and shift
+        proposals = username
 
         # store the proposals list in current session, to be used
         # for granting access to the projects

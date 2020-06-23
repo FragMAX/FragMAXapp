@@ -95,32 +95,29 @@
         <button class="tablinks" onclick="openMethod(event, 'rfactorstab')">R<sub>work/</sub>R<sub>free</sub></button>
         <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')" disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
         <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
-        {% comment %} <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
-        <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button> {% endcomment %}
         <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
     </div>
 
     <div id="ISa" class="card tabcontent">
         <div class="card-title">ISa distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/ISas.png" style="width: 100%;"></img>
+        <img src="/static/fraghome/{{project.proposal}}/fragmax/process/{{project.protein}}/ISas.png" style="width: 100%;"></img>
     </div>
     <div id="Resolution" class="card tabcontent">
         <div class="card-title">Resolution distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png" style="width: 100%;"></img>
+        <img src="/static/fraghome/{{project.proposal}}/fragmax/process/{{project.protein}}/Resolutions.png" style="width: 100%;"></img>
         
     </div>
     <div id="Cell_Parameters" class="card tabcontent">
         <div class="card-title">Cell Parameters distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png" style="width: 100%;"></img>
+        <img src="/static/fraghome/{{project.proposal}}/fragmax/process/{{project.protein}}/Cellparameters.png" style="width: 100%;"></img>
     </div>
     <div id="rfactorstab" class="card tabcontent">
         <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfactors.png" style="width: 100%;"></img>
+        <img src="/static/fraghome/{{project.proposal}}/fragmax/process/{{project.protein}}/Rfactors.png" style="width: 100%;"></img>
     </div>
     <div id="ccfactorstab" class="card tabcontent">
         <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png" style="width: 100%;"></img>
+        <img src="/static/fraghome/{{project.proposal}}/fragmax/process/{{project.protein}}/Rfrees.png" style="width: 100%;"></img>
     </div>
     <div id="Hide" >
     </div>
@@ -152,7 +149,7 @@
    <th>&alpha;</th>
    <th>&beta;</th>
    <th>&gamma;</th>
-   <th>RhoFit</th>
+   <th hidden>RhoFit</th>
    <th>LigFit</th>
   </tr>
  </thead>
@@ -183,7 +180,7 @@
       <td>{{alpha}}</td>
       <td>{{beta}}</td>
       <td>{{gamma}}</td>
-      <td>{{rhofitscore}}</td>
+      <td hidden>{{rhofitscore}}</td>
       <td>{{ligfitscore}}</td>
       
     </tr>

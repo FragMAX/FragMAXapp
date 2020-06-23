@@ -47,7 +47,10 @@ def _worker(work_queue, dest_dir):
     try:
         while True:
             smiles, frags = work_queue.get_nowait()
-            _run_elbow(smiles, frags, dest_dir)
+            t1 = threading.Thread(target=_run_elbow, args=(smiles, frags, dest_dir))
+            t1.daemon = True
+            t1.start()
+
     except queue.Empty:
         # no more fragments to process
         pass

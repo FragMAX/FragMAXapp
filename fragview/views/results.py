@@ -49,10 +49,11 @@ def result_summary(proj):
             beta, gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob = [""] * 23
 
         pdbout = ""
-        usracr = "_".join(entry.split("/")[8:11])
-        pipeline = "_".join(entry.split("/")[9:11])
-        ka = entry.split("/")[8]
-        kb = entry.split("/")[9]
+        usracr = "_".join(entry.split(proj.data_path())[-1].split("/")[3:6])
+        pipeline = "_".join(entry.split(proj.data_path())[-1].split("/")[4:6])
+
+        ka = entry.split(proj.data_path())[-1].split("/")[3]
+        kb = entry.split(proj.data_path())[-1].split("/")[4]
         if kb == "EDNA_proc":
             kb = "edna"  # Updates the name of EDNA taken from file path for isaDict reference
 
@@ -191,11 +192,9 @@ def result_summary(proj):
         res_dir = path.join(
             project_results_dir(proj),
             "_".join(usracr.split("_")[0:2]) + "/" + "/".join(pipeline.split("_")))
-
-        if path.exists("/data/visitors/" + pdbout) and "Apo" not in pdbout:
+        if path.exists("/data/fragmaxrpc/" + pdbout) and "Apo" not in pdbout:
             ligfitPath = path.join(res_dir, "ligfit")
             rhofitPath = path.join(res_dir, "rhofit")
-
             if path.exists(rhofitPath):
                 hit_corr_log = path.join(rhofitPath, "Hit_corr.log")
                 if path.exists(hit_corr_log):
@@ -204,19 +203,18 @@ def result_summary(proj):
 
             if path.exists(ligfitPath):
                 try:
-                    ligfitRUNPath = sorted(glob(f"{res_dir}/ligfit/LigandFit*"))[-1]
-                    if glob(f"{res_dir}/ligfit/LigandFit*") != []:
-                        if glob(ligfitRUNPath + "/LigandFit*.log") != []:
-                            if path.exists(ligfitRUNPath + "/LigandFit_summary.dat"):
-                                with open(ligfitRUNPath + "/LigandFit_summary.dat", "r") as inp:
-                                    ligfitscore = inp.readlines()[6].split()[2]
+                    ligfitRUNPath = sorted(glob(f"{ligfitPath}/LigandFit*"))[-1]
 
-                            ligfitlog = glob(ligfitRUNPath + "/LigandFit*.log")[0]
-                            if path.exists(ligfitlog):
-                                with open(ligfitlog, "r") as inp:
-                                    for line in inp.readlines():
-                                        if line.startswith(" lig_xyz"):
-                                            ligblob = line.split("lig_xyz ")[-1].replace("\n", "")
+                    # if path.exists(ligfitRUNPath + "/LigandFit_summary.dat"):
+                    with open(ligfitRUNPath + "/LigandFit_summary.dat", "r", encoding="utf-8") as inp:
+                        ligfitscore = inp.readlines()[6].split()[2]
+
+                    ligfitlog = glob(ligfitRUNPath + "/LigandFit*.log")[0]
+                    if path.exists(ligfitlog):
+                        with open(ligfitlog, "r") as inp:
+                            for line in inp.readlines():
+                                if line.startswith(" lig_xyz"):
+                                    ligblob = line.split("lig_xyz ")[-1].replace("\n", "")
                 except Exception:
                     pass
 
@@ -259,13 +257,14 @@ def result_summary(proj):
 
     datasetList = sorted(set([x.split("/")[-3] for x in allLogs] + [x.split("/")[-4] for x in resultsList]),
                          key=lambda x: ("Apo" in x, x))
+    datasetList = [x for x in datasetList if proj.protein in x]
     for dataset in datasetList:
         isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": ""}
 
     resultsList = sorted(resultsList, key=lambda x: ("Apo" in x, x))
 
     for log in xdsappLogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open(log, "r") as readFile:
             logfile = readFile.readlines()
         for line in logfile:
@@ -274,7 +273,7 @@ def result_summary(proj):
                 isaDict[dataset].update({"xdsapp": isa})
 
     for log in autoprocLogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -283,7 +282,7 @@ def result_summary(proj):
         isaDict[dataset].update({"autoproc": isa})
 
     for log in dialsLogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -292,7 +291,7 @@ def result_summary(proj):
         isaDict[dataset].update({"dials": isa})
 
     for log in xdsxscaleLogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -302,7 +301,7 @@ def result_summary(proj):
         isaDict[dataset].update({"xdsxscale": isa})
 
     for log in fastdpLogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -311,7 +310,7 @@ def result_summary(proj):
         isaDict[dataset].update({"fastdp": isa})
 
     for log in EDNALogs:
-        dataset = log.split("/")[10]
+        dataset = log.split(proj.data_path())[-1].split("/")[5]
         with open_txt(log) as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):

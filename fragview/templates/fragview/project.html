@@ -124,28 +124,28 @@ $(document).ready(function()
                     </tr>
                     {% endif %}
                     <tr>
-                        <th>Proposal Number</th>
+                        <th>User Proposal</th>
                         <td>
                             <input class="selectbox"
                                    name="proposal"
-                                   placeholder="20180489"
+                                   placeholder="frag200000"
                                    value="{{ form.proposal.value }}"
                                    required/>
                             <div class="err_msg">{{ form.proposal.errors }}</div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr hidden>
                         <th>Shift</th>
                         <td>
                             <input class="selectbox"
                                    name="shift"
                                    placeholder="20190127"
                                    value="{{ form.shift.value }}"
-                                   required/>
+                                   />
                             <div class="err_msg">{{ form.shift.errors }}</div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr hidden>
                         <th>Connected experiments</th>
                         <td>
                             <input class="selectbox"
@@ -155,7 +155,7 @@ $(document).ready(function()
                             <div class="err_msg">{{ form.shift_list.errors }}</div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr hidden>
                         <th>Data Processing</th>
                         <td>
                             <div class="checkbox">

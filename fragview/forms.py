@@ -5,155 +5,24 @@ from fragview import projects, fraglib, encryption
 from .models import Project, EncryptionKey
 
 
-class _ProcJobForm(forms.Form):
-    datasetsFilter = forms.CharField(required=False)
-    hpcNodes = forms.IntegerField()
-
-    def _get_field(self, name):
-        return self.cleaned_data[name]
-
-    # note: this properties are only valid after call to is_valid()
-
-    @property
-    def datasets_filter(self):
-        return self._get_field("datasetsFilter")
-
-    @property
-    def hpc_nodes(self):
-        return self._get_field("hpcNodes")
-
-
-class LigfitForm(_ProcJobForm):
-    useRhoFit = forms.BooleanField(required=False)
-    usePhenixLigfit = forms.BooleanField(required=False)
-
-    @property
-    def use_rho_fit(self):
-        return self._get_field("useRhoFit")
-
-    @property
-    def use_phenix_ligfit(self):
-        return self._get_field("usePhenixLigfit")
-
-
-class ProcessForm(_ProcJobForm):
-    useDials = forms.BooleanField(required=False)
-    useXdsxscale = forms.BooleanField(required=False)
-    useXdsapp = forms.BooleanField(required=False)
-    useAutoproc = forms.BooleanField(required=False)
-    spaceGroup = forms.CharField(required=False)
-    cellParams = forms.CharField(required=False)
-    friedelLaw = forms.CharField(required=False)
-    customXds = forms.CharField(required=False)
-    customAutoProc = forms.CharField(required=False)
-    customDials = forms.CharField(required=False)
-    customXdsApp = forms.CharField(required=False)
-
-    # note: this properties are only valid after call to is_valid()
-
-    @property
-    def use_dials(self):
-        return self._get_field("useDials")
-
-    @property
-    def use_xdsxscale(self):
-        return self._get_field("useXdsxscale")
-
-    @property
-    def use_xdsapp(self):
-        return self._get_field("useXdsapp")
-
-    @property
-    def use_autoproc(self):
-        return self._get_field("useAutoproc")
-
-    @property
-    def space_group(self):
-        return self._get_field("spaceGroup")
-
-    @property
-    def cell_params(self):
-        return self._get_field("cellParams")
-
-    @property
-    def friedel_law(self):
-        return self._get_field("friedelLaw")
-
-    @property
-    def custom_xds(self):
-        return self._get_field("customXds")
-
-    @property
-    def custom_autoproc(self):
-        return self._get_field("customAutoProc")
-
-    @property
-    def custom_dials(self):
-        return self._get_field("customDials")
-
-    @property
-    def custom_xdsapp(self):
-        return self._get_field("customXdsApp")
-
-
-class RefineForm(_ProcJobForm):
-    useDimple = forms.BooleanField(required=False)
-    useBuster = forms.BooleanField(required=False)
-    useFSpipeline = forms.BooleanField(required=False)
-    refSpaceGroup = forms.CharField(required=False)
-    customRefDimple = forms.CharField(required=False)
-    customRefBuster = forms.CharField(required=False)
-    customRefFspipe = forms.CharField(required=False)
-    runAimless = forms.BooleanField(required=False)
-
-    # PDB model field is a drop-down, but we treat it as integer, as
-    # we don't want to bother with validating the provided model ID
-    pdbModel = forms.IntegerField()
-
-    # note: this properties are only valid after call to is_valid()
-
-    @property
-    def use_dimple(self):
-        return self._get_field("useDimple")
-
-    @property
-    def use_buster(self):
-        return self._get_field("useBuster")
-
-    @property
-    def use_fspipeline(self):
-        return self._get_field("useFSpipeline")
-
-    @property
-    def pdb_model(self):
-        return self._get_field("pdbModel")
-
-    @property
-    def ref_space_group(self):
-        return self._get_field("refSpaceGroup")
-
-    @property
-    def custom_dimple(self):
-        return self._get_field("customRefDimple")
-
-    @property
-    def custom_buster(self):
-        return self._get_field("customRefBuster")
-
-    @property
-    def custom_fspipe(self):
-        return self._get_field("customRefFspipe")
-
-    @property
-    def run_aimless(self):
-        return self._get_field("runAimless")
-
-
 def _is_8_digits(str, subject="shift"):
     if re.match("^\\d{8}$", str) is None:
         raise forms.ValidationError(f"invalid {subject} '{str}', should be 8 digits")
 
     return str
+
+
+def _is_hzb_format(proposal, subject="user proposal"):
+    def _check_start(start_string):
+        return start_string == "frag"
+
+    def _check_end(end_string):
+        return end_string.isnumeric() and len(end_string) == 6
+
+    start, end = re.split('(\d+)', proposal)[0:2]
+    if not all([_check_start(start), _check_end(end)]):
+        raise forms.ValidationError(f"invalid {subject} '{proposal}', should be in the format frag20000")
+    return proposal
 
 
 class ProjectForm(forms.Form):
@@ -165,7 +34,7 @@ class ProjectForm(forms.Form):
     library_name = forms.CharField(required=False)
     fragments_file = forms.FileField(required=False)
     proposal = forms.CharField()
-    shift = forms.CharField()
+    shift = forms.CharField(required=False)
     shift_list = forms.CharField(required=False)
     # set required=False for this field, as it's not always submitted when unchecked
     encrypted = forms.BooleanField(required=False)
@@ -211,10 +80,11 @@ class ProjectForm(forms.Form):
         return self._check_alphanumeric("library_name")
 
     def clean_proposal(self):
-        return _is_8_digits(self.cleaned_data["proposal"], "proposal")
+        return _is_hzb_format(self.cleaned_data["proposal"], "proposal")
 
     def clean_shift(self):
-        return _is_8_digits(self.cleaned_data["shift"])
+        # return _is_hzb_format(self.cleaned_data["shift"])
+        return ""
 
     def clean_shift_list(self):
         shift_list = self.cleaned_data["shift_list"].strip()
@@ -224,7 +94,7 @@ class ProjectForm(forms.Form):
             return shift_list
 
         for shift in shift_list.split(","):
-            _is_8_digits(shift)
+            _is_hzb_format(shift)
 
         return shift_list
 
@@ -246,6 +116,7 @@ class ProjectForm(forms.Form):
         return {}
 
     def _validate_shift_list(self, proposal):
+        # for HZB, shifts are not defined
         shift_list = self.cleaned_data["shift_list"].strip()
 
         if not shift_list:
@@ -253,6 +124,7 @@ class ProjectForm(forms.Form):
             return {}
 
         for shift in shift_list.split(","):
+
             if not path.isdir(projects.shift_dir(proposal, shift)):
                 # bail on first incorrect shift ID
                 return dict(shift_list=f"shift '{shift}' not found")
@@ -265,6 +137,17 @@ class ProjectForm(forms.Form):
     # that all directories for specified proposal, protein, etc
     # actually exist
     #
+
+    def _is_encrypted(self):
+        """
+        returns true if form's 'encrypted' checkbox was checked
+        """
+        if "encrypted" not in self.cleaned_data:
+            # handle the cases when value is not submitted by the browser
+            # when 'encrypted' checkbox is unchecked
+            return False
+
+        return self.cleaned_data["encrypted"]
 
     def clean(self):
         if self.errors:
@@ -289,6 +172,7 @@ class ProjectForm(forms.Form):
         else:  # only validate protein dir, if the shift dir is good
             protein = self.cleaned_data["protein"]
             if not path.isdir(projects.protein_dir(proposal, shift, protein)):
+                print(projects.protein_dir(proposal, shift, protein))
                 errors["protein"] = f"data for protein '{protein}' not found"
 
         shift_list_errors = self._validate_shift_list(proposal)
@@ -317,18 +201,20 @@ class ProjectForm(forms.Form):
             self.cleaned_data["library_name"], self.cleaned_data["fragments"])
 
         # save the 'Project' model to DB
-        encrypted = self.cleaned_data["encrypted"]
+        encrypted = self._is_encrypted()
         args = dict(
             protein=self.cleaned_data["protein"],
             library=library,
             proposal=self.cleaned_data["proposal"],
-            shift=self.cleaned_data["shift"],
+            shift="",
+            shift_list="",
             encrypted=encrypted)
 
-        # check if there is any shift_list specified
-        shift_list = self.cleaned_data["shift_list"]
-        if len(shift_list) > 0:
-            args["shift_list"] = shift_list
+        # check if there is any shift_list specified.
+        # For HZB, shifts and shift_list are always blank
+        # shift_list = self.cleaned_data["shift_list"]
+        # if len(shift_list) > 0:
+        #     args["shift_list"] = shift_list
 
         proj = Project(**args)
         proj.save()

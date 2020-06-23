@@ -13,7 +13,8 @@ def show(request, sample, run):
 def rlp(request, sample, run):
     proj = current_project(request)
 
-    idx_path = path.join(f"{sample}", f"{sample}_{run}", "dials", "DEFAULT", "NATIVE", "SWEEP1", "index")
+    idx_path = path.join(f"{sample}", f"{sample}_{run}", "dials", "DEFAULT", "SAD", "SWEEP1", "index")
+    print(idx_path)
     dials_dir = path.join(project_process_protein_dir(proj), idx_path)
 
     # create rlp.json, if needed

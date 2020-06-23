@@ -10,7 +10,7 @@ def crypt_cmd(proj):
 
     crypt_files = project_script(proj, "crypt_files.sh")
     token = tokens.get_valid_token(proj)
-    return f"CRYPT_CMD='{crypt_files} {settings.CRYPT_URL} {token.as_base64()}'\n"
+    return f"CRYPT_CMD='{crypt_files} {settings.CRYPT_URL} {token.as_base64()}'"
 
 
 def fetch_file(proj, src_file, dest_file):
@@ -20,16 +20,12 @@ def fetch_file(proj, src_file, dest_file):
     return f"$CRYPT_CMD fetch {src_file} {dest_file}"
 
 
-def fetch_dir(proj, src, dest):
-    if not proj.encrypted:
-        return f"cp -vr {src}/* {dest}"
+def upload_dir(proj, res_dir):
+    cmd = "rm $WORK_DIR/model.pdb\n"
 
-    return f"$CRYPT_CMD fetch_dir {src} {dest}"
-
-
-def upload_dir(proj, src_dir, res_dir):
     if proj.encrypted:
-        return f"$CRYPT_CMD upload_dir {src_dir} {res_dir}\n"
+        cmd += f"$CRYPT_CMD upload_dir $WORK_DIR {res_dir}\n"
+        return cmd
 
     # project is in unencrypted mode
     if not res_dir.startswith(project_fragmax_dir(proj)):
@@ -38,6 +34,8 @@ def upload_dir(proj, src_dir, res_dir):
 
     parent_dir = Path(res_dir).parent
 
-    return f"rm -rf {res_dir}\n" + \
+    cmd += f"rm -rf {res_dir}\n" + \
            f"mkdir -p {parent_dir}\n" + \
-           f"cp -r {src_dir} {res_dir}\n"
+           f"cp -r $WORK_DIR {res_dir}\n"
+
+    return cmd

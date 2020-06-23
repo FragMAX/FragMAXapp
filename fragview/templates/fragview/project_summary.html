@@ -46,11 +46,11 @@
                     <th>Proposal Number</th>
                     <td>{{project.proposal}}</td>
                 </tr>
-                <tr>
+                <tr hidden>
                     <th>Shift</th>
                     <td>{{project.shift}}</td>
                 </tr>
-                <tr>
+                <tr hidden>
                     <th>Related Data Collections</th>
                     <td>
                         {% for shift in project.shifts %}
@@ -63,13 +63,14 @@
                     <td>{{project.protein}}</td>
                 </tr>
                 <tr>
-                    <th>Datasets collected (combined)</th>
-                    <td>{{num_dataset}} ({{totaldata}}) datasets</td>                    
+                    <th>Datasets collected</th>
+                    <td>{{num_dataset}} datasets</td>
                 </tr>
                 <tr>
-                    <th>Known Apo datasets (combined)</th>
-                    <td>{{known_apo}} ({{totalapo}}) datasets</td>                    
+                    <th>Known Apo datasets</th>
+                    <td>{{known_apo}} datasets</td>
                 </tr>
+                
                 <tr>
                     <th>Fragment Libraries</th>
                     <td>{{fraglib}}</td>                    

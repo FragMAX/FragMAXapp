@@ -1,5 +1,6 @@
 from glob import glob
-
+from os import path
+from datetime import datetime as dt
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
@@ -43,7 +44,6 @@ def edit(request, id):
     """
     proj = get_object_or_404(Project, pk=id)
     form = ProjectForm(request.POST or None, request.FILES or None, model=proj)
-
     if request.method == "POST":
         action = request.POST["action"]
         if action == "modify":
@@ -77,6 +77,7 @@ def new(request):
 
     proj = form.save()
     proj.set_pending()
+
     setup_project_files.delay(proj.id)
 
     return redirect("/projects/")
@@ -111,7 +112,14 @@ def project_summary(request):
         "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
     }
 
-    natdate = proj.shift[0:4] + " " + months[proj.shift[4:6]] + " " + proj.shift[6:8]
+    # natdate = proj.shift[0:4] + " " + months[proj.shift[4:6]] + " " + proj.shift[6:8]
+    cbf_file = glob(f"{proj.data_path()}/raw/{proj.protein}/*/*1.cbf")
+    if cbf_file:
+        cbf_file = cbf_file[0]
+    else:
+        cbf_file = f"{proj.data_path()}/raw/"
+    timestamp = int(path.getmtime(cbf_file))
+    natdate = dt.fromtimestamp(timestamp).isoformat()
 
     return render(
         request,
