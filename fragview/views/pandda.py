@@ -6,6 +6,7 @@ import shutil
 import threading
 import json
 import time
+import tempfile
 import subprocess
 from os import path
 from glob import glob
@@ -14,9 +15,11 @@ from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
-from fragview.views import utils
+from fragview.views import utils, crypt_shell
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_file
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir, project_read_mtz_flags, project_pandda_worker
+from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
+from worker.scripts import read_mtz_flags_path
 
 
 def str2bool(v):
@@ -370,7 +373,7 @@ def inspect(request):
         inspect_file = os.path.join(res_dir, method, "pandda", "analyses", "html_summaries", "pandda_inspect.html")
 
         if os.path.exists(inspect_file):
-            with open(inspect_file, "r", encoding="utf-8") as inp:
+            with open(inspect_file, "r") as inp:
                 inspectfile = inp.readlines()
                 html = ""
                 for n, line in enumerate(inspectfile):
@@ -449,7 +452,7 @@ def pandda_events(proj, filters):
 
     for eventcsv in eventscsv:
         method = eventcsv.split("/")[10]
-        with open(eventcsv, "r", encoding="utf-8") as inp:
+        with open(eventcsv, "r") as inp:
             a = inp.readlines()
         a = [x.split(",") for x in a]
         headers = a[0]
@@ -494,7 +497,7 @@ def dataset_details(proj, dataset, site_idx, method):
     events_csv = os.path.join(project_results_dir(proj), "pandda", proj.protein,
                               method, "pandda", "analyses", "pandda_inspect_events.csv")
 
-    with open(events_csv, "r", encoding="utf-8") as inp:
+    with open(events_csv, "r") as inp:
         a = inp.readlines()
 
     for i in a:
@@ -536,7 +539,7 @@ def giant(request):
     else:
         scoreDict = dict()
         for score in available_scores:
-            with open(score, "r", encoding="utf-8") as readFile:
+            with open(score, "r") as readFile:
                 htmlcontent = "".join(readFile.readlines())
 
             htmlcontent = htmlcontent.replace('src="./residue_plots',
@@ -547,6 +550,16 @@ def giant(request):
 
 
 def analyse(request):
+    def _latest_analysis(proj, method):
+        pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+        paths = sorted(glob(path.join(pandda_dir, "analyses-*")))
+
+        if not paths:
+            # no analyses directory found
+            return None
+
+        return paths[-1]
+
     proj = current_project(request)
     panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
 
@@ -563,8 +576,7 @@ def analyse(request):
     for methods in proc_methods:
         if len(glob(panda_results_path + "/" + methods + "/pandda/analyses-*")) > 0:
             last = sorted(glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
-            last_path = last + "/html_summaries/"
-            if os.path.exists(last_path + "pandda_initial.html") or os.path.exists(last_path + "pandda_analsyse.html"):
+            if os.path.exists(last + "/html_summaries/pandda_analyse.html"):
                 cur_time = datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
                 if cur_time > newest:
                     newest = cur_time
@@ -574,48 +586,39 @@ def analyse(request):
     method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
-        if os.path.exists(newestpath + "/html_summaries/pandda_analyse.html"):
-            with open(newestpath + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+        pandda_html = path.join(newestpath, "html_summaries", "pandda_analyse.html")
 
-                return render(request, 'fragview/pandda_analyse.html',
-                              {"opencmd": localcmd, 'proc_methods': proc_methods,
-                               'Report': a.replace("PANDDA Processing Output",
-                                                   "PANDDA Processing Output for " + newestmethod)})
-        elif os.path.exists(newestpath + "/html_summaries/pandda_initial.html"):
-            with open(newestpath + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "initial"
-
-                return render(request, 'fragview/pandda_analyse.html',
-                              {"opencmd": localcmd,
-                               'proc_methods': proc_methods,
-                               'Report': a.replace("PANDDA Processing Output",
-                                                   "PANDDA Processing Output for " + newestmethod)})
-
-        else:
+        if not path.exists(pandda_html):
+            # no pandda analysis results found
             running = [x.split("/")[10] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+            return render(request, 'fragview/pandda_notready.html', {"Report": "<br>".join(running)})
 
-    else:
-        if os.path.exists(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
-                      "r", encoding="utf-8") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "cd " + panda_results_path + "/" + method + "/pandda/; pandda.inspect"
+        a = read_proj_file(proj, pandda_html).decode()
+        localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+        return render(request, 'fragview/pandda_analyse.html',
+                      {"opencmd": localcmd, 'proc_methods': proc_methods,
+                       'Report': a.replace("PANDDA Processing Output",
+                                           "PANDDA Processing Output for " + newestmethod)})
 
-            return render(
-                request,
-                "fragview/pandda_analyse.html",
-                {
-                    "opencmd": localcmd, "proc_methods": proc_methods,
-                    "Report": a.replace("PANDDA Processing Output",
-                                        "PANDDA Processing Output for " + method)
-                })
-        else:
-            running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+    # specific method was requested
+
+    analysis_dir = _latest_analysis(proj, method)
+    if analysis_dir is None:
+        running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
+        return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+
+    pandda_html = path.join(analysis_dir, "html_summaries", "pandda_analyse.html")
+    a = read_proj_file(proj, pandda_html).decode()
+    localcmd = "cd " + panda_results_path + "/" + method + "/pandda/; pandda.inspect"
+
+    return render(
+        request,
+        "fragview/pandda_analyse.html",
+        {
+            "opencmd": localcmd, "proc_methods": proc_methods,
+            "Report": a.replace("PANDDA Processing Output",
+                                "PANDDA Processing Output for " + method)
+        })
 
 
 def fix_pandda_symlinks(proj):
@@ -685,40 +688,63 @@ def submit(request):
             "rerun_state": False,
             "complete_results": str2bool(complete),
             "dtsfilter": PanDDAfilter,
-            "customPanDDA": customPanDDA
+            "customPanDDA": customPanDDA,
+            "reprocessing": False,
+            "reprocessing_mode": "reload"
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
         res_pandda = os.path.join(res_dir, "pandda")
-        if os.path.exists(res_pandda):
-            if os.path.exists(os.path.join(res_dir, "pandda_backup")):
-                shutil.rmtree(os.path.join(res_dir, "pandda_backup"))
-            shutil.rmtree(res_pandda, os.path.join(res_dir, "pandda_backup"))
+        if not options["reprocessing"] and path.exists(res_pandda):
+            shutil.rmtree(res_pandda)
 
-        epoch = str(round(time.time()))
-        script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
+        if options["reprocessing"] and path.exists(res_dir):
+            shutil.rmtree(res_dir)
+
         methodshort = proc[:2] + ref[:2]
-        log_prefix = os.path.join(proj.data_path(), "fragmax", "logs", f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
-        with open(script, "w") as outp:
-            outp.write('#!/bin/bash\n')
-            outp.write('#!/bin/bash\n')
-            outp.write('#SBATCH -t 16:00:00\n')
-            outp.write('#SBATCH -J PDD' + methodshort + '\n')
-            outp.write('#SBATCH --exclusive\n')
-            outp.write('#SBATCH -N1\n')
-            outp.write('#SBATCH --cpus-per-task=48\n')
-            outp.write('#SBATCH --mem=220000\n')
-            outp.write('#SBATCH -o ' + log_prefix + 'out.txt\n')
-            outp.write('#SBATCH -e ' + log_prefix + 'err.txt\n')
-            outp.write('#module purge\n')
-            outp.write('#module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL\n')
-            outp.write(project_pandda_worker(proj, options) + '\n')
+        _write_main_script(proj, method, methodshort, options)
 
         t1 = threading.Thread(target=pandda_worker, args=(proj, method, options))
         t1.daemon = True
         t1.start()
 
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
+
+
+def _write_main_script(proj, method, methodshort, options):
+    script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
+
+    epoch = round(time.time())
+    log_prefix = project_log_path(proj, f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
+    data_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
+
+    pandda_script = project_script(proj, PANDDA_WORKER)
+
+    body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 99:00:00
+#SBATCH -J PDD{methodshort}
+#SBATCH --exclusive
+#SBATCH -N1
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=220000
+#SBATCH -o {log_prefix}out.txt
+#SBATCH -e {log_prefix}err.txt
+
+{crypt_shell.crypt_cmd(proj)}
+
+WORK_DIR=$(mktemp -d)
+cd $WORK_DIR
+
+{crypt_shell.fetch_dir(proj, data_dir, ".")}
+
+module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+python {pandda_script} $WORK_DIR {proj.protein} "{options}"
+
+{crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
+rm -rf "$WORK_DIR"
+"""
+    utils.write_script(script, body)
 
 
 def giant_score(proj, method):
@@ -836,7 +862,7 @@ def giant_score(proj, method):
         src = path.join(res_dir, dataset, "final_original.mtz")
         dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
-        body += f"\ncp -f " + src + " " + dst
+        body += "\ncp -f " + src + " " + dst
 
     scorecmd = \
         f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
@@ -849,10 +875,15 @@ def giant_score(proj, method):
 
 def pandda_worker(proj, method, options):
     rn = str(randint(10000, 99999))
-    header = '''#!/bin/tcsh\n\n'''
+
+    fragDict = dict()
+
+    for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
+        fragDict[_dir.split("/")[-1]] = _dir
 
     if "best" in method:
-        print("FragMAXapp will try to select best datasets")
+        print("FragMAXapp will select best datasets")
+
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
@@ -872,98 +903,130 @@ def pandda_worker(proj, method, options):
         for dataset in missingDict:
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
 
-    pandda_method_dir = os.path.join(proj.data_path(), "fragmax", "results",
-                                    "pandda", proj.protein, method)
-    shutil.rmtree(pandda_method_dir)
-    os.makedirs(pandda_method_dir)
-    pandda_selection = os.path.join(proj.data_path(), "fragmax", "results",
-                                    "pandda", proj.protein, method, "selection.json")
     for dataset, pdb in selectedDict.items():
         if "buster" in pdb:
             pdb = pdb.replace("final.pdb", "refine.pdb")
-        if os.path.exists(pdb):
-            fset = dataset.split("-")[-1]
-            script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
-            epoch = str(round(time.time()))
-            with open(script, "w") as writeFile:
-                sb_head = ""
-                writeFile.write(header)
-                writeFile.write(sb_head)
-                epoch = str(round(time.time()))
-                dataset_name = pdb.split("/")[-4]
-                log_path = f"{proj.data_path()}/fragmax/logs"
-                script_path = f"{proj.data_path()}/fragmax/scripts"
-                cad_log = f" | dd status=none of={log_path}/PanDDA_CAD_{epoch}_{dataset_name}_out.txt"
-                uniqueify_log = f" | dd status=none of={log_path}/PanDDA_UNIQUEIFY_{epoch}_{dataset_name}_out.txt"
-                freerflag_log = f" | dd status=none of={log_path}/PanDDA_FREERFLAG_{epoch}_{dataset_name}_out.txt"
-                phenix_maps_log = f" | dd status=none of={log_path}/PanDDA_PhenixMaps_{epoch}_{dataset_name}_out.txt"
 
-                frag = dataset.split("-")[-1].split("_")[0]
-                hklin = pdb.replace(".pdb", ".mtz")
-                output_dir = os.path.join(proj.data_path(), "fragmax", "results",
-                                          "pandda", proj.protein, method, dataset)
-                os.makedirs(output_dir, exist_ok=True)
-                hklout = os.path.join(output_dir, "final.mtz")
-
-                cmdcp1 = f"cp {pdb} " + os.path.join(output_dir, "final.pdb")
-
-                cmd = """mtzdmp """ + hklin
-                output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode("utf-8")
-
-                for i in output.splitlines():
-                    if "A )" in i:
-                        resHigh = i.split()[-3]
-                    if "free" in i.lower() and "flag" in i.lower():
-                        freeRflag = i.split()[-1]
-
-                cad_fill = '''echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 ''' + \
-                           resHigh + '''" | cad hklin1 ''' + hklin + ''' hklout ''' + hklout
-                uniqueify = '''uniqueify -f ''' + freeRflag + ''' ''' + hklout + ''' ''' + hklout
-                hklout_rfill = hklout.replace(".mtz", "_rfill.mtz")
-
-                freerflag = '''echo -e "COMPLETE FREE=''' + freeRflag + ''' \\nEND" | freerflag hklin ''' + \
-                            hklout + ''' hklout ''' + hklout_rfill
-
-                cmd = project_read_mtz_flags(proj, hklin)
-                process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-                output, error = process.communicate()  # receive output from the python2 script
-
-                # r_free_flag = output.decode("utf-8").split()[0].split(":")[-1]
-                fsigf_Flag = output.decode("utf-8").split()[1].split(":")[-1]
-                fsigf_Flag = "maps.input.reflection_data.labels='" + fsigf_Flag + "'"
-                phenix_maps = \
-                    "phenix.maps " + hklout_rfill + " " + hklout.replace(".mtz", ".pdb") + " " + \
-                    fsigf_Flag + phenix_maps_log + "; mv " + hklout + " " + \
-                    hklout.replace(".mtz", "_original.mtz") + "; mv " + \
-                    hklout.replace(".mtz", "_map_coeffs.mtz") + " " + hklout
-
-                writeFile.write(f"touch {script_path}/status_PanDDA_prepare_{dataset_name}\n\n")
-                writeFile.write(f"mkdir -p {output_dir}\n")
-                writeFile.write(cmdcp1 + "\n\n")
-                writeFile.write(cad_fill + cad_log + "\n\n")
-                writeFile.write(uniqueify + "\n\n")
-                writeFile.write(freerflag + freerflag_log + "\n\n")
-                writeFile.write(phenix_maps + "\n\n")
-                writeFile.write((f"rm {script_path}/status_PanDDA_prepare_{dataset_name}\n\n"))
-
-                if "Apo" not in dataset:
-                    frag_cif = f"{frag}.cif"
-                    frag_pdb = f"{frag}.pdb"
-                    dest_dir = os.path.join(
-                        proj.data_path(), "fragmax", "results", "pandda", proj.protein, method, dataset)
-
-                    writeFile.write(
-                        f"cp {os.path.join(proj.data_path(), 'fragmax', 'fragments', frag_cif)} {os.path.join(dest_dir, frag_cif)}\n"
-                        f"cp {os.path.join(proj.data_path(), 'fragmax', 'fragments', frag_pdb)} {os.path.join(dest_dir, frag_pdb)}\n")
+        if path.exists(pdb):
+            hklin = pdb.replace(".pdb", ".mtz")
+            resHigh, freeRflag, fsigf_Flag = _read_mtz_file(proj, hklin)
+            script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag)
 
             hpc.run_sbatch(script)
             # os.remove(script)
-    with open(pandda_selection, "w") as writeFile:
-        writeFile.write(json.dumps(selectedDict))  # use `json.loads` to do the reverse
+
+    pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
+    os.makedirs(pandda_dir, exist_ok=True)
+
+    with open_proj_file(proj, path.join(pandda_dir, "selection.json")) as f:
+        json_str = json.dumps(selectedDict)
+        f.write(json_str.encode())
+
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
-    # TODO add threading to check old pandda prepares and run pandda analyses when no status_rn is available
-    hpc.run_sbatch(script)
+    hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
     # os.remove(script)
+
+
+def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag):
+    mtz = path.join(path.dirname(pdb), "final.mtz")
+    fset = dataset.split("-")[-1]
+    epoch = round(time.time())
+    output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
+    script = f"pandda_prepare_{proj.protein}{fset}.sh"
+
+    copy_frags_cmd = ""
+
+    if "Apo" not in dataset:
+        fragments_path = project_fragments_dir(proj)
+        frag = dataset.split("-")[-1].split("_")[0]
+        frag_cif = path.join(fragments_path, f"{frag}.cif")
+        frag_pdb = path.join(fragments_path, f"{frag}.pdb")
+
+        if path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
+            copy_frags_cmd = \
+                f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
+
+    body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 00:15:00
+#SBATCH -J PnD{rn}
+#SBATCH --nice=25
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2500
+#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
+#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
+
+{crypt_shell.crypt_cmd(proj)}
+
+DEST_DIR="{output_dir}"
+WORK_DIR=$(mktemp -d)
+cd $WORK_DIR
+
+{crypt_shell.fetch_file(proj, pdb, "final.pdb")}
+{crypt_shell.fetch_file(proj, mtz, "final.mtz")}
+
+module purge
+module load CCP4 Phenix
+
+echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
+    cad hklin1 final.mtz hklout final.mtz
+
+uniqueify -f {freeRflag} final.mtz final.mtz
+
+echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
+    freerflag hklin final.mtz hklout final_rfill.mtz
+
+phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
+mv final.mtz final_original.mtz
+mv final_map_coeffs.mtz final.mtz
+
+{copy_frags_cmd}
+
+mkdir -p $DEST_DIR
+{crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
+
+rm -rf $WORK_DIR
+"""
+
+    script = project_script(proj, script)
+    utils.write_script(script, body)
+
+    return script
+
+
+def _read_mtz_file(proj, mtz_file):
+    with tempfile.NamedTemporaryFile(suffix=".mtz", delete=False) as f:
+        temp_name = f.name
+        f.write(read_proj_file(proj, mtz_file))
+
+    stdout = subprocess.run(["mtzdmp", temp_name], stdout=subprocess.PIPE).stdout
+
+    for i in stdout.decode().splitlines():
+        if "A )" in i:
+            resHigh = i.split()[-3]
+        if "free" in i.lower() and "flag" in i.lower():
+            freeRflag = i.split()[-1]
+
+    stdout = subprocess.run([read_mtz_flags_path(), temp_name], stdout=subprocess.PIPE).stdout
+    fsigf_Flag = stdout.decode("utf-8").split()[1].split(":")[-1]
+
+    # make sure unencrypted MTZ is removed as soon as possible
+    os.remove(temp_name)
+
+    return resHigh, freeRflag, fsigf_Flag
+
+
+def _get_pdb_data(proj, pdb_file):
+    r_work = ""
+    resolution = ""
+
+    for line in read_text_lines(proj, pdb_file):
+        if "REMARK Final:" in line:
+            r_work = line.split()[4]
+        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
+            resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+
+    return r_work, resolution
 
 
 def get_best_alt_dataset(proj, dataset, options):
@@ -973,19 +1036,12 @@ def get_best_alt_dataset(proj, dataset, options):
         proc, ref = options["method"].split("_")
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
     rwork_res = list()
-    r_work = ""
-    resolution = ""
+
     if not optionList:
         return ""
     else:
         for pdb in optionList:
-            with open(pdb, "r", encoding="utf-8") as readFile:
-                pdb_file = readFile.readlines()
-            for line in pdb_file:
-                if "REMARK Final:" in line:
-                    r_work = line.split()[4]
-                if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-                    resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+            r_work, resolution = _get_pdb_data(proj, pdb)
             rwork_res.append((pdb, r_work, resolution))
         rwork_res.sort(key=lambda pair: pair[1:3])
         return rwork_res[0][0]

@@ -203,91 +203,104 @@
         {% endif %}
     {% endifequal %}
 
-      <li hidden>
-         <a href="/soaking_plan" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i></a>
-      </li> 
-      <li>
-         <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Home<i class="material-icons" style="font-size:22px;color:white">assessment</i></a>
-      </li>
-      <li >
-         <a href="/data_analysis" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Data Analysis<i class="material-icons"  style="font-size:22px;color:white">blur_on</i></a>
-      </li>
-      <li hidden>
-         <a href="/pipedream" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
-      </li>
-      <li hidden>
-         <a href="/pipedream_results" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Pipedream Results<i class="material-icons" style="font-size:22px;color:white">low_priority</i></a>
-      </li>
-      
-      <li class="isDisabled" hidden>
-         <a href="#services" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Refinement<i class="material-icons" style="font-size:22px;color:white">leak_add</i></a>
-      </li>
-      <li>
-         <a href="/pandda_analyse" class="collapsible-header sidenav-links" data-turbolinks="false">
-             PanDDa analyse<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
-      </li>
-      <li>
-         <a href="/pandda_inspect" class="collapsible-header sidenav-links" data-turbolinks="false">
-             PanDDa inspect<i class="material-icons" style="font-size:22px;color:white">pets</i></a>
-      </li>         
-      <li>
-         <a href="/pandda_giant" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Giant PanDDa<i class="material-icons" style="font-size:22px;color:white">insert_chart</i></a>
-      </li>                   
-      <li>
-         <a href="/results" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Results<i class="material-icons" style="font-size:22px;color:white">polymer</i></a>
-      </li>
-      <li hidden>
-         <a href="/download_options" class="collapsible-header sidenav-links" data-turbolinks="false">
-             PDB export tool<i class="material-icons" style="font-size:22px;color:white">cloud_upload</i></a>
-      </li>
-      <li >
-         <a href="/jobhistory" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Check Jobs<i class="material-icons" style="font-size:22px;color:white">memory</i></a>
-      </li>
-      <li class="last">
-         <a href="{% url 'logout' %}" class="collapsible-header sidenav-links" data-turbolinks="false">
-             Logout<i class="material-icons" style="font-size:22px;color:white">input</i>
-         </a>
-      </li>
+    <li>
+        <a href="/soaking_plan" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i>
+        </a>
+    </li>
+    <li>
+        <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Home<i class="material-icons" style="font-size:22px;color:white">assessment</i>
+        </a>
+    </li>
+    <li>
+        <a href="/data_analysis" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Data Analysis<i class="material-icons"  style="font-size:22px;color:white">blur_on</i>
+        </a>
+    </li>
+    <li>
+        <a href="/pipedream" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Pipedream<i class="material-icons" style="font-size:22px;color:white">low_priority</i>
+        </a>
+    </li>
+    <li>
+        <a href="/pipedream_results" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Pipedream Results<i class="material-icons" style="font-size:22px;color:white">low_priority</i>
+        </a>
+    </li>
+    <li>
+        <a href="/pandda_analyse" class="collapsible-header sidenav-links" data-turbolinks="false">
+            PanDDa<i class="material-icons" style="font-size:22px;color:white">pets</i>
+        </a>
+    </li>
 
-      <img src="/static/userPics/maxiv.png" width="190px" style="padding-left:60px; position: absolute;bottom: 30px;">
+    {% ifequal active_menu 'pandda' %}
+        <li>
+            <a href="/pandda_analyse" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                Analyse<i class="material-icons" style="font-size:22px;color:white">equalizer</i>
+            </a>
+        </li>
+        <li>
+            <a href="/pandda_inspect" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                Inspect<i class="material-icons" style="font-size:22px;color:white">search</i>
+            </a>
+        </li>
+    {% endifequal %}
 
-      <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
-         <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
-      </div>
-      <div class="ps__scrollbar-y-rail" style="top: 0px; right: 0px;">
-         <div class="ps__scrollbar-y" tabindex="0" style="top: 0px; height: 0px;"></div>
-      </div>
-   </ul>
+    <li>
+        <a href="/pandda_giant" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Giant PanDDa<i class="material-icons" style="font-size:22px;color:white">insert_chart</i>
+        </a>
+    </li>
+    <li>
+        <a href="/results" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Results<i class="material-icons" style="font-size:22px;color:white">polymer</i>
+        </a>
+    </li>
+    <li>
+        <a href="/download" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Download<i class="material-icons" style="font-size:22px;color:white">cloud_download</i>
+        </a>
+    </li>
+    <li>
+        <a href="/download_options" class="collapsible-header sidenav-links" data-turbolinks="false">
+            PDB export tool<i class="material-icons" style="font-size:22px;color:white">cloud_upload</i>
+        </a>
+    </li>
+    <li>
+        <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Check HPC<i class="material-icons" style="font-size:22px;color:white">memory</i>
+        </a>
+    </li>
+    <li class="last">
+        <a href="{% url 'logout' %}" class="collapsible-header sidenav-links" data-turbolinks="false">
+            Logout<i class="material-icons" style="font-size:22px;color:white">input</i>
+        </a>
+    </li>
+
+    <img src="/static/userPics/bl_site.png" width="190px" style="padding-left:60px; position: absolute;bottom: 30px;">
+
+    <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">
+        <div class="ps__scrollbar-x" tabindex="0" style="left: 0px; width: 0px;"></div>
+    </div>
+    <div class="ps__scrollbar-y-rail" style="top: 0px; right: 0px;">
+        <div class="ps__scrollbar-y" tabindex="0" style="top: 0px; height: 0px;"></div>
+    </div>
+    </ul>
 </dmc-sidenav>
 
 {% endblock %}
-
-
-        <div class="main_local">    
+    <div class="main_local">
         <div class="content container">
             <div class="row">
                 <div class="col-md-8">
-                
-
-                  
                     {% block content %}
-                    {% endblock %}                
-                    
-                    
+                    {% endblock %}
                 </div>
             </div>
         </div>
-        </div>
-    </body>
+    </div>
+</body>
     
 </html>
 

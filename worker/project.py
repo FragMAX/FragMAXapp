@@ -14,9 +14,10 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, READ_MTZ_FLAGS, PANDDA_WORKER, project_data_collections_file
+from fragview.projects import project_data_collections_file
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
-from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir, cbf_to_xml
+from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
+from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER
 
 logger = get_task_logger(__name__)
 
@@ -50,24 +51,19 @@ def add_new_shifts(proj_id, shifts):
 
 
 def _add_new_shifts_files(proj, shifts):
-    _create_fragmax_folders(proj)
-    meta_files = list(cbf_to_xml(proj))
-    _prepare_fragments(proj)
-    _copy_scripts(proj)
-    # metadata should be done differently
-    # _copy_collection_metadata_files(proj, meta_files)
-    _write_data_collections_file(proj, meta_files)
-    _import_edna_fastdp(proj, proj.shifts())
+    meta_files = list(shifts_xml_files(proj, shifts))
+    _copy_collection_metadata_files(proj, meta_files)
+    _write_data_collections_file(proj, project_xml_files(proj))
+    _import_edna_fastdp(proj, shifts)
     _write_project_status(proj)
 
 
 def _setup_project_files(proj):
+    meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
-    meta_files = list(cbf_to_xml(proj))
     _prepare_fragments(proj)
     _copy_scripts(proj)
-    # metadata should be done differently
-    # _copy_collection_metadata_files(proj, meta_files)
+    _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
     _import_edna_fastdp(proj, proj.shifts())
     _write_project_status(proj)
@@ -80,6 +76,7 @@ def _makedirs(dir_path):
 def _prepare_fragments(proj):
     frags_dir = project_fragments_dir(proj)
     lib = proj.library
+
     elbow.generate_cif_pdb(lib.fragment_set.all(), frags_dir)
 
 
@@ -93,22 +90,19 @@ def _make_fragmax_dir(proj):
     this ownership and permission makes all the files created under
     the fragmax folder accessible to all users in the proposal group
     """
-
     fragmax_dir = path.join(proj.data_path(), "fragmax")
 
     # look-up proposal group ID
-    # proposal_group = grp.getgrnam(f"{proj.proposal}-group")
+    proposal_group = grp.getgrnam(f"{proj.proposal}-group")
 
-    # HZB Group is always fragadm
-    proposal_group = grp.getgrnam("fragadm")
-    if not path.exists(fragmax_dir):
-        os.mkdir(fragmax_dir)
+    os.mkdir(fragmax_dir)
     # set owner group
     os.chown(fragmax_dir, -1, proposal_group.gr_gid)
     # make sure SETGID bit is set
     os.chmod(fragmax_dir,
              stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
              stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+
     return fragmax_dir
 
 
@@ -123,13 +117,6 @@ def _create_fragmax_folders(proj):
     _makedirs(path.join(fragmax_dir, "models"))
     _makedirs(path.join(fragmax_dir, "export"))
     _makedirs(path.join(fragmax_dir, "results"))
-    for dataset in glob(f"/data/fragmaxrpc/user/{proj.proposal}/raw/{proj.protein}/*"):
-        dts = dataset.split("/")[-1]
-        runs = set([cbf_filename.split("_")[-2] for cbf_filename in glob(f"{dataset}/*cbf")])
-        for run in runs:
-            process_dir = f"{fragmax_dir}/process/{proj.protein}/{dts}/{dts}_{run}"
-            _makedirs(process_dir)
-
     _makedirs(project_fragments_dir(proj))
     _makedirs(project_process_protein_dir(proj))
 
@@ -146,7 +133,7 @@ def _copy_script_files(proj, script_files):
 
 
 def _copy_scripts(proj):
-    script_files = [UPDATE_STATUS_SCRIPT, READ_MTZ_FLAGS, PANDDA_WORKER]
+    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER]
     if proj.encrypted:
         script_files += ["crypt_files.py", "crypt_files.sh"]
 
@@ -154,7 +141,6 @@ def _copy_scripts(proj):
 
 
 def _parse_metafile(proj, metafile):
-
     def _snapshots():
         for i in range(1, 5):
             snap = node[f"xtalSnapshotFullPath{i}"]
@@ -230,11 +216,11 @@ def _import_edna_fastdp(proj, shifts):
         logger.info(f"importing {dataset}-{run} ({set_num + 1}/{num_of_datasets}) results")
 
         shift_collection = h5.split("/")[5]
-        edna_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/" \
-                        f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
+        edna_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/"\
+            f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
         edna_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/edna/"
-        fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}" \
-                          f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
+        fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"\
+            f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
         if path.exists(edna_path_src):
@@ -346,6 +332,7 @@ def _write_project_status(proj):
 
         if glob(j + "/xdsxscale/DataFiles/*mtz") != []:
             statusDict[dts].update({"xdsxscale": "full"})
+
     with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",

@@ -71,7 +71,7 @@
   <option disabled selected value> -- select an option -- </option>
   {% for method in proc_methods %}
   <option value='{{method}}'>{{method}}</option>    
-  {% endfor %}
+  {% endfor %} 
 </select>
 <form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" >
   <button class="btn-small selectbutton " type="submit" onsubmit="return select_pandda()" value="panddaSelect" name="methods" size="1">Load</button>
@@ -80,12 +80,8 @@
   <button class="btn-small selectbutton " type="submit" value="FixSymlinks" name="fixsymlinks" size="1" style="width: 130px !important;">Fix Symlinks</button>
 </form>
 <div class="alert alert-info"  style="margin-left: 165px;width: calc(100% - 225px);">
-  {% if opencmd == "initial" %}
-  <h4>This is PanDDA partial result. Your previous run might have failed or is still running. Check <a href="/jobhistory/" ><b>Job History</b></a> for more informatio</h4>
-  {% else %}
   <h4 >Copy and paste this command line in your terminal to start inspection in coot:</h4>
   <h5 >{{opencmd}}</h5>
-  {% endif %}
 </div>
 {{Report |safe}}
 

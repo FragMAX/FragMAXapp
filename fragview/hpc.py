@@ -1,7 +1,6 @@
 import sys
 import subprocess
 from django.conf import settings
-import threading
 
 
 def _hpc_user(logged_in_user):
@@ -15,11 +14,13 @@ def _ssh_on_frontend(command):
     """
     return a tuple of (stdout, stderr, exit_code)
     """
-    print("Starting a new thread for your job")
-    print(command)
-    t = threading.Thread(target=launch_job_hzb, args=[command])
-    t.daemon = True
-    t.start()
+    print(f"running on HPC '{command}'")
+    with subprocess.Popen(["ssh", settings.HPC_FRONT_END],
+                          stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE) as proc:
+
+        stdout, stderr = proc.communicate(command.encode("utf-8"))
+        return stdout, stderr, proc.returncode
 
 
 def _forward_output(output, stream):
@@ -34,7 +35,7 @@ def _forward_output(output, stream):
     stream.buffer.write(output)
 
 
-def frontend_run(command):
+def frontend_run(command, forward=True):
     """
     run shell command on HPC front-end host,
     the shell command's stdout and stderr will be dumped to our stdout and stderr streams
@@ -43,9 +44,12 @@ def frontend_run(command):
     # TODO: check exit code and bubble up error on exit code != 0
     stdout, stderr, _ = _ssh_on_frontend(command)
 
-    # forward stdout and stderr outputs, for traceability
-    # _forward_output(stdout, sys.stdout)
-    # _forward_output(stderr, sys.stderr)
+    if forward:
+        # forward stdout and stderr outputs, for traceability
+        _forward_output(stdout, sys.stdout)
+        _forward_output(stderr, sys.stderr)
+    else:
+        return stdout, stderr
 
 
 def jobs_list(logged_in_user):
@@ -63,7 +67,7 @@ def jobs_list(logged_in_user):
 
 
 def run_sbatch(sbatch_script, sbatch_options=None):
-    cmd = "sh"
+    cmd = "sbatch"
 
     # add options to sbatch command, if specified
     if sbatch_options is not None:
@@ -74,10 +78,3 @@ def run_sbatch(sbatch_script, sbatch_options=None):
 
     # TODO: check exit code and bubble up error on exit code != 0
     _ssh_on_frontend(cmd)
-
-
-def launch_job_hzb(command):
-    print(f"running on HKL8 '{command}'")
-    # with subprocess.Popen(["ssh", settings.HPC_FRONT_END]) as proc:
-    subprocess.call(command, shell=True)
-    print("sent to HKL8")

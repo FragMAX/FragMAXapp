@@ -1,8 +1,7 @@
 from django.shortcuts import render
 from fragview.models import PDB
-from fragview.projects import current_project, project_raw_master_h5_files, project_raw_master_cbf_files
+from fragview.projects import current_project, project_raw_master_h5_files
 from glob import glob
-from os import path
 
 
 def processing_form(request):
@@ -10,8 +9,9 @@ def processing_form(request):
 
     datasets = sorted(
         [
-            path.basename(x).split("_")[0]
-            for x in project_raw_master_cbf_files(proj)
+            x.split("/")[-1].replace("_master.h5", "")
+            for x in project_raw_master_h5_files(proj)
+            if "ref-" not in x
         ],
         key=lambda x: ("Apo" in x, x))
     methods = [

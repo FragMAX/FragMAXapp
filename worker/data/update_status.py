@@ -4,9 +4,15 @@ import sys
 
 
 def get_dataset_status(proposal, shift, protein, dataset, run):
-    dps1 = glob(f"/fraghome/{proposal}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*mtz")
-    dps2 = glob(f"/fraghome/{proposal}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
-    dp_full = set([x.split("/")[8] for x in dps1 + dps2])
+    dps1 = glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*mtz")
+    dps2 = glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
+    dps3 = glob(f"/data/visitors/biomax/{proposal}/{shift}/process/{protein}/{dataset}/*/*/results/*mtz*")
+    dp_full = set(
+        [x.split("/")[11] for x in dps1 + dps2] + [x.split("/")[10].replace("EDNA_proc", "edna") for x in dps3 if
+                                                   "autoPROC" not in x])
+
     dp_status = dict(
         autoproc="none",
         dials="none",
@@ -15,18 +21,11 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         xdsapp="none",
         xdsxscale="none")
 
-    dp_partial_xia2 = glob(f"/fraghome/{proposal}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/*/xia2.txt")
-    dp_partial = [get_partial_status_dp(x) for x in dp_partial_xia2]
-    dp_partial = [x.split("/")[8] for x in dp_partial if "none" not in x]
-
     for proc in dp_full:
         dp_status[proc] = "full"
 
-    for proc in dp_partial:
-        dp_status[proc] = "partial"
-
-    rf_full = set([x.split("/")[7] for x in glob(
-        f"/fraghome/{proposal}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
+    rf_full = set([x.split("/")[10] for x in glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
 
     rf_status = dict(
         dimple="none",
@@ -36,9 +35,9 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     for ref in rf_full:
         rf_status[ref] = "full"
 
-    lg_full = set([x.split("/")[8] for x in glob(
-        f"/fraghome/{proposal}/fragmax/results/{dataset}_{run}/*/*/ligfit/*/*.pdb") + glob(
-        f"/fraghome/{proposal}/fragmax/results/{dataset}_{run}/*/*/rhofit/*.pdb")])
+    lg_full = set([x.split("/")[11] for x in glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/ligfit/*/*.pdb") + glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/rhofit/*.pdb")])
     lg_status = {"rhofit": "none",
                  "ligfit": "none"}
     for lig in lg_full:
@@ -50,17 +49,8 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     return d4
 
 
-def get_partial_status_dp(logfile):
-     with open(logfile, "r", encoding="utf-8") as r:
-        log = r.read()
-     if "Error:" in log:
-        return logfile
-     else:
-        return "none"
-
-
 def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
-    allcsv = f"/fraghome/{proposal}/fragmax/process/{protein}/allstatus.csv"
+    allcsv = f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/allstatus.csv"
 
     with open(allcsv, "r") as readFile:
         csvfile = list(csv.reader(readFile))

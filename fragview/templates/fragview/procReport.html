@@ -6,20 +6,19 @@
 {% block content %}
 <style>
 .content {
-  overflow: hidden !important;
+  overflow: visible !important;
+  margin-left: 250px !important;
+
 }
-.html-object {
-  width:101%;
-  height:95%;
-  margin:1%;
-}
+
 </style>
 
 <div >
   {% if method == "log" %}
-    <div class="card"  >{{reportHTML | safe}}</div>
+    <div class="card" style="padding: 20px" >{{reportHTML | safe}}</div>
   {% else %}
-    <object class="html-object" type="text/log" data="{{reportHTML}}" >
+    <object type="text/log" data="{{reportHTML}}"
+            style="width:179%; height:99%; margin:1%;" >
     </object>
   {% endif %}
 <div>

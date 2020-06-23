@@ -108,9 +108,9 @@ def show(request):
         prevstr = usracr
         nextstr = usracr
 
-    pdbout = pdbout.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
-    ligfit = ligfit.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
-    rhofit = rhofit.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
+    pdbout = pdbout.replace("/data/visitors/", "/static/")
+    ligfit = ligfit.replace("/data/visitors/", "/static/")
+    rhofit = rhofit.replace("/data/visitors/", "/static/")
 
     # get xyz for ligands
     blist = blist.replace(" ", "")
@@ -195,8 +195,8 @@ def compare_poses(request):
                     rhocenter = "[" + ",".join(line[32:54].split()) + "]"
                     break
 
-    rhofit = rhofit.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
-    ligfit = ligfit.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
+    rhofit = rhofit.replace("/data/visitors/", "/static/")
+    ligfit = ligfit.replace("/data/visitors/", "/static/")
 
     return render(
         request,
@@ -275,18 +275,18 @@ def show_pipedream(request):
         request,
         "fragview/pipedream_density.html",
         {
-            "name": sample.replace("/data/fragmaxrpc/user/", "/static/fraghome/"),
-            "pdb": pdb.replace("/data/fragmaxrpc/user/", "/static/fraghome/"),
+            "name": sample.replace("/data/visitors/", "/static/"),
+            "pdb": pdb.replace("/data/visitors/", "/static/"),
             "sample": sample,
             "process": process,
-            "rhofit": rhofit.replace("/data/fragmaxrpc/user/", "/static/fraghome/"),
+            "rhofit": rhofit.replace("/data/visitors/", "/static/"),
             "center": center,
             "symmetry": symmetry,
             "resolution": resolution,
             "rwork": rwork,
             "rfree": rfree,
             "rhofitscore": rhofitscore,
-            "ligand": ligand.replace("/data/fragmaxrpc/user/", "/static/fraghome/"),
+            "ligand": ligand.replace("/data/visitors/", "/static/"),
             "prevstr": prevstr,
             "nextstr": nextstr,
             "cE": cE,
@@ -430,7 +430,7 @@ def pandda(request):
             "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
             "/pandda/processed_datasets/" + dataset + "/" + dataset + "-z_map.native.ccp4"
 
-        map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0].replace("/data/fragmaxrpc/user/", "")
+        map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0].replace("/data/visitors/", "")
 
         summarypath = "biomax/" + proj.proposal + "/" + proj.shift + "/fragmax/results/pandda/" + proj.protein + \
             "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
@@ -482,8 +482,8 @@ def pandda_consensus(request):
     glob_pattern = \
         f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}/pandda/processed_datasets/" + \
         f"{dataset}{ddtag}_{run}/*BDC*ccp4"
-    map2 = glob(glob_pattern)[0].replace("/data/fragmaxrpc/user/", "")
-    average_map = map2.split("event")[0]+"ground-state-average-map.native.ccp4"
+    map2 = glob(glob_pattern)[0].replace("/data/visitors/", "")
+    average_map = map2.split("event")[0] + "ground-state-average-map.native.ccp4"
     library = proj.library
     name = map2.split("/")[-2]
 
@@ -497,7 +497,7 @@ def pandda_consensus(request):
     modelledDir = path.join(pandda_res_dir, "processed_datasets", f"{dataset}{ddtag}_{run}", "modelled_structures")
 
     pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
-    pdb = pdb.replace("/data/fragmaxrpc/user/", "")
+    pdb = pdb.replace("/data/visitors/", "")
 
     events_csv = path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv")
     with open(events_csv, "r") as inp:
@@ -617,11 +617,11 @@ def find_ligandfitting_log(res_dir):
     rhofitSearch = glob(f"{res_dir}/rhofit/results.txt")
     ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
     if rhofitSearch:
-        rhofitlog = rhofitSearch[0].replace("/data/fragmaxrpc/user/", "")
+        rhofitlog = rhofitSearch[0].replace("/data/visitors/", "")
     else:
         rhofitlog = ""
     if ligandfitSearch:
-        ligandfitlog = ligandfitSearch[0]
+        ligandfitlog = ligandfitSearch[0].replace("/data/visitors/", "")
     else:
         ligandfitlog = ""
     return rhofitlog, ligandfitlog

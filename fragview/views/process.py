@@ -2,133 +2,63 @@ import os
 import time
 import xmltodict
 import threading
-import subprocess
 from glob import glob
 from os import path
 from django.shortcuts import render
+from django.http import HttpResponseBadRequest
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
 from fragview import hpc, versions
+from fragview.forms import ProcessForm
 from .utils import scrsplit, Filter
 
 
 def datasets(request):
     proj = current_project(request)
 
-    allprc = str(request.GET.get("submitallProc"))
-    dtprc = str(request.GET.get("submitdtProc"))
-    if allprc != "None":
-        userinputs = allprc.split(";;")
-        dpSW = list()
-        dpSW.append("xdsapp") if ("true" in userinputs[3]) else False
-        dpSW.append("xdsxscale") if ("true" in userinputs[2]) else False
-        dpSW.append("dials") if ("true" in userinputs[1]) else False
-        dpSW.append("autoproc") if ("true" in userinputs[4]) else False
-        if dpSW == []:
-            dpSW = [""]
+    form = ProcessForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
-        rfSW = list()
-        rfSW.append("dimple") if ("true" in userinputs[12]) else False
-        rfSW.append("fspipeline") if ("true" in userinputs[13]) else False
-        rfSW.append("buster") if ("true" in userinputs[14]) else False
-        if rfSW == []:
-            rfSW = [""]
+    filters = form.datasets_filter
+    nodes = form.hpc_nodes
 
-        lfSW = list()
-        lfSW.append("rhofit") if ("true" in userinputs[19]) else False
-        lfSW.append("ligfit") if ("true" in userinputs[20]) else False
-        if lfSW == []:
-            lfSW = [""]
+    options = {
+        "spacegroup": form.space_group,
+        "cellparam": form.cell_params,
+        "friedel_law": form.friedel_law,
+        "customxds": form.custom_xds,
+        "customautoproc": form.custom_autoproc,
+        "customdials": form.custom_dials,
+        "customxdsapp": form.custom_xdsapp
+    }
 
-        PDBID = userinputs[18].split(":")[-1]
+    if filters != "ALL":
+        nodes = 1
 
-        spg = userinputs[5].split(":")[-1]
-        pnodes = 10
-        shell_script = project_script(proj, "processALL.sh")
-        with open(shell_script, "w") as outp:
-            outp.write(
-                """#!/bin/tcsh \n"""
-                """#!/bin/tcsh \n"""
-                """#SBATCH -t 99:55:00 \n"""
-                """#SBATCH -J FragMAX \n"""
-                """#SBATCH --exclusive \n"""
-                """#SBATCH -N1 \n"""
-                """#SBATCH --cpus-per-task=40 \n"""
-                """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_out.txt \n"""
-                """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/analysis_workflow_%j_err.txt \n"""
-                """# module purge \n"""
-                """# module load DIALS CCP4 autoPROC BUSTER XDSAPP PyMOL \n"""
-                """python """ + project_script(proj, "processALL.py") + """ '""" + proj.data_path() + """' '""" +
-                proj.library + """' '""" + PDBID + """' '""" + spg + """' $1 $2 '""" + ",".join(dpSW) +
-                """' '""" + ",".join(rfSW) + """' '""" + ",".join(lfSW) + """' \n""")
+    if form.use_xdsapp:
+        t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        for node in range(pnodes):
-            command = 'echo "module purge | module load CCP4 autoPROC DIALS XDSAPP | sbatch ' + \
-                      shell_script + " " + str(node) + " " + str(pnodes) + ' " | ssh -F ~/.ssh/ clu0-fe-1'
-            subprocess.call(command, shell=True)
-            time.sleep(0.2)
-        return render(request, 'fragview/testpage.html', {
-            'dpSW': "<br>".join(dpSW),
-            'rfSW': "<br>".join(rfSW),
-            'lfSW': "<br>".join(lfSW),
-            "pdb": PDBID,
-            "sym": spg
-        })
+    if form.use_dials:
+        t = threading.Thread(target=run_dials, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-    if dtprc != "None":
-        dtprc_inp = dtprc.split(";;")
-        usedials = dtprc_inp[1].split(":")[-1]
-        usexdsxscale = dtprc_inp[2].split(":")[-1]
-        usexdsapp = dtprc_inp[3].split(":")[-1]
-        useautproc = dtprc_inp[4].split(":")[-1]
-        spacegroup = dtprc_inp[5].split(":")[-1]
-        cellparam = dtprc_inp[6].split(":")[-1].replace("(", "").replace(")", "")
-        friedel_law = dtprc_inp[7].split(":")[-1]
-        filters = dtprc_inp[12].split(":")[-1]
-        customxds = dtprc_inp[13].split(":")[-1]
-        customautoproc = dtprc_inp[14].split(":")[-1]
-        customdials = dtprc_inp[15].split(":")[-1]
-        customxdsapp = dtprc_inp[16].split(":")[-1]
-        node_number = dtprc_inp[17].split(":")[-1]
-        options = {"spacegroup": spacegroup,
-                   "cellparam": cellparam,
-                   "friedel_law": friedel_law,
-                   "customxds": customxds,
-                   "customautoproc": customautoproc,
-                   "customdials": customdials,
-                   "customxdsapp": customxdsapp
-                   }
-        nodes = node_number
-        if not nodes.isnumeric():
-            nodes = 3
-        else:
-            nodes = int(nodes)
-        if filters != "ALL":
-            nodes = 1
-        if usexdsapp == "true":
-            t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
-        if usedials == "true":
-            t = threading.Thread(target=run_dials, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
+    if form.use_autoproc:
+        t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        if useautproc == "true":
-            t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
+    if form.use_xdsxscale:
+        t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters, options))
+        t.daemon = True
+        t.start()
 
-        if usexdsxscale == "true":
-            t = threading.Thread(target=run_xdsxscale, args=(proj, nodes, filters, options))
-            t.daemon = True
-            t.start()
-
-        return render(
-            request,
-            "fragview/dataproc_datasets.html",
-            {"allproc": "Jobs submitted using " + str(nodes) + " per method"})
-
-    return render(request, "fragview/dataproc_datasets.html", {"allproc": ""})
+    return render(
+        request,
+        "fragview/dataproc_datasets.html",
+        {"allproc": "Jobs submitted using " + str(nodes) + " per method"})
 
 
 def run_xdsapp(proj, nodes, filters, options):
@@ -194,22 +124,19 @@ def run_xdsapp(proj, nodes, filters, options):
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-    # epoch = str(round(time.time()))
-    epoch = ""
-    header = """#!/bin/tcsh\n"""
-    header += """#!/bin/tcsh\n"""
+    epoch = str(round(time.time()))
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
     header += """#SBATCH -t 99:55:00\n"""
     header += """#SBATCH -J XDSAPP\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
     header += """#SBATCH --cpus-per-task=40\n"""
     # header+= """#SBATCH --mem=220000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/Process_xdsapp_""" \
-              + epoch + """_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/Process_xdsapp_""" \
-              + epoch + """_%j_err.txt\n"""
-    header += """#module purge\n\n"""
-    header += f"""#module load {softwares}\n\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_err.txt\n"""
+    header += """module purge\n\n"""
+    header += f"""module load {softwares}\n\n"""
     scriptList = list()
 
     # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
@@ -221,10 +148,7 @@ def run_xdsapp(proj, nodes, filters, options):
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
                            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%04d.cbf", "0001.cbf")
-        processing_dataset = dtc["fileTemplate"].replace("_%04d.cbf", "")
-        stdout_log = proj.data_path() + """/fragmax/logs/Process_XDSAPP_""" + epoch \
-                     + f"""_{processing_dataset}_out.txt"""
+        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         sample = outdir.split("/")[-1]
         if options["spacegroup"] != "":
@@ -242,8 +166,8 @@ def run_xdsapp(proj, nodes, filters, options):
         script = \
             f"mkdir -p {outdir}/xdsapp\n" \
             f"cd {outdir}/xdsapp\n" \
-            f"/usr/bin/python2 /soft/pxsoft/run/xdsit/options.py --cmd --dir={outdir}/xdsapp -j 8 -c 8 -i " \
-            f"{h5master} {spg} {customxdsapp} {friedel} --range='1 {nImg}' | dd status=none of={stdout_log}\n" + \
+            f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} {spg} {customxdsapp} --delphi=10 " \
+            f"{friedel} --range=1\\ {nImg}\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
@@ -276,9 +200,9 @@ def run_autoproc(proj, nodes, filters, options):
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-    epoch = ""
-    header = """#!/bin/tcsh\n"""
-    header += """#!/bin/tcsh\n"""
+    epoch = str(round(time.time()))
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
     header += """#SBATCH -t 99:55:00\n"""
     header += """#SBATCH -J autoPROC\n"""
     header += """#SBATCH --exclusive\n"""
@@ -287,8 +211,8 @@ def run_autoproc(proj, nodes, filters, options):
     # header+= """#SBATCH --mem=220000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_err.txt\n"""
-    header += """#module purge\n\n"""
-    header += f"""#module load {softwares}\n\n"""
+    header += """module purge\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -308,7 +232,7 @@ def run_autoproc(proj, nodes, filters, options):
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
-            spg = f"symm = '{spacegroup}'"
+            spg = f"symm='{spacegroup}'"
         else:
             spg = ""
         if options["cellparam"] != "":
@@ -323,13 +247,15 @@ def run_autoproc(proj, nodes, filters, options):
         else:
             friedel = "-noANO"
         script = \
+            f"rm -rf {outdir}/autoproc\n" \
             f"mkdir -p {outdir}/\n" \
             f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} {friedel} autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
+            f'''process -h5 {h5master} {friedel} {spg} {unit_cell} ''' + \
+            f'''autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
             f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
             f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
-            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {spg} {unit_cell} {customautoproc} ''' + \
+            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} ''' + \
             f'''-d {outdir}/autoproc\n''' + project_update_status_script_cmds(proj, sample, softwares)
 
         scriptList.append(script)
@@ -386,9 +312,9 @@ def run_xdsxscale(proj, nodes, filters, options):
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-    epoch = ""
-    header = """#!/bin/tcsh\n"""
-    header += """#!/bin/tcsh\n"""
+    epoch = str(round(time.time()))
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
     header += """#SBATCH -t 99:55:00\n"""
     header += """#SBATCH -J xdsxscale\n"""
     header += """#SBATCH --exclusive\n"""
@@ -396,12 +322,10 @@ def run_xdsxscale(proj, nodes, filters, options):
     header += """#SBATCH --cpus-per-task=48\n"""
     # header+= """#SBATCH --mem=220000\n"""
     # header += """#SBATCH --mem-per-cpu=2000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/Process_xia2XDS_""" \
-              + epoch + """_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/Process_xia2XDS_""" \
-              + epoch + """_%j_err.txt\n"""
-    header += """#module purge\n\n"""
-    header += f"""#module load {softwares}\n\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_err.txt\n"""
+    header += """module purge\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -414,12 +338,8 @@ def run_xdsxscale(proj, nodes, filters, options):
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
                            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
-        # h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%04d.cbf", "0001.cbf")
+        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
-        processing_dataset = dtc["fileTemplate"].replace("_%04d.cbf", "")
-        stdout_log = proj.data_path() + """/fragmax/logs/Process_xia2XDS_""" \
-                     + epoch + f"_{processing_dataset}_out.txt"
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
         sample = outdir.split("/")[-1]
@@ -436,15 +356,15 @@ def run_xdsxscale(proj, nodes, filters, options):
             unit_cell = ""
         customxds = options["customxds"]
         if options["friedel_law"] == "true":
-            friedel = "atom=X"
+            friedel = "-atom X"
         else:
             friedel = ""
         script = \
             f"mkdir -p {outdir}/xdsxscale\n" \
             f"cd {outdir}/xdsxscale \n" \
-            f"xia2 pipeline=3dii failover=true {spg} {unit_cell} {customxds} " \
-            f"nproc=40 {friedel} image={h5master}:1:{nImg} multiprocessing.mode=serial multiprocessing.njob=1 " \
-            f"multiprocessing.nproc=40 | dd status=none of={stdout_log}\n" + \
+            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} " \
+            f"nproc=40 {friedel} image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 
@@ -500,9 +420,9 @@ def run_dials(proj, nodes, filters, options):
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-    epoch = ""
-    header = """#!/bin/tcsh\n"""
-    header += """#!/bin/tcsh\n"""
+    epoch = str(round(time.time()))
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
     header += """#SBATCH -t 99:55:00\n"""
     header += """#SBATCH -J DIALS\n"""
     header += """#SBATCH --exclusive\n"""
@@ -511,12 +431,10 @@ def run_dials(proj, nodes, filters, options):
     # it seems we need around ~210G of RAM to process some datasets,
     # when we do a 48-way parallelization
     header += """#SBATCH --mem=210G\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/Process_xia2DIALS_""" \
-              + epoch + """_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/Process_xia2DIALS_""" \
-              + epoch + """_%j_err.txt\n"""
-    header += """#module purge\n\n"""
-    header += f"""#module load {softwares}\n\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_err.txt\n"""
+    header += """module purge\n\n"""
+    header += f"""module load {softwares}\n\n"""
 
     scriptList = list()
 
@@ -529,12 +447,8 @@ def run_dials(proj, nodes, filters, options):
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
         outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
                            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
-        # h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%04d.cbf", "0001.cbf")
+        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
-        processing_dataset = dtc["fileTemplate"].replace("_%04d.cbf", "")
-        stdout_log = proj.data_path() + """/fragmax/logs/Process_xia2DIALS_""" \
-                     + epoch + f"_{processing_dataset}_out.txt"
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
         sample = outdir.split("/")[-1]
@@ -551,15 +465,15 @@ def run_dials(proj, nodes, filters, options):
         customdials = options["customdials"]
 
         if options["friedel_law"] == "true":
-            friedel = "atom=X"
+            friedel = "-atom X"
         else:
             friedel = ""
         script = \
             f"mkdir -p {outdir}/dials\n" \
             f"cd {outdir}/dials \n" \
-            f"xia2 pipeline=dials failover=true {spg} {unit_cell} {customdials} " \
-            f"nproc=40 {friedel} image={h5master}:1:{nImg} multiprocessing.mode=serial multiprocessing.njob=1 " \
-            f"multiprocessing.nproc=40 | dd status=none of={stdout_log}\n" + \
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} " \
+            f"nproc=48 {friedel} image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 

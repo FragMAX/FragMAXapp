@@ -1,7 +1,7 @@
 
 {% extends 'fragview/base.html' %}
 
-{% block title %}FragMAX - Job Viewer{% endblock %}
+{% block title %}FragMAX - HPC Job History{% endblock %}
 
 {% block content %}
 
@@ -52,54 +52,36 @@ button.link {
 	cursor: pointer;
 }
 </style>
-<h4>HKL8 Job history</h4>
+<h4>MAX IV HPC Job History</h4>
 
 <div class="card">
   <div class="card-content">
-      <div class="card-title">Job History | <a href="http://0.0.0.0:61208" target="_blank" >Workload viewer</a></div>
+      <div class="card-title">Job History</div>
       <br>
       <table class="table bordered">
           <thead>
           <tr>
-              <th>JOB TYPE</th>
-              <th>PROCESSING</th>
-              <th>REFINEMENT</th>
-              <th>DATASET</th>
-              <th>LAUNCH DATE</th>
+              <th>LOG FILE</th>
+              <th>JOB ID</th>
+              <th>DATE</th>
               <th>Output file</th>
-              <th hidden>Error file</th>
-              <th>JOB STATUS</th>
+              <th>Error file</th>
           </tr>
           </thead>
           <tbody>
-          {% for logName,sw_proc, sw_ref, jID,cDate,err,out,status,selection in logHistory %}
+          {% for logName,jID,cDate,err,out in logHistory %}
 
             <tr>
               <td>{{logName}}</td>
-              <td>{{sw_proc}}</td>
-              <td>{{sw_ref}}</td>
-                {% if selection == "json" %}
-                <td><form action="/log_viewer/" method="get" id="logFileform" target="_blank">
-                    <button  class="link" type="submit" value="{{jID}}" name="logFile" size="1" >Dataset selection</button>
-                </form></td>
-                {% else %}
               <td>{{jID}}</td>
-                {% endif %}
               <td>{{cDate|date:"Y-m-d H:i:s"}}</td>
 
               <td><form action="/log_viewer/" method="get" id="logFileform" target="_blank">
                     <button  class="link" type="submit" value="{{out}}" name="logFile" size="1" >output File</button>
                 </form></td>
-              <td hidden><form action="/log_viewer/" method="get" id="logFileform2" target="_blank">
+              <td><form action="/log_viewer/" method="get" id="logFileform2" target="_blank">
                     <button  class="link" type="submit" value="{{err}}" name="logFile" size="1" >error File</button>
-              </form></td>
-                {% if status == "Running" %}
-                    <td><b><font color='#ff8c00'> {{status}}</font></b></td>
-                {% elif status == "Finished" %}
-                    <td><b><font color='#008000'> {{status}}</font></b></td>
-                {% elif status == "Failed" %}
-                    <td><b><font color='#8b0000'> {{status}}</font></b></td>
-                {% endif %}
+                </form>
             </tr>
           {% endfor %}
           </tbody>

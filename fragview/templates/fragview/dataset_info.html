@@ -286,7 +286,7 @@
                             <th class="resultsHeader">&alpha;</th>
                             <th class="resultsHeader">&beta;</th>
                             <th class="resultsHeader">&gamma;</th>
-                            <th class="resultsHeader" hidden>RhoFit</th>
+                            <th class="resultsHeader">RhoFit</th>
                             <th class="resultsHeader">LigFit</th>
                             </tr>
                         </thead>
@@ -316,7 +316,7 @@
                             <td style="text-align:center">{{alpha}}</td>
                             <td style="text-align:center">{{beta}}</td>
                             <td style="text-align:center">{{gamma}}</td>
-                            <td style="text-align:center" hidden>{{rhofitscore}}</td>
+                            <td style="text-align:center">{{rhofitscore}}</td>
                             <td style="text-align:center">{{ligfitscore}}</td>
                             
                             </tr>
@@ -348,9 +348,9 @@
                 <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
         
                 <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
-                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';" hidden>
+                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
                 <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
-                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';" hidden>
+                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
         
         
     </div>
@@ -392,7 +392,7 @@
                         </tr>
                         <tr>
                             <th>Type of experiment</th>
-                            <td>{{xsdata.rotationAxis}} OSC</td>
+                            <td>OSC</td>
                         </tr>
                         <tr>
                             <th>Wavelength</th>
@@ -428,7 +428,7 @@
                         </tr>
                         <tr>
                             <th>Detector distance</th>
-                            <td>{{xsdata.detectorDistance}} mm</td>
+                            <td>{{xsdata.detectorDistance|floatformat:2}} mm</td>
                         </tr>
                         <tr>
                             <th>Resolution at edge</th>
@@ -481,19 +481,19 @@
                         </tr>
                         <tr>
                             <th>Beamline</td>
-                            <td>{{xsdata.experimentBeamline}}</td>
+                            <td>{{BL_name}}</td>
                         </tr>                        
                         <tr>
                             <th>Detector type</td>
-                            <td>{{xsdata.detectorType}}</td>
+                            <td>{{BL_detector_type}}</td>
                         </tr>
                         <tr>
                             <th>Detector model</td>
-                            <td>{{xsdata.detectorModel}}</td>
+                            <td>{{BL_detector}}</td>
                         </tr>
                         <tr>
                             <th>Detector pixel size (HxV)</td>
-                            <td>{{xsdata.detectorPixelSize}}</td>
+                            <td>{{BL_detector_pixel_size}}</td>
                         </tr>
                         <tr>
                             <th>Focusing optics</td>
@@ -575,13 +575,13 @@
 
 <div class=" card_options">
     <div class="card tab">
-        <button class="tablinks" onclick="openMethod(event, 'EDNA')" hidden>EDNA_proc</button>
-        <button class="tablinks" onclick="openMethod(event, 'fastdp')" hidden>FastDP</button>
+        <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
+        <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
         <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
         <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
         <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
-        <button class="tablinks" onclick="openMethod(event, 'autoPROC')" hidden>autoPROC</button>
-<!--    <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+        <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+<!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>

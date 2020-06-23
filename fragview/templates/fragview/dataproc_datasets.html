@@ -45,9 +45,9 @@
 
 <div class="card">
     <div class="card-content">
-        <div class="card-title">HKL8 Job submission for user: {{user}}</div>
+        <div class="card-title">HPC Job submission for user: {{user}}</div>
         <br>
-        <p>You will be redirected to HPC status page in 15 seconds automatically. If not, <a href="/jobhistory/">click here</a></p>
+        <p>You will be redirected to HPC status page in 15 seconds automatically. If not, <a href="/hpcstatus/">click here</a></p>
         <br>
         <p>It may take up to a few minutes to submit your jobs based on server load. Do not submit again!</p>
         <br>
@@ -58,7 +58,7 @@
 </div>
 
 <script>
-setTimeout(function() { window.location.href = "/jobhistory/"; }, 15000);
+setTimeout(function() { window.location.href = "/hpcstatus/"; }, 15000);
 </script>
 
 {% endblock %}

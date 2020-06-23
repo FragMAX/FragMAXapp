@@ -27,7 +27,7 @@ def set_details(request):
     prefix = dataset.split(";")[0]
     images = dataset.split(";")[1]
     run = dataset.split(";")[2]
-    half = str(int(int(images)/2))
+    images = str(int(images) / 2)
 
     dataset_dir = path.join(project_process_protein_dir(proj), prefix, f"{prefix}_{run}")
 
@@ -52,8 +52,10 @@ def set_details(request):
         for spath in xsdata.snapshots
     ]
 
+    half = int(float(images) / 200)
+
     # getreports
-    scurp = curp.replace("/data/fragmaxrpc/user/", "/static/fraghome/")
+    scurp = curp.replace("/data/visitors/", "/static/")
 
     dialsreport = \
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/dials/xia2.html"
@@ -64,9 +66,6 @@ def set_details(request):
     autoprocreport = \
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + \
         "/autoproc/summary.html"
-    # XDSAPP logs
-    xdsapp_dir = path.join(dataset_dir, "xdsapp")
-    xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}.txt")
 
     xdsappOK = "no"
     dialsOK = "no"
@@ -81,6 +80,9 @@ def set_details(request):
     xdsLogs = ""
     dialsLogs = ""
 
+    # XDSAPP logs
+    xdsapp_dir = path.join(dataset_dir, "xdsapp")
+    xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
     if path.exists(xdsappreport):
         xdsappOK = "ready"
         xdsappLogs = _logs(xdsapp_dir)
@@ -132,6 +134,9 @@ def set_details(request):
     # beamline parameters
     BL_site = f"{versions.BL_site}"
     BL_name = f"{versions.BL_name}"
+    BL_detector = f"{versions.BL_detector}"
+    BL_detector_type = f"{versions.BL_detector_type}"
+    BL_detector_pixel_size = f"{versions.BL_detector_pixel_size}"
     BL_focusing_optics = f"{versions.BL_focusing_optics}"
     BL_monochrom_type = f"{versions.BL_monochrom_type}"
     BL_beam_shape = f"{versions.BL_beam_shape}"
@@ -173,6 +178,9 @@ def set_details(request):
         "dialsLogs": dialsLogs,
         "BL_site": BL_site,
         "BL_name": BL_name,
+        "BL_detector": BL_detector,
+        "BL_detector_type": BL_detector_type,
+        "BL_detector_pixel_size": BL_detector_pixel_size,
         "BL_focusing_optics": BL_focusing_optics,
         "BL_monochrom_type": BL_monochrom_type,
         "BL_beam_shape": BL_beam_shape,
@@ -222,140 +230,136 @@ def show_all(request):
         for i, j in zip(prf_list, run_list):
             dictEntry = i + "_" + j
             status = [line for line in lines if line[0] == dictEntry]
-            if status:
+
+            if status != []:
                 da = "<td>"
                 if status[0][1] == "full":
-                    da += '<p align="left" hidden><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> autoPROC</font></p>'
                 elif status[0][1] == "partial":
-                    da += '<p align="left" hidden><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2" hidden> autoPROC</font></p>'
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
+                          '<font size="2"> autoPROC</font></p>'
                 else:
-                    da += '<p align="left" hidden><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> autoPROC</font></p>'
 
                 if status[0][2] == "full":
-                    da += '<p align="left"><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> DIALS</font></p>'
                 elif status[0][2] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
                           '<font size="2"> DIALS</font></p>'
                 else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> DIALS</font></p>'
 
                 if status[0][3] == "full":
-                    da += '<p align="left" hidden><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> EDNA_proc</font></p>'
                 elif status[0][3] == "partial":
-                    da += '<p align="left" hidden><font size="4" color="#f44336">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
                           '<font size="2"> EDNA_proc</font></p>'
                 else:
-                    da += '<p align="left" hidden><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> EDNA_proc</font></p>'
 
                 if status[0][4] == "full":
-                    da += '<p align="left" hidden><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> Fastdp</font></p>'
                 elif status[0][4] == "partial":
-                    da += '<p align="left" hidden><font size="4" color="#f44336">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
                           '<font size="2"> Fastdp</font></p>'
                 else:
-                    da += '<p align="left" hidden><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> Fastdp</font></p>'
 
                 if status[0][5] == "full":
-                    da += '<p align="left"><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> XDSAPP</font></p>'
                 elif status[0][5] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
                           '<font size="2"> XDSAPP</font></p>'
                 else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> XDSAPP</font></p>'
 
                 if status[0][6] == "full":
-                    da += '<p align="left"><font size="4" color="green">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> XDS/XSCALE</font></p>'
 
                 elif status[0][6] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="yellow">&#9679;</font>' \
                           '<font size="2"> XDS/XSCALE</font></p>'
                 else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                    da += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> XDS/XSCALE</font></p></td>'
 
                 dpentry.append(da)
                 re = "<td>"
 
                 if status[0][9] == "full":
-                    re += '<p align="left" hidden><font size="4" color="green">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> BUSTER</font></p>'
                 else:
-                    re += '<p align="left" hidden><font size="4" color="#fdd835">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> BUSTER</font></p>'
 
                 if status[0][7] == "full":
-                    re += '<p align="left"><font size="4" color="green">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> Dimple</font></p>'
                 else:
-                    re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> Dimple</font></p>'
 
                 if status[0][8] == "full":
-                    re += '<p align="left"><font size="4" color="green">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="green">&#9679;</font>' \
                           '<font size="2"> FSpipeline</font></p></td>'
                 else:
-                    re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                    re += '<p align="left"><font size="2" color="red">&#9675;</font>' \
                           '<font size="2"> FSpipeline</font></p></td>'
 
                 rfentry.append(re)
 
                 lge = "<td>"
-                if status[0][11] == "full":
-                    lge += \
-                        '<p align="left"><font size="4" color="green">&#9679;</font>' \
-                        '<font size="2"> LigFit</font></p>'
-                else:
-                    if "Apo" in dictEntry:
-                        hide = " hidden"
-                    else:
-                        hide = ""
-                    lge += \
-                        f'<p align="left"{hide}><font size="4" color="#fdd835">&#9679;</font>' \
-                        '<font size="2"> LigFit</font></p>'
-
                 if status[0][10] == "full":
                     lge += \
-                        '<p align="left" hidden><font size="4" color="green">&#9679;</font>' \
+                        '<p align="left"><font size="2" color="green">&#9679;</font>' \
+                        '<font size="2"> LigFit</font></p>'
+                else:
+                    lge += \
+                        '<p align="left"><font size="2" color="red">&#9675;</font>' \
+                        '<font size="2"> LigFit</font></p>'
+
+                if status[0][11] == "full":
+                    lge += \
+                        '<p align="left"><font size="2" color="green">&#9679;</font>' \
                         '<font size="2"> RhoFit</font></p></td>'
                 else:
                     lge += \
-                        '<p align="left" hidden><font size="4" color="#fdd835">&#9679;</font>' \
+                        '<p align="left"><font size="2" color="red">&#9675;</font>' \
                         '<font size="2"> RhoFit</font></p></td>'
                 lgentry.append(lge)
     else:
         for i in prf_list:
             dpentry.append("""<td>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2" hidden> autoPROC</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2" hidden> fastdp</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2" hidden> EDNA_proc</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> autoPROC</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> fastdp</font></p>
+                    <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> EDNA_proc</font></p>
                 </td>""")
             rfentry.append("""<td>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2" hidden> BUSTER</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Dimple</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> FSpipeline</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> BUSTER</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Dimple</font></p>
+                        <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> FSpipeline</font></p>
                     </td>""")
 
         for i, j in zip(prf_list, run_list):
-
             lge = \
-                f"""<td>
-                  <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2" hidden> RhoFit</font></p>
-                  <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Phenix LigFit</font></p>
+                """<td>
+                  <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> RhoFit</font></p>
+                  <p align="left"><font size="2" color="red">&#9675;</font><font size="2"> Phenix LigFit</font></p>
                  </td>"""
             lgentry.append(lge)
 
@@ -366,12 +370,11 @@ def show_all(request):
 
 
 def proc_report(request):
-    # TO DO is this still being used after the standard logview function took place?
     method = ""
     report = str(request.GET.get('dataHeader'))
     if "fastdp" in report or "EDNA" in report:
         method = "log"
-        with open(report.replace("/static/fraghome/", "/data/fragmaxrpc/user/"), "r") as readFile:
+        with open(report.replace("/static/", "/data/visitors/"), "r") as readFile:
             report = readFile.readlines()
         report = "<br>".join(report)
 
@@ -382,10 +385,11 @@ def get_dataset_status(proj, dataset, run):
     proc_dir = project_process_dir(proj)
     dps1 = glob(f"{proc_dir}/{proj.protein}/{dataset}/{dataset}_{run}/*/*mtz")
     dps2 = glob(f"{proc_dir}/{proj.protein}/{dataset}/{dataset}_{run}/*/*/*mtz")
-    # dps3 is not used anymore as we copy edna, fastdp and (autoproc?) to fragmax folder
-    # dps3 = glob(f"{proj.data_path()}/process/{proj.protein}/{dataset}/*/*/results/*mtz*")
+    dps3 = glob(f"{proj.data_path()}/process/{proj.protein}/{dataset}/*/*/results/*mtz*")
 
-    dp_full = set([x.split("/")[8] for x in dps1 + dps2])
+    dp_full = set(
+        [x.split("/")[11] for x in dps1 + dps2] + [x.split("/")[10].replace("EDNA_proc", "edna") for x in dps3 if
+                                                   "autoPROC" not in x])
 
     dp_status = {'autoproc': "none",
                  'dials': "none",
@@ -397,7 +401,7 @@ def get_dataset_status(proj, dataset, run):
     for proc in dp_full:
         dp_status[proc] = "full"
 
-    rf_full = set([x.split("/")[7] for x in glob(
+    rf_full = set([x.split("/")[10] for x in glob(
         f"/data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/results/{dataset}_{run}/*/*/final.pdb")])
     rf_status = {'dimple': "none",
                  'fspipeline': "none",
@@ -407,7 +411,7 @@ def get_dataset_status(proj, dataset, run):
 
     res_dir = project_results_dir(proj)
 
-    lg_full = set([x.split("/")[8] for x in
+    lg_full = set([x.split("/")[11] for x in
                    glob(f"{res_dir}/{dataset}_{run}/*/*/ligfit/*/*.pdb") +
                    glob(f"{res_dir}/{dataset}_{run}/*/*/rhofit/*.pdb")])
     lg_status = {'rhofit': "none",

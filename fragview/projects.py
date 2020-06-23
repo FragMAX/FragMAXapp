@@ -1,13 +1,9 @@
-from glob import glob
+import glob
 from os import path
-from shutil import copyfile
 from django.conf import settings
 from .proposals import get_proposals
-import fabio
-from fragview.versions import HZB_PYTHON
 
 UPDATE_STATUS_SCRIPT = "update_status.py"
-READ_MTZ_FLAGS = "read_mtz_flags.py"
 PANDDA_WORKER = "pandda_prepare_runs.py"
 
 
@@ -26,7 +22,7 @@ def proposal_dir(proposal_number):
 
 
 def shift_dir(proposal_number, shift):
-    return proposal_dir(proposal_number)
+    return path.join(proposal_dir(proposal_number), shift)
 
 
 def protein_dir(proposal_number, shift, protein):
@@ -66,6 +62,14 @@ def project_scripts_dir(project):
     return path.join(project.data_path(), "fragmax", "scripts")
 
 
+def project_logs_dir(project):
+    return path.join(project_fragmax_dir(project), "logs")
+
+
+def project_pandda_results_dir(project):
+    return path.join(project_fragmax_dir(project), "results", "pandda", project.protein)
+
+
 def project_model_file(project, model_file):
     return path.join(project_models_dir(project), model_file)
 
@@ -93,38 +97,24 @@ def project_script(project, script_file):
     return path.join(project_scripts_dir(project), script_file)
 
 
+def project_log_path(project, log_file):
+    """
+    generate full path to a file name 'log_file' inside project's logs directory
+    """
+    return path.join(project_logs_dir(project), log_file)
+
+
 def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
 
 
-def copy_missing_script(project, python_script):
-    # This copy function should be removed after a few users copy files to their folders.
-
-    if not path.exists(f"{project.data_path()}/fragmax/scripts/{python_script}"):
-        copyfile(f"/data/staff/biomax/webapp/static/scripts/{python_script}",
-                 f"{project.data_path()}/fragmax/scripts/{python_script}")
-
-
-def project_read_mtz_flags(project, hklin):
-    # This copy function should be removed after a few users copy files to their folders.
-
-    copy_missing_script(project, READ_MTZ_FLAGS)
-    return \
-        project_script(project, READ_MTZ_FLAGS) + \
-        f" {hklin}"
-
-
-def project_pandda_worker(project, options):
-    # This copy function should be removed after a few users copy files to their folders.
-
-    copy_missing_script(project, PANDDA_WORKER)
-    return "python " + \
-        project_script(project, PANDDA_WORKER) + \
-        f' {project.data_path()} {project.protein} "{options}"'
-
-
 def project_update_status_script_cmds(project, sample, softwares):
-    return f"{HZB_PYTHON} {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
+    return \
+        "module purge\n" + \
+        "module load GCCcore/8.3.0 Python/3.7.4\n" + \
+        f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n" + \
+        "module purge\n" + \
+        f"module load {softwares}\n"
 
 
 def shifts_raw_master_h5_files(project, shifts):
@@ -136,40 +126,12 @@ def shifts_raw_master_h5_files(project, shifts):
     """
     shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
     for sdir in shift_dirs:
-        for file in glob(f"{sdir}/raw/{project.protein}/*/*master.h5"):
+        for file in glob.glob(f"{sdir}/raw/{project.protein}/*/*master.h5"):
             yield file
-
-
-def project_raw_master_cbf_files(project):
-    for file in glob(f"{project.data_path()}/raw/{project.protein}/{project.protein}*/{project.protein}*0001.cbf"):
-        yield file
 
 
 def project_raw_master_h5_files(project):
     return shifts_raw_master_h5_files(project, project.shifts())
-
-
-def cbf_to_xml(project):
-    """
-    generate a XML file from CBF file. It is similar to what is genereated by MAX IV for ISPyB
-    """
-    raw_cbf_folder = f"/data/fragmaxrpc/user/{project.proposal}/raw/{project.protein}"
-
-    fragmax_dir = path.join(project.data_path(), "fragmax")
-
-    for dataset in sorted(glob(f"{raw_cbf_folder}/*"), key=lambda x: ("Apo" in x, x)):
-        dts = dataset.split("/")[-1]
-        runs = set([cbf_filename.split("_")[-2] for cbf_filename in
-                    glob(f"{dataset}/{project.protein}*cbf")])
-        for run in runs:
-            dataset = f"{dts}_{run}"
-            cbf_range = sorted(glob(f"{raw_cbf_folder}/{dts}/{dataset}_*.cbf"))
-            print(dataset)
-            print(f"{project.protein}-{project.library.name}")
-            cbf_ini, cbf_end = cbf_range[::len(cbf_range)-1]
-            file = path.join(fragmax_dir, "process", project.protein, dts, f"{dataset}.xml")
-            _create_xml_file(project, dataset, cbf_ini, cbf_end)
-            yield file
 
 
 def shifts_xml_files(project, shifts):
@@ -179,28 +141,12 @@ def shifts_xml_files(project, shifts):
 
     shifts - list of shift
     """
-    raw_cbf_folder = f"/data/fragmaxrpc/user/{project.proposal}/raw/{project.protein}"
-
-    fragmax_dir = path.join(project.data_path(), "fragmax")
-
-    for dataset in sorted(glob(f"{raw_cbf_folder}/*"), key=lambda x: ("Apo" in x, x)):
-        dts = dataset.split("/")[-1]
-        runs = set([cbf_filename.split("_")[-2] for cbf_filename in
-                    glob(f"{dataset}/{project.protein}*cbf")])
-
-        for run in runs:
-            dataset = f"{dts}_{run}"
-            cbf_range = sorted(glob(f"{raw_cbf_folder}/{dts}/{dataset}_*.cbf"))
-            cbf_ini, cbf_end = cbf_range[::len(cbf_range)-1]
-            file = path.join(fragmax_dir, "process", project.protein, dts, f"{dataset}.xml")
-            _create_xml_file(project, dataset, cbf_ini, cbf_end)
+    shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
+    for sdir in shift_dirs:
+        for file in glob.glob(
+                f"{sdir}**/process/{project.protein}/**/**/fastdp/cn**/"
+                f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
             yield file
-    # shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
-    # for sdir in shift_dirs:
-    #     for file in glob(
-    #             f"{sdir}**/process/{project.protein}/**/**/fastdp/cn**/"
-    #             f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
-    #         yield file
 
 
 def project_xml_files(project):
@@ -220,120 +166,4 @@ def project_model_path(project, pdb_file):
 
 
 def project_static_url(project):
-    return path.join("/", "static", "fraghome", project.proposal)
-
-
-def _create_xml_file(project, dataset, cbf_ini, cbf_end):
-    def format_e(n):
-        a = '%E' % n
-        return a.split('E')[0].rstrip('0').rstrip('.') + 'E' + a.split('E')[1]
-
-    header_i = fabio.open(cbf_ini).header
-    file_i = header_i["_array_data.header_contents"].splitlines()
-
-    header_e = fabio.open(cbf_end).header
-    file_e = header_e["_array_data.header_contents"].splitlines()
-
-    cbf = [x.rstrip().replace("# ", "") for x in file_i]
-    cbf_e = [x.rstrip().replace("# ", "") for x in file_e]
-
-    axisEnd = 0
-    axisStart = float(cbf[10].split()[1]) * float(cbf[7].split()[1])
-    beamSizeAtSampleX = format_e(float(cbf[11].split()[1][1:-1]) / 1000)
-    beamSizeAtSampleY = format_e(float(cbf[11].split()[2][:-1]) / 1000)
-    dataCollectionNumer = cbf_ini.split("_")[-2]
-    detectorDistance = format_e(float(cbf[16].split()[1]) * 1000)
-    detectorModel = " ".join(cbf[0].split()[1:3]).replace(",", "")
-    if detectorModel == "PILATUS3 2M":
-        detectorType = "Hybrid Photon Counting"
-        experimentBeamline = "BESSY II 14.2"
-    elif detectorModel == "PILATUS3 6M":
-        detectorType = "Hybrid Photon Counting"
-        experimentBeamline = "BESSY II 14.2"
-    else:
-        detectorType = "Unknown"
-        experimentBeamline = "Unknown"
-
-    X = cbf[2].split()[1]
-    Y = cbf[2].split()[4]
-    detectorPixelSize = "{:.3f}".format(float(X) * 1000) + " mm x " + "{:.3f}".format(float(Y) * 1000) + " mm"
-    endTime = cbf_e[1]
-    exposureTime = format_e(float(cbf[12].split()[1]))
-    fileTemplate = "_".join(cbf_ini.split("/")[-1].split("_")[:-1]) + "_%04d.cbf"
-    flux = cbf[27].split()[1]
-    imagePrefix = dataset.split("_")[0]
-    imageDirectory = f"/data/fragmaxrpc/user/{project.proposal}/raw/{project.protein}/{imagePrefix}"
-    numberOfImages = cbf[10].split()[1]
-    resolution = format_e(float(cbf[16].split()[1]) * 8.178158027176648)
-    slitGapHorizontal = "0.0"
-    slitGapVertical = "0.0"
-    startTime = cbf[1]
-    synchrotronMode = ""
-    transmission = format_e(float(cbf[25].split()[1]))
-    wavelength = format_e(float(cbf[30].split()[1]))
-    xtalSnapshotFullPath1 = "None"
-    xtalSnapshotFullPath2 = "None"
-    detector2theta = format_e(float(cbf[26].split()[1]))
-    rotationAxis = cbf[4].split()[1]
-
-
-
-    xml = f"""<?xml version="1.0" ?>
-    <XSDataResultRetrieveDataCollection>
-        <dataCollection>
-            <actualCenteringPosition> sampx=0 sampy=0 phi=0.000000 focus=0 phiz=0 phiy=0</actualCenteringPosition>
-            <detectorModel>{detectorModel}</detectorModel>
-            <detectorType>{detectorType}</detectorType>
-            <detectorPixelSize>{detectorPixelSize}</detectorPixelSize>
-            <experimentBeamline>{experimentBeamline}</experimentBeamline>
-            <axisEnd>{axisEnd}</axisEnd>
-            <axisRange>0.000000e+00</axisRange>
-            <axisStart>{axisStart}</axisStart>
-            <beamShape>ellipse</beamShape>
-            <beamSizeAtSampleX>{beamSizeAtSampleX}</beamSizeAtSampleX>
-            <beamSizeAtSampleY>{beamSizeAtSampleY}</beamSizeAtSampleY>
-            <centeringMethod>None</centeringMethod>
-            <comments>None</comments>
-            <crystalClass>None</crystalClass>
-            <dataCollectionId>None</dataCollectionId>
-            <dataCollectionNumber>{dataCollectionNumer}</dataCollectionNumber>
-            <detector2theta>{detector2theta}</detector2theta>
-            <detectorDistance>{detectorDistance}</detectorDistance>
-            <detectorMode>None</detectorMode>
-            <endTime>{endTime}</endTime>
-            <exposureTime>{exposureTime}</exposureTime>
-            <experimentType>None</experimentType>
-            <fileTemplate>{fileTemplate}</fileTemplate>
-            <flux>{flux}</flux>
-            <imageDirectory>{imageDirectory}</imageDirectory>
-            <imagePrefix>{imagePrefix}</imagePrefix>
-            <imageSuffix>cbf</imageSuffix>
-            <kappaStart>0.000000e+00</kappaStart>
-            <numberOfImages>{numberOfImages}</numberOfImages>
-            <numberOfPasses>1</numberOfPasses>
-            <overlap>0.000000e+00</overlap>
-            <phiStart>0.000000e+00</phiStart>
-            <printableForReport>false</printableForReport>
-            <resolution>{resolution}</resolution>
-            <rotationAxis>{rotationAxis}</rotationAxis>
-            <runStatus>Data collection successful</runStatus>
-            <slitGapVertical>{slitGapVertical}</slitGapVertical>
-            <slitGapHorizontal>{slitGapHorizontal}</slitGapHorizontal>
-            <startImageNumber>1</startImageNumber>
-            <startTime>{startTime}</startTime>
-            <synchrotronMode>{synchrotronMode}</synchrotronMode>
-            <transmission>{transmission}</transmission>
-            <wavelength>{wavelength}</wavelength>
-            <xbeam>0.00000e+00</xbeam>
-            <xtalSnapshotFullPath1>{xtalSnapshotFullPath1}</xtalSnapshotFullPath1>
-            <xtalSnapshotFullPath2>{xtalSnapshotFullPath2}</xtalSnapshotFullPath2>
-            <xtalSnapshotFullPath3>None</xtalSnapshotFullPath3>
-            <xtalSnapshotFullPath4>None</xtalSnapshotFullPath4>
-            <ybeam>0.00000e+00</ybeam>
-        </dataCollection>
-    </XSDataResultRetrieveDataCollection>
-    """
-    dstxml = path.join(project.data_path(), "fragmax", "process", project.protein, imagePrefix, f"{dataset}.xml")
-
-    with open(dstxml, "w") as xmlFile:
-        xmlFile.write(xml)
+    return path.join("/", "static", "biomax", project.proposal, project.shift)

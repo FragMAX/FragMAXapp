@@ -16,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="handle fragmax encrypted files")
     parser.add_argument("url")
     parser.add_argument("auth_tok")
-    parser.add_argument("command", choices=["fetch", "upload", "upload_dir"])
+    parser.add_argument("command", choices=["fetch", "fetch_dir", "upload", "upload_dir"])
     parser.add_argument("src_file")
     parser.add_argument("dest_file")
 
@@ -57,6 +57,22 @@ def _do_fetch(args):
         f.write(file_data)
 
 
+def _do_fetch_dir(args):
+    top_src_dir = args.src_file
+    top_dest_dir = args.dest_file
+
+    for full_path in _dir_tree(top_src_dir):
+        rel_path = full_path[len(top_src_dir) + 1:]
+        dest_path = path.join(top_dest_dir, rel_path)
+
+        os.makedirs(path.dirname(dest_path), exist_ok=True)
+        file_data = _get_file(args.url, args.auth_tok, full_path)
+
+        print(f"{full_path} -> {dest_path}")
+        with open(dest_path, "bw") as f:
+            f.write(file_data)
+
+
 def _do_upload(args):
     _upload_file(args.url, args.auth_tok, args.src_file, args.dest_file)
 
@@ -72,7 +88,7 @@ def _do_upload_dir(args):
     dest_dir = args.dest_file
 
     for full_path in _dir_tree(top_dir):
-        relative_path = full_path[len(top_dir)+1:]
+        relative_path = full_path[len(top_dir) + 1:]
         dest_path = path.join(dest_dir, relative_path)
         _upload_file(args.url, args.auth_tok, full_path, dest_path)
 
@@ -82,6 +98,8 @@ def main():
 
     if args.command == "fetch":
         _do_fetch(args)
+    elif args.command == "fetch_dir":
+        _do_fetch_dir(args)
     elif args.command == "upload":
         _do_upload(args)
     elif args.command == "upload_dir":

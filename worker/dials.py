@@ -13,7 +13,7 @@ def _make_rlp_json(data_dir):
 
     cmd = \
         f"cd {data_dir};" + \
-        f"#module load {versions.DIALS_MOD};" + \
+        f"module load {versions.DIALS_MOD};" + \
         "dials.export 2_SWEEP1_strong.refl 2_SWEEP1_strong.expt format=json"
 
     hpc.frontend_run(cmd)

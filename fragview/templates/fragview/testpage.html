@@ -1,203 +1,168 @@
 
 {% extends 'fragview/base.html' %}
 
-{% block title %}Norrsken - Datasets{% endblock %}
+{% block title %}FragMAX - Library view{% endblock %}
+
 {% block content %}
-
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>My MDB Django Project</title>
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <!-- Bootstrap -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Material Design for Bootstrap -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.16/css/mdb.min.css" rel="stylesheet">
-</head>
-
-
+<script src="http://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
 <style>
-.flex-container {
-  padding-left: 250px !important;
-  margin: 0;
-  list-style: none;
-  
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  
-  -webkit-flex-flow: row wrap;
-  justify-content: space-around;
+
+.ligpng {
+    height: 100%;
+    width: 100%;
+  }
+
+body {
+  color: #000;
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
-.flex-item {
-  background: tomato;
-  padding: 5px;
-  width: 200px;
-  height: 150px;
-  margin-top: 10px;
-  
-  line-height: 150px;
-  color: white;
-  font-weight: bold;
-  font-size: 3em;
-  text-align: center;
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  width: 90% !important;
+}
+
+.row {
+    padding-left: 250px;
+}
+.grid-row {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+}
+
+.grid-item {
+  -ms-flex: auto;
+  position: relative;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.grid-row a {
+  text-decoration: none;
+}
+
+.wrapping-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  color: currentColor;
+}
+
+.grid-item-wrapper {
+  -webkit-box-sizing: initial;
+  -moz-box-sizing: initial;
+  box-sizing: initial;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  -webkit-transition: padding 0.15s cubic-bezier(0.4,0,0.2,1), margin 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s cubic-bezier(0.4,0,0.2,1);
+  transition: padding 0.15s cubic-bezier(0.4,0,0.2,1), margin 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+
+.grid-item-container {
+  height: 100%;
+  width: 280px;
+  position: relative;
+}
+
+.fragID {
+    text-align: center;
+}
+
+.fragSMILES {
+    text-align: center;
+}
+.mol-container {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  z-index: 2;
 }
 </style>
-<body>
-  
-  <ul class="flex-container">
-  <li class="flex-item">
-  <div class="card">
+<h4>{{project.library.name}} Library</h4>
+<div class="card ">
+    Update your library definitions
+    <form action="" method="get" id="saveBtn" name="saveBtnf" size="1">
+        <button class="btn-large center" style="margin-top: 30px;" type="submit" onsubmit="" value="Save" name="Save_button" size="1">Upload</button>
+    </form>
+</div>
+<div class="container">
+  <div class="grid-row">
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
+
+            <div class="grid-item">
+<!--             -->
+              <div class="card grid-item-wrapper">
+                <div class="grid-item-container">
+                    <table>
+                      <tr>
+                          <td class="fragID"><h5>P10H12a</h5></td>
+                      </tr>
+                      <tr>
+                        <td>
+
+                            <div id="container-P10H12a" class="mol-container" >
+
+                        <input class="ligpng" type="image" src="/fragment/P10H12a/image" onclick="loadP10H12a()" />
+                                </div>
+                        </td>
+
+                      </tr>
+                      <tr>
+                        <td class="fragSMILES">
+
+                          [NH3+]CC1CCCC(COC2CCCCC2)C1</td>
+                      </tr>
+
+                    </table>
+
+                </div>
+              </div>
+
+            </div>
+
+
   </div>
 </div>
-  </li>
-  <li class="flex-item">
-  <div class="card">
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
-  </div>
-</div>
-  </li>
-  <li class="flex-item">
-  <div class="card">
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
-  </div>
-</div>
-  </li>
-  <li class="flex-item">
-  <div class="card">
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
-  </div>
-</div>
-  </li>
-  <li class="flex-item">
-  <div class="card">
+<script>
+  let config = { backgroundColor: '0xffffff' };
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
-  </div>
-</div>
-  </li>
-  <li class="flex-item">
-  <div class="card">
+function loadP10H12a(){
+  let elementP10H12a = $('#container-P10H12a');
+  let viewerP10H12a = $3Dmol.createViewer( elementP10H12a, config );
+  let pdbUriP10H12a = '/static/biomax/20190887/20200502/fragmax/fragments/P10H12a.pdb';
+  jQuery.ajax( pdbUriP10H12a, {
+    success: function(data) {
+      let v = viewerP10H12a;
+      v.addModel( data, "pdb" );                       /* load data */
+      v.setStyle({}, {stick: {}});  /* style all atoms */
+      v.zoomTo();                                      /* set camera */
+      v.render();                                      /* render scene */
+      v.zoom(1.0, 1000);                               /* slight zoom */
+    },
+    error: function(hdr, status, err) {
+      console.error( "Failed to load PDB " + pdbUriP10H12a + ": " + err );
+    },
+  });
+  }
 
-  <!-- Card image -->
-  <div class="view overlay">
-    <img class="card-img-top" src="https://mdbootstrap.com/img/Mockups/Lightbox/Thumbnail/img%20(67).jpg" alt="Card image cap">
-    <a href="#!">
-      <div class="mask rgba-white-slight"></div>
-    </a>
-  </div>
-  <!-- Card content -->
-  <div class="card-body">
-    <!-- Title -->
-    <h4 class="card-title">Card title</h4>
-    <!-- Text -->
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <!-- Button -->
-    <a href="#" class="btn btn-primary">Button</a>
-  </div>
-</div>
-  </li>
-</ul>
-  <!-- jQuery -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-  <!-- Popper.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+</script>
 
-  <!-- Bootstrap -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
-
-  <!-- Material Design for Bootstrap -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.16/js/mdb.min.js"></script>
-
-  <script>
-    new WOW().init();
-  </script>
-</body>
-</html>
 {% endblock %}
 
 
-    
+

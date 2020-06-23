@@ -4,70 +4,57 @@ import pyfastcopy  # noqa
 import threading
 from glob import glob
 from django.shortcuts import render
+from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.views import crypt_shell
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.models import PDB
+from fragview.forms import RefineForm
 from .utils import Filter
 
 
-DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz"
+DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz\n"
 
 
 def datasets(request):
     proj = current_project(request)
 
-    userInput = str(request.GET.get("submitrfProc"))
-    empty, dimpleSW, fspSW, busterSW, refinemode, mrthreshold, refinerescutoff, userPDB, refspacegroup, filters, \
-        customrefdimple, customrefbuster, customreffspipe, aimlessopt = userInput.split(";;")
+    form = RefineForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 
-    if "false" in dimpleSW:
-        useDIMPLE = False
-    else:
-        useDIMPLE = True
-    if "false" in fspSW:
-        useFSP = False
-    else:
-        useFSP = True
-    if "false" in busterSW:
-        useBUSTER = False
-    else:
-        useBUSTER = True
+    pdbmodel = PDB.get(form.pdb_model)
 
-    db_id = userPDB.replace("pdbmodel:", "")
-    pdbmodel = PDB.get(db_id)
+    worker_args = (
+        proj, form.use_dimple, form.use_fspipeline, form.use_buster, pdbmodel.file_path(),
+        form.ref_space_group, form.datasets_filter, form.custom_dimple, form.custom_buster, form.custom_fspipe,
+        form.run_aimless
+    )
 
-    spacegroup = refspacegroup.replace("refspacegroup:", "")
-    t1 = threading.Thread(target=run_structure_solving,
-                          args=(proj, useDIMPLE, useFSP, useBUSTER, pdbmodel.file_path(),
-                                spacegroup, filters, customrefdimple, customrefbuster, customreffspipe, aimlessopt))
+    t1 = threading.Thread(target=run_structure_solving, args=worker_args)
     t1.daemon = True
     t1.start()
-    outinfo = "<br>".join(userInput.split(";;"))
 
-    return render(
-        request,
-        "fragview/jobs_submitted.html",
-        {"command": outinfo})
+    return render(request, "fragview/jobs_submitted.html")
 
 
 def run_structure_solving(proj, useDIMPLE, useFSP, useBUSTER, userPDB, spacegroup, filters, customrefdimple,
-                          customrefbuster, customreffspipe, aimlessopt):
+                          customrefbuster, customreffspipe, aimless):
     # Modules list for HPC env
     softwares = "PReSTO autoPROC BUSTER"
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
-    aimlessopt = aimlessopt.split("aimlessopt:")[-1]
     argsfit = "none"
 
     filters = filters.split(":")[-1]
     if filters == "ALL":
         filters = ""
     if filters == "NEW":
-        refinedDatasets = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/dimple") + \
-                          glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/fspipeline") + \
-                          glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/buster")
+        refinedDatasets = \
+            glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/dimple") + \
+            glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/fspipeline") + \
+            glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/buster")
         processedDatasets = set(["/".join(x.split("/")[:-2]) for x in refinedDatasets])
         allDatasets = [x.split("/")[-2] for x in
                        sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
@@ -91,7 +78,6 @@ f"""#!/bin/bash
 #SBATCH -N1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=5000
-source "/soft/pxsoft/64/phenix/phenix-1.17-3644/phenix_env.sh"
 """  # noqa E128
 
     prepare_cmd = \
@@ -100,17 +86,17 @@ cd $WORK_DIR
 
 {crypt_shell.fetch_file(proj, userPDB, "model.pdb")}
 
-#module purge
-#module load {softwares}
+module purge
+module load {softwares}
 """  # noqa E128
 
     cleanup_cmd = \
 """
+# clean-up
 cd
 rm -rf $WORK_DIR
 """  # noqa E128
 
-    aimless = bool(aimlessopt)
     for dataset in datasetList:
         sample = dataset.split("/")[-2]
         script = project_script(proj, f"proc2res_{sample}.sh")
@@ -123,8 +109,8 @@ rm -rf $WORK_DIR
 
         with open(script, "w") as outp:
             outp.write(proc2resOut)
-            # outp.write(p2rOut)
-            # outp.write(crypt_shell.crypt_cmd(proj))
+            outp.write(p2rOut)
+            outp.write(crypt_shell.crypt_cmd(proj))
 
             edna = find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
                              customrefdimple)
@@ -145,8 +131,7 @@ rm -rf $WORK_DIR
                                      customrefbuster, customrefdimple)
 
             for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
-                # outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
-                outp.write(f"{part_cmd}")
+                outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
 
             outp.write(project_update_status_script_cmds(proj, sample, softwares))
             outp.write("\n\n")
@@ -156,15 +141,16 @@ rm -rf $WORK_DIR
 
 
 def aimless_cmd(spacegroup, dstmtz):
-    cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | dd " \
-          f"status=none of=pointless.log; sleep 0.1 ; echo 'START' | aimless HKLIN " \
-          f"{dstmtz} HKLOUT {dstmtz} | dd status=none of=aimless.log"
+    cmd = f"echo 'choose spacegroup {spacegroup}' | pointless HKLIN {dstmtz} HKLOUT {dstmtz} | tee " \
+          f"pointless.log ; sleep 0.1 ; echo 'START' | aimless HKLIN " \
+          f"{dstmtz} HKLOUT {dstmtz} | tee aimless.log"
     return cmd
 
 
-def _upload_cmd(res_dir):
-    return "rm $WORK_DIR/model.pdb\n" + \
-           f"$CRYPT_CMD upload_dir $WORK_DIR {res_dir}\n"
+def _upload_result_cmd(proj, res_dir):
+    return f"# upload results\n" + \
+           f"rm $WORK_DIR/model.pdb\n" + \
+           f"{crypt_shell.upload_dir(proj, '$WORK_DIR', res_dir)}"
 
 
 def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
@@ -195,7 +181,7 @@ def find_autoproc(proj, dataset, aimless, spacegroup, argsfit, userPDB, customre
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
+        upload_cmd = _upload_result_cmd(proj, res_dir)
         out_cmd = f"{autoproc_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
@@ -218,11 +204,9 @@ def find_dials(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffs
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
-        if "dimple" in argsfit:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{dials_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n"
-        else:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{dials_cmd}\n{refine_cmd}\n"
+        upload_cmd = _upload_result_cmd(proj, res_dir)
+
+        out_cmd = f"{dials_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
 
@@ -242,11 +226,10 @@ def find_xdsxscale(proj, dataset, aimless, spacegroup, argsfit, userPDB, customr
         xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
-        if "dimple" in argsfit:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{xdsxscale_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n"
-        else:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{xdsxscale_cmd}\n{refine_cmd}\n"
+
+        upload_cmd = _upload_result_cmd(proj, res_dir)
+
+        out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
 
@@ -275,12 +258,9 @@ def find_xdsapp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreff
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
+        upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        if "dimple" in argsfit:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{xdsapp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n"
-        else:
-            out_cmd = f"mkdir -p {res_dir}\ncd {res_dir}\n{xdsapp_cmd}\n{refine_cmd}\n"
+        out_cmd = f"{xdsapp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
     return out_cmd
 
 
@@ -293,7 +273,7 @@ def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffsp
     mtzoutList = glob(proj.data_path() + "/fragmax/process/" + proj.protein + "/" + dataset.split("/")[
         -3] + "/*/edna/*_noanom_aimless.mtz")
 
-    if mtzoutList:
+    if mtzoutList != []:
         srcmtz = mtzoutList[0]
         res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/edna/"
         dstmtz = dataset.split("/")[-2] + "_EDNA_merged.mtz"
@@ -308,7 +288,8 @@ def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffsp
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
+        upload_cmd = _upload_result_cmd(proj, res_dir)
+
         out_cmd = f"{edna_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
 
     return out_cmd
@@ -337,11 +318,10 @@ def find_fastdp(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreff
         refine_cmd = set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz,
                                 dstmtz)
 
-        upload_cmd = crypt_shell.upload_dir(proj, res_dir)
-        if "dimple" in argsfit:
-            out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
-        else:
-            out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{upload_cmd}"
+        upload_cmd = _upload_result_cmd(proj, res_dir)
+
+        out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+
     return out_cmd
 
 
@@ -350,15 +330,12 @@ def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, cust
     buster_cmd = ""
     fsp_cmd = ""
     srcmtz = dstmtz
-    epoch = dstmtz.split("_")[2]
-    dataset_name = dataset.split("/")[-2]
-    fsp_log = userPDB.split("/models")[0] + f"/logs/Refine_fspipeline_{epoch}_{dataset_name}_out.txt"
-    fsp = f'/soft/pxsoft/64/pymol_2.1/bin/python /frag/fragmax/fm_bessy/fspipeline.py --sa=false --refine={userPDB} ' \
-          f'--exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 {customreffspipe} | ' \
-          f'dd status=none of={fsp_log}'
-    dimple_log = userPDB.split("/models")[0] + f"/logs/Refine_DIMPLE_{epoch}_{dataset_name}_out.txt"
+
+    fsp = '''python /data/staff/biomax/guslim/FragMAX_dev/fm_bessy/fspipeline.py --sa=false --refine=''' + userPDB + \
+          ''' --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 ''' + customreffspipe
+
     if "dimple" in argsfit:
-        dimple_cmd += f"dimple {dstmtz} {userPDB} {customrefdimple} dimple/ | dd status=none of={dimple_log}"
+        dimple_cmd += f"dimple {dstmtz} model.pdb dimple {customrefdimple}"
 
     if "buster" in argsfit:
         dstmtz = dstmtz.replace("merged", "truncate")

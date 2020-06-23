@@ -115,24 +115,3 @@ class XSDataCollection:
     @property
     def synchrotronMode(self):
         return self.node["synchrotronMode"]
-
-    @property
-    def detectorType(self):
-        return self.node["detectorType"]
-
-    @property
-    def detectorModel(self):
-        return self.node["detectorModel"]
-
-    @property
-    def detectorPixelSize(self):
-        return self.node["detectorPixelSize"]
-
-    @property
-    def rotationAxis(self):
-        return self.node["rotationAxis"]
-
-    @property
-    def experimentBeamline(self):
-        return self.node["experimentBeamline"]
-
