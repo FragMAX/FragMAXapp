@@ -100,7 +100,7 @@ def _ispyb_get_proposals(auth_host, token):
 
 class ISPyBBackend:
     """
-    Check the username and password agains ISPByP system.
+    Check the username and password against ISPyB system.
     On first successfully login, creates an entry for the account in the local
     users database.
 
