@@ -17,6 +17,7 @@ urlpatterns = [
     path('dataset_info/', datasets.set_details, name='dataset_info'),
 
     path('results/', results.show, name='results'),
+    path('results/resync/', results.resync),
 
     path('density/', density.show, name='density'),
     path('dual_density/', density.compare_poses, name='dual_density'),

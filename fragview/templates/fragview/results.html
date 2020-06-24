@@ -83,10 +83,9 @@
   <h4>Results</h4> 
   
   <div style="display:flex;">
-    <form action="/results/" method="get" id="syncButton"  >
-      <button class="btn top-right" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
-    </form>  
+      <button class="btn top-right" type="submit" id="resync_button" size="1">Resync results</button>
   </div>
+
 </div>       
 <div class=" card_options">
     <div class="card tab">
@@ -244,6 +243,31 @@ function searchDatasetName() {
         document.getElementById(methodName).style.display = "block";
         evt.currentTarget.className += " active";
     }
+
+    function request_resync()
+    {
+        /* avoid double clicks */
+        $("#resync_button").prop("disabled", true);
+
+        const req = $.get("resync");
+
+        /* show possible error to the user */
+        req.fail(function(resp) {
+          alert("error synchronizing results\n" + resp.responseText);
+        });
+
+        /* ask user to be patient */
+        req.done(function() {
+          alert("results synchronization started,\nit make take a while to complete");
+          location.reload();
+        });
+
+    }
+
+    $(document).ready(function()
+    {
+        $("#resync_button").click(request_resync);
+    });
 </script>
 {% endblock %}
 
