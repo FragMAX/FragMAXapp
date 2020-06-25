@@ -35,7 +35,7 @@ The _Redis Server_ is used for communication between the web-request and worker 
 
 ### Dependencies
 
-The required python package are listed in both `environment.yml` and `requirements.txt` files.
+The required python package are listed in `environment.yml` file.
 
 ### Set-up with conda
 
