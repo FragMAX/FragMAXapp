@@ -1,3 +1,5 @@
+SITE = "hzb"
+
 # use authentication against local database
 AUTHENTICATION_BACKENDS = ["fragview.auth.LocalBackend"]
 

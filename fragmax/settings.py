@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'fragview.context_processors.site',
                 'fragview.context_processors.projects',
                 'fragview.context_processors.active_menu',
             ],
@@ -114,6 +115,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 OPEN_URLS = ["/crypt/"]
+
+SITE = "maxiv"
 
 # ISPyBBackend authentication settings
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"

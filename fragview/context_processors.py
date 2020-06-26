@@ -3,6 +3,26 @@ from fragview.models import Project
 from .proposals import get_proposals
 
 
+def site(request):
+    """
+    Adds site specific parameters to template context.
+    """
+    from fragmax import sites
+
+    params = sites.params()
+
+    ctx = {
+        # site logo image
+        "site_logo": params.LOGO,
+    }
+
+    if not request.user.is_authenticated:
+        # user not logged in, add login view specific parameter
+        ctx["account_style"] = params.ACCOUNT_STYLE
+
+    return ctx
+
+
 def projects(request):
     """
     Adds a projects related data to template context.
