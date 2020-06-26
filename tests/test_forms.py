@@ -13,7 +13,6 @@ from fragview.models import Project
 PROPOSAL = "12345678"
 PROTEIN = "MyProt"
 LIBRARY = "JBS"
-SHIFT = "00000000"
 SHIFT_1 = "00000001"
 SHIFT_2 = "00000002"
 
@@ -39,7 +38,6 @@ class ProjFormTesterMixin:
                  protein=PROTEIN,
                  library_name=LIBRARY,
                  proposal=PROPOSAL,
-                 shift=SHIFT,
                  shift_list=f"{SHIFT_1},{SHIFT_2}",
                  fragmenst_file_data="B2a,N#Cc1c(cccc1)O",
                  encrypted=False):
@@ -49,7 +47,6 @@ class ProjFormTesterMixin:
             dict(protein=protein,
                  library_name=library_name,
                  proposal=proposal,
-                 shift=shift,
                  shift_list=shift_list,
                  encrypted=encrypted))
 
@@ -227,32 +224,21 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
             isdir.assert_has_calls([
                 mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT, "raw", PROTEIN)),
                 mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
+                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)),
                 mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
+                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)),
             ])
 
-    def test_valid_empty_shift_list(self):
+    def test_invalid_empty_shift_list(self):
         """
-        test validating a valid form wher shift list is empty
+        test validating a valid form where shift list is empty
         """
         request = self._request(shift_list="")
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-        with mock.patch("os.path.isdir") as isdir:
-            # mock isdir() to report that all directories exist
-            isdir.return_value = True
-
-            is_valid = proj_form.is_valid()
-
-            self.assertTrue(is_valid)
-
-            isdir.assert_has_calls([
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT, "raw", PROTEIN)),
-            ])
+        is_valid = proj_form.is_valid()
+        self.assertFalse(is_valid)
 
     def test_protein_invalid_exp(self):
         """
@@ -300,15 +286,6 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
         self._assertValidationError(proj_form, "proposal", "invalid proposal 'kiwi',.*")
 
-    def test_shift_invalid_exp(self):
-        """
-        check that invalid characters in shift number are caught
-        """
-        request = self._request(shift="orange")
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        self._assertValidationError(proj_form, "shift", "invalid shift 'orange',.*")
-
     def test_shift_list_invalid_exp(self):
         """
         check that invalid characters one of the shifts in the shifts list are caught
@@ -329,17 +306,6 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
         with mock.patch("os.path.isdir", _isdir):
             self._assertValidationError(proj_form, "proposal", "proposal '.*' not found")
 
-    def test_shift_not_found(self):
-        """
-        test specifying non-existing shift
-        """
-        request = self._request()
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        _isdir = is_dir_mock(projects.shift_dir(PROPOSAL, SHIFT))
-        with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "shift", "shift '.*' not found")
-
     def test_shifts_list_not_found(self):
         """
         test specifying non-existing shift in the shifts list field
@@ -358,6 +324,6 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
         request = self._request()
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-        _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT, PROTEIN))
+        _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT_1, PROTEIN))
         with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "protein", "data for protein '.*' not found")
+            self._assertValidationError(proj_form, "shift_list", "shift '00000001' have no data for protein 'MyProt'")

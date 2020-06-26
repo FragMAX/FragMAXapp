@@ -7,6 +7,7 @@ from tests.utils import ViewTesterMixin
 PROTO = "PRTN"
 LIBRARY = "JBSD"
 SHIFT = "12345678"
+SHIFT2 = "00001111"
 
 
 class _ProjectTestCase(test.TestCase, ViewTesterMixin):
@@ -80,7 +81,7 @@ class TestEdit(_ProjectTestCase):
         lib.save()
 
         self.proj = Project(protein="PRT", library=lib,
-                            proposal=self.PROP1, shift="20190808")
+                            proposal=self.PROP1, shift=SHIFT)
         self.proj.save()
         self.url = f"/project/{self.proj.id}/"
 
@@ -106,28 +107,29 @@ class TestEdit(_ProjectTestCase):
         # make sure the projects shift list is empty
         self.assertEqual("", self.proj.shift_list)
 
+        new_shifts = f"{SHIFT},{SHIFT2}"
+
         resp = self.client.post(self.url,
                                 dict(action="modify",
                                      protein=self.proj.protein,
                                      library=self.proj.library,
                                      proposal=self.proj.proposal,
-                                     shift=self.proj.shift,
                                      # we'll test setting the shift list
-                                     shift_list=SHIFT))
+                                     shift_list=new_shifts))
 
         # check that we were redirected to 'projects' page
         self.assertRedirects(resp, "/projects/")
 
         # check that project's shift list was stored in the DB
         proj = Project.objects.get(id=self.proj.id)
-        self.assertEqual(SHIFT, proj.shift_list)
+        self.assertEqual(new_shifts, proj.shift_list)
 
         # project should go into pending state
         pend_proj = PendingProject.objects.get(project=proj.id)
         self.assertIsNotNone(pend_proj)
 
         # check that 'add_new_shift' task was started
-        add_task_mock.delay.assert_called_once_with(proj.id, [SHIFT])
+        add_task_mock.delay.assert_called_once_with(proj.id, [SHIFT2])
 
     def test_modify_invalid(self):
         """
@@ -193,7 +195,7 @@ class TestNew(_ProjectTestCase):
                                      library_name=LIBRARY,
                                      fragments_file=frags_file,
                                      proposal=self.PROP1,
-                                     shift=SHIFT))
+                                     shift_list=SHIFT))
 
         # check that we were redirected to 'projects' page
         self.assertRedirects(resp, "/projects/")
