@@ -420,7 +420,6 @@ def pandda_analyse(request):
                 if dataset in i:
                     k = i.split(",")
                     break
-            headers = inspect_events[0].split(",")
             bdc = k[0]
             center = "['','','']"
             resolution = k[2]
