@@ -389,7 +389,6 @@ def pandda_analyse(request):
                 break
             else:
                 k = False
-        
         if k:
             bdc = k[2]
             center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
