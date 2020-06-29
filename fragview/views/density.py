@@ -389,7 +389,7 @@ def pandda_analyse(request):
                 break
             else:
                 k = False
-        headers = inspect_events[0].split(",")
+        
         if k:
             bdc = k[2]
             center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
