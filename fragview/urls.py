@@ -1,6 +1,6 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
-from fragview.views import pipedream, refine, process, ligfit, diffraction, ccp4, fragment, crypt, result_pdbs
+from fragview.views import pipedream, refine, process, ligfit, diffraction, eldensity, fragment, crypt, result_pdbs
 from fragview.views import encryption, download
 
 
@@ -24,11 +24,12 @@ urlpatterns = [
     path('pipedream_density/', density.show_pipedream, name='pipedream_density'),
     path('pandda_density/', density.pandda, name='pandda_density'),
     path('pandda_densityC/', density.pandda_consensus, name='pandda_densityC'),
+    path('pandda_densityA/', density.pandda_analyse, name='pandda_densityA'),
 
     path('pandda/', pandda.processing_form, name='pandda'),
     path('pandda_analyse/', pandda.analyse, name='pandda_analyse'),
     path('pandda_inspect/', pandda.inspect, name='pandda_inspect'),
-    path('pandda_giant/', pandda.giant, name='pandda_giant'),
+    path('pandda_export/', pandda.giant, name='pandda_export'),
     path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
     path('ugly/', misc.ugly, name='ugly'),
@@ -79,8 +80,8 @@ urlpatterns = [
     path('ligfit_datasets/', ligfit.datasets, name='ligfit_datasets'),
 
     path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image, name='diffraction_image'),
-    path('ccp4_map/<dataset>/<process>/<refine>/<type>', ccp4.map),
-    path('pipedream_ccp4_map/<sample>/<process>/<type>', ccp4.pipedream_map),
+    path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map),
+    path('pipedream_ccp4_map/<sample>/<process>/<type>', eldensity.pipedream_map),
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
     path('fragment/<fragment>/image', fragment.svg, name='fragment_svg'),

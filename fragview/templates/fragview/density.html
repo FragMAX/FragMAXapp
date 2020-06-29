@@ -88,7 +88,8 @@
 }
   </style>
 
-  <script src="/static/libs/uglymol.js"></script>
+<script src="/static/libs/uglymol.js"></script>
+<script src="/static/libs/wasm/mtz.js"></script>
 
 </head>
 <body style="background-color: white">
@@ -239,14 +240,13 @@
     <div id="inset"></div>
 
     <script>
+
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-      V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}");
-      V.load_ccp4_maps(
-            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/nat",
-            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/dif");
-
-
-      V.load_pdb("{{ligfitpdb}}");
+      V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}")
+      GemmiMtz().then(function(Module) {
+        UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
+      });
+      V.load_pdb("{{ligfitpdb}}")
       V.load_pdb("{{rhofitpdb}}");
 
       var blobs = {{xyzlist}};

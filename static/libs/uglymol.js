@@ -1,5 +1,5 @@
 /*!
- * UglyMol v0.6.1. Macromolecular Viewer for Crystallographers.
+ * UglyMol v0.7.0. Macromolecular Viewer for Crystallographers.
  * Copyright 2014 Nat Echols
  * Copyright 2016 Diamond Light Source Ltd
  * Copyright 2016 Marcin Wojdyr
@@ -8,10 +8,10 @@
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.UM = {})));
+(global = global || self, factory(global.UM = {}));
 }(this, (function (exports) { 'use strict';
 
-var VERSION = exports.VERSION = '0.6.1';
+var VERSION = exports.VERSION = '0.7.0';
 
 
 // @flow
@@ -81,6 +81,10 @@ function multiply(xyz, mat) {
 }
 
 // @flow
+
+/*::
+ type Num3 = [number, number, number];
+ */
 
 var AMINO_ACIDS = [
   'ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 'GLY', 'HIS', 'ILE', 'LEU',
@@ -459,7 +463,8 @@ Atom.prototype.short_label = function short_label () {
 
 
 // Partition atoms into boxes for quick neighbor searching.
-var Cubicles = function Cubicles(atoms, box_length, lower_bound, upper_bound) {
+var Cubicles = function Cubicles(atoms/*:Atom[]*/, box_length/*:number*/,
+            lower_bound/*:Num3*/, upper_bound/*:Num3*/) {
   this.boxes = [];
   this.box_length = box_length;
   this.lower_bound = lower_bound;
@@ -482,7 +487,7 @@ var Cubicles = function Cubicles(atoms, box_length, lower_bound, upper_bound) {
   }
 };
 
-Cubicles.prototype.find_box_id = function find_box_id (x, y, z) {
+Cubicles.prototype.find_box_id = function find_box_id (x/*:number*/, y/*:number*/, z/*:number*/) {
   var xstep = Math.floor((x - this.lower_bound[0]) / this.box_length);
   var ystep = Math.floor((y - this.lower_bound[1]) / this.box_length);
   var zstep = Math.floor((z - this.lower_bound[2]) / this.box_length);
@@ -491,7 +496,7 @@ Cubicles.prototype.find_box_id = function find_box_id (x, y, z) {
   return box_id;
 };
 
-Cubicles.prototype.get_nearby_atoms = function get_nearby_atoms (box_id) {
+Cubicles.prototype.get_nearby_atoms = function get_nearby_atoms (box_id/*:number*/) {
   var indices = [];
   var xydim = this.xdim * this.ydim;
   var uv = Math.max(box_id % xydim, 0);
@@ -1206,28 +1211,28 @@ function modulo(a, b) {
   return reminder >= 0 ? reminder : reminder + b;
 }
 
-var GridArray = function GridArray(dim) {
+var GridArray = function GridArray(dim /*:number[]*/) {
   this.dim = dim; // dimensions of the grid for the entire unit cell
   this.values = new Float32Array(dim[0] * dim[1] * dim[2]);
 };
 
-GridArray.prototype.grid2index = function grid2index (i, j, k) {
+GridArray.prototype.grid2index = function grid2index (i/*:number*/, j/*:number*/, k/*:number*/) {
   i = modulo(i, this.dim[0]);
   j = modulo(j, this.dim[1]);
   k = modulo(k, this.dim[2]);
   return this.dim[2] * (this.dim[1] * i + j) + k;
 };
 
-GridArray.prototype.grid2index_unchecked = function grid2index_unchecked (i, j, k) {
+GridArray.prototype.grid2index_unchecked = function grid2index_unchecked (i/*:number*/, j/*:number*/, k/*:number*/) {
   return this.dim[2] * (this.dim[1] * i + j) + k;
 };
 
-GridArray.prototype.grid2frac = function grid2frac (i, j, k) {
+GridArray.prototype.grid2frac = function grid2frac (i/*:number*/, j/*:number*/, k/*:number*/) {
   return [i / this.dim[0], j / this.dim[1], k / this.dim[2]];
 };
 
 // return grid coordinates (rounded down) for the given fractional coordinates
-GridArray.prototype.frac2grid = function frac2grid (xyz) {
+GridArray.prototype.frac2grid = function frac2grid (xyz/*:number[]*/) {
   // at one point "| 0" here made extract_block() 40% faster on V8 3.14,
   // but I don't see any effect now
   return [Math.floor(xyz[0] * this.dim[0]) | 0,
@@ -1235,12 +1240,12 @@ GridArray.prototype.frac2grid = function frac2grid (xyz) {
           Math.floor(xyz[2] * this.dim[2]) | 0];
 };
 
-GridArray.prototype.set_grid_value = function set_grid_value (i, j, k, value) {
+GridArray.prototype.set_grid_value = function set_grid_value (i/*:number*/, j/*:number*/, k/*:number*/, value/*:number*/) {
   var idx = this.grid2index(i, j, k);
   this.values[idx] = value;
 };
 
-GridArray.prototype.get_grid_value = function get_grid_value (i, j, k) {
+GridArray.prototype.get_grid_value = function get_grid_value (i/*:number*/, j/*:number*/, k/*:number*/) {
   var idx = this.grid2index(i, j, k);
   return this.values[idx];
 };
@@ -1560,11 +1565,8 @@ if ( Object.assign === undefined ) {
   } )();
 }
 
-var NoColors = 0;
-var VertexColors = 2;
 var NoBlending = 0;
 var NormalBlending = 1;
-var LessEqualDepth = 3;
 var TrianglesDrawMode = 0;
 var TriangleStripDrawMode = 1;
 var TriangleFanDrawMode = 2;
@@ -2596,13 +2598,11 @@ function WebGLUniforms( gl, program, renderer ) {
 
 WebGLUniforms.prototype.setValue = function ( gl, name, value ) {
   var u = this.map[name];
-
   if ( u !== undefined ) { u.setValue( gl, value, this.renderer ); }
 };
 
 WebGLUniforms.prototype.set = function ( gl, object, name ) {
   var u = this.map[name];
-
   if ( u !== undefined ) { u.setValue( gl, object[name], this.renderer ); }
 };
 
@@ -2837,20 +2837,15 @@ function Material() {
 
   this.fog = true;
 
-  this.vertexColors = NoColors; // NoColors, VertexColors, FaceColors
-
   this.opacity = 1;
   this.transparent = false;
 
-  this.depthFunc = LessEqualDepth;
   this.depthTest = true;
   this.depthWrite = true;
 
   this.precision = null; // override the renderer's default precision for this material
 
   this.premultipliedAlpha = false;
-
-  this.overdraw = 0; // Overdrawn pixels (typically between 0 and 1) for fixing antialiasing gaps in CanvasRenderer
 
   this.visible = true;
 
@@ -2948,6 +2943,20 @@ Ray.prototype = {
 
     return this;
   },
+
+  distanceSqToPoint: function () {
+    var v1 = new Vector3();
+
+    return function distanceSqToPoint( point ) {
+      var directionDistance = v1.subVectors( point, this.origin ).dot( this.direction );
+      // point behind the ray
+      if ( directionDistance < 0 ) {
+        return this.origin.distanceToSquared( point );
+      }
+      v1.copy( this.direction ).multiplyScalar( directionDistance ).add( this.origin );
+      return v1.distanceToSquared( point );
+    };
+  }(),
 
   distanceSqToSegment: function () {
     var segCenter = new Vector3();
@@ -3115,9 +3124,6 @@ function Object3D() {
   this.renderOrder = 0;
 
   this.userData = {};
-
-  this.onBeforeRender = function () {};
-  this.onAfterRender = function () {};
 }
 
 Object3D.DefaultUp = new Vector3( 0, 1, 0 );
@@ -3167,8 +3173,6 @@ Object.assign( Object3D.prototype, EventDispatcher.prototype, {
       this.children.splice( index, 1 );
     }
   },
-
-  raycast: function () {},
 
   updateMatrix: function () {
     this.matrix.compose( this.position, this.quaternion, this.scale );
@@ -3365,8 +3369,6 @@ OrthographicCamera.prototype = Object.assign( Object.create( Camera.prototype ),
 
   constructor: OrthographicCamera,
 
-  isOrthographicCamera: true,
-
   updateProjectionMatrix: function () {
     var dx = ( this.right - this.left ) / ( 2 * this.zoom );
     var dy = ( this.top - this.bottom ) / ( 2 * this.zoom );
@@ -3531,40 +3533,20 @@ function WebGLProgram( renderer, code, material, parameters ) {
   prefixVertex = [
     'precision ' + parameters.precision + ' float;',
     'precision ' + parameters.precision + ' int;',
-
     '#define SHADER_NAME ' + material.__webglShader.name,
-
-    parameters.vertexColors ? '#define USE_COLOR' : '',
-
     'uniform mat4 modelMatrix;',
     'uniform mat4 modelViewMatrix;',
     'uniform mat4 projectionMatrix;',
     'uniform mat4 viewMatrix;',
-    'uniform vec3 cameraPosition;',
-
     'attribute vec3 position;',
-    'attribute vec3 normal;',
-
-    '#ifdef USE_COLOR',
-    ' attribute vec3 color;',
-    '#endif',
     '' ].join( '\n' );
 
   prefixFragment = [
-
     customExtensions,
-
     'precision ' + parameters.precision + ' float;',
     'precision ' + parameters.precision + ' int;',
-
     '#define SHADER_NAME ' + material.__webglShader.name,
-
     ( parameters.useFog && parameters.fog ) ? '#define USE_FOG' : '',
-
-    parameters.vertexColors ? '#define USE_COLOR' : '',
-
-    'uniform mat4 viewMatrix;',
-    'uniform vec3 cameraPosition;',
     '' ].join( '\n' );
 
   var vertexGlsl = prefixVertex + vertexShader;
@@ -3652,7 +3634,7 @@ function WebGLPrograms( renderer, capabilities ) {
 
   var parameterNames = [
     'precision',
-    'vertexColors', 'fog', 'useFog',
+    'fog', 'useFog',
     'premultipliedAlpha' ];
 
   this.getParameters = function ( material, fog, object ) {
@@ -3668,7 +3650,6 @@ function WebGLPrograms( renderer, capabilities ) {
 
     var parameters = {
       precision: precision,
-      vertexColors: material.vertexColors,
       fog: !! fog,
       useFog: material.fog,
       premultipliedAlpha: material.premultipliedAlpha,
@@ -3966,7 +3947,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, info )
     state.bindTexture( _gl.TEXTURE_2D, textureProperties.__webglTexture );
   }
 
-  function setTextureParameters( textureType, texture ) {
+  function setTextureParameters( textureType ) {
     _gl.texParameteri( textureType, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE );
     _gl.texParameteri( textureType, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE );
     _gl.texParameteri( textureType, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR );
@@ -3994,7 +3975,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, info )
     var glFormat = _gl.RGBA;
     var glType = _gl.UNSIGNED_BYTE;
 
-    setTextureParameters( _gl.TEXTURE_2D, texture );
+    setTextureParameters( _gl.TEXTURE_2D );
 
     state.texImage2D( _gl.TEXTURE_2D, 0, glFormat, glFormat, glType, image );
 
@@ -4063,7 +4044,6 @@ function WebGLState( gl, extensions ) {
 
   function DepthBuffer() {
     var currentDepthMask = null;
-    var currentDepthFunc = null;
     var currentDepthClear = null;
 
     return {
@@ -4083,13 +4063,6 @@ function WebGLState( gl, extensions ) {
         }
       },
 
-      setFunc: function ( depthFunc ) {
-        if ( currentDepthFunc !== depthFunc ) {
-          gl.depthFunc( gl.LEQUAL );
-          currentDepthFunc = depthFunc;
-        }
-      },
-
       setClear: function ( depth ) {
         if ( currentDepthClear !== depth ) {
           gl.clearDepth( depth );
@@ -4099,7 +4072,6 @@ function WebGLState( gl, extensions ) {
 
       reset: function () {
         currentDepthMask = null;
-        currentDepthFunc = null;
         currentDepthClear = null;
       },
 
@@ -4156,7 +4128,7 @@ function WebGLState( gl, extensions ) {
     depthBuffer.setClear( 1 );
 
     enable( gl.DEPTH_TEST );
-    setDepthFunc( LessEqualDepth );
+    gl.depthFunc( gl.LEQUAL );
 
     enable( gl.BLEND );
     setBlending( NormalBlending );
@@ -4229,10 +4201,6 @@ function WebGLState( gl, extensions ) {
     depthBuffer.setMask( depthWrite );
   }
 
-  function setDepthFunc( depthFunc ) {
-    depthBuffer.setFunc( depthFunc );
-  }
-
   //
 
   function setLineWidth( width ) {
@@ -4303,7 +4271,6 @@ function WebGLState( gl, extensions ) {
 
     setDepthTest: setDepthTest,
     setDepthWrite: setDepthWrite,
-    setDepthFunc: setDepthFunc,
 
     setLineWidth: setLineWidth,
 
@@ -4878,7 +4845,7 @@ function WebGLRenderer( parameters ) {
     opaqueObjectsLastIndex = - 1;
     transparentObjectsLastIndex = - 1;
 
-    projectObject( scene, camera );
+    projectObject( scene );
 
     opaqueObjects.length = opaqueObjectsLastIndex + 1;
     transparentObjects.length = transparentObjectsLastIndex + 1;
@@ -4969,7 +4936,7 @@ function WebGLRenderer( parameters ) {
     }
   }
 
-  function projectObject( object, camera ) {
+  function projectObject( object ) {
     if ( object.visible === false ) { return; }
 
     if ( object.isMesh || object.isLine || object.isPoints ) {
@@ -4990,25 +4957,20 @@ function WebGLRenderer( parameters ) {
     var children = object.children;
 
     for ( var i = 0, l = children.length; i < l; i ++ ) {
-      projectObject( children[i], camera );
+      projectObject( children[i] );
     }
   }
 
   function renderObjects( renderList, scene, camera, overrideMaterial ) {
     for ( var i = 0, l = renderList.length; i < l; i ++ ) {
       var renderItem = renderList[i];
-
       var object = renderItem.object;
       var geometry = renderItem.geometry;
       var material = overrideMaterial === undefined ? renderItem.material : overrideMaterial;
       var group = renderItem.group;
 
       object.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, object.matrixWorld );
-      object.onBeforeRender( _this, scene, camera, geometry, material, group );
-
       _this.renderBufferDirect( camera, scene.fog, geometry, material, object, group );
-
-      object.onAfterRender( _this, scene, camera, geometry, material, group );
     }
   }
 
@@ -5066,7 +5028,6 @@ function WebGLRenderer( parameters ) {
       state.setBlending( NormalBlending, material.premultipliedAlpha )
       : state.setBlending( NoBlending );
 
-    state.setDepthFunc( material.depthFunc );
     state.setDepthTest( material.depthTest );
     state.setDepthWrite( material.depthWrite );
   }
@@ -5125,15 +5086,6 @@ function WebGLRenderer( parameters ) {
 
       // load material specific uniforms
       // (shader material also gets them for the sake of genericity)
-
-      if ( material.isShaderMaterial ) {
-        var uCamPos = p_uniforms.map.cameraPosition;
-
-        if ( uCamPos !== undefined ) {
-          uCamPos.setValue( _gl,
-                            _vector3.setFromMatrixPosition( camera.matrixWorld ) );
-        }
-      }
 
       if ( material.isShaderMaterial ) {
         p_uniforms.setValue( _gl, 'viewMatrix', camera.matrixWorldInverse );
@@ -5333,55 +5285,6 @@ Points.prototype = Object.assign( Object.create( Object3D.prototype ), {
 // kept for compatibility with THREE
 function AmbientLight( color ) {}
 
-/**
-* @author mrdoob / http://mrdoob.com/
-* @author bhouston / http://clara.io/
-* @author stephomi / http://stephaneginier.com/
-*/
-
-function Raycaster( origin, direction, near, far ) {
-  this.ray = new Ray( origin, direction );
-  // direction is assumed to be normalized (for accurate distance calculations)
-
-  this.near = near || 0;
-  this.far = far || Infinity;
-}
-
-function ascSort( a, b ) {
-  return a.distance - b.distance;
-}
-
-function intersectObject( object, raycaster, intersects ) {
-  if ( object.visible === false ) { return; }
-  object.raycast( raycaster, intersects );
-}
-
-//
-
-Raycaster.prototype = {
-
-  constructor: Raycaster,
-
-  linePrecision: 1,
-
-  setFromCamera: function ( coords/*:[number,number]*/, camera ) {
-    if ( (camera && camera.isOrthographicCamera) ) {
-      this.ray.origin.set( coords[0], coords[1], ( camera.near + camera.far ) / ( camera.near - camera.far ) ).unproject( camera ); // set origin in plane of camera
-      this.ray.direction.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
-    } else {
-      console.error( 'Raycaster: Unsupported camera type.' );
-    }
-  },
-
-  intersectObjects: function ( objects ) {
-    var intersects = [];
-    for ( var i = 0, l = objects.length; i < l; i ++ ) {
-      intersectObject( objects[i], this, intersects );
-    }
-    intersects.sort( ascSort );
-    return intersects;
-  },
-};
 
 /**
 * @author zz85 / http://www.lab4games.net/zz85/blog
@@ -5445,7 +5348,7 @@ var
   py = new CubicPoly(),
   pz = new CubicPoly();
 
-  /*
+/*
 Based on an optimized c++ solution in
  - http://stackoverflow.com/questions/9489736/catmull-rom-curve-with-no-cusps-and-no-self-intersections/
  - http://ideone.com/NoEbVM
@@ -5594,6 +5497,8 @@ function makeColorAttribute(colors /*:Color[]*/) {
   return new BufferAttribute(col, 3);
 }
 
+var light_dir = new Vector3(-0.2, 0.3, 1.0); // length affects brightness
+
 var fog_pars_fragment =
 "#ifdef USE_FOG\nuniform vec3 fogColor;\nuniform float fogNear;\nuniform float fogFar;\n#endif";
 
@@ -5601,16 +5506,20 @@ var fog_end_fragment =
 "#ifdef USE_FOG\n  float depth = gl_FragCoord.z / gl_FragCoord.w;\n  float fogFactor = smoothstep(fogNear, fogFar, depth);\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fogFactor);\n#endif";
 
 
-var line_vert = "\n#ifdef USE_COLOR\nvarying vec3 vcolor;\n#endif\nvoid main() {\n#ifdef USE_COLOR\n  vcolor = color;\n#endif\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}\n";
+var varcolor_vert = "\nattribute vec3 color;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}\n";
 
-var line_frag = "\n" + fog_pars_fragment + "\n#ifdef USE_COLOR\n varying vec3 vcolor;\n#else\n uniform vec3 vcolor;\n#endif\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
+var unicolor_vert = "\nvoid main() {\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}\n";
+
+var unicolor_frag = "\n" + fog_pars_fragment + "\nuniform vec3 vcolor;\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
+
+var varcolor_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
 
 function makeLines(pos /*:Float32Array*/, color /*:Color*/,
                           linewidth /*:number*/) {
   var material = new ShaderMaterial({
     uniforms: makeUniforms({vcolor: color}),
-    vertexShader: line_vert,
-    fragmentShader: line_frag,
+    vertexShader: unicolor_vert,
+    fragmentShader: unicolor_frag,
     fog: true,
     linewidth: linewidth,
     type: 'um_lines',
@@ -5638,9 +5547,8 @@ function makeMultiColorLines(pos /*:Float32Array*/,
                                     linewidth /*:number*/) {
   var material = new ShaderMaterial({
     uniforms: makeUniforms({}),
-    vertexShader: line_vert,
-    fragmentShader: line_frag,
-    vertexColors: VertexColors,
+    vertexShader: varcolor_vert,
+    fragmentShader: varcolor_frag,
     fog: true,
     linewidth: linewidth,
     type: 'um_multicolor_lines',
@@ -5695,34 +5603,6 @@ function double_color(color_arr /*:Color[]*/) {
   return color;
 }
 
-// input arrays must be of the same length
-function wide_line_geometry(vertex_arr, color_arr) {
-  var len = vertex_arr.length;
-  var pos = double_pos(vertex_arr);
-  var position = new Float32Array(pos);
-  // could we use three overlapping views of the same buffer?
-  var previous = new Float32Array(6*len);
-  var i;
-  for (i = 0; i < 6; i++) { previous[i] = pos[i]; }
-  for (; i < 6 * len; i++) { previous[i] = pos[i-6]; }
-  var next = new Float32Array(6*len);
-  for (i = 0; i < 6 * (len-1); i++) { next[i] = pos[i+6]; }
-  for (; i < 6 * len; i++) { next[i] = pos[i]; }
-  var side = new Float32Array(2*len);
-  for (i = 0; i < len; i++) {
-    side[2*i] = 1;
-    side[2*i+1] = -1;
-  }
-  var color = double_color(color_arr);
-  var geometry = new BufferGeometry();
-  geometry.addAttribute('position', new BufferAttribute(position, 3));
-  geometry.addAttribute('previous', new BufferAttribute(previous, 3));
-  geometry.addAttribute('next', new BufferAttribute(next, 3));
-  geometry.addAttribute('side', new BufferAttribute(side, 1));
-  geometry.addAttribute('color', new BufferAttribute(color, 3));
-  return geometry;
-}
-
 // draw quads as 2 triangles: 4 attributes / quad, 6 indices / quad
 function make_quad_index_buffer(len) {
   var index = (4*len < 65536 ? new Uint16Array(6*len)
@@ -5736,38 +5616,9 @@ function make_quad_index_buffer(len) {
   return new BufferAttribute(index, 1);
 }
 
-// input arrays must be of the same length
-function wide_segments_geometry(vertex_arr /*:Num3[]*/, color_arr) {
-  // n input vertices => 2n output vertices, n triangles, 3n indexes
-  var len = vertex_arr.length;
-  var i;
-  var pos = double_pos(vertex_arr);
-  var position = new Float32Array(pos);
-  var other_vert = new Float32Array(6*len);
-  for (i = 0; i < 6 * len; i += 12) {
-    var j = (void 0);
-    for (j = 0; j < 6; j++) { other_vert[i+j] = pos[i+j+6]; }
-    for (; j < 12; j++) { other_vert[i+j] = pos[i+j-6]; }
-  }
-  var side = new Float32Array(2*len);
-  for (i = 0; i < len; i++) {
-    side[2*i] = -1;
-    side[2*i+1] = 1;
-  }
-  var geometry = new BufferGeometry();
-  geometry.addAttribute('position', new BufferAttribute(position, 3));
-  geometry.addAttribute('other', new BufferAttribute(other_vert, 3));
-  geometry.addAttribute('side', new BufferAttribute(side, 1));
-  if (color_arr != null) {
-    var color = double_color(color_arr);
-    geometry.addAttribute('color', new BufferAttribute(color, 3));
-  }
-  geometry.setIndex(make_quad_index_buffer(len/2));
-  return geometry;
-}
-
 
 var wide_line_vert = [
+  'attribute vec3 color;',
   'attribute vec3 previous;',
   'attribute vec3 next;',
   'attribute float side;',
@@ -5796,10 +5647,7 @@ var wide_line_vert = [
   '  gl_Position.xy += side * linewidth / angle_factor * normal / win_size;',
   '}'].join('\n');
 
-var wide_segments_vert = "\nattribute vec3 other;\nattribute float side;\nuniform vec2 win_size;\nuniform float linewidth;\nvarying vec3 vcolor;\n\nvoid main() {\n  vcolor = color;\n  mat4 mat = projectionMatrix * modelViewMatrix;\n  vec2 dir = normalize((mat * vec4(position - other, 0.0)).xy);\n  vec2 normal = vec2(-dir.y, dir.x);\n  gl_Position = mat * vec4(position, 1.0);\n  gl_Position.xy += side * linewidth * normal / win_size;\n}";
-
-var wide_line_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
-
+var wide_segments_vert = "\nattribute vec3 color;\nattribute vec3 other;\nattribute float side;\nuniform vec2 win_size;\nuniform float linewidth;\nvarying vec3 vcolor;\n\nvoid main() {\n  vcolor = color;\n  mat4 mat = projectionMatrix * modelViewMatrix;\n  vec2 dir = normalize((mat * vec4(position - other, 0.0)).xy);\n  vec2 normal = vec2(-dir.y, dir.x);\n  gl_Position = mat * vec4(position, 1.0);\n  gl_Position.xy += side * linewidth * normal / win_size;\n}";
 
 function interpolate_vertices(segment, smooth) /*:Vector3[]*/{
   var vertices = [];
@@ -5855,9 +5703,7 @@ function makeUniforms(params/*:{[id:string]:mixed}*/) {
   return uniforms;
 }
 
-var ribbon_vert = "\nattribute vec3 tan;\nuniform float shift;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  vec3 pos = position + shift * normalize(tan);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);\n}";
-
-var ribbon_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
+var ribbon_vert = "\nattribute vec3 color;\nattribute vec3 tan;\nuniform float shift;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  vec3 pos = position + shift * normalize(tan);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);\n}";
 
 // 9-line ribbon
 function makeRibbon(vertices /*:AtomT[]*/,
@@ -5884,9 +5730,8 @@ function makeRibbon(vertices /*:AtomT[]*/,
     var material = new ShaderMaterial({
       uniforms: makeUniforms({shift: 0.1 * n}),
       vertexShader: ribbon_vert,
-      fragmentShader: ribbon_frag,
+      fragmentShader: varcolor_frag,
       fog: true,
-      vertexColors: VertexColors,
       type: 'um_ribbon',
     });
     obj.add(new Line(geometry, material));
@@ -5909,8 +5754,8 @@ function makeChickenWire(data /*:{vertices: number[], segments: number[]}*/,
   geom.setIndex(new BufferAttribute(arr, 1));
   var material = new ShaderMaterial({
     uniforms: makeUniforms({vcolor: options.color}),
-    vertexShader: line_vert,
-    fragmentShader: line_frag,
+    vertexShader: unicolor_vert,
+    fragmentShader: unicolor_frag,
     fog: true,
     linewidth: options.linewidth,
     type: 'um_line_chickenwire',
@@ -5919,24 +5764,9 @@ function makeChickenWire(data /*:{vertices: number[], segments: number[]}*/,
 }
 
 
-var grid_vert = [
-  'uniform vec3 ucolor;',
-  'uniform vec3 fogColor;',
-  'varying vec4 vcolor;',
-  'void main() {',
-  '  vec2 scale = vec2(projectionMatrix[0][0], projectionMatrix[1][1]);',
-  '  float z = position.z;',
-  '  float fogFactor = (z > 0.5 ? 0.2 : 0.7);',
-  '  float alpha = 0.8 * smoothstep(z > 1.5 ? -10.0 : 0.01, 0.1, scale.y);',
-  '  vcolor = vec4(mix(ucolor, fogColor, fogFactor), alpha);',
-  '  gl_Position = vec4(position.xy * scale, -0.99, 1.0);',
-  '}'].join('\n');
+var grid_vert = "\nuniform vec3 ucolor;\nuniform vec3 fogColor;\nvarying vec4 vcolor;\nvoid main() {\n  vec2 scale = vec2(projectionMatrix[0][0], projectionMatrix[1][1]);\n  float z = position.z;\n  float fogFactor = (z > 0.5 ? 0.2 : 0.7);\n  float alpha = 0.8 * smoothstep(z > 1.5 ? -10.0 : 0.01, 0.1, scale.y);\n  vcolor = vec4(mix(ucolor, fogColor, fogFactor), alpha);\n  gl_Position = vec4(position.xy * scale, -0.99, 1.0);\n}";
 
-var grid_frag = [
-  'varying vec4 vcolor;',
-  'void main() {',
-  '  gl_FragColor = vcolor;',
-  '}'].join('\n');
+var grid_frag = "\nvarying vec4 vcolor;\nvoid main() {\n  gl_FragColor = vcolor;\n}";
 
 function makeGrid() {
   var N = 50;
@@ -5974,38 +5804,81 @@ function makeLineMaterial(options /*:{[key: string]: mixed}*/) {
   return new ShaderMaterial({
     uniforms: uniforms,
     vertexShader: options.segments ? wide_segments_vert : wide_line_vert,
-    fragmentShader: wide_line_frag,
+    fragmentShader: varcolor_frag,
     fog: true,
-    vertexColors: VertexColors,
     type: 'um_line',
   });
 }
 
+// vertex_arr and color_arr must be of the same length
 function makeLine(material /*:ShaderMaterial*/,
-                         vertices /*:Num3[]*/,
-                         colors /*:Color[]*/) {
-  var mesh = new Mesh(wide_line_geometry(vertices, colors), material);
+                         vertex_arr /*:Num3[]*/,
+                         color_arr /*:Color[]*/) {
+  var len = vertex_arr.length;
+  var pos = double_pos(vertex_arr);
+  var position = new Float32Array(pos);
+  // could we use three overlapping views of the same buffer?
+  var previous = new Float32Array(6*len);
+  var i;
+  for (i = 0; i < 6; i++) { previous[i] = pos[i]; }
+  for (; i < 6 * len; i++) { previous[i] = pos[i-6]; }
+  var next = new Float32Array(6*len);
+  for (i = 0; i < 6 * (len-1); i++) { next[i] = pos[i+6]; }
+  for (; i < 6 * len; i++) { next[i] = pos[i]; }
+  var side = new Float32Array(2*len);
+  for (i = 0; i < len; i++) {
+    side[2*i] = 1;
+    side[2*i+1] = -1;
+  }
+  var color = double_color(color_arr);
+  var geometry = new BufferGeometry();
+  geometry.addAttribute('position', new BufferAttribute(position, 3));
+  geometry.addAttribute('previous', new BufferAttribute(previous, 3));
+  geometry.addAttribute('next', new BufferAttribute(next, 3));
+  geometry.addAttribute('side', new BufferAttribute(side, 1));
+  geometry.addAttribute('color', new BufferAttribute(color, 3));
+
+  var mesh = new Mesh(geometry, material);
   mesh.drawMode = TriangleStripDrawMode;
-  mesh.raycast = line_raycast;
+  mesh.userData.bond_lines = true;
   return mesh;
 }
 
+// vertex_arr and color_arr must be of the same length
 function makeLineSegments(material /*:ShaderMaterial*/,
-                                 vertices /*:Num3[]*/,
-                                 colors /*:?Color[]*/) {
-  var mesh = new Mesh(wide_segments_geometry(vertices, colors), material);
-  mesh.raycast = line_raycast;
+                                 vertex_arr /*:Num3[]*/,
+                                 color_arr /*:?Color[]*/) {
+  // n input vertices => 2n output vertices, n triangles, 3n indexes
+  var len = vertex_arr.length;
+  var pos = double_pos(vertex_arr);
+  var position = new Float32Array(pos);
+  var other_vert = new Float32Array(6*len);
+  for (var i = 0; i < 6 * len; i += 12) {
+    var j = 0;
+    for (; j < 6; j++) { other_vert[i+j] = pos[i+j+6]; }
+    for (; j < 12; j++) { other_vert[i+j] = pos[i+j-6]; }
+  }
+  var side = new Float32Array(2*len);
+  for (var k = 0; k < len; k++) {
+    side[2*k] = -1;
+    side[2*k+1] = 1;
+  }
+  var geometry = new BufferGeometry();
+  geometry.addAttribute('position', new BufferAttribute(position, 3));
+  geometry.addAttribute('other', new BufferAttribute(other_vert, 3));
+  geometry.addAttribute('side', new BufferAttribute(side, 1));
+  if (color_arr != null) {
+    var color = double_color(color_arr);
+    geometry.addAttribute('color', new BufferAttribute(color, 3));
+  }
+  geometry.setIndex(make_quad_index_buffer(len/2));
+
+  var mesh = new Mesh(geometry, material);
+  mesh.userData.bond_lines = true;
   return mesh;
 }
 
-var wheel_vert = [
-  'uniform float size;',
-  'varying vec3 vcolor;',
-  'void main() {',
-  '  vcolor = color;',
-  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-  '  gl_PointSize = size;',
-  '}'].join('\n');
+var wheel_vert = "\nattribute vec3 color;\nuniform float size;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  gl_PointSize = size;\n}";
 
 // not sure how portable it is
 var wheel_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  vec2 diff = gl_PointCoord - vec2(0.5, 0.5);\n  if (dot(diff, diff) >= 0.25) discard;\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
@@ -6028,19 +5901,76 @@ function makeWheels(atom_arr /*:AtomT[]*/,
     vertexShader: wheel_vert,
     fragmentShader: wheel_frag,
     fog: true,
-    vertexColors: VertexColors,
     type: 'um_wheel',
   });
   var obj = new Points(geometry, material);
-  // currently we use only lines for picking
-  obj.raycast = function () {};
   return obj;
 }
 
-var sphere_vert = "\nattribute vec2 corner;\nuniform float radius;\nvarying vec3 vcolor;\nvarying vec2 vcoor;\nvarying vec3 vpos;\n\nvoid main() {\n  vcolor = color;\n  vcoor = corner;\n  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n  vpos = mvPosition.xyz;\n  mvPosition.xy += corner * radius;\n  gl_Position = projectionMatrix * mvPosition;\n}\n";
+// For the ball-and-stick rendering we use so-called imposters.
+// This technique was described in:
+// http://doi.ieeecomputersociety.org/10.1109/TVCG.2006.115
+// free copy here:
+// http://vcg.isti.cnr.it/Publications/2006/TCM06/Tarini_FinalVersionElec.pdf
+// and was nicely summarized in:
+// http://www.sunsetlakesoftware.com/2011/05/08/enhancing-molecules-using-opengl-es-20
+
+var sphere_vert = "\nattribute vec3 color;\nattribute vec2 corner;\nuniform float radius;\nvarying vec3 vcolor;\nvarying vec2 vcorner;\nvarying vec3 vpos;\n\nvoid main() {\n  vcolor = color;\n  vcorner = corner;\n  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n  vpos = mvPosition.xyz;\n  mvPosition.xy += corner * radius;\n  gl_Position = projectionMatrix * mvPosition;\n}\n";
 
 // based on 3Dmol imposter shaders
-var sphere_frag = "\n" + fog_pars_fragment + "\nuniform mat4 projectionMatrix;\nuniform vec3 lightDir;\nvarying vec3 vcolor;\nvarying vec2 vcoor;\nvarying vec3 vpos;\n\nvoid main() {\n  float sq = dot(vcoor, vcoor);\n  if (sq > 1.0) discard;\n  float z = sqrt(1.0-sq);\n  vec3 xyz = vec3(vcoor.x, vcoor.y, z);\n  vec4 projPos = projectionMatrix * vec4(vpos + xyz, 1.0);\n  float ndcDepth = projPos.z / projPos.w;\n  gl_FragDepthEXT = ((gl_DepthRange.diff * ndcDepth) +\n                     gl_DepthRange.near + gl_DepthRange.far) / 2.0;\n  float weight = clamp(dot(xyz, lightDir), 0.0, 1.0);\n  gl_FragColor = vec4(weight * vcolor, 1.0);\n  " + fog_end_fragment + "\n}\n";
+var sphere_frag = "\n" + fog_pars_fragment + "\nuniform mat4 projectionMatrix;\nuniform vec3 lightDir;\nuniform float radius;\nvarying vec3 vcolor;\nvarying vec2 vcorner;\nvarying vec3 vpos;\n\nvoid main() {\n  float sq = dot(vcorner, vcorner);\n  if (sq > 1.0) discard;\n  float z = sqrt(1.0-sq);\n  vec3 xyz = vec3(vcorner.x, vcorner.y, z);\n  vec4 projPos = projectionMatrix * vec4(vpos + radius * xyz, 1.0);\n  gl_FragDepthEXT = 0.5 * ((gl_DepthRange.diff * (projPos.z / projPos.w)) +\n                           gl_DepthRange.near + gl_DepthRange.far);\n  float weight = clamp(dot(xyz, lightDir), 0.0, 1.0) * 0.8 + 0.2;\n  gl_FragColor = vec4(weight * vcolor, 1.0);\n  " + fog_end_fragment + "\n}\n";
+
+var stick_vert = "\nattribute vec3 color;\nattribute vec3 axis;\nattribute vec2 corner;\nuniform float radius;\nvarying vec3 vcolor;\nvarying vec2 vcorner;\nvarying vec3 vpos;\nvarying vec3 vaxis;\n\nvoid main() {\n  vcolor = color;\n  vcorner = corner;\n  vaxis = normalize((modelViewMatrix * vec4(axis, 0.0)).xyz);\n  vec2 normal = normalize(vec2(-vaxis.y, vaxis.x));\n  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n  vpos = mvPosition.xyz;\n  mvPosition.xy += corner[1] * radius * normal;\n  gl_Position = projectionMatrix * mvPosition;\n}";
+
+var stick_frag = "\n" + fog_pars_fragment + "\nuniform mat4 projectionMatrix;\nuniform vec3 lightDir;\nuniform float radius;\nvarying vec3 vcolor;\nvarying vec2 vcorner;\nvarying vec3 vpos;\nvarying vec3 vaxis;\nvoid main() {\n  float central = 1.0 - vcorner[1] * vcorner[1];\n  vec4 pos = vec4(vpos, 1.0);\n  pos.z += radius * vaxis.z * central;\n  vec4 projPos = projectionMatrix * pos;\n  gl_FragDepthEXT = 0.5 * ((gl_DepthRange.diff * (projPos.z / projPos.w)) +\n                           gl_DepthRange.near + gl_DepthRange.far);\n  float weight = length(cross(vaxis, lightDir)) * central * 0.8 + 0.2;\n  gl_FragColor = vec4(min(weight, 1.0) * vcolor, 1.0);\n" + fog_end_fragment + "\n}";
+
+function makeSticks(vertex_arr /*:Num3[]*/,
+                           color_arr /*:Color[]*/,
+                           radius /*:number*/) {
+  var uniforms = makeUniforms({
+    radius: radius,
+    lightDir: light_dir,
+  });
+  var material = new ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: stick_vert,
+    fragmentShader: stick_frag,
+    fog: true,
+    type: 'um_stick',
+  });
+  material.extensions.fragDepth = true;
+
+  var len = vertex_arr.length;
+  var pos = double_pos(vertex_arr);
+  var position = new Float32Array(pos);
+  var axis = new Float32Array(6*len);
+  for (var i = 0; i < 6 * len; i += 12) {
+    for (var j = 0; j < 6; j++) { axis[i+j] = pos[i+j+6] - pos[i+j]; }
+    for (var j$1 = 0; j$1 < 6; j$1++) { axis[i+j$1+6] = axis[i+j$1]; }
+  }
+  var geometry = new BufferGeometry();
+  geometry.addAttribute('position', new BufferAttribute(position, 3));
+  var corner = new Float32Array(4*len);
+  for (var i$1 = 0; 2 * i$1 < len; i$1++) {
+    corner[8*i$1 + 0] = -1;  // 0
+    corner[8*i$1 + 1] = -1;  // 0
+    corner[8*i$1 + 2] = -1;  // 1
+    corner[8*i$1 + 3] = +1;  // 1
+    corner[8*i$1 + 4] = +1;  // 2
+    corner[8*i$1 + 5] = +1;  // 2
+    corner[8*i$1 + 6] = +1;  // 3
+    corner[8*i$1 + 7] = -1;  // 3
+  }
+  geometry.addAttribute('axis', new BufferAttribute(axis, 3));
+  geometry.addAttribute('corner', new BufferAttribute(corner, 2));
+  var color = double_color(color_arr);
+  geometry.addAttribute('color', new BufferAttribute(color, 3));
+  geometry.setIndex(make_quad_index_buffer(len/2));
+
+  var mesh = new Mesh(geometry, material);
+  mesh.userData.bond_lines = true;
+  return mesh;
+}
 
 function makeBalls(atom_arr /*:AtomT[]*/,
                           color_arr /*:Color[]*/,
@@ -6088,49 +6018,45 @@ function makeBalls(atom_arr /*:AtomT[]*/,
   var material = new ShaderMaterial({
     uniforms: makeUniforms({
       radius: radius,
-      lightDir: new Vector3(-0.2, 0.3, 1.0), // length affects brightness
+      lightDir: light_dir,
     }),
     vertexShader: sphere_vert,
     fragmentShader: sphere_frag,
     fog: true,
-    vertexColors: VertexColors,
     type: 'um_sphere',
   });
   material.extensions.fragDepth = true;
   var obj = new Mesh(geometry, material);
-  // currently we use only lines for picking
-  obj.raycast = function () {};
   return obj;
 }
 
 // based on Line.prototype.raycast(), but skipping duplicated points
 var inverseMatrix = new Matrix4();
 var ray = new Ray();
-// this function will be put on prototype
-/* eslint-disable no-invalid-this */
-function line_raycast(raycaster, intersects) {
-  var precisionSq = raycaster.linePrecision * raycaster.linePrecision;
-  inverseMatrix.getInverse(this.matrixWorld);
-  ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+function line_raycast(mesh/*:Mesh*/, options/*:Object*/,
+                             intersects/*:Object[]*/) {
+  var precisionSq = options.precision * options.precision;
+  inverseMatrix.getInverse(mesh.matrixWorld);
+  ray.copy(options.ray).applyMatrix4(inverseMatrix);
   var vStart = new Vector3();
   var vEnd = new Vector3();
   var interSegment = new Vector3();
   var interRay = new Vector3();
-  var step = this.drawMode === TriangleStripDrawMode ? 1 : 2;
-  var positions = this.geometry.attributes.position.array;
+  var step = mesh.drawMode === TriangleStripDrawMode ? 1 : 2;
+  var positions = mesh.geometry.attributes.position.array;
   for (var i = 0, l = positions.length / 6 - 1; i < l; i += step) {
     vStart.fromArray(positions, 6 * i);
     vEnd.fromArray(positions, 6 * i + 6);
     var distSq = ray.distanceSqToSegment(vStart, vEnd, interRay, interSegment);
     if (distSq > precisionSq) { continue; }
-    interRay.applyMatrix4(this.matrixWorld);
-    var distance = raycaster.ray.origin.distanceTo(interRay);
-    if (distance < raycaster.near || distance > raycaster.far) { continue; }
+    interRay.applyMatrix4(mesh.matrixWorld);
+    var distance = options.ray.origin.distanceTo(interRay);
+    if (distance < options.near || distance > options.far) { continue; }
     intersects.push({
       distance: distance,
-      point: interSegment.clone().applyMatrix4(this.matrixWorld),
+      point: interSegment.clone().applyMatrix4(mesh.matrixWorld),
       index: i,
-      object: this,
+      object: mesh,
       line_dist: Math.sqrt(distSq), // extra property, not in Three.js
     });
   }
@@ -6153,7 +6079,7 @@ function makeCanvasWithText(text, options) {
   return canvas;
 }
 
-var label_vert = "\nattribute vec2 uvs;\nuniform vec2 canvas_size;\nuniform vec2 win_size;\nvarying vec2 vUv;\nvoid main() {\n  vUv = uvs;\n  vec2 rel_offset = vec2(0.02, -0.3);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  gl_Position.xy += (uvs + rel_offset) * 2.0 * canvas_size / win_size;\n  gl_Position.z += 0.2 * projectionMatrix[2][2];\n}";
+var label_vert = "\nattribute vec2 uvs;\nuniform vec2 canvas_size;\nuniform vec2 win_size;\nuniform float z_shift;\nvarying vec2 vUv;\nvoid main() {\n  vUv = uvs;\n  vec2 rel_offset = vec2(0.02, -0.3);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  gl_Position.xy += (uvs + rel_offset) * 2.0 * canvas_size / win_size;\n  gl_Position.z += z_shift * projectionMatrix[2][2];\n}";
 
 var label_frag = "\n" + fog_pars_fragment + "\nvarying vec2 vUv;\nuniform sampler2D map;\nvoid main() {\n  gl_FragColor = texture2D(map, vUv);\n" + fog_end_fragment + "\n}";
 
@@ -6177,7 +6103,8 @@ function makeLabel(text /*:string*/, options /*:{[key:string]: any}*/) {
   var material = new ShaderMaterial({
     uniforms: makeUniforms({map: texture,
                             canvas_size: [canvas.width, canvas.height],
-                            win_size: options.win_size}),
+                            win_size: options.win_size,
+                            z_shift: options.z_shift}),
     vertexShader: label_vert,
     fragmentShader: label_frag,
     fog: true,
@@ -6471,6 +6398,7 @@ Controls.prototype.go_to = function go_to (targ /*:Vector3*/, cam_pos /*:?Vector
    fg: number,
    [name:string]: number | number[],
  };
+ type Num2 = [number, number]
  type Num3 = [number, number, number];
  */
 
@@ -6551,14 +6479,15 @@ var ColorSchemes /*:ColorScheme[]*/ = [ // Viewer.prototype.ColorSchemes
     def: 0x808080,
   } ];
 
-var INIT_HUD_TEXT = 'FragMAX. ' +
+var INIT_HUD_TEXT = 'This is UglyMol not Coot. ' +
   '<a href="#" onclick="V.toggle_help(); return false;">H shows help.</a>';
 
 // options handled by select_next()
 
 var COLOR_PROPS = ['element', 'B-factor', 'occupancy', 'index', 'chain'];
-var RENDER_STYLES = ['lines', 'trace', 'ribbon' ];
-var LIGAND_STYLES = ['normal', 'ball&stick'];
+var RENDER_STYLES = ['lines', 'trace', 'ribbon', 'ball&stick'];
+var LIGAND_STYLES = ['ball&stick', 'lines'];
+var WATER_STYLES = ['cross', 'dot', 'invisible'];
 var MAP_STYLES = ['marching cubes', 'squarish' ];
 var LINE_STYLES = ['normal', 'simplistic'];
 var LABEL_FONTS = ['bold 14px', '14px', '16px', 'bold 16px'];
@@ -6622,7 +6551,7 @@ function scale_by_height(value, size) { // for scaling bond_line
   return value * size[1] / 700;
 }
 
-var MapBag = function MapBag(map, config, is_diff_map) {
+var MapBag = function MapBag(map/*:ElMap*/, config/*:Object*/, is_diff_map/*:boolean*/) {
   this.map = map;
   this.name = '';
   this.isolevel = is_diff_map ? 3.0 : config.default_isolevel;
@@ -6633,14 +6562,15 @@ var MapBag = function MapBag(map, config, is_diff_map) {
 };
 
 
-var ModelBag = function ModelBag(model, config, win_size) {
+var ModelBag = function ModelBag(model/*:Model*/, config/*:Object*/, win_size/*:Num2*/) {
   this.model = model;
   this.label = '(model #' + ++ModelBag.ctor_counter + ')';
   this.visible = true;
   this.hue_shift = 0;
   this.conf = config;
   this.win_size = win_size;
-  this.atomic_objects = []; // list of three.js objects
+  this.objects = []; // list of three.js objects
+  this.atom_array = [];
 };
 
 ModelBag.prototype.get_visible_atoms = function get_visible_atoms () {
@@ -6659,22 +6589,26 @@ ModelBag.prototype.get_visible_atoms = function get_visible_atoms () {
   return non_h;
 };
 
-ModelBag.prototype.add_bonds = function add_bonds (ligands_only, ball_size) {
+ModelBag.prototype.add_bonds = function add_bonds (polymers/*:boolean*/, ligands/*:boolean*/, ball_size/*:?number*/) {
   var visible_atoms = this.get_visible_atoms();
-  var color_prop = ligands_only ? 'element' : this.conf.color_prop;
-  var colors = color_by(color_prop, visible_atoms,
+  var colors = color_by(this.conf.color_prop, visible_atoms,
                           this.conf.colors, this.hue_shift);
   var vertex_arr /*:Vector3[]*/ = [];
   var color_arr = [];
+  var sphere_arr = [];
+  var sphere_color_arr = [];
   var hydrogens = this.conf.hydrogens;
   for (var i = 0; i < visible_atoms.length; i++) {
     var atom = visible_atoms[i];
     var color = colors[i];
-    if (ligands_only && !atom.is_ligand) { continue; }
+    if (!(atom.is_ligand ? ligands : polymers)) { continue; }
+    if (atom.is_water() && this.conf.water_style === 'invisible') { continue; }
     if (atom.bonds.length === 0 && ball_size == null) { // nonbonded - cross
-      addXyzCross(vertex_arr, atom.xyz, 0.7);
-      for (var n = 0; n < 6; n++) {
-        color_arr.push(color);
+      if (!atom.is_water() || this.conf.water_style === 'cross') {
+        addXyzCross(vertex_arr, atom.xyz, 0.7);
+        for (var n = 0; n < 6; n++) {
+          color_arr.push(color);
+        }
       }
     } else { // bonded, draw lines
       for (var j = 0; j < atom.bonds.length; j++) {
@@ -6682,33 +6616,37 @@ ModelBag.prototype.add_bonds = function add_bonds (ligands_only, ball_size) {
         if (!hydrogens && other.element === 'H') { continue; }
         // Coot show X-H bonds as thinner lines in a single color.
         // Here we keep it simple and render such bonds like all others.
-        if (ligands_only && !other.is_ligand) { continue; }
         var mid = atom.midpoint(other);
-        if (ball_size != null) {
-          var vmid = new Vector3(mid[0], mid[1], mid[2]);
-          var vatom = new Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]);
-          var lerp_factor = vatom.distanceTo(vmid) / ball_size;
-          vatom.lerp(vmid, lerp_factor);
-        }
         vertex_arr.push(atom.xyz, mid);
         color_arr.push(color, color);
       }
     }
+    sphere_arr.push(atom);
+    sphere_color_arr.push(color);
   }
-  if (vertex_arr.length === 0) { return; }
-  var linewidth = scale_by_height(this.conf.bond_line, this.win_size);
-  var material = makeLineMaterial({
-    linewidth: linewidth,
-    win_size: this.win_size,
-    segments: true,
-  });
-  this.atomic_objects.push(makeLineSegments(material, vertex_arr, color_arr));
+
   if (ball_size != null) {
-    this.atomic_objects.push(makeBalls(visible_atoms, colors, ball_size));
-  } else if (this.conf.line_style !== 'simplistic' && !ligands_only) {
-    // wheels (discs) as round caps
-    this.atomic_objects.push(makeWheels(visible_atoms, colors, linewidth));
+    if (vertex_arr.length !== 0) {
+      this.objects.push(makeSticks(vertex_arr, color_arr, ball_size / 2));
+    }
+    if (sphere_arr.length !== 0) {
+      this.objects.push(makeBalls(sphere_arr, sphere_color_arr, ball_size));
+    }
+  } else if (vertex_arr.length !== 0) {
+    var linewidth = scale_by_height(this.conf.bond_line, this.win_size);
+    var material = makeLineMaterial({
+      linewidth: linewidth,
+      win_size: this.win_size,
+      segments: true,
+    });
+    this.objects.push(makeLineSegments(material, vertex_arr, color_arr));
+    if (this.conf.line_style !== 'simplistic') {
+      // wheels (discs) as round caps
+      this.objects.push(makeWheels(sphere_arr, sphere_color_arr, linewidth));
+    }
   }
+
+  sphere_arr.forEach(function (v) { this.atom_array.push(v); }, this);
 };
 
 ModelBag.prototype.add_trace = function add_trace () {
@@ -6733,11 +6671,12 @@ ModelBag.prototype.add_trace = function add_trace () {
         pos.push(atom.xyz);
     }
     var line = makeLine(material, pos, color_slice);
-    this.atomic_objects.push(line);
+    this.objects.push(line);
   }
+  this.atom_array = visible_atoms;
 };
 
-ModelBag.prototype.add_ribbon = function add_ribbon (smoothness) {
+ModelBag.prototype.add_ribbon = function add_ribbon (smoothness/*:number*/) {
   var segments = this.model.extract_trace();
   var res_map = this.model.get_residues();
   var visible_atoms = [].concat.apply([], segments);
@@ -6766,7 +6705,7 @@ ModelBag.prototype.add_ribbon = function add_ribbon (smoothness) {
     var color_slice = colors.slice(k, k + seg.length);
     k += seg.length;
     var obj = makeRibbon(seg, color_slice, tangents, smoothness);
-    this.atomic_objects.push(obj);
+    this.objects.push(obj);
   }
 };
 
@@ -6819,17 +6758,19 @@ var Viewer = function Viewer(options /*: {[key: string]: any}*/) {
     bond_line: 4.0, // ~ to height, like in Coot (see scale_by_height())
     map_line: 1.25,// for any height
     map_radius: 10.0,
-    max_map_radius: 80,
+    max_map_radius: 40,
     default_isolevel: 1.5,
     center_cube_size: 0.1,
     map_style: MAP_STYLES[0],
     render_style: RENDER_STYLES[0],
     ligand_style: LIGAND_STYLES[0],
+    water_style: WATER_STYLES[0],
     color_prop: COLOR_PROPS[0],
     line_style: LINE_STYLES[0],
     label_font: LABEL_FONTS[0],
     colors: this.ColorSchemes[0],
     hydrogens: false,
+    ball_size: 0.4,
   };
 
   // options of the constructor overwrite default values of the config
@@ -6847,6 +6788,7 @@ var Viewer = function Viewer(options /*: {[key: string]: any}*/) {
 
   this.last_ctr = new Vector3(Infinity, 0, 0);
   this.selected = {bag: null, atom: null};
+  this.dbl_click_callback = this.toggle_label;
   this.scene = new Scene();
   this.scene.fog = new Fog(this.config.colors.bg, 0, 1);
   this.scene.add(new AmbientLight(0xffffff));
@@ -6863,7 +6805,6 @@ var Viewer = function Viewer(options /*: {[key: string]: any}*/) {
     this.camera.position.fromArray(this.default_camera_pos);
     this.controls = new Controls(this.camera, this.target);
   }
-  this.raycaster = new Raycaster();
   this.set_common_key_bindings();
   if (this.constructor === Viewer) { this.set_real_space_key_bindings(); }
   if (typeof document === 'undefined') { return; }// for testing on node
@@ -6946,26 +6887,58 @@ var Viewer = function Viewer(options /*: {[key: string]: any}*/) {
   this.request_render();
 };
 
-Viewer.prototype.pick_atom = function pick_atom (coords/*:[number,number]*/, camera/*:OrthographicCamera*/) {
-  for (var i = 0, list = this.model_bags; i < list.length; i += 1) {
-    var bag = list[i];
+Viewer.prototype.pick_atom = function pick_atom (coords/*:Num2*/, camera/*:OrthographicCamera*/) {
+  var pick = null;
+  for (var i$1 = 0, list$1 = this.model_bags; i$1 < list$1.length; i$1 += 1) {
+    var bag = list$1[i$1];
 
       if (!bag.visible) { continue; }
-    this.raycaster.setFromCamera(coords, camera);
-    this.raycaster.near = camera.near;
+    var z = (camera.near + camera.far) / (camera.near - camera.far);
+    var ray = new Ray();
+    ray.origin.set(coords[0], coords[1], z).unproject(camera);
+    ray.direction.set(0, 0, -1).transformDirection(camera.matrixWorld);
+    var near = camera.near;
     // '0.15' b/c the furthest 15% is hardly visible in the fog
-    this.raycaster.far = camera.far - 0.15 * (camera.far - camera.near);
-    this.raycaster.linePrecision = 0.3;
-    var intersects = this.raycaster.intersectObjects(bag.atomic_objects);
+    var far = camera.far - 0.15 * (camera.far - camera.near);
+    /*
+    // previous version - line-based search
+    let intersects = [];
+    for (const object of bag.objects) {
+      if (object.visible === false) continue;
+      if (object.userData.bond_lines) {
+        line_raycast(object, {ray, near, far, precision: 0.3}, intersects);
+      }
+    }
+    ...
     if (intersects.length > 0) {
-      intersects.sort(function (x) { return x.line_dist || Infinity; });
-      var p = intersects[0].point;
-      var atom = bag.model.get_nearest_atom(p.x, p.y, p.z);
+      intersects.sort(function (x) { return x.dist2 || Infinity; });
+      const p = intersects[0].point;
+      const atom = bag.model.get_nearest_atom(p.x, p.y, p.z);
       if (atom != null) {
-        return {bag: bag, atom: atom};
+        return {bag, atom};
+      }
+    }
+    */
+    // search directly atom array ignoring matrixWorld
+    var vec = new Vector3();
+    // required picking precision: 0.35A at zoom 50, 0.27A @z30, 0.44 @z80
+    var precision2 = 0.35 * 0.35 * 0.02 * camera.zoom;
+    for (var i = 0, list = bag.atom_array; i < list.length; i += 1) {
+      var atom = list[i];
+
+        vec.set(atom.xyz[0] - ray.origin.x,
+              atom.xyz[1] - ray.origin.y,
+              atom.xyz[2] - ray.origin.z);
+      var distance = vec.dot(ray.direction);
+      if (distance < 0 || distance < near || distance > far) { continue; }
+      var diff2 = vec.addScaledVector(ray.direction, -distance).lengthSq();
+      if (diff2 > precision2) { continue; }
+      if (pick == null || distance < pick.distance) {
+        pick = {bag: bag, atom: atom, distance: distance};
       }
     }
   }
+  return pick;
 };
 
 Viewer.prototype.set_colors = function set_colors (scheme/*:?number|string|ColorScheme*/) {
@@ -7082,45 +7055,58 @@ Viewer.prototype.clear_el_objects = function clear_el_objects (map_bag/*:MapBag*
   map_bag.el_objects = [];
 };
 
-Viewer.prototype.clear_atomic_objects = function clear_atomic_objects (model_bag/*:ModelBag*/) {
-  for (var i = 0, list = model_bag.atomic_objects; i < list.length; i += 1) {
+Viewer.prototype.clear_model_objects = function clear_model_objects (model_bag/*:ModelBag*/) {
+  for (var i = 0, list = model_bag.objects; i < list.length; i += 1) {
     var o = list[i];
 
       this.remove_and_dispose(o);
   }
-  model_bag.atomic_objects = [];
+  model_bag.objects = [];
 };
 
-Viewer.prototype.set_atomic_objects = function set_atomic_objects (model_bag/*:ModelBag*/) {
-  model_bag.atomic_objects = [];
-  var ball_size = 0.4;
+Viewer.prototype.has_frag_depth = function has_frag_depth () {
+  return this.renderer && this.renderer.extensions.get('EXT_frag_depth');
+};
+
+Viewer.prototype.set_model_objects = function set_model_objects (model_bag/*:ModelBag*/) {
+  model_bag.objects = [];
+  model_bag.atom_array = [];
+  var ligand_balls = null;
+  if (model_bag.conf.ligand_style === 'ball&stick' && this.has_frag_depth()) {
+    ligand_balls = this.config.ball_size;
+  }
   switch (model_bag.conf.render_style) {
     case 'lines':
-      model_bag.add_bonds();
-      if (model_bag.conf.ligand_style === 'ball&stick') {
-        // TODO move it to ModelBag
-        var ligand_atoms = model_bag.model.atoms.filter(function (a) {
-          return a.is_ligand && a.element !== 'H';
-        });
-        var colors = color_by('element', ligand_atoms,
-                                model_bag.conf.colors, model_bag.hue_shift);
-        var obj = makeBalls(ligand_atoms, colors, ball_size);
-        model_bag.atomic_objects.push(obj);
+      if (ligand_balls === null) {
+        model_bag.add_bonds(true, true);
+      } else {
+        model_bag.add_bonds(true, false);
+        model_bag.add_bonds(false, true, ligand_balls);
       }
       break;
     case 'ball&stick':
-      model_bag.add_bonds(false, ball_size);
+      if (!this.has_frag_depth()) {
+        this.hud('Ball-and-stick rendering is not working in this browser' +
+                 '\ndue to lack of suppport for EXT_frag_depth', 'ERR');
+        return;
+      }
+      if (ligand_balls === null) {
+        model_bag.add_bonds(true, false, this.config.ball_size);
+        model_bag.add_bonds(false, true);
+      } else {
+        model_bag.add_bonds(true, true, this.config.ball_size);
+      }
       break;
-    case 'trace':// + lines for ligands
+    case 'trace':
       model_bag.add_trace();
-      model_bag.add_bonds(true);
+      model_bag.add_bonds(false, true, ligand_balls);
       break;
     case 'ribbon':
       model_bag.add_ribbon(8);
-      model_bag.add_bonds(true);
+      model_bag.add_bonds(false, true, ligand_balls);
       break;
   }
-  for (var i = 0, list = model_bag.atomic_objects; i < list.length; i += 1) {
+  for (var i = 0, list = model_bag.objects; i < list.length; i += 1) {
     var o = list[i];
 
       this.scene.add(o);
@@ -7137,11 +7123,14 @@ Viewer.prototype.toggle_label = function toggle_label (pick/*:{bag:?ModelBag, at
   if (show) {
     if (is_shown) { return; }
     if (pick.atom == null) { return; } // silly flow
+    var atom_style = pick.atom.is_ligand ? 'ligand_style' : 'render_style';
+    var balls = pick.bag && pick.bag.conf[atom_style] === 'ball&stick';
     var label = makeLabel(text, {
       pos: pick.atom.xyz,
       font: this.config.label_font,
       color: '#' + this.config.colors.fg.getHexString(),
       win_size: this.window_size,
+      z_shift: balls ? this.config.ball_size + 0.1 : 0.2,
     });
     if (!label) { return; }
     if (pick.bag == null) { return; }
@@ -7190,9 +7179,9 @@ Viewer.prototype.toggle_model_visibility = function toggle_model_visibility (mod
 };
 
 Viewer.prototype.redraw_model = function redraw_model (model_bag/*:ModelBag*/) {
-  this.clear_atomic_objects(model_bag);
+  this.clear_model_objects(model_bag);
   if (model_bag.visible) {
-    this.set_atomic_objects(model_bag);
+    this.set_model_objects(model_bag);
   }
 };
 
@@ -7422,6 +7411,7 @@ Viewer.prototype.select_next = function select_next (info/*:string*/, key/*:stri
 };
 
 Viewer.prototype.keydown = function keydown (evt/*:KeyboardEvent*/) {
+  if (evt.ctrlKey) { return; }
   var action = this.key_bindings[evt.keyCode];
   if (action) {
     (action.bind(this))(evt);
@@ -7522,11 +7512,11 @@ Viewer.prototype.set_real_space_key_bindings = function set_real_space_key_bindi
   var kb = this.key_bindings;
   // Home
   kb[36] = function (evt) {
-    evt.ctrlKey ? this.change_map_line(0.1) : this.change_bond_line(0.2);
+    evt.shiftKey ? this.change_map_line(0.1) : this.change_bond_line(0.2);
   };
   // End
   kb[35] = function (evt) {
-    evt.ctrlKey ? this.change_map_line(-0.1) : this.change_bond_line(-0.2);
+    evt.shiftKey ? this.change_map_line(-0.1) : this.change_bond_line(-0.2);
   };
   // Space
   kb[32] = function (evt) { this.center_next_residue(evt.shiftKey); };
@@ -7546,10 +7536,15 @@ Viewer.prototype.set_real_space_key_bindings = function set_real_space_key_bindi
   kb[80] = function (evt) {
     evt.shiftKey ? this.permalink() : this.go_to_nearest_Ca();
   };
-  // t
-  kb[84] = function (evt) {
+  // s
+  kb[83] = function (evt) {
     this.select_next('rendering as', 'render_style', RENDER_STYLES,
                      evt.shiftKey);
+    this.redraw_models();
+  };
+  // t
+  kb[84] = function (evt) {
+    this.select_next('waters as', 'water_style', WATER_STYLES, evt.shiftKey);
     this.redraw_models();
   };
   // u
@@ -7609,7 +7604,7 @@ Viewer.prototype.dblclick = function dblclick (event/*:MouseEvent*/) {
   if (pick) {
     var atom = pick.atom;
     this.hud(pick.bag.label + ' ' + atom.long_label());
-    this.toggle_label(pick);
+    this.dbl_click_callback(pick);
     var color = this.config.colors[atom.element] || this.config.colors.def;
     var size = 2.5 * scale_by_height(this.config.bond_line,
                                        this.window_size);
@@ -7795,7 +7790,7 @@ Viewer.prototype.add_model = function add_model (model/*:Model*/, options) {
   var model_bag = new ModelBag(model, this.config, this.window_size);
   model_bag.hue_shift = options.hue_shift || 0.06 * this.model_bags.length;
   this.model_bags.push(model_bag);
-  this.set_atomic_objects(model_bag);
+  this.set_model_objects(model_bag);
   this.request_render();
 };
 
@@ -7818,12 +7813,10 @@ Viewer.prototype.load_file = function load_file (url/*:string*/, options/*:{[id:
     // http://stackoverflow.com/questions/7374911/
     req.overrideMimeType('text/plain');
   }
-  for (var name in this.xhr_headers) {
-    if (this.xhr_headers.hasOwnProperty(name)) {
-      req.setRequestHeader(name, this.xhr_headers[name]);
-    }
-  }
   var self = this;
+  Object.keys(this.xhr_headers).forEach(function (name) {
+    req.setRequestHeader(name, self.xhr_headers[name]);
+  });
   req.onreadystatechange = function () {
     if (req.readyState === 4) {
       // chrome --allow-file-access-from-files gives status 0
@@ -7883,32 +7876,31 @@ Viewer.prototype.set_dropzone = function set_dropzone (zone/*:Object*/, callback
   });
 };
 
-Viewer.prototype.set_pdb_and_map_dropzone = function set_pdb_and_map_dropzone (zone/*:Object*/) {
+// for use with set_dropzone
+Viewer.prototype.pick_pdb_and_map = function pick_pdb_and_map (file/*:File*/) {
   var self = this;
-  this.set_dropzone(zone, function (file) {
-    var reader = new FileReader();
-    if (/\.(pdb|ent)$/.test(file.name)) {
-      reader.onload = function (evt) {
-        self.load_pdb_from_text(evt.target.result);
-        self.recenter();
-      };
-      reader.readAsText(file);
-    } else if (/\.(map|ccp4|mrc|dsn6|omap)$/.test(file.name)) {
-      var map_format = /\.(dsn6|omap)$/.test(file.name) ? 'dsn6' : 'ccp4';
-      reader.onloadend = function (evt) {
-        if (evt.target.readyState == 2) {
-          self.load_map_from_buffer(evt.target.result, {format: map_format});
-          if (self.model_bags.length === 0 && self.map_bags.length === 1) {
-            self.recenter();
-          }
+  var reader = new FileReader();
+  if (/\.(pdb|ent)$/.test(file.name)) {
+    reader.onload = function (evt/*:any*/) {
+      self.load_pdb_from_text(evt.target.result);
+      self.recenter();
+    };
+    reader.readAsText(file);
+  } else if (/\.(map|ccp4|mrc|dsn6|omap)$/.test(file.name)) {
+    var map_format = /\.(dsn6|omap)$/.test(file.name) ? 'dsn6' : 'ccp4';
+    reader.onloadend = function (evt/*:any*/) {
+      if (evt.target.readyState == 2) {
+        self.load_map_from_buffer(evt.target.result, {format: map_format});
+        if (self.model_bags.length === 0 && self.map_bags.length === 1) {
+          self.recenter();
         }
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      throw Error('Unknown file extension. ' +
-                  'Use: pdb, ent, ccp4, mrc, map, dsn6 or omap.');
-    }
-  });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    throw Error('Unknown file extension. ' +
+                'Use: pdb, ent, ccp4, mrc, map, dsn6 or omap.');
+  }
 };
 
 Viewer.prototype.set_view = function set_view (options/*:?Object*/) {
@@ -8023,7 +8015,9 @@ Viewer.prototype.MOUSE_HELP = [
 Viewer.prototype.KEYBOARD_HELP = [
   '<b>keyboard:</b>',
   'H = toggle help',
-  'T = representation',
+  'S = general style',
+  'L = ligand style',
+  'T = water style',
   'C = coloring',
   'B = bg color',
   'E = toggle fog',
@@ -8049,7 +8043,7 @@ Viewer.prototype.KEYBOARD_HELP = [
 
 Viewer.prototype.ABOUT_HELP =
   '&nbsp; <a href="https://uglymol.github.io">uglymol</a> ' +
-  // $FlowFixMe
+  // $FlowFixMe: Cannot resolve name VERSION.
   (typeof VERSION === 'string' ? VERSION : 'dev'); // eslint-disable-line
 
 Viewer.prototype.ColorSchemes = ColorSchemes;
@@ -8066,9 +8060,9 @@ var SPOT_SHAPES = ['wheel', 'square'];
 // rs_mapper outputs map in ccp4 format, but we need to rescale it,
 // shift it so the box is centered at 0,0,0,
 // and the translational symmetry doesn't apply.
-var ReciprocalSpaceMap = (function (ElMap$$1) {
+var ReciprocalSpaceMap = /*@__PURE__*/(function (ElMap) {
   function ReciprocalSpaceMap(buf /*:ArrayBuffer*/) {
-    ElMap$$1.call(this);
+    ElMap.call(this);
     this.box_size = [1, 1, 1];
     this.from_ccp4(buf, false);
     if (this.unit_cell == null) { return; }
@@ -8079,8 +8073,8 @@ var ReciprocalSpaceMap = (function (ElMap$$1) {
     this.unit_cell = null;
   }
 
-  if ( ElMap$$1 ) ReciprocalSpaceMap.__proto__ = ElMap$$1;
-  ReciprocalSpaceMap.prototype = Object.create( ElMap$$1 && ElMap$$1.prototype );
+  if ( ElMap ) ReciprocalSpaceMap.__proto__ = ElMap;
+  ReciprocalSpaceMap.prototype = Object.create( ElMap && ElMap.prototype );
   ReciprocalSpaceMap.prototype.constructor = ReciprocalSpaceMap;
 
   ReciprocalSpaceMap.prototype.extract_block = function extract_block (radius/*:number*/, center/*:[number,number,number]*/) {
@@ -8182,16 +8176,16 @@ function parse_json(text) {
   return { pos: pos, lattice_ids: lattice_ids };
 }
 
-var point_vert = "\nattribute float group;\nuniform float show_only;\nuniform float r2_max;\nuniform float r2_min;\nuniform float size;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  float r2 = dot(position, position);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  if (r2 < r2_min || r2 >= r2_max || (show_only != -2.0 && show_only != group))\n    gl_Position.x = 2.0;\n  gl_PointSize = size;\n}";
+var point_vert = "\nattribute vec3 color;\nattribute float group;\nuniform float show_only;\nuniform float r2_max;\nuniform float r2_min;\nuniform float size;\nvarying vec3 vcolor;\nvoid main() {\n  vcolor = color;\n  float r2 = dot(position, position);\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  if (r2 < r2_min || r2 >= r2_max || (show_only != -2.0 && show_only != group))\n    gl_Position.x = 2.0;\n  gl_PointSize = size;\n}";
 
 var round_point_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  // not sure how reliable is such rounding of points\n  vec2 diff = gl_PointCoord - vec2(0.5, 0.5);\n  float dist_sq = 4.0 * dot(diff, diff);\n  if (dist_sq >= 1.0) discard;\n  float alpha = 1.0 - dist_sq * dist_sq * dist_sq;\n  gl_FragColor = vec4(vcolor, alpha);\n" + fog_end_fragment + "\n}";
 
 var square_point_frag = "\n" + fog_pars_fragment + "\nvarying vec3 vcolor;\nvoid main() {\n  gl_FragColor = vec4(vcolor, 1.0);\n" + fog_end_fragment + "\n}";
 
 
-var ReciprocalViewer = (function (Viewer$$1) {
+var ReciprocalViewer = /*@__PURE__*/(function (Viewer) {
   function ReciprocalViewer(options/*:{[key:string]: any}*/) {
-    Viewer$$1.call(this, options);
+    Viewer.call(this, options);
     this.default_camera_pos = [100, 0, 0];
     this.axes = null;
     this.points = null;
@@ -8217,15 +8211,14 @@ var ReciprocalViewer = (function (Viewer$$1) {
       }),
       vertexShader: point_vert,
       fragmentShader: round_point_frag,
-      vertexColors: VertexColors,
       fog: true,
       transparent: true,
       type: 'um_point',
     });
   }
 
-  if ( Viewer$$1 ) ReciprocalViewer.__proto__ = Viewer$$1;
-  ReciprocalViewer.prototype = Object.create( Viewer$$1 && Viewer$$1.prototype );
+  if ( Viewer ) ReciprocalViewer.__proto__ = Viewer;
+  ReciprocalViewer.prototype = Object.create( Viewer && Viewer.prototype );
   ReciprocalViewer.prototype.constructor = ReciprocalViewer;
 
   ReciprocalViewer.prototype.set_reciprocal_key_bindings = function set_reciprocal_key_bindings () {
@@ -8271,11 +8264,11 @@ var ReciprocalViewer = (function (Viewer$$1) {
     };
     // x
     kb[88] = function (evt) {
-      evt.ctrlKey ? this.change_map_line(0.1) : this.change_point_size(0.5);
+      evt.shiftKey ? this.change_map_line(0.1) : this.change_point_size(0.5);
     };
     // z
     kb[90] = function (evt) {
-      evt.ctrlKey ? this.change_map_line(-0.1) : this.change_point_size(-0.5);
+      evt.shiftKey ? this.change_map_line(-0.1) : this.change_point_size(-0.5);
     };
     // comma
     kb[188] = function (evt) { if (evt.shiftKey) { this.shift_clip(0.1); } };
@@ -8304,16 +8297,17 @@ var ReciprocalViewer = (function (Viewer$$1) {
   };
 
   ReciprocalViewer.prototype.file_drop_callback = function file_drop_callback (file/*:File*/) {
+    var self = this;
     var reader = new FileReader();
     if (/\.(map|ccp4)$/.test(file.name)) {
-      reader.onloadend = function (evt) {
+      reader.onloadend = function (evt/*:any*/) {
         if (evt.target.readyState == 2) {
           self.load_map_from_ab(evt.target.result);
         }
       };
       reader.readAsArrayBuffer(file);
     } else {
-      reader.onload = function (evt) {
+      reader.onload = function (evt/*:any*/) {
         self.load_from_string(evt.target.result, {});
       };
       reader.readAsText(file);
@@ -8518,58 +8512,156 @@ ReciprocalViewer.prototype.KEYBOARD_HELP = [
 ReciprocalViewer.prototype.MOUSE_HELP =
     Viewer.prototype.MOUSE_HELP.split('\n').slice(0, -2).join('\n');
 
-exports.UnitCell = UnitCell;
-exports.modelsFromPDB = modelsFromPDB;
-exports.Model = Model;
-exports.Block = Block;
-exports.ElMap = ElMap;
-exports.ShaderMaterial = ShaderMaterial;
-exports.Matrix4 = Matrix4;
-exports.CatmullRomCurve3 = CatmullRomCurve3;
-exports.Texture = Texture;
-exports.VertexColors = VertexColors;
-exports.BufferGeometry = BufferGeometry;
-exports.Raycaster = Raycaster;
-exports.Quaternion = Quaternion;
-exports.BufferAttribute = BufferAttribute;
-exports.Vector3 = Vector3;
-exports.OrthographicCamera = OrthographicCamera;
-exports.Fog = Fog;
-exports.Object3D = Object3D;
-exports.Ray = Ray;
-exports.Points = Points;
-exports.WebGLRenderer = WebGLRenderer;
-exports.Mesh = Mesh;
-exports.Color = Color;
+// @flow
+
+/*::
+ import type {Viewer} from './viewer.js'
+ */
+
+function log_timing(t0/*:number*/, text/*:string*/) {
+  console.log(text + ': ' + (performance.now() - t0).toFixed(2) + ' ms.');
+}
+
+function add_map_from_mtz(viewer, mtz, map_data, is_diff/*:boolean*/) {
+  var map = new ElMap();
+  var mc = mtz.cell;
+  map.unit_cell = new UnitCell(mc.a, mc.b, mc.c, mc.alpha, mc.beta, mc.gamma);
+  map.stats.rms = mtz.rmsd;
+  map.grid = new GridArray([mtz.nx, mtz.ny, mtz.nz]);
+  map.grid.values.set(map_data);
+  viewer.add_map(map, is_diff);
+}
+
+function load_maps_from_mtz_buffer(viewer/*:Viewer*/, mtz/*:Object*/,
+                                   labels/*:?string[]*/) {
+  if (labels != null) {
+    for (var n = 0; n < labels.length; n += 2) {
+      if (labels[n] === '') { continue; }
+      var t0 = performance.now();
+      var map_data = mtz.calculate_map_from_labels(labels[n], labels[n+1]);
+      log_timing(t0, 'map ' + mtz.nx + 'x' + mtz.ny + 'x' + mtz.nz +
+                     ' calculated in');
+      if (map_data == null) {
+        viewer.hud(mtz.last_error, 'ERR');
+        continue;
+      }
+      var is_diff = (n % 4 == 2);
+      add_map_from_mtz(viewer, mtz, map_data, is_diff);
+    }
+  } else {  // use default labels
+    for (var nmap = 0; nmap < 2; ++nmap) {
+      var is_diff$1 = (nmap == 1);
+      var t0$1 = performance.now();
+      var map_data$1 = mtz.calculate_map(is_diff$1);
+      log_timing(t0$1, 'map ' + mtz.nx + 'x' + mtz.ny + 'x' + mtz.nz +
+                     ' calculated in');
+      if (map_data$1 != null) {
+        add_map_from_mtz(viewer, mtz, map_data$1, is_diff$1);
+      }
+    }
+  }
+  mtz.delete();
+}
+
+function load_maps_from_mtz(Gemmi/*:Object*/, viewer/*:Viewer*/, url/*:string*/,
+                            labels/*:?string[]*/, callback/*:?Function*/) {
+  viewer.load_file(url, {binary: true, progress: true}, function (req) {
+    var t0 = performance.now();
+    try {
+      var mtz = Gemmi.readMtz(req.response);
+      load_maps_from_mtz_buffer(viewer, mtz, labels);
+    } catch (e) {
+      viewer.hud(e.message, 'ERR');
+      return;
+    }
+    log_timing(t0, 'load_maps_from_mtz');
+    if (callback) { callback(); }
+  });
+}
+
+function set_pdb_and_mtz_dropzone(Gemmi/*:Object*/, viewer/*:Viewer*/,
+                                  zone/*:Object*/) {
+  viewer.set_dropzone(zone, function (file) {
+    if (/\.mtz$/.test(file.name)) {
+      var reader = new FileReader();
+      reader.onloadend = function (evt/*:any*/) {
+        if (evt.target.readyState == 2) {
+          var t0 = performance.now();
+          try {
+            var mtz = Gemmi.readMtz(evt.target.result);
+            load_maps_from_mtz_buffer(viewer, mtz);
+          } catch (e) {
+            viewer.hud(e.message, 'ERR');
+            return;
+          }
+          log_timing(t0, 'mtz -> maps');
+          if (viewer.model_bags.length === 0 && viewer.map_bags.length <= 2) {
+            viewer.recenter();
+          }
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      viewer.pick_pdb_and_map(file);
+    }
+  });
+}
+
 exports.AmbientLight = AmbientLight;
-exports.LineSegments = LineSegments;
-exports.Scene = Scene;
-exports.TriangleStripDrawMode = TriangleStripDrawMode;
-exports.Line = Line;
-exports.fog_pars_fragment = fog_pars_fragment;
-exports.fog_end_fragment = fog_end_fragment;
-exports.makeLines = makeLines;
-exports.makeCube = makeCube;
-exports.makeMultiColorLines = makeMultiColorLines;
-exports.makeRgbBox = makeRgbBox;
-exports.makeUniforms = makeUniforms;
-exports.makeRibbon = makeRibbon;
-exports.makeChickenWire = makeChickenWire;
-exports.makeGrid = makeGrid;
-exports.makeLineMaterial = makeLineMaterial;
-exports.makeLine = makeLine;
-exports.makeLineSegments = makeLineSegments;
-exports.makeWheels = makeWheels;
-exports.makeBalls = makeBalls;
-exports.makeLabel = makeLabel;
-exports.addXyzCross = addXyzCross;
-exports.STATE = STATE;
+exports.Block = Block;
+exports.BufferAttribute = BufferAttribute;
+exports.BufferGeometry = BufferGeometry;
+exports.CatmullRomCurve3 = CatmullRomCurve3;
+exports.Color = Color;
 exports.Controls = Controls;
-exports.Viewer = Viewer;
+exports.ElMap = ElMap;
+exports.Fog = Fog;
+exports.GridArray = GridArray;
+exports.Line = Line;
+exports.LineSegments = LineSegments;
+exports.Matrix4 = Matrix4;
+exports.Mesh = Mesh;
+exports.Model = Model;
+exports.Object3D = Object3D;
+exports.OrthographicCamera = OrthographicCamera;
+exports.Points = Points;
+exports.Quaternion = Quaternion;
+exports.Ray = Ray;
 exports.ReciprocalSpaceMap = ReciprocalSpaceMap;
 exports.ReciprocalViewer = ReciprocalViewer;
+exports.STATE = STATE;
+exports.Scene = Scene;
+exports.ShaderMaterial = ShaderMaterial;
+exports.Texture = Texture;
+exports.TriangleStripDrawMode = TriangleStripDrawMode;
+exports.UnitCell = UnitCell;
+exports.Vector3 = Vector3;
+exports.Viewer = Viewer;
+exports.WebGLRenderer = WebGLRenderer;
+exports.addXyzCross = addXyzCross;
+exports.fog_end_fragment = fog_end_fragment;
+exports.fog_pars_fragment = fog_pars_fragment;
+exports.line_raycast = line_raycast;
+exports.load_maps_from_mtz = load_maps_from_mtz;
+exports.load_maps_from_mtz_buffer = load_maps_from_mtz_buffer;
+exports.makeBalls = makeBalls;
+exports.makeChickenWire = makeChickenWire;
+exports.makeCube = makeCube;
+exports.makeGrid = makeGrid;
+exports.makeLabel = makeLabel;
+exports.makeLine = makeLine;
+exports.makeLineMaterial = makeLineMaterial;
+exports.makeLineSegments = makeLineSegments;
+exports.makeLines = makeLines;
+exports.makeMultiColorLines = makeMultiColorLines;
+exports.makeRgbBox = makeRgbBox;
+exports.makeRibbon = makeRibbon;
+exports.makeSticks = makeSticks;
+exports.makeUniforms = makeUniforms;
+exports.makeWheels = makeWheels;
+exports.modelsFromPDB = modelsFromPDB;
+exports.set_pdb_and_mtz_dropzone = set_pdb_and_mtz_dropzone;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=uglymol.js.map

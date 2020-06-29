@@ -9,6 +9,7 @@ DIALS_MOD = "DIALS/2.1.3-1-PReSTO"
 # Site specific information
 #
 
+base_static = "/data/visitors/"
 # Beamline parameters
 BL_site = "MAX IV Laboratory"
 BL_name = "BioMAX"

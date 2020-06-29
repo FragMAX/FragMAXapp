@@ -48,7 +48,10 @@
    a { color: #59C; }
   </style>
 
+
   <script src="/static/libs/uglymol.js"></script>
+  <script src="/static/libs/wasm/mtz.js"></script>
+
 
 
 </head>
@@ -63,51 +66,17 @@
   <div id="inset"></div>
 
   <script>
-    
+    V = new UM.Viewer({viewer: "viewer", focusable: true, hud: "hud", help: "help"});
+      //V.load_pdb("/static/frag200001/fragmax/results/pandda/ARwoDMSO/bestdp_bestproc/ARwoDMSO-F2XEntry-A07a_1/final.pdb")
+      V.load_pdb("/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/final.pdb")
 
-    V = new UM.Viewer({viewer: "viewer", hud: "", help: "help"});        
-    V.set_pdb_and_map_dropzone(V.renderer.domElement);
-   
-    var blobs = [[-5.35, 2.71, 15.78],[-8.43, 8.58, 8.54],[-17.14, -16.94, 21.43],[-3.62, 5.76, 14.12]];
-    var index = 0;
-    var numblobs= blobs.length;
+      //V.load_maps_from_mtz(V,"/static/frag200001/fragmax/results/pandda/ARwoDMSO/bestdp_bestproc/ARwoDMSO-F2XEntry-A07a_1/final.mtz")
+      GemmiMtz().then(function(Module) {
+        UM.load_maps_from_mtz(Module, V, "/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/final.mtz");
+      });
+      V.load_pdb("/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/ligfit/LigandFit_run_1_/ligand_fit_1_1.pdb")
+      V.load_pdb("/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/rhofit/best.pdb");
 
-    function nextblob(){
-        index = (index + 1) % numblobs;  
-        var blob =blobs[index];        
-        movetoblob(blob) 
-               
-
-    }
-    
-    function previousblob(){
-        index = (index - 1) % numblobs;
-        if (index<0){index=numblobs-1}
-        var blob =blobs[index];        
-        movetoblob(blob)        
-    }
-    function movetoblob(b){
-      V.recenter(b, null, 25);    
-      updateview()
-    }
-
-    function updateview(){
-      var keyboardEvent = document.createEvent("KeyboardEvent");
-      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
-      keyboardEvent[initMethod](
-                        "keydown", // event type : keydown, keyup, keypress
-                          true, // bubbles
-                          true, // cancelable
-                          window, // viewArg: should be window
-                          false, // ctrlKeyArg
-                          false, // altKeyArg
-                          false, // shiftKeyArg
-                          false, // metaKeyArg
-                          82, // keyCodeArg : unsigned long the virtual key code, else 0
-                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-      );
-      document.dispatchEvent(keyboardEvent);
-    }
   </script>
 </body>
 </html>
@@ -115,3 +84,4 @@
 
 
 {% endblock %}
+
