@@ -1,5 +1,7 @@
 SITE = "hzb"
 
+PROPOSALS_DIR = "/data/fragmaxrpc/user"
+
 # use authentication against local database
 AUTHENTICATION_BACKENDS = ["fragview.auth.LocalBackend"]
 

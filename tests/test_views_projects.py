@@ -113,9 +113,9 @@ class TestEdit(_ProjectTestCase):
                                 dict(action="modify",
                                      protein=self.proj.protein,
                                      library=self.proj.library,
-                                     proposal=self.proj.proposal,
+                                     root=self.proj.proposal,
                                      # we'll test setting the shift list
-                                     shift_list=new_shifts))
+                                     subdirs=new_shifts))
 
         # check that we were redirected to 'projects' page
         self.assertRedirects(resp, "/projects/")
@@ -194,8 +194,8 @@ class TestNew(_ProjectTestCase):
                                 dict(protein=PROTO,
                                      library_name=LIBRARY,
                                      fragments_file=frags_file,
-                                     proposal=self.PROP1,
-                                     shift_list=SHIFT))
+                                     root=self.PROP1,
+                                     subdirs=SHIFT))
 
         # check that we were redirected to 'projects' page
         self.assertRedirects(resp, "/projects/")

@@ -8,6 +8,7 @@ from fragview.models import Project, PendingProject
 from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
+from fragview.data_layout import get_layout
 
 # from worker import setup_project_files, add_new_shifts, _prepare_fragments
 from worker import setup_project_files, add_new_shifts
@@ -60,7 +61,7 @@ def edit(request, id):
     return render(
         request,
         "fragview/project.html",
-        {"form": form, "project_id": proj.id})
+        {"form": form, "project_id": proj.id, "data_layout": get_layout()})
 
 
 def new(request):
@@ -69,12 +70,16 @@ def new(request):
     POST requests will try to create a new project
     """
     if request.method == "GET":
-        return render(request, "fragview/project.html")
+        return render(request,
+                      "fragview/project.html",
+                      {"data_layout": get_layout()})
 
     form = ProjectForm(request.POST, request.FILES)
 
     if not form.is_valid():
-        return render(request, "fragview/project.html", {"form": form})
+        return render(request,
+                      "fragview/project.html",
+                      {"form": form, "data_layout": get_layout()})
 
     proj = form.save()
     proj.set_pending()

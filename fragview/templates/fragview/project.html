@@ -125,27 +125,29 @@ $(document).ready(function()
                     </tr>
                     {% endif %}
                     <tr>
-                        <th>Proposal Number</th>
+                        <th>{{data_layout.root.name}}</th>
                         <td>
                             <input class="selectbox"
-                                   name="proposal"
-                                   placeholder="20180489"
-                                   value="{{ form.proposal.value }}"
+                                   name="root"
+                                   placeholder="{{data_layout.root.placeholder}}"
+                                   value="{{form.root.value}}"
                                    required/>
-                            <div class="err_msg">{{ form.proposal.errors }}</div>
+                            <div class="err_msg">{{form.root.errors}}</div>
                         </td>
                     </tr>
-                    <tr>
-                        <th>Shifts</th>
-                        <td>
-                            <input class="selectbox"
-                                   name="shift_list"
-                                   placeholder="20190622,20190629"
-                                   value="{{form.shift_list.value}}"
-                                   required/>
-                            <div class="err_msg">{{ form.shift_list.errors }}</div>
-                        </td>
-                    </tr>
+                    {% if data_layout.subdirs %}
+                        <tr>
+                            <th>{{data_layout.subdirs.name}}</th>
+                            <td>
+                                <input class="selectbox"
+                                       name="subdirs"
+                                       placeholder="{{data_layout.subdirs.placeholder}}"
+                                       value="{{form.subdirs.value}}"
+                                       required/>
+                                <div class="err_msg">{{form.subdirs.errors}}</div>
+                            </td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <th>Data Processing</th>
                         <td>
