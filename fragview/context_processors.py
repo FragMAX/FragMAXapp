@@ -11,9 +11,15 @@ def site(request):
 
     params = sites.params()
 
+    disabled_features = {
+        feature: True for feature in params.FEATURES_DISABLED
+    }
+
     ctx = {
         # site logo image
         "site_logo": params.LOGO,
+        # features disabled for this site
+        "disabled": disabled_features,
     }
 
     if not request.user.is_authenticated:
