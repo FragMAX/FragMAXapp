@@ -14,7 +14,7 @@ from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import project_data_collections_file
+from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER
@@ -90,7 +90,13 @@ def _make_fragmax_dir(proj):
     this ownership and permission makes all the files created under
     the fragmax folder accessible to all users in the proposal group
     """
-    fragmax_dir = path.join(proj.data_path(), "fragmax")
+    fragmax_dir = project_fragmax_dir(proj)
+    if path.exists(fragmax_dir):
+        # directory already exists,
+        # which can happen when different proteins are collected during same shift,
+        # and we create two different project which end up sharing 'main shift' folder
+        # let's hope the owner group and SETGID are correct
+        return fragmax_dir
 
     # look-up proposal group ID
     proposal_group = grp.getgrnam(f"{proj.proposal}-group")
