@@ -3,6 +3,8 @@ import queue
 import shutil
 import threading
 import subprocess
+from fragview import hpc
+from fragview.projects import project_script
 
 NUM_WORKERS = 3
 
@@ -64,9 +66,43 @@ def _run_elbow(smiles, fragments, dest_dir):
     first_frag, *rest_frags = fragments
 
     print(f"{smiles} => {first_frag}")
-    subprocess.run(
-        ["phenix.elbow", f"--smiles={smiles}", f"--output={first_frag}"],
-        cwd=dest_dir)
+
+    script = project_script(proj, f"elbow.sh")
+    with open(script, "w") as outfile:
+        outfile.write("#!/bin/bash\n")
+        outfile.write("#!/bin/bash\n")
+        outfile.write("module purge\n")
+        outfile.write("module load Phenix\n")
+        outfile.write(f"cd {dest_dir}")
+        outfile.write(f"phenix.elbow --smiles={smiles} --output={first_frag}\n")
+    hpc.run_sbatch(script)
+
+    src_cif, src_pdb = _file_names(first_frag, dest_dir)
+
+    for frag in rest_frags:
+        dst_cif, dst_pdb = _file_names(frag, dest_dir)
+
+        print(f"{src_cif} -> {dst_cif}")
+        shutil.copy(src_cif, dst_cif)
+
+        shutil.copy(src_pdb, dst_pdb)
+        print(f"{src_pdb} -> {dst_pdb}")
+
+
+def _run_acedrg(smiles, fragment, dest_dir):
+    first_frag, *rest_frags = fragments
+
+    print(f"{smiles} => {first_frag}")
+
+    script = project_script(proj, f"elbow.sh")
+    with open(script, "w") as outfile:
+        outfile.write("#!/bin/bash\n")
+        outfile.write("#!/bin/bash\n")
+        outfile.write("module purge\n")
+        outfile.write("module load CCP4\n")
+        outfile.write(f"cd {dest_dir}")
+        outfile.write(f"acedrg -i '{smiles}' -o {first_frag}\n")
+    hpc.run_sbatch(script)
 
     src_cif, src_pdb = _file_names(first_frag, dest_dir)
 

@@ -31,12 +31,18 @@
       width: calc(100% - 350px) !important;
   }
   .crystalsnap {
-    height:88px;
-    width:116px;
+    height:180px;
+    width:240px;
   }
   .ligpng {
     height:88px;
     width:88px;
+  }
+    .color-legend {
+      line-height: 0.8 !important;
+      position: absolute;
+      right: 80px;
+      top: 20px;
   }
 </style>
   <div>
@@ -45,7 +51,12 @@
       <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
         <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Update Project Database</button>
       </form>
-      </div>
+    </div>
+    <div class="color-legend">
+        <p align="left" ><font size="6" color="#82be00">&#9679;</font><font size="4"> Successful</font></p>
+        <p align="left" ><font size="6" color="#fdd835">&#9679;</font><font size="4"> Not started</font></p>
+        <p align="left" ><font size="6" color="#f44336">&#9679;</font><font size="4"> Failed</font></p>
+    </div>
   </div>
   <p></p>
 
@@ -114,8 +125,6 @@
           <a href="/fragment/{{ fragment }}/image" target="_blank">
             <img class="ligpng" src="/fragment/{{ fragment }}/image" height="40" width="86">
           </a>
-        {% else %}
-          <img class="ligpng" src="/static/img/apo.png" height="40" width="86">
         {% endif %}
 
     </td>

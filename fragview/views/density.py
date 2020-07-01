@@ -3,11 +3,13 @@ import shutil
 import csv
 from os import path
 from glob import glob
+from ast import literal_eval
 
 from django.shortcuts import render
 
 from fragview.projects import current_project, project_results_file, project_static_url, project_results_dir
 from fragview.projects import project_process_protein_dir
+from fragview.versions import base_static
 
 
 def show(request):
@@ -30,7 +32,7 @@ def show(request):
     if path.exists(path.join(res_dir, "final.pdb")):
         if not path.exists(mtzfd):
             final_glob = f"{res_dir}/final*.mtz"
-            if glob(final_glob) != []:
+            if glob(final_glob):
                 mtzf = glob(final_glob)[0]
                 shutil.copyfile(mtzf, mtzfd)
 
@@ -163,12 +165,10 @@ def compare_poses(request):
     proj = current_project(request)
     static_url = project_static_url(proj)
 
-    a = str(request.GET.get("ligfit_dataset"))
-    data = a.split(";")[0]
-    blob = a.split(";")[1]
-    lig = data.split("-")[-1].split("_")[0]
-
-    ligpng = static_url + "/fragmax/process/fragment/" + proj.library + "/" + lig + "/" + lig + ".svg"
+    ligfit_dataset = str(request.GET.get("ligfit_dataset"))
+    data = ligfit_dataset.split(";")[0]
+    blob = ligfit_dataset.split(";")[1]
+    ligand = data.split("-")[-1].split("_")[0]
 
     entry_dir = path.join("_".join(data.split("_")[:2]), data.split("_")[2], data.split("_")[3])
 
@@ -176,6 +176,7 @@ def compare_poses(request):
     ligfit = sorted(glob(
         proj.data_path() + "/fragmax/results/" + entry_dir + "/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
     pdb = static_url + "/fragmax/results/" + entry_dir + "/final.pdb"
+    mtz = static_url + "/fragmax/results/" + entry_dir + "/final.mtz"
     nat = static_url + "/fragmax/results/" + entry_dir + "/final_mFo-DFc.ccp4"
     dif = static_url + "/fragmax/results/" + entry_dir + "/final_2mFo-DFc.ccp4"
 
@@ -198,17 +199,24 @@ def compare_poses(request):
     rhofit = rhofit.replace("/data/visitors/", "/static/")
     ligfit = ligfit.replace("/data/visitors/", "/static/")
 
+    l_dataset = "_".join(data.split("_")[:2])
+    process = data.split("_")[2]
+    refine = data.split("_")[3]
     return render(
         request,
         "fragview/dual_density.html",
         {
             "ligfit_dataset": data,
             "blob": blob,
-            "png": ligpng,
             "rhofitcenter": rhocenter,
             "ligandfitcenter": ligcenter,
-            "ligand": proj.library + "_" + lig,
+            "ligand": proj.library.name + "_" + ligand,
+            "lig": ligand,
             "pdb": pdb,
+            "mtz": mtz,
+            "l_dataset": l_dataset,
+            "process": process,
+            "refine": refine,
             "dif": dif,
             "nat": nat,
             "rhofit": rhofit,
@@ -346,6 +354,161 @@ def sym2spg(sym):
     return spgDict[sym]
 
 
+def pandda_analyse(request):
+    proj = current_project(request)
+
+    panddaInput = str(request.GET.get('structure'))
+    if len(panddaInput.split(";")) == 5:
+        method, dataset, event, site, nav = panddaInput.split(";")
+    if len(panddaInput.split(";")) == 3:
+        method, dataset, nav = panddaInput.split(";")
+
+    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    datasets_dir = path.join(pandda_res_dir, "processed_datasets")
+    mdl = [x.split("/")[-2] for x in sorted(glob(f"{datasets_dir}/*/*pandda-input.pdb"))]
+    if len(mdl) != 0:
+        indices = [i for i, s in enumerate(mdl) if dataset in s][0]
+
+        if "prev" in nav:
+
+            try:
+                dataset = mdl[indices - 1]
+            except IndexError:
+                dataset = mdl[-1]
+
+        if "next" in nav:
+            try:
+                dataset = mdl[indices + 1]
+            except IndexError:
+                dataset = mdl[0]
+
+        ligand = dataset.split("-")[-1].split("_")[0]
+
+        processedDir = path.join(datasets_dir, dataset)
+
+        pdb = sorted(glob(f"{processedDir}/*pandda-input*"))[-1]
+        with open(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"), "r") as inp:
+            inspect_events = inp.readlines()
+
+        for i in inspect_events:
+            if dataset in i:
+                k = i.split(",")
+                break
+            else:
+                k = False
+        headers = inspect_events[0].split(",")
+        if k:
+            bdc = k[2]
+            site_idx = k[11]
+            center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
+            resolution = k[18]
+            rfree = k[20]
+            rwork = k[21]
+            spg = k[35]
+
+            if len(panddaInput.split(";")) == 3:
+                event = k[1]
+                site = k[11]
+
+            pdb = pdb.replace(base_static, "")
+            map1 = \
+                proj.data_path() + "/fragmax/results/pandda/" + proj.protein + "/" + method + \
+                "/pandda/processed_datasets/" + dataset + "/" + dataset + "-z_map.native.ccp4"
+            map1 = map1.replace(base_static, "")
+
+            map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0]
+            map2 = map2.replace(base_static, "")
+            average_map = map2.split("event")[0] + "ground-state-average-map.native.ccp4"
+            name = map2.split("/")[-2]
+        else:
+            with open(path.join(pandda_res_dir, "analyses", "all_datasets_info.csv"), "r") as inp:
+                inspect_events = inp.readlines()
+
+            for i in inspect_events:
+                if dataset in i:
+                    k = i.split(",")
+                    break
+            headers = inspect_events[0].split(",")
+            bdc = k[0]
+            site_idx = 0
+            center = "['','','']"
+            resolution = k[2]
+            rfree = 0
+            rwork = 0
+            spg = k[19]
+
+            if len(panddaInput.split(";")) == 3:
+                event = k[1]
+                site = k[11]
+
+            pdb = pdb.replace(base_static, "")
+            map1 = ""
+            map2 = ""
+            average_map = ""
+            name = "Apo"
+
+        summarypath = proj.data_path() + "/fragmax/results/pandda/" + proj.protein + \
+            "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
+        summarypath = summarypath.replace(base_static, "")
+        mtzFile = pdb.replace(".pdb", ".mtz")
+
+        _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+        centroids = find_site_centroids(_sites)
+
+        with open(path.join(project_process_protein_dir(proj), "panddainspects.csv"), "r") as csvFile:
+            reader = csv.reader(csvFile)
+            lines = list(reader)
+
+        lines = lines[1:]
+        prevstr = ""
+        nextstr = ""
+        for n, i in enumerate(lines):
+            if panddaInput.split(";") == i[:-1]:
+                if n == len(lines) - 1:
+                    prevstr = (";".join(lines[n - 1][:-1]))
+                    nextstr = (";".join(lines[0][:-1]))
+                elif n == 0:
+                    prevstr = (";".join(lines[-1][:-1]))
+                    nextstr = (";".join(lines[n + 1][:-1]))
+                else:
+                    prevstr = (";".join(lines[n - 1][:-1]))
+                    nextstr = (";".join(lines[n + 1][:-1]))
+        return render(
+            request,
+            "fragview/pandda_densityA.html",
+            {
+                "siten": site_idx,
+                "event": event,
+                "method": method,
+                "rwork": rwork,
+                "rfree": rfree,
+                "resolution": resolution,
+                "spg": spg,
+                "dataset": dataset,
+                "pdb": pdb,
+                "mtz": mtzFile,
+                "2fofc": map2,
+                "fofc": map1,
+                "ligand": ligand,
+                "center": center,
+                "centroids": centroids,
+                "bdc": bdc,
+                "summary": summarypath,
+                "average_map": average_map,
+                "name": name,
+                "library": proj.library,
+                "prevstr": prevstr,
+                "nextstr": nextstr,
+                "panddatype": "analyses"
+            })
+
+    else:
+        return render(
+            request,
+            "fragview/error.html",
+            {"issue": "No modelled structure for " + method + "_" + dataset + " was found."})
+
+
 def pandda(request):
     proj = current_project(request)
 
@@ -381,6 +544,10 @@ def pandda(request):
 
         modelledDir = path.join(datasets_dir, dataset, "modelled_structures")
 
+        pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+        _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+        centroids = find_site_centroids(_sites)
+
         pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
 
         with open(path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r") as inp:
@@ -392,6 +559,7 @@ def pandda(request):
                 break
         headers = inspect_events[0].split(",")
         bdc = k[2]
+        site_idx = k[11]
         center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
         resolution = k[18]
         rfree = k[20]
@@ -439,8 +607,9 @@ def pandda(request):
             request,
             "fragview/pandda_density.html",
             {
-                "siten": site,
+                "siten": site_idx,
                 "event": event,
+                "centroids": centroids,
                 "method": method,
                 "rwork": rwork,
                 "rfree": rfree,
@@ -458,7 +627,8 @@ def pandda(request):
                 "ligconfid": ligconfid,
                 "comment": comment,
                 "bdc": bdc,
-                "summary": summarypath
+                "summary": summarypath,
+                "panddatype": "inspection"
             })
     else:
         return render(
@@ -494,6 +664,8 @@ def pandda_consensus(request):
     ligand = dataset.split("-")[-1].split("_")[0] + ddtag
 
     pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+    centroids = find_site_centroids(_sites)
     modelledDir = path.join(pandda_res_dir, "processed_datasets", f"{dataset}{ddtag}_{run}", "modelled_structures")
 
     pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
@@ -511,6 +683,7 @@ def pandda_consensus(request):
 
     headers = inspect_events[0].split(",")
     bdc = k[2]
+    site_idx = k[11]
     center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
     resolution = k[18]
     rfree = k[20]
@@ -576,6 +749,7 @@ def pandda_consensus(request):
             "library": library,
             "ligand": ligand,
             "center": center,
+            "centroids": centroids,
             "analysed": analysed,
             "interesting": interesting,
             "ligplaced": ligplaced,
@@ -584,7 +758,8 @@ def pandda_consensus(request):
             "bdc": bdc,
             "summary": summarypath,
             "prevstr": prevstr,
-            "nextstr": nextstr
+            "nextstr": nextstr,
+            "panddatype": "consensus"
         })
 
 
@@ -625,3 +800,13 @@ def find_ligandfitting_log(res_dir):
     else:
         ligandfitlog = ""
     return rhofitlog, ligandfitlog
+
+
+def find_site_centroids(_sites):
+    with open(_sites, "r") as r:
+        sitelist = r.readlines()
+    centroids = list()
+    for _site in sitelist[1:]:
+        centroid = literal_eval(",".join(_site.replace('"', "").split(",")[8:11]))
+        centroids.append(list(centroid))
+    return centroids

@@ -546,20 +546,10 @@ def giant(request):
                                               'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
             scoreDict[score.split('/')[-3]] = htmlcontent
 
-        return render(request, "fragview/pandda_giant.html", {"scores_plots": scoreDict})
+        return render(request, "fragview/pandda_export.html", {"scores_plots": scoreDict})
 
 
 def analyse(request):
-    def _latest_analysis(proj, method):
-        pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
-        paths = sorted(glob(path.join(pandda_dir, "analyses-*")))
-
-        if not paths:
-            # no analyses directory found
-            return None
-
-        return paths[-1]
-
     proj = current_project(request)
     panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
 
@@ -576,7 +566,8 @@ def analyse(request):
     for methods in proc_methods:
         if len(glob(panda_results_path + "/" + methods + "/pandda/analyses-*")) > 0:
             last = sorted(glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
-            if os.path.exists(last + "/html_summaries/pandda_analyse.html"):
+            last_path = last + "/html_summaries/"
+            if os.path.exists(last_path + "pandda_initial.html") or os.path.exists(last_path + "pandda_analsyse.html"):
                 cur_time = datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
                 if cur_time > newest:
                     newest = cur_time
@@ -586,43 +577,74 @@ def analyse(request):
     method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
-        pandda_html = path.join(newestpath, "html_summaries", "pandda_analyse.html")
+        if os.path.exists(newestpath + "/html_summaries/pandda_analyse.html"):
+            with open(newestpath + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
+                pandda_html = inp.readlines()
+                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
-        if not path.exists(pandda_html):
-            # no pandda analysis results found
+            for n, line in enumerate(pandda_html):
+                if '<th class="text-nowrap" scope="row">' in line:
+                    dt = line.split('scope="row">')[-1].split("<")[0]
+                    pandda_html[n] = f'<td class="sorting_1" style="text-align: center;" >' \
+                                     f'<form action="/pandda_densityA/" method="get" id="pandda_form" ' \
+                                     f'target="_blank"><button class="btn" type="submit" ' \
+                                     f'value="{newestmethod};{dt};1;1;stay" ' \
+                                     f'name="structure" size="1">Open</button></form></td>' + line
+            pandda_html = "".join(pandda_html)
+            pandda_html = pandda_html.replace('<th class="text-nowrap">Dataset</th>',
+                                              '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
+            pandda_html = pandda_html.replace('class="table table-bordered table-striped"',
+                                              'class="table table-bordered table-striped" data-page-length="50"')
+            pandda_html = pandda_html.replace("PANDDA Processing Output",
+                                              "PANDDA Processing Output for " + newestmethod)
+            return render(request, 'fragview/pandda_analyse.html',
+                          {"opencmd": localcmd, 'proc_methods': proc_methods,
+                           'Report': pandda_html})
+        elif os.path.exists(newestpath + "/html_summaries/pandda_initial.html"):
+            with open(newestpath + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
+                a = "".join(inp.readlines())
+                localcmd = "initial"
+
+                return render(request, 'fragview/pandda_analyse.html',
+                              {"opencmd": localcmd,
+                               'proc_methods': proc_methods,
+                               'Report': a.replace("PANDDA Processing Output",
+                                                   "PANDDA Processing Output for " + newestmethod)})
+
+        else:
             running = [x.split("/")[10] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {"Report": "<br>".join(running)})
+            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
-        a = read_proj_file(proj, pandda_html).decode()
-        localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
-        return render(request, 'fragview/pandda_analyse.html',
-                      {"opencmd": localcmd, 'proc_methods': proc_methods,
-                       'Report': a.replace("PANDDA Processing Output",
-                                           "PANDDA Processing Output for " + newestmethod)})
+    else:
+        if os.path.exists(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html"):
+            with open(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
+                      "r", encoding="utf-8") as inp:
+                pandda_html = inp.readlines()
+                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
-    # specific method was requested
-
-    analysis_dir = _latest_analysis(proj, method)
-    if analysis_dir is None:
-        running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-        return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
-
-    pandda_html = path.join(analysis_dir, "html_summaries", "pandda_analyse.html")
-    a = read_proj_file(proj, pandda_html).decode()
-    localcmd = "cd " + panda_results_path + "/" + method + "/pandda/; pandda.inspect"
-
-    return render(
-        request,
-        "fragview/pandda_analyse.html",
-        {
-            "opencmd": localcmd, "proc_methods": proc_methods,
-            "Report": a.replace("PANDDA Processing Output",
-                                "PANDDA Processing Output for " + method)
-        })
+            for n, line in enumerate(pandda_html):
+                if '<th class="text-nowrap" scope="row">' in line:
+                    dt = line.split('scope="row">')[-1].split("<")[0]
+                    pandda_html[n] = f'<td class="sorting_1" style="text-align: center;" >' \
+                                     f'<form action="/pandda_densityA/" method="get" id="pandda_form" ' \
+                                     f'target="_blank"><button class="btn" type="submit" ' \
+                                     f'value="{method};{dt};1;1;stay" ' \
+                                     f'name="structure" size="1">Open</button></form></td>' + line
+            pandda_html = "".join(pandda_html)
+            pandda_html = pandda_html.replace('<th class="text-nowrap">Dataset</th>',
+                                              '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
+            pandda_html = pandda_html.replace("PANDDA Processing Output",
+                                              "PANDDA Processing Output for " + method)
+            return render(request, 'fragview/pandda_analyse.html',
+                          {"opencmd": localcmd, 'proc_methods': proc_methods,
+                           'Report': pandda_html})
+        else:
+            running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
+            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
 
 
 def fix_pandda_symlinks(proj):
-    os.system("chmod -R 775 " + proj.data_path() + "/fragmax/results/pandda/")
+    os.system("chmod -R 777 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
         "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
