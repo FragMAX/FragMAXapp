@@ -29,6 +29,10 @@ class ShiftsDirsLayout:
         for sub_dir in subdirs.split(","):
             _is_8_digits(sub_dir, "shift")
 
+    @staticmethod
+    def get_group_name(proposal):
+        return f"{proposal}-group"
+
 
 class PlainDirLayout:
     ROOT_NAME = "User Proposal"
@@ -50,6 +54,10 @@ class PlainDirLayout:
         # no subdirectories used for plain data dirs layout
         pass
 
+    @staticmethod
+    def get_group_name(_):
+        return "fragadm"
+
 
 _STYLE_CLS = {
     "shifts": ShiftsDirsLayout,
@@ -63,3 +71,7 @@ def get_layout():
     """
     style = sites.params().DATA_LAYOUT
     return _STYLE_CLS[style]()
+
+
+def get_group_name(proposal):
+    return get_layout().get_group_name(proposal)

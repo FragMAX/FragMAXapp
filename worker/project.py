@@ -11,6 +11,7 @@ from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
+from fragview import data_layout
 from fragview.models import Project
 from fragview.status import run_update_status
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir, project_fragmax_dir
@@ -100,15 +101,15 @@ def _make_fragmax_dir(proj):
         return fragmax_dir
 
     # look-up proposal group ID
-    proposal_group = grp.getgrnam(f"{proj.proposal}-group")
-    if not os.path.exists(fragmax_dir):
-        os.mkdir(fragmax_dir)
-        # set owner group
-        os.chown(fragmax_dir, -1, proposal_group.gr_gid)
-        # make sure SETGID bit is set
-        os.chmod(fragmax_dir,
-                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
-                 stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+    proposal_group = grp.getgrnam(data_layout.get_group_name(proj.proposal))
+
+    os.mkdir(fragmax_dir)
+    # set owner group
+    os.chown(fragmax_dir, -1, proposal_group.gr_gid)
+    # make sure SETGID bit is set
+    os.chmod(fragmax_dir,
+             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+             stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
 
     return fragmax_dir
 
