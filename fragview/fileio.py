@@ -1,3 +1,4 @@
+import os
 from .encryption import EncryptedFile, decrypt
 
 
@@ -35,3 +36,11 @@ def read_text_lines(proj, file_path):
     file_bytes = read_proj_file(proj, file_path)
     for line in file_bytes.decode("utf-8").splitlines():
         yield line
+
+
+def makedirs(dir_path):
+    """
+    basically 'mkdir -p', but also set access mode to make
+    the directory readable, writable and executable for owner and the group
+    """
+    os.makedirs(dir_path, mode=0o770, exist_ok=True)

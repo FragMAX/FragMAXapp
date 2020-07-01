@@ -7,15 +7,18 @@ from glob import glob
 import pyfastcopy  # noqa
 import shutil
 import xmltodict
-from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
+from worker.metafiles import create_meta_files
+from worker.xsdata import copy_collection_metadata_files
 from fragview import data_layout
+from fragview.fileio import makedirs
 from fragview.models import Project
 from fragview.status import run_update_status
-from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir, project_fragmax_dir
-from fragview.projects import project_data_collections_file, project_script
+from fragview.projects import project_script
+from fragview.projects import project_xml_files, project_process_protein_dir
+from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS, UPDATE_RESULTS_SCRIPT
@@ -54,25 +57,20 @@ def add_new_shifts(proj_id, shifts):
 
 def _add_new_shifts_files(proj, shifts):
     meta_files = list(shifts_xml_files(proj, shifts))
-    _copy_collection_metadata_files(proj, meta_files)
+    copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, project_xml_files(proj))
     _import_edna_fastdp(proj, shifts)
     _write_project_status(proj)
 
 
 def _setup_project_files(proj):
-    meta_files = list(project_xml_files(proj))
     _create_fragmax_folders(proj)
+    meta_files = create_meta_files(proj)
     _prepare_fragments(proj)
     _copy_scripts(proj)
-    _copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, meta_files)
     _import_edna_fastdp(proj, proj.shifts())
     _write_project_status(proj)
-
-
-def _makedirs(dir_path):
-    os.makedirs(dir_path, mode=0o770, exist_ok=True)
 
 
 def _prepare_fragments(proj):
@@ -120,13 +118,13 @@ def _create_fragmax_folders(proj):
     """
     fragmax_dir = _make_fragmax_dir(proj)
 
-    _makedirs(path.join(fragmax_dir, "logs"))
-    _makedirs(path.join(fragmax_dir, "scripts"))
-    _makedirs(path.join(fragmax_dir, "models"))
-    _makedirs(path.join(fragmax_dir, "export"))
-    _makedirs(path.join(fragmax_dir, "results"))
-    _makedirs(project_fragments_dir(proj))
-    _makedirs(project_process_protein_dir(proj))
+    makedirs(path.join(fragmax_dir, "logs"))
+    makedirs(path.join(fragmax_dir, "scripts"))
+    makedirs(path.join(fragmax_dir, "models"))
+    makedirs(path.join(fragmax_dir, "export"))
+    makedirs(path.join(fragmax_dir, "results"))
+    makedirs(project_fragments_dir(proj))
+    makedirs(project_process_protein_dir(proj))
 
 
 def _copy_script_files(proj, script_files):
@@ -187,27 +185,6 @@ def _write_data_collections_file(proj, meta_files):
         for mfile in meta_files:
             dataset, sample, col_path, run, img_num, resolution, snaps = _parse_metafile(proj, mfile)
             writer.writerow([dataset, sample, col_path, proj.protein, run, img_num, resolution, snaps])
-
-
-def _copy_collection_metadata_files(proj, meta_files):
-    def _sample_shift_name(meta_file_path):
-        path_parts = Path(meta_file_path).parts
-        samle = path_parts[prop_dir_depth + 4][4:-2]
-
-        return path_parts[prop_dir_depth + 3], f"{samle}.xml"
-
-    prop_dir = proposal_dir(proj.proposal)
-    prop_dir_depth = len(Path(prop_dir).parts)
-    proto_dir = project_process_protein_dir(proj)
-
-    for mfile in meta_files:
-        sample_dir, sample_filename = _sample_shift_name(mfile)
-
-        dest_dir = path.join(proto_dir, sample_dir)
-        dest_file = path.join(dest_dir, sample_filename)
-
-        _makedirs(dest_dir)
-        shutil.copyfile(mfile, dest_file)
 
 
 def _import_edna_fastdp(proj, shifts):
