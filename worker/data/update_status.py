@@ -67,7 +67,10 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         if entry is not None:
             proc, status = entry.split("/")
             rf_status[proc] = status
-    rf_status_simple = {k.split("_")[1]: v for (k, v) in sorted(rf_status.items(), reverse=True)}
+
+    a_list = ["full", "partial", "none"]
+    order_rf = sorted(rf_status.items(), key=lambda pair: a_list.index(pair[1]), reverse=True)
+    rf_status_simple = {k.split("_")[1]: v for (k, v) in order_rf.items()}
 
     # LIGAND FITTING
     lg_folders = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/*fit/")
@@ -115,7 +118,9 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
             proc, status = entry.split("/")
             lg_status[proc] = status
 
-    lg_status_simple = {k.split("_")[-1]: v for (k, v) in sorted(lg_status.items(), reverse=True)}
+    a_list = ["full", "partial", "none"]
+    order_lg = sorted(lg_status.items(), key=lambda pair: a_list.index(pair[1]), reverse=True)
+    lg_status_simple = {k.split("_")[-1]: v for (k, v) in order_lg.items()}
     print(lg_status)
     d4 = dict(dp_status, **rf_status_simple, **lg_status_simple)
 
