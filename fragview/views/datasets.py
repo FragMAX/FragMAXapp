@@ -133,7 +133,12 @@ def set_details(request):
     outter_shell_res_list = ["(" + _tables[key]["low_res_out"] + " - " +
                              _tables[key]["high_res_out"] + ")" for key in _tables.keys()]
     resolution_list = zip(overall_res_list, outter_shell_res_list)
-
+    for n, i in enumerate(overall_res_list):
+        if i == " - ":
+            overall_res_list[n] = ""
+    for n, i in enumerate(outter_shell_res_list):
+        if i == '( - )':
+            outter_shell_res_list[n] = ""
     unit_cell_list_d = [", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()]
     unit_cell_list_a = [", ".join(_tables[key]["unit_cell"].split(",")[3:]) for key in _tables.keys()]
     unit_cell_list = zip(unit_cell_list_d, unit_cell_list_a)
@@ -142,14 +147,22 @@ def set_details(request):
 
     isig_avg_list = [_tables[key]["isig_avg"] for key in _tables.keys()]
     isig_out_list = ["(" + _tables[key]["isig_out"] + ")" for key in _tables.keys()]
+    for n, i in enumerate(isig_out_list):
+        if i == '()':
+            isig_out_list[n] = ""
     isgi_list = zip(isig_avg_list, isig_out_list)
-
     rmeas_avg_list = [_tables[key]["rmeas_avg"] for key in _tables.keys()]
     rmeas_out_list = ["(" + _tables[key]["rmeas_out"] + ")" for key in _tables.keys()]
+    for n, i in enumerate(rmeas_out_list):
+        if i == '()':
+            rmeas_out_list[n] = ""
     rmeas_list = zip(rmeas_avg_list, rmeas_out_list)
 
     completeness_avg_list = [_tables[key]["completeness_avg"] for key in _tables.keys()]
     completeness_out_list = ["(" + _tables[key]["completeness_out"] + ")" for key in _tables.keys()]
+    for n, i in enumerate(completeness_out_list):
+        if i == '()':
+            completeness_out_list[n] = ""
     completeness_list = zip(completeness_avg_list, completeness_out_list)
 
     mosaicity_list = [_tables[key]["mosaicity"] for key in _tables.keys()]
