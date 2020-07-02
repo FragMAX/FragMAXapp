@@ -113,4 +113,4 @@ def _run_acedrg(smiles, fragments, dest_dir):
         shutil.copy(src_cif, dst_cif)
 
         shutil.copy(src_pdb, dst_pdb)
-        print(f"{src_pdb} -> {dst_pdb}"
+        print(f"{src_pdb} -> {dst_pdb}")
