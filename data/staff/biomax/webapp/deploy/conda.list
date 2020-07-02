@@ -1,2 +1,0 @@
-# the 'conda' deb repository
-deb [arch=amd64 signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main
