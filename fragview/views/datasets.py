@@ -7,13 +7,11 @@ import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_process_dir, project_process_protein_dir, project_script
-from fragview.projects import current_project, project_results_file, project_results_dir, project_update_status_script
+from fragview.projects import project_all_status_file, project_process_protein_dir, project_script
+from fragview.projects import current_project, project_results_file, project_update_status_script
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview import hpc, versions
-
-from worker import setup_project_files
 
 
 def set_details(request):
@@ -80,11 +78,11 @@ def set_details(request):
     xdsLogs = ""
     dialsLogs = ""
     _tables = {"autoproc": {},
-             "edna": {},
-             "fastdp": {},
-             "xdsapp": {},
-             "dials": {},
-             "xdsxscale": {}}
+               "edna": {},
+               "fastdp": {},
+               "xdsapp": {},
+               "dials": {},
+               "xdsxscale": {}}
     # XDSAPP logs
     xdsapp_dir = path.join(dataset_dir, "xdsapp")
     xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
@@ -103,7 +101,8 @@ def set_details(request):
     if path.exists(path.join(xds_dir, "xia2.html")):
         xdsOK = "ready"
         xdsLogs = _logs(path.join(xds_dir, "LogFiles"))
-    _tables["xdsxscale"] = parse_aimless(path.join(dataset_dir, "xdsxscale", "LogFiles", "AUTOMATIC_DEFAULT_aimless.log"))
+    _tables["xdsxscale"] = parse_aimless(path.join(dataset_dir, "xdsxscale", "LogFiles",
+                                                   "AUTOMATIC_DEFAULT_aimless.log"))
     # autoPROC logs
     autoproc_dir = path.join(dataset_dir, "autoproc")
     if path.exists(path.join(autoproc_dir, "summary.html")):
@@ -131,8 +130,8 @@ def set_details(request):
     total_observations_list = [_tables[key]["total_observations"] for key in _tables.keys()]
 
     overall_res_list = [_tables[key]["low_res_avg"] + " - " + _tables[key]["high_res_avg"] for key in _tables.keys()]
-    outter_shell_res_list = ["(" + _tables[key]["low_res_out"] + " - "
-                             + _tables[key]["high_res_out"] + ")" for key in _tables.keys()]
+    outter_shell_res_list = ["(" + _tables[key]["low_res_out"] + " - " +
+                             _tables[key]["high_res_out"] + ")" for key in _tables.keys()]
     resolution_list = zip(overall_res_list, outter_shell_res_list)
 
     unit_cell_list_d = [", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()]
@@ -413,24 +412,24 @@ def show_all(request):
         else:
             for i in prf_list:
                 dpentry.append("""<td>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
-                        <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
                     </td>""")
                 rfentry.append("""<td>
-                            <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
-                            <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
-                            <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
+                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
                         </td>""")
 
             for i, j in zip(prf_list, run_list):
                 lge = \
                     """<td>
-                      <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
-                      <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Phenix LigandFit</font></p>
+              <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
+              <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Phenix LigandFit</font></p>
                      </td>"""
                 lgentry.append(lge)
 
@@ -454,8 +453,6 @@ def proc_report(request):
 
 
 def resync_status_project(proj):
-    allcsv = f'{proj.data_path()}/fragmax/process/{proj.protein}/allstatus.csv'
-
     # Copy data from beamline auto processing to fragmax folders
     h5s = list(itertools.chain(
         *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")

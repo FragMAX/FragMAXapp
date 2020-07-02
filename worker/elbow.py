@@ -2,9 +2,9 @@ from os import path
 import queue
 import shutil
 import threading
-import subprocess
+# import subprocess
 from fragview import hpc
-from fragview.projects import project_script
+from fragview.projects import project_script, current_project
 
 NUM_WORKERS = 3
 
@@ -62,8 +62,9 @@ def _file_names(frag_name, dest_dir):
     return cif, pdb
 
 
-def _run_elbow(smiles, fragments, dest_dir):
+def _run_elbow(request, smiles, fragments, dest_dir):
     first_frag, *rest_frags = fragments
+    proj = current_project(request)
 
     print(f"{smiles} => {first_frag}")
 
@@ -89,8 +90,9 @@ def _run_elbow(smiles, fragments, dest_dir):
         print(f"{src_pdb} -> {dst_pdb}")
 
 
-def _run_acedrg(smiles, fragment, dest_dir):
+def _run_acedrg(request, smiles, fragments, dest_dir):
     first_frag, *rest_frags = fragments
+    proj = current_project(request)
 
     print(f"{smiles} => {first_frag}")
 

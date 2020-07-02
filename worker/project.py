@@ -8,6 +8,7 @@ import pyfastcopy  # noqa
 import shutil
 import xmltodict
 import subprocess
+import itertools
 from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger

@@ -396,7 +396,6 @@ def pandda_analyse(request):
                 break
             else:
                 k = False
-        headers = inspect_events[0].split(",")
         if k:
             bdc = k[2]
             site_idx = k[11]
@@ -408,7 +407,6 @@ def pandda_analyse(request):
 
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
-                site = k[11]
 
             pdb = pdb.replace(base_static, "")
             map1 = \
@@ -428,7 +426,6 @@ def pandda_analyse(request):
                 if dataset in i:
                     k = i.split(",")
                     break
-            headers = inspect_events[0].split(",")
             bdc = k[0]
             site_idx = 0
             center = "['','','']"
@@ -439,7 +436,6 @@ def pandda_analyse(request):
 
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
-                site = k[11]
 
             pdb = pdb.replace(base_static, "")
             map1 = ""
@@ -573,7 +569,6 @@ def pandda(request):
 
         if len(panddaInput.split(";")) == 3:
             event = k[1]
-            site = k[11]
 
         if "true" in ligplaced.lower():
             ligplaced = "lig_radio"

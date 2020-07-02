@@ -45,6 +45,6 @@ def pipedream_map(request, sample, process, type):
     mtz_to_map.delay(mtz_path, "refine.mtz").wait()
 
     redirect_url = path.join(project_static_url(proj), "fragmax", "process", proj.protein, mtz_dir,
-                             _ccp4_filename("refine", type))
+                             _density_filename("refine", type))
 
     return redirect(redirect_url)
