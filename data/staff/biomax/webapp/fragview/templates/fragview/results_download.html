@@ -1,0 +1,192 @@
+
+{% extends 'fragview/base.html' %}
+
+{% load static %}
+{% block title %}FragMAX - Download{% endblock %}
+{% block content %}
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    table-layout: fixed ;
+    width: 100% ;
+  }
+  th {
+    text-align: center;
+  }
+  .td-download {
+    text-align: center;
+  }
+
+  td, th {
+    padding: 8px;
+    height: 60px;
+    width: 25% ;
+
+
+  }
+
+</style>
+<h4>Results download page</h4>
+        
+
+<div class="card">
+    <div class="card-content">
+        
+        <div class="card-title">Available downloads:</div><br>
+        <table class="table bordered ">
+            <thead>
+            <tr>
+                <th>File name</th>
+                <th>File content</th>                    
+                <th>Size</th>                    
+                <th>Last update</th>                    
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="td-download ">project_this.tar.gz</td>
+                    <td class="td-download "><a href="#">content.txt</a></td>                    
+                    <td class="td-download ">1.5 Mb</td>                    
+                    <td class="td-download ">2019-09-17 13:29</td>                    
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <div class="card">
+        <div class="card-content">
+            
+            <div class="card-title">Available downloads:</div><br>
+            <table class="table-opt no-border ">
+                <thead>
+                <tr>
+                    <th>Processed data</th>
+                    <th>Refinement</th>                    
+                    <th>Ligand fitting</th>                    
+                    
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class=" top-options">
+                            <form id="preprocessOptions" >
+                                    
+                                    <div class="checkbox" id="ignoreErrcheck">
+                                    <label>
+                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
+                                        <span for="ignoreErr">XDS_ASCII.HKL</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="keepupcheck" >
+                                    <label>
+                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
+                                        <span for="keepup">CORRECT and INTEGRATE logs</span>
+                                    </label>
+                                    </div>
+                                    
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
+                                        <span for="fixsym">Unmerged data</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Merged data</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Reciprocal lattice</span>
+                                    </label>
+                                    </div>
+                            </form> 
+                        </td>
+                        
+                        <td class=" top-options" valign="top">
+                            <form id="preprocessOptions" >
+                                    <h6>Structure Refinement</h6>
+                                    <div class="checkbox" id="ignoreErrcheck">
+                                    <label>
+                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
+                                        <span for="ignoreErr">final.pdb</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="keepupcheck" >
+                                    <label>
+                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
+                                        <span for="keepup">final.mtz</span>
+                                    </label>
+                                    </div>
+                                    
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Refinement log</span>
+                                    </label>
+                                    </div>
+                                    <h6>Blobs</h6>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Blobs search log</span>
+                                    </label>
+                                    </div>
+                            </form> 
+                        </td>
+
+
+                        <td class=" top-options">
+                            <form id="preprocessOptions" >
+                                    <h6>Auto fitting</h6>
+                                    <div class="checkbox" id="ignoreErrcheck">
+                                    <label>
+                                        <input id="ignoreErr" name="ignoreErr" type="checkbox" class="filled-in dt-checkboxes" value="ignoreErr" checked>
+                                        <span for="ignoreErr">RhoFit ligand</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="keepupcheck" >
+                                    <label>
+                                        <input id="keepup" name="keepup" type="checkbox" class="filled-in dt-checkboxes" value="keepup" checked>
+                                        <span for="keepup">Phenix LigFit ligand</span>
+                                    </label>
+                                    </div>
+                                    <h6>PanDDA</h6>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Analyses</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
+                                        <span for="fixsym">Inspections</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym" checked>
+                                        <span for="fixsym">Ligand scores</span>
+                                    </label>
+                                    </div>
+                                    <div class="checkbox" id="fixsymcheck">
+                                    <label>
+                                        <input id="fixsym" name="fixsym" type="checkbox" class="filled-in dt-checkboxes" value="fixsym">
+                                        <span for="fixsym">Refined ensembles</span>
+                                    </label>
+                                    </div>
+                            </form> 
+                        </td>                   
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,26 @@
+# build & push
+
+docker build -t docker.maxiv.lu.se/fragmax .
+docker push docker.maxiv.lu.se/fragmax
+
+# pull
+
+docker pull docker.maxiv.lu.se/fragmax
+
+# setup DB and key volumes
+
+# docker container prune && docker volume rm fragmax <-- to remove volume
+./deploy/create_vol.py
+
+# migrate database on the volume
+
+docker run \
+    --mount source=fragmax,target=/volume \
+    -ti fragmax ./migrate_db.sh
+
+# run
+# from the <repo-root>/deploy
+
+docker-compose up -d
+
+

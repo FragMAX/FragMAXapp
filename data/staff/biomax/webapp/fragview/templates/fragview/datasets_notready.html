@@ -1,0 +1,106 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - Datasets{% endblock %}
+{% block content %}
+
+{% load static %}
+
+{% comment %} Define dataset run number <- Edit CSV file and update views {% endcomment %}
+<style>
+  th {
+      cursor: pointer;
+      text-align: center;
+  }
+
+
+    td, th {
+      border: 1px solid #f0f0f0;
+      padding: 8px;
+      text-align: center;
+
+    } 
+  tr:nth-child(even) {
+    background-color: #dddddd;
+    height: 150px;
+
+  }
+
+  tr td:nth-child(7) {
+      text-align: left;
+
+  }
+  .container {
+      margin: 0 50px 50px 300px !important;
+      max-width: 100% !important;
+      width: calc(100% - 350px) !important;
+  }
+  .crystalsnap {
+    height:88px;
+    width:116px;
+  }
+  .ligpng {
+    height:88px;
+    width:88px;
+  }
+</style>
+  <div>
+    <h4>Datasets selection - Not processed data found</h4> 
+    <div style="display:flex;">
+      <form action="/process_all/" method="get" id="procButton">
+        <button class="btn" type="submit" value="process" name="proteinPrefix" size="1">Process All</button>
+      </form>    
+      {% comment %} <form action="/process_all/" method="get" id="procButton">
+        <button class="btn" type="submit" value="process" name="proteinPrefix" size="1">Process All</button>
+      </form>   {% endcomment %}
+      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+        <button class="btn" type="submit" value="resyncDataset" name="resyncdsButton" size="1">Resync datasets</button>
+      </form>  
+      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+        <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Resync status</button>
+      </form>  
+      <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+        <button class="btn" type="submit" value="resyncImages" name="resyncImgButton" size="1">Resync SVG and Diff</button>
+      </form>  
+    </div>
+  </div>
+  <p></p>
+
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchSample" onkeyup="searchSampleName()"  title="Type in a sample name">
+        <label for="searchSample">Search for Sample names..</label>        
+    </div>
+    
+ <table id="datasetTable">
+  <thead>
+  <tr>
+  <th>Info/Process</th>
+  <th>Protein</th>
+  <th>Sample name</th>
+  <th>Run</th>
+  <th>Resolution</sub> [&Aring;]</th>
+  <th>Frames</th>
+  <th>Path</th>  
+  <th>Crystal Picture</th>  
+  <th>Ligand</th>
+
+  </tr>
+  </thead>
+  <tbody>
+         
+  </tbody>
+  </table>
+
+
+  </tbody>
+
+</table>
+<script>
+
+</script>
+
+{% endblock %}
+
+
+    

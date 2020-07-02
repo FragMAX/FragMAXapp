@@ -1,0 +1,9 @@
+Host *
+    # don't check host finger print, to avoid a prompt
+    StrictHostKeyChecking no
+    # key we use to ssh to HPC frontend (clu0-fe-1)
+    IdentityFile /volume/ssh/id_rsa
+    SendEnv LANG LC_*
+    HashKnownHosts no
+    GSSAPIAuthentication yes
+

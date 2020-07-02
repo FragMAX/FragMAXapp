@@ -1,0 +1,97 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - PanDDA results{% endblock %}
+
+
+{% block content %}
+
+
+<style>
+  table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+
+    }
+    th {
+      text-align: center;
+      height: 50px;
+    }
+    td{
+      height: 100px;
+    }
+    td, th {
+      border: 1px solid #f0f0f0;
+      padding: 15px !important;
+      vertical-align: middle !important;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #e2e2e2;
+    }
+
+    tr td:nth-child(n+2) {
+      text-align: center !important;
+    }
+    tr th:nth-child(n+2) {
+      text-align: center !important;
+    }
+    {% comment %} th {
+        cursor: pointer;
+    } {% endcomment %}
+
+  .container {
+      max-width: 100% !important;
+      margin: 0 50px 50px 150px !important;
+      width: calc(100% - 200px) !important;
+  }
+  .col-md-8 {
+  width: 100% !important;
+  }
+  label {
+    font-size: 1.2rem !important;
+    }
+  a:hover {
+    text-decoration: none !important;
+  }
+  .selectbox{
+    width: 250px;
+    display:inline-block;
+    margin-left: 165px;
+    margin-top: 15px;
+  }
+  .selectbutton{
+    width: 100px;
+    display:inline-block;
+    margin-left: 25px;   
+    }
+
+</style>
+<select class="selectbox input-sm" name="dropdownDataset" onchange="GetSelectedTextValue(this)">
+  <option disabled selected value> -- select an option -- </option>
+  {% for method in proc_methods %}
+  <option value='{{method}}'>{{method}}</option>    
+  {% endfor %} 
+</select>
+<form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" >
+  <button class="btn-small selectbutton " type="submit" onsubmit="return select_pandda()" value="panddaSelect" name="methods" size="1">Load</button>
+</form>
+<form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" >
+  <button class="btn-small selectbutton " type="submit" value="FixSymlinks" name="fixsymlinks" size="1" style="width: 130px !important;">Fix Symlinks</button>
+</form>
+<div class="alert alert-info"  style="margin-left: 165px;width: calc(100% - 225px);">
+  <h4 >Copy and paste this command line in your terminal to start inspection in coot:</h4>
+  <h5 >{{opencmd}}</h5>
+</div>
+{{Report |safe}}
+
+
+<script>
+
+function GetSelectedTextValue(dropdownDataset) {
+    var selectedText = dropdownDataset.options[dropdownDataset.selectedIndex].innerHTML;
+    var selectedValue = dropdownDataset.value;
+    document.getElementsByName("methods")[0].value = selectedValue;
+}
+</script>
+{% endblock %}

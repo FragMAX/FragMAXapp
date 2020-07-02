@@ -1,0 +1,178 @@
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - Add PDB{% endblock %}
+{% block content %}
+<style>
+table {
+    font-family: arial, sans-serif;
+}
+.container {
+    padding-left: 200px;
+    max-width: 1180 !important;
+    width: calc(100% - 75px) !important;
+}
+.prechoice {
+    padding-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: space-between;
+    flex-direction: row;
+}
+.inline_msg {
+    font-family: arial, sans-serif;
+    font-size: medium;
+    white-space: nowrap;
+    padding-top: 22px;
+    margin-right: 20px;
+}
+.flex_box {
+    display: flex;
+}
+</style>
+
+<script>
+/*
+ * Submit form asynchronously with an ajax call, to simplify displaying errors.
+ *
+ * The asynchronously style also allows us to add some kind of progress bar in
+ * the future, if we feel it's needed.
+ */
+function submit_form()
+{
+    $("#add_button").prop("disabled", true);
+
+    $.ajax({
+        url: "/pdb/new",
+        type: "POST",
+        data: new FormData($(this)[0]),
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function()
+        {
+            window.location.replace("/pdbs");
+        },
+        error: function(resp)
+        {
+            alert(resp.responseText);
+            update_add_button();
+        }
+    });
+
+    return false;
+}
+
+function is_form_valid(form)
+{
+    function is_upload_valid(form)
+    {
+        /*
+         * upload local file method selected,
+         * check if user have picked a file to upload
+         */
+        let pdb = form["pdb"];
+        return pdb.files.length > 0;
+    }
+
+    function is_fetch_valid(form)
+    {
+        /*
+         * fetch from RCSB mode selected,
+         * check if user have typed any PDB ID
+         */
+        let pdb_id = form["pdb_id"];
+        return pdb_id.value.length > 0;
+    }
+
+    let method = form["method"].value;
+    switch (method)
+    {
+        case "upload_file":
+            return is_upload_valid(form);
+        case "fetch_online":
+            return is_fetch_valid(form);
+    }
+}
+
+function update_add_button()
+{
+    /*
+     * check if form is valid, and if not
+     * disable the 'Add' button
+     */
+    let form_is_valid = is_form_valid($("#form")[0]);
+    $("#add_button").prop("disabled", !form_is_valid);
+}
+
+$(document).ready(function ()
+{
+    $("#form").submit(submit_form);
+
+    /* update 'Add' button status to reflect if the forum is valid */
+    $("#form").change(update_add_button);
+    /*
+     * we need to explicitly keep track if PDB ID input field have changed,
+     * as it's change will not be propogated to the forum until the
+     * input widget loses focus
+     */
+    $("#pdb_id").on("input", update_add_button);
+});
+
+</script>
+
+<h4>Add PDB Model</h4><br>
+
+<div class="card">
+    <div class="card-content">
+        <div class="card-title">Specify PDB model</div><br>
+            <form id="form" enctype="multipart/form-data" action="" method="post">
+                {% csrf_token %}
+                <table class="table bordered">
+                    <tbody>
+
+                    <tr>
+                        <th>
+                            <label>
+                                <input type="radio" class="with-gap" name="method" value="upload_file" checked="checked">
+                                <span>Upload PDB file</span>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="file" name="pdb">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label>
+                                <input type="radio" class="with-gap" name="method" value="fetch_online">
+                                <span class="item-label">Fetch from Protein Data Bank</span>
+                            </label>
+                        </th>
+                        <td>
+                            <div class="flex_box">
+                                <div class="inline_msg">PDB ID:</div>
+                                <input class="selectbox" id="pdb_id" name="pdb_id" placeholder="2ID8">
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="prechoice">
+                    <div style="padding-right: 0px;">
+                        <button id="add_button" class="btn-large" type="submit" value="modify" disabled>
+                            add
+                        </button>
+                    </div>
+
+                    <div style="padding-left: 40px;">
+                        <button class="btn-large" type="button" onclick="location.href='/pdbs'">cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

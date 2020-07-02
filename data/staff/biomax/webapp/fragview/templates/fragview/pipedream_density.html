@@ -1,0 +1,177 @@
+
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - Density viewer{% endblock %}
+{% block content %}
+
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+    body { font-family: sans-serif; }
+    canvas { 
+     display: flex; 
+     }
+    .side-table{
+      font-size: 15px;
+      line-height: 3px;
+      }
+    #viewer {
+     position: absolute;
+     left: 550px;
+     
+     width: calc(100% - 550px);
+     height: 100%;
+    }
+    #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 550px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+    }
+    #left-controlpanel {
+     font-size: 16px;
+     background-color: rgba(0,0,0,0.1);
+     position: absolute;
+     left: 265px;
+     top: 10px;
+     height: calc(100% - 20px);     
+     width: 270px;
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+    }
+    #hud u {  text-decoration: none;
+      border: solid; border-width: 1px 0; }
+    #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+    #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
+    }
+    a { color: #59C; }
+    .svg {
+      -webkit-filter: contrast(0.5);
+      filter: contrast(0.5);
+    }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+</head>
+<body style="background-color: white">
+
+    
+    
+    <div id="left-controlpanel" >
+      {% comment %} <div style="padding-left:30px !important;">
+        <div>
+          <h6>Blob navigation</h6>
+        </div>
+      </div>
+      <div style="padding-left:30px !important;">
+        
+        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
+        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
+      </div> {% endcomment %}
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Structure navigation</h6>
+        </div>
+        <div style="display:inline-flex">
+        <form action="/pipedream_density/" method="get" >
+          <button class="btn" type="submit" value="{{prevstr}}" name="structure">Previous</button>
+        </form>
+        <form action="/pipedream_density/" method="get" style="padding-left: 5px;">
+          <button class="btn" type="submit" value="{{nextstr}}" name="structure">Next</button>
+        </form>
+        </div>
+      </div>
+      <div style="padding-top:20px">
+        <table class="side-table">          
+          <tr>
+            <th>Resolution
+            </th>
+            <td>{{resolution}} Å
+            </td>
+          </tr>
+          <tr>
+            <th>Rwork
+            </th>
+            <td>{{rwork}} 
+            </td>
+          </tr>
+          <tr>
+            <th>Rfree
+            </th>
+            <td>{{rfree}} 
+            </td>
+          </tr>
+          <tr>
+            <th>RhoFit score
+            </th>
+            <td>{{rhofitscore}} 
+            </td>
+          </tr>
+          
+          <tr>
+            <th>Spacegroup
+            </th>
+            <td>{{symmetry}}
+            </td>
+          </tr>
+
+        </table>
+      </div>
+      
+      
+    </div>
+    </div>
+    <div style="display:flex;">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
+    <img class="ligpng svg" id="ligand" src="{{ligand}}" >
+    <b><h6>{{name }} </h6></b>
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div>
+    </div>
+
+    
+    <div id="viewer"></div>
+
+    <footer id="help"></footer>
+    <div id="inset"></div>
+
+    <script>
+      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+
+      V.load_pdb_and_ccp4_maps("{{pdb}}",
+                               "/pipedream_ccp4_map/{{sample}}/{{process}}/nat",
+                               "/pipedream_ccp4_map/{{sample}}/{{process}}/dif"
+                            {% ifequal cE "true" %}
+                            , function () { 
+                            V.recenter({{center}}, null, 25);}     
+                            {% endifequal %}                            
+       );
+      V.load_pdb("{{rhofit}}");
+  </script>
+</body>
+</html>
+
+
+{% endblock %}

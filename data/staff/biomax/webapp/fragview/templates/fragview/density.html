@@ -1,0 +1,350 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - Density viewer{% endblock %}
+{% block content %}
+
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+   body { font-family: sans-serif; }
+   canvas { 
+     display: flex; 
+     }
+    .side-table{
+    font-size: 15px;
+    line-height: 3px;
+    }
+   #viewer {
+     position: absolute;
+     left: 550px;
+     
+     width: calc(100% - 550px);
+     height: 100%;
+   }
+   #help {
+     display: none;
+     font-size: 16px;
+     color: #eee;
+     background-color: rgba(0,0,0,0.7);
+     position: absolute;
+     left: 550px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+     white-space: pre-line;
+   }
+   #left-controlpanel {
+     font-size: 16px;
+     background-color: rgba(0,0,0,0.1);
+     position: absolute;
+     left: 265px;
+     top: 10px;
+     height: calc(100% - 20px);     
+     width: 270px;
+     cursor: default;
+     padding: 5px;
+     border-radius: 5px;
+     z-index: 9;
+   }
+   #hud u {  text-decoration: none;
+            border: solid; border-width: 1px 0; }
+   #hud s { padding: 0 8px; text-decoration: none; opacity: 0.5; }
+   #inset {
+     width: 200px;
+     height: 200px;
+     background-color: #888;
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     z-index: 2;
+     display: none;
+   }
+   a { color: #59C; }
+   .svg {
+    -webkit-filter: contrast(0.5);
+    filter: contrast(0.5);
+    }
+    .ligandSVG{
+    padding-left: 5px;
+    position: absolute;
+    bottom: 10px;
+    width: 250px;
+  }
+  button.link {
+	font-family: "Verdana" sans-serif;
+	font-size: 1em;
+	text-align: left;
+	color: blue;
+	background: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+
+</head>
+<body style="background-color: white">
+
+    
+  
+    <div id="left-controlpanel" >
+      
+      <div style="padding-left:30px !important;">
+        <div>
+          <form action="/log_viewer/" method="get" id="logFileform">
+            <button  class="link" type="submit" value="{{summary}}" name="logFile" size="1" >Refinement Log</button>
+          </form>          
+        </div>
+        <div>
+          <h6>Blob navigation</h6>
+        </div>
+      </div>
+      <div style="padding-left:30px !important;">
+        
+        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
+        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
+      </div>
+      <div style="padding-left:30px !important;">
+        <div>
+          <h6>Structure navigation</h6>
+        </div>
+        <div style="display:inline-flex">
+        <form action="/density/" method="get" >
+          <button class="btn" type="submit" value="{{prevstr}}" name="structure">Previous</button>
+        </form>
+        <form action="/density/" method="get" style="padding-left: 5px;">
+          <button class="btn" type="submit" value="{{nextstr}}" name="structure">Next</button>
+        </form>
+        </div>
+      </div>
+      <div style="padding-top:20px">
+        <table class="side-table">
+          
+          <tr>
+            <th>Resolution
+            </th>
+            <td>{{resolution}} Å
+            </td>
+          </tr>
+          <tr>
+            <th>Rwork
+            </th>
+            <td>{{rwork}} 
+            </td>
+          </tr>
+          <tr>
+            <th>Rfree
+            </th>
+            <td>{{rfree}} 
+            </td>
+          </tr>
+          <tr>
+            <th>RhoFit score
+            </th>
+            <td>{{rscore}} 
+            </td>
+          </tr>
+          <tr>
+            <th>LigFit score
+            </th>
+            <td>{{lscore}} 
+            </td>
+          </tr>
+          <tr>
+            <th>Spacegroup
+            </th>
+            <td>{{spg}}
+            </td>
+          </tr>
+
+        </table>
+      </div>
+      
+      <div style="display:{{ligbox}};">
+      <div style="padding-left:30px !important; display:{{rhofitbox}}">
+        <div>
+          <form action="/log_viewer/" method="get" id="logFileform">
+            <h6> RhoFit - <button  class="link" type="submit" value="{{rhofitlog}}" name="logFile" size="1" >Log</button></h6>
+          </form>        
+        </div>
+        <input class="btn " type="button" value="Show"  onclick="showrhofit();"></input> 
+        <input class="btn" type="button" value="Hide"   onclick="hiderhofit();"></input> 
+        <div style="display: inline-block;vertical-align: middle;">
+          <label >
+            <input class="with-gap" id="rhofit_radio" name="rhofit_radio" type="radio" checked>
+            <span class="item-label" for="rhofit_radio"></span>
+          </label>
+        </div>
+      </div>
+      
+
+          
+      <div style="padding-left:30px !important; display:{{ligfitbox}};">
+        <div>
+          <form action="/log_viewer/" method="get" id="logFileform">
+            <h6> LigandFit - <button  class="link" type="submit" value="{{ligandfitlog}}" name="logFile" size="1" >Log</button></h6>
+          </form>        
+        </div>
+        <input class="btn " type="button" value="Show" onclick="showligfit();"></input> 
+        <input class="btn" type="button" value="Hide"  onclick="hideligfit();"></input> 
+        <div style="display: inline-block;vertical-align: middle;">
+          <label >
+            <input class="with-gap" id="ligfit_radio" name="lifgit:radio" type="radio" checked>
+            <span class="item-label" for="ligfit_radio"></span>
+          </label>
+        </div>
+      </div>
+
+      <div style="padding-top: 30px;padding-left:30px !important; display:{{dualviewbox}}">
+        <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
+          <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
+        </form>
+      </div>
+     
+      {% if ligand %}
+      <div class="ligandSVG">    
+          <div>
+            <h5 style="text-align: center;">{{ligand}}</h5>
+          </div>
+          <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      </div> 
+      {% endif %}
+    </div>
+    </div>
+    <div style="display:flex;">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+    <!-- {% if ligand %}
+      <img class="ligpng svg" id="ligand" src="/fragment/{{ ligand }}/image">
+    {% endif %} -->
+    <b><h6>{{name }} </h6></b>
+      <header id="hud">Electron density viewer. Press H for help.</header>
+    </div>
+    </div>
+
+    
+    <div id="viewer"></div>
+
+    <footer id="help"></footer>
+    <div id="inset"></div>
+
+    <script>
+      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
+      V.load_pdb("/static/{{pdb}}");
+      V.load_ccp4_maps(
+            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/nat",
+            "/ccp4_map/{{ligfit_dataset}}/{{process}}/{{refine}}/dif");
+
+
+      V.load_pdb("{{ligfitpdb}}");
+      V.load_pdb("{{rhofitpdb}}");
+
+      var blobs = {{xyzlist}};
+    
+
+    var index = 0;
+    var numblobs= blobs.length;
+
+    function nextblob(){
+        index = (index + 1) % numblobs;  
+        var blob =blobs[index];        
+        movetoblob(blob)          
+    }    
+    function previousblob(){
+        index = (index - 1) % numblobs;
+        if (index<0){index=numblobs-1}
+        var blob =blobs[index];        
+        movetoblob(blob)        
+    }
+
+    
+    function movetoblob(b){
+      V.recenter(b, null, 25);    
+      updateview()
+    }
+
+
+
+    lpos={{rpos}}
+    rpos={{lpos}}
+
+    function test(){
+      alert(rhofitModel)
+    }
+
+    function hiderhofit(){
+      V.model_bags[rpos].visible=false; 
+      V.redraw_all()
+      updateview();
+      document.getElementById("rhofit_radio").checked=0
+
+    }
+
+    function hideligfit(){
+      V.model_bags[lpos]  .visible=false; 
+      V.redraw_all()
+      updateview();
+      document.getElementById("ligfit_radio").checked=0
+
+    }
+
+
+    function showrhofit(){
+      V.model_bags[rpos].visible=true; 
+      V.redraw_all()
+      V.recenter({{rhofitcenter}},null,25)
+      updateview();
+      document.getElementById("rhofit_radio").checked=1
+    }
+
+    function showligfit(){
+      V.model_bags[lpos]  .visible=true; 
+      V.redraw_all()
+      V.recenter({{ligfitcenter}},null,25)
+      updateview();
+      document.getElementById("ligfit_radio").checked=1
+
+    }
+
+    function showprotein(){
+      V.model_bags[-1].visible=true; 
+      V.redraw_all();
+      updateview();
+    }
+
+    function hideprotein(){
+      V.model_bags[-1].visible=false; 
+      V.redraw_all();
+      updateview();
+    }
+
+    function updateview(){
+      var keyboardEvent = document.createEvent("KeyboardEvent");
+      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+      keyboardEvent[initMethod](
+                        "keydown", // event type : keydown, keyup, keypress
+                          true, // bubbles
+                          true, // cancelable
+                          window, // viewArg: should be window
+                          false, // ctrlKeyArg
+                          false, // altKeyArg
+                          false, // shiftKeyArg
+                          false, // metaKeyArg
+                          82, // keyCodeArg : unsigned long the virtual key code, else 0
+                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+      );
+      document.dispatchEvent(keyboardEvent);
+    }
+  </script>
+</body>
+</html>
+
+
+{% endblock %}

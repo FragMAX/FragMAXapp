@@ -1,0 +1,30 @@
+
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - Report{% endblock %}
+
+
+{% block content %}
+<style>
+.content {
+  overflow: visible !important;
+  margin-left: 250px !important;
+
+}
+
+</style>
+
+<div >
+  {% if method == "log" %}
+    <div class="card" style="padding: 20px" >{{reportHTML | safe}}</div>
+  {% else %}
+    <object type="text/log" data="{{reportHTML}}"
+            style="width:179%; height:99%; margin:1%;" >
+    </object>
+  {% endif %}
+<div>
+
+<script>
+
+
+</script>
+{% endblock %}

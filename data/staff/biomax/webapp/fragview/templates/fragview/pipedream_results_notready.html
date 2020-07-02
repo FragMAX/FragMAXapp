@@ -1,0 +1,90 @@
+
+{% extends 'fragview/base.html' %}
+
+{% block title %}FragMAX - Results{% endblock %}
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+    height: 50px;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+  td{
+        height: 100px;
+        
+
+  }
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n+2) {
+    text-align: center;
+  }
+  
+  th {
+      cursor: pointer;
+  }
+  .container {
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+  }
+
+</style>
+<h4>Results - Structure refinement analysis</h4>
+        
+
+<div class="input-field col s12" id="searchDiv">
+        <i class="material-icons prefix">search</i>
+        <input type="text" id="searchDataset" onkeyup="searchDatasetName()"  title="Type in a dataset name">
+        <label for="searchDataset">Search for Dataset..</label>
+        
+    </div>
+
+
+
+ <table  id="resultsTable">
+   <thead>
+  <tr>
+   <th>Data set</th>
+   <th>Space group</th>
+   <th>Res. [&Aring;]</th>
+   <th>R<sub>work</sub> [%]</th>
+   <th>R<sub>free</sub> [%]</th>
+   <th>RMS bonds [&Aring;]</th>
+   <th>RMS angles [&deg;]</th>
+   <th>a</th>
+   <th>b</th>
+   <th>c</th>
+   <th>&alpha;</th>
+   <th>&beta;</th>
+    <th>&gamma;</th>
+   <th>Unmodelled blobs</th>
+   <th>&sigma;</th>
+   <th>Success</th>
+  </tr>
+ </thead>
+  <tbody>
+                       
+  </tbody>
+  </table>
+
+
+  </tbody>
+
+</table>
+{% endblock %}
+
