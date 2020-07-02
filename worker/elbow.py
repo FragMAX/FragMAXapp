@@ -4,7 +4,6 @@ import shutil
 import threading
 # import subprocess
 from fragview import hpc
-from fragview.projects import project_script
 
 NUM_WORKERS = 3
 
