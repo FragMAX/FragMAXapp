@@ -4,7 +4,7 @@ import shutil
 import threading
 # import subprocess
 from fragview import hpc
-from fragview.projects import project_script, current_project
+from fragview.projects import project_script
 
 NUM_WORKERS = 3
 
@@ -64,11 +64,10 @@ def _file_names(frag_name, dest_dir):
 
 def _run_elbow(request, smiles, fragments, dest_dir):
     first_frag, *rest_frags = fragments
-    proj = current_project(request)
 
     print(f"{smiles} => {first_frag}")
-
-    script = project_script(proj, f"elbow.sh")
+    script_dir = path.join(path.dirname(dest_dir), "scripts")
+    script = path.join(script_dir, f"elbow.sh")
     with open(script, "w") as outfile:
         outfile.write("#!/bin/bash\n")
         outfile.write("#!/bin/bash\n")
@@ -92,11 +91,11 @@ def _run_elbow(request, smiles, fragments, dest_dir):
 
 def _run_acedrg(request, smiles, fragments, dest_dir):
     first_frag, *rest_frags = fragments
-    proj = current_project(request)
 
     print(f"{smiles} => {first_frag}")
 
-    script = project_script(proj, f"elbow.sh")
+    script_dir = path.join(path.dirname(dest_dir), "scripts")
+    script = path.join(script_dir, f"elbow.sh")
     with open(script, "w") as outfile:
         outfile.write("#!/bin/bash\n")
         outfile.write("#!/bin/bash\n")
