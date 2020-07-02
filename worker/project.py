@@ -274,15 +274,14 @@ def _write_project_status(proj):
     h5s = list(itertools.chain(
         *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
           for p in proj.shifts()]))
-
-    for h5 in h5s:
-        dataset, run = (h5.split("/")[-1][:-10].split("_"))
-        script = project_script(proj, f"update_status.sh")
-        with open(script, "w") as outfile:
-            outfile.write("#!/bin/bash\n")
-            outfile.write("#!/bin/bash\n")
-            outfile.write("module purge\n")
-            outfile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
+    script = project_script(proj, f"update_status.sh")
+    with open(script, "w") as outfile:
+        outfile.write("#!/bin/bash\n")
+        outfile.write("#!/bin/bash\n")
+        outfile.write("module purge\n")
+        outfile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
+        for h5 in h5s:
+            dataset, run = (h5.split("/")[-1][:-10].split("_"))
             outfile.write(
                 f"python3 {project_update_status_script(proj)} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
-        hpc.run_sbatch(script)
+    hpc.run_sbatch(script)
