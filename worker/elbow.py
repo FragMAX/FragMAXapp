@@ -72,7 +72,7 @@ def _run_elbow(smiles, fragments, dest_dir):
         outfile.write("#!/bin/bash\n")
         outfile.write("module purge\n")
         outfile.write("module load Phenix\n")
-        outfile.write(f"cd {dest_dir}")
+        outfile.write(f"cd {dest_dir}\n")
         outfile.write(f"phenix.elbow --smiles={smiles} --output={first_frag}\n")
     hpc.run_sbatch(script)
 
@@ -100,7 +100,7 @@ def _run_acedrg(smiles, fragments, dest_dir):
         outfile.write("#!/bin/bash\n")
         outfile.write("module purge\n")
         outfile.write("module load CCP4\n")
-        outfile.write(f"cd {dest_dir}")
+        outfile.write(f"cd {dest_dir}\n")
         outfile.write(f"acedrg -i '{smiles}' -o {first_frag}\n")
     hpc.run_sbatch(script)
 
@@ -113,4 +113,4 @@ def _run_acedrg(smiles, fragments, dest_dir):
         shutil.copy(src_cif, dst_cif)
 
         shutil.copy(src_pdb, dst_pdb)
-        print(f"{src_pdb} -> {dst_pdb}")
+        print(f"{src_pdb} -> {dst_pdb}"
