@@ -134,6 +134,14 @@ def project_raw_master_h5_files(project):
     return shifts_raw_master_h5_files(project, project.shifts())
 
 
+def project_datasets(project):
+    for master_file in project_raw_master_h5_files(project):
+        file_name = path.basename(master_file)
+        # chopping of the '_master.h5' from the file name
+        # gives us the data set name in the format we are using
+        yield file_name[:-len("_master.h5")]
+
+
 def shifts_xml_files(project, shifts):
     """
     generate a list of metadata collection xml files for

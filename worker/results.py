@@ -8,7 +8,7 @@ import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
-from fragview.projects import project_results_dir, project_process_protein_dir, project_results_file
+from fragview.projects import project_results_dir, project_process_protein_dir, project_results_file, project_datasets
 from fragview import result_plots, fileio
 from fragview.views.utils import open_txt
 
@@ -236,8 +236,6 @@ def _generate_results_file(proj):
     autoprocLogs = list()
     dialsLogs = list()
     xdsxscaleLogs = list()
-    fastdpLogs = list()
-    EDNALogs = list()
     isaDict = dict()
     resultsList = list()
 
@@ -251,16 +249,12 @@ def _generate_results_file(proj):
     fastdpLogs = glob(f"{fmax_proc_dir}/*/*/fastdp/*.LP")
     EDNALogs = glob(f"{fmax_proc_dir}/*/*/edna/*.LP")
 
-    allLogs = xdsappLogs + autoprocLogs + dialsLogs + xdsxscaleLogs + EDNALogs + fastdpLogs
-
     resultsList += \
         glob(f"{res_dir}**/*/dimple/final.pdb") + \
         glob(f"{res_dir}**/*/fspipeline/final.pdb") + \
         glob(f"{res_dir}**/*/buster/refine.pdb")
 
-    datasetList = sorted(set([x.split("/")[-3] for x in allLogs] + [x.split("/")[-4] for x in resultsList]),
-                         key=lambda x: ("Apo" in x, x))
-    for dataset in datasetList:
+    for dataset in project_datasets(proj):
         isaDict[dataset] = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": ""}
 
     resultsList = sorted(resultsList, key=lambda x: ("Apo" in x, x))
