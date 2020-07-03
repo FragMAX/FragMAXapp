@@ -8,7 +8,7 @@ from fragview.models import Project, PendingProject
 from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
-from fragview.data_layout import get_layout
+from fragview.data_layout import get_layout, get_project_experiment_date
 
 # from worker import setup_project_files, add_new_shifts, _prepare_fragments
 from worker import setup_project_files, add_new_shifts
@@ -131,13 +131,6 @@ def project_summary(request):
         totalapo += len(glob(shift_dir + "/raw/" + proj.protein + "/*Apo*"))
         totaldata += len(glob(shift_dir + "/raw/" + proj.protein + "/*"))
 
-    months = {
-        "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
-        "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
-    }
-
-    natdate = proj.shift[0:4] + " " + months[proj.shift[4:6]] + " " + proj.shift[6:8]
-
     return render(
         request,
         "fragview/project_summary.html",
@@ -147,5 +140,5 @@ def project_summary(request):
             "totalapo": totalapo,
             "totaldata": totaldata,
             "fraglib": proj.library.name,
-            "exp_date": natdate,
+            "experiment_date": get_project_experiment_date(proj),
         })

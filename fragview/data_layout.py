@@ -1,5 +1,8 @@
 import re
+from os import path, walk
+from datetime import datetime
 from fragmax import sites
+from fragview.projects import project_raw_protein_dir
 
 
 class ValidationError(Exception):
@@ -33,6 +36,29 @@ class ShiftsDirsLayout:
     def get_group_name(proposal):
         return f"{proposal}-group"
 
+    @staticmethod
+    def get_experiment_date(project):
+        # use main shift's date as somewhat random experiment data
+        return datetime.strptime(project.shift, "%Y%m%d")
+
+
+def _get_cbf_experiment_timestamp(project):
+    def _find_path():
+        raw = project_raw_protein_dir(project)
+
+        # look for any random CBF folder inside raw folder
+        for dir_name, _, files in walk(raw):
+            for fname in files:
+                _, ext = path.splitext(fname)
+                if ext.lower() == ".cbf":
+                    return path.join(dir_name, fname)
+
+        # no CBF file found, use raw folder
+        return raw
+
+    timestamp = path.getmtime(_find_path())
+    return datetime.fromtimestamp(timestamp)
+
 
 class PlainDirLayout:
     ROOT_NAME = "User Proposal"
@@ -58,6 +84,10 @@ class PlainDirLayout:
     def get_group_name(_):
         return "fragadm"
 
+    @staticmethod
+    def get_experiment_date(project):
+        return _get_cbf_experiment_timestamp(project)
+
 
 _STYLE_CLS = {
     "shifts": ShiftsDirsLayout,
@@ -75,3 +105,7 @@ def get_layout():
 
 def get_group_name(proposal):
     return get_layout().get_group_name(proposal)
+
+
+def get_project_experiment_date(project):
+    return get_layout().get_experiment_date(project)
