@@ -19,4 +19,3 @@ def update_status_path():
     """
     data_dir = path.join(path.dirname(__file__), "data")
     return path.join(data_dir, UPDATE_STATUS_SCRIPT)
-
