@@ -107,6 +107,7 @@ $(document).ready(function()
                                    value="{{ form.library_name.value }}"
                                    required/>
                             <div class="err_msg">{{ form.library_name.errors }}</div>
+
                         </td>
                     </tr>
                     <tr>
@@ -120,6 +121,16 @@ $(document).ready(function()
                                    required
                                    {% endif %}>
                             <div class="err_msg">{{ form.fragments_file.errors }}</div>
+                            <div class="radio" id="library_processing_method" >
+                                <label>
+                                    <input class="with-gap" id="acedrug" name="library_method" type="radio" value="acedrug" disabled>
+                                    <span class="item-label" for="1node">ACEDRG</span>
+                                </label>
+                                <label>
+                                    <input checked class="with-gap" id="elbow" name="library_method" type="radio" value="elbow">
+                                    <span class="item-label" for="3node">Phenix.eLBOW</span>
+                                </label>
+                            </div>
                         </td>
                     </tr>
                     {% endif %}

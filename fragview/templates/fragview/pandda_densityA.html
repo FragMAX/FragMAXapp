@@ -124,9 +124,16 @@
 
           <h6>Structure navigation</h6>
         </div>
-        <div style="display:flex">
-        <form action="/pandda_densityA/" method="get" id="pandda_form"><button class="btn" type="submit" value="{{method}};{{dataset}};prev" name="structure" size="1" >Previous</button></form>
-        <form action="/pandda_densityA/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next</button></form>
+        <div style="padding-left:30px !important;">
+
+      </div>
+        <div style="display:flex;">
+        <form action="/pandda_densityA/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{method}};{{dataset}};prev" name="structure" size="1" >Prev Event</button></form>
+        <form action="/pandda_densityA/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next Event</button></form>
+        </div>
+        <div style="display:block; ">
+        <input class="btn navbt" type="button" value="Prev site" onclick="return previoussite()" ></input>
+        <input  class="btn navbt" type="button" value="Next site" onclick="return nextsite()" ></input>
         </div>
       </div>
       <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
@@ -175,7 +182,7 @@
           <tr>
             <th>Site
             </th>
-            <td>{{siten}}
+            <td id="tdsite">{{siten}}
             </td>
           </tr>
           <tr>
@@ -313,6 +320,70 @@
 
      V1.renderer.domElement.focus();
       V1.change_zoom_by_factor(3.5);
+    {% if name != "Apo" %}
+        var ligcenter = [{{center}}]
+        var centroid = {{centroids}};
+        var centroidL = centroid.length
+        var sites = ligcenter.concat(centroid);
+        var site_idxs = [{{siten}}].concat(range(1,centroidL));
+        function centerligand(){
+          V1.recenter({{center}}, null, 25)
+          V1.request_render()
+        }
+        $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 88) centerligand();
+        });
+    });
+    {% else %}
+        var centroid = {{centroids}};
+        var centroidL = centroid.length
+        var sites = centroid;
+        var site_idxs = range(1,centroidL);
+    {% endif %}
+    var index = 0;
+    var numsites= sites.length;
+
+    function nextsite(){
+        index = (index + 1) % numsites;
+        var site =sites[index];
+        movetosite(site)
+        document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function previoussite(){
+        index = (index - 1) % numsites;
+        if (index<0){index=numsites-1}
+        var site = sites[index];
+        movetosite(site)
+      document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function movetosite(b){
+      V1.recenter(b, null, 25);
+      V1.request_render();
+    }
+    function range(start, end) {
+        /* generate a range : [start, start+1, ..., end-1, end] */
+        var len = end - start + 1;
+        var a = new Array(len);
+        for (let i = 0; i < len; i++) a[i] = start + i;
+        return a;
+    }
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 37) previoussite();
+        });
+    });
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 39) nextsite();
+        });
+    });
 
   </script>
 </body>

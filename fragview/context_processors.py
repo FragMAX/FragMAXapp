@@ -30,7 +30,7 @@ class ActiveMenuCtx:
     """
     URL_REGEXP = \
         r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/library_view|^/encryption|^/$)|" + \
-        r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$)"
+        r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$|^/pandda_export/$)"
     # URLs 'project' submenus
 
     def __init__(self):

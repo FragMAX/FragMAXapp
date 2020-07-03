@@ -78,31 +78,42 @@
     .navbt{
       width: 110px;
       font-size: 11px;
-
-
     }
+    .ligandSVG{
+    padding-left: 7.5px;
+    position: absolute;
+    bottom: 10px;
+    width: 250px;
+  }
+      #viewer1 b, #viewer2 b { color: #FCFCFC;}
+  #viewer1 b { overflow: hidden; font-size: 22px; position: absolute; bottom: 60px; left: 50%; }
+  #viewer2 b { overflow: hidden;  font-size: 22px; position: absolute; bottom: 60px; right: 50%;}
+
+  #viewer1, #viewer2 { position:absolute; top:0; width:calc((100% - 550px)/2); height:100%; }
+  #viewer1 { left: 550px; }
+  #viewer2 { right: 0; }
   </style>
 
-  <script src="/static/libs/uglymol.js"></script>
 
+<script src="/static/libs/uglymol.js"></script>
+<script src="/static/libs/wasm/mtz.js"></script>
+  
 </head>
 <body style="background-color: white">
 
-  
-    
-    
     <div id="left-controlpanel" >
-      
-      
       <div style="padding-left:15px !important;">
         <div>
           <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>
-
           <h6>Structure navigation</h6>
         </div>
         <div style="display:flex">
-        <form action="/pandda_density/" method="get" id="pandda_form"><button class="btn" type="submit" value="{{method}};{{dataset}};prev" name="structure" size="1" >Previous</button></form>        
-        <form action="/pandda_density/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next</button></form>
+        <form action="/pandda_density/" method="get" id="pandda_form"><button class="btn navbt" type="submit" value="{{method}};{{dataset}};prev" name="structure" size="1" >Prev event</button></form>
+        <form action="/pandda_density/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn navbt" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next event</button></form>
+        </div>
+        <div style="display:block; padding-top: 8px;"">
+        <input class="btn navbt" type="button" value="Prev site" onclick="return previoussite()" ></input>
+        <input  class="btn navbt" type="button" value="Next site" onclick="return nextsite()" ></input>
         </div>
       </div>
       <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
@@ -147,7 +158,7 @@
           <tr>
             <th>Site
             </th>
-            <td>{{siten}}
+            <td id="tdsite">{{siten}}
             </td>
           </tr>
           <tr>
@@ -221,39 +232,114 @@
               <span class="item-label" for="low_conf_radio">Low confidence</span>
           </label></div>
         </div> 
-      </div> 
+      </div>
+    <div class="ligandSVG">
+          <div>
+            <h5 style="text-align: center;">{{ligand}}</h5>
+          </div>
+          <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      </div>
     </div>
 
 
 
-    <div style="display:flex;">
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">      
-      <img class="ligpng svg" id="ligand" src="/fragment/{{ligand}}/image">
-      <b><h6 >{{dataset }}_{{method}}</h6></b>
-      <header id="hud">Electron density viewer. Press H for help.</header>
+   <div style="display:flex;">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+    <b><h6>{{name}}</h6></b>
+
+      <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
     </div>
     </div>
 
-    
 
-    <div id="viewer" ></div>
+  <div id="viewer1" ><b>Event map<br></b></div>
+  <div id="viewer2" ><b>Average map<br></b></div>
+  <header id="hud"></header>
+  <footer id="help"></footer>
+
 
     <footer id="help"></footer>
     <div id="inset"></div>
 
-    <script>
-      V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-      
-      V.load_pdb("/static/{{pdb}}",null, function(){
-          V.recenter({{center}}, null, 25);
-      });
-      V.load_ccp4_maps("/static/{{2fofc}}","/static/{{fofc}}");
 
+    <script>
       document.getElementById('{{interesting}}').checked = true;
       document.getElementById('{{ligplaced}}'  ).checked = true;
       document.getElementById('{{ligconfid}}'  ).checked = true;
 
+    V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
 
+    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
+                              "/static/{{2fofc}}",
+                              "/static/{{fofc}}");
+
+
+    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
+
+    V2.load_pdb("/static/{{pdb}}",null, function(){
+          V2.recenter({{center}}, null, 25);
+      });
+    V2.load_ccp4_maps("/static/{{average_map}}");
+    V1.recenter({{center}}, null, 25)
+    V1.renderer.domElement.focus();
+    V1.change_zoom_by_factor(3.5);
+
+    var ligcenter = [{{center}}]
+    var centroid = {{centroids}};
+    var centroidL = centroid.length
+    var sites = ligcenter.concat(centroid);
+    var site_idxs = [{{siten}}].concat(range(1,centroidL));
+    var index = 0;
+    var numsites= sites.length;
+    function centerligand(){
+      V1.recenter({{center}}, null, 25)
+      V1.request_render()
+    }
+    function nextsite(){
+        index = (index + 1) % numsites;
+        var site =sites[index];
+        movetosite(site)
+        document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function previoussite(){
+        index = (index - 1) % numsites;
+        if (index<0){index=numsites-1}
+        var site = sites[index];
+        movetosite(site)
+      document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function movetosite(b){
+      V1.recenter(b, null, 25);
+      V1.request_render();
+    }
+    function range(start, end) {
+        /* generate a range : [start, start+1, ..., end-1, end] */
+        var len = end - start + 1;
+        var a = new Array(len);
+        for (let i = 0; i < len; i++) a[i] = start + i;
+        return a;
+    }
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 37) previoussite();
+        });
+    });
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 39) nextsite();
+        });
+    });
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 88) centerligand();
+        });
+    });
   </script>
 </body>
 </html>

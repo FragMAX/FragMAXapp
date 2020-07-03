@@ -66,11 +66,8 @@
   <div id="inset"></div>
 
   <script>
-    V = new UM.Viewer({viewer: "viewer", focusable: true, hud: "hud", help: "help"});
-      //V.load_pdb("/static/frag200001/fragmax/results/pandda/ARwoDMSO/bestdp_bestproc/ARwoDMSO-F2XEntry-A07a_1/final.pdb")
+      V = new UM.Viewer({viewer: "viewer", focusable: true, hud: "hud", help: "help"});
       V.load_pdb("/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/final.pdb")
-
-      //V.load_maps_from_mtz(V,"/static/frag200001/fragmax/results/pandda/ARwoDMSO/bestdp_bestproc/ARwoDMSO-F2XEntry-A07a_1/final.mtz")
       GemmiMtz().then(function(Module) {
         UM.load_maps_from_mtz(Module, V, "/static/biomax/20180479/20190622/fragmax/results/AR-F2XEntry-A01a_1/EDNA/dimple/final.mtz");
       });

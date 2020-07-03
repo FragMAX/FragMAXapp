@@ -86,6 +86,10 @@
 	border: none;
 	cursor: pointer;
 }
+    .navbt{
+      width: 110px;
+      font-size: 11px;
+    }
   </style>
 
 <script src="/static/libs/uglymol.js"></script>
@@ -94,10 +98,10 @@
 </head>
 <body style="background-color: white">
 
-    
-  
+
+
     <div id="left-controlpanel" >
-      
+
       <div style="padding-left:30px !important;padding-top: 10px;">
         <div>
           <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
@@ -108,30 +112,26 @@
           </form>
         </div>
         <div>
-          <h6>Blob navigation</h6>
+          <h6>Results navigation</h6>
         </div>
       </div>
-      <div style="padding-left:30px !important;">
-        
-        <input class="btn " type="button" value="Previous" onclick="return previousblob()" ></input> 
-        <input  class="btn" type="button" value="Next" onclick="return nextblob()" ></input> 
+      <div style="padding-left:18px !important;">
+        <input class="btn navbt" type="button" value="Prev Blob" onclick="return previousblob()" ></input>
+        <input  class="btn navbt" type="button" value="Next Blob" onclick="return nextblob()" ></input>
       </div>
-      <div style="padding-left:30px !important;">
-        <div>
-          <h6>Structure navigation</h6>
-        </div>
+      <div style="padding-left:18px !important; padding-top:8px !important;">
         <div style="display:inline-flex">
         <form action="/density/" method="get" >
-          <button class="btn" type="submit" value="{{prevstr}}" name="structure">Previous</button>
+          <button class="btn navbt" type="submit" value="{{prevstr}}" name="structure">Prev Modl</button>
         </form>
         <form action="/density/" method="get" style="padding-left: 5px;">
-          <button class="btn" type="submit" value="{{nextstr}}" name="structure">Next</button>
+          <button class="btn navbt" type="submit" value="{{nextstr}}" name="structure">Next Modl</button>
         </form>
         </div>
       </div>
       <div style="padding-top:20px">
         <table class="side-table">
-          
+
           <tr>
             <th>Resolution
             </th>
@@ -141,25 +141,25 @@
           <tr>
             <th>Rwork
             </th>
-            <td>{{rwork}} 
+            <td>{{rwork}}
             </td>
           </tr>
           <tr>
             <th>Rfree
             </th>
-            <td>{{rfree}} 
+            <td>{{rfree}}
             </td>
           </tr>
           <tr>
             <th>RhoFit score
             </th>
-            <td>{{rscore}} 
+            <td>{{rscore}}
             </td>
           </tr>
           <tr>
             <th>LigFit score
             </th>
-            <td>{{lscore}} 
+            <td>{{lscore}}
             </td>
           </tr>
           <tr>
@@ -171,16 +171,16 @@
 
         </table>
       </div>
-      
+
       <div style="display:{{ligbox}};">
       <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
           <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
             <h6> RhoFit - <button  class="link" type="submit" value="{{rhofitlog}}" name="logFile" size="1" >Log</button></h6>
-          </form>        
+          </form>
         </div>
-        <input class="btn " type="button" value="Show"  onclick="showrhofit();"></input> 
-        <input class="btn" type="button" value="Hide"   onclick="hiderhofit();"></input> 
+        <input class="btn " type="button" value="Show/Hide"  onclick="showrhofit();"></input>
+        <input class="btn" type="button" value="Go"   onclick="centerrhofit();"></input>
         <div style="display: inline-block;vertical-align: middle;">
           <label >
             <input class="with-gap" id="rhofit_radio" name="rhofit_radio" type="radio" checked>
@@ -188,17 +188,17 @@
           </label>
         </div>
       </div>
-      
 
-          
+
+
       <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
           <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
             <h6> LigandFit - <button  class="link" type="submit" value="{{ligandfitlog}}" name="logFile" size="1" >Log</button></h6>
-          </form>        
+          </form>
         </div>
-        <input class="btn " type="button" value="Show" onclick="showligfit();"></input> 
-        <input class="btn" type="button" value="Hide"  onclick="hideligfit();"></input> 
+        <input class="btn " type="button" value="Show/Hide" onclick="showligfit();"></input>
+        <input class="btn" type="button" value="Go"  onclick="centerligfit();"></input>
         <div style="display: inline-block;vertical-align: middle;">
           <label >
             <input class="with-gap" id="ligfit_radio" name="lifgit:radio" type="radio" checked>
@@ -212,14 +212,14 @@
           <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
       </div>
-     
+
       {% if ligand %}
-      <div class="ligandSVG">    
+      <div class="ligandSVG">
           <div>
             <h5 style="text-align: center;">{{ligand}}</h5>
           </div>
           <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
-      </div> 
+      </div>
       {% endif %}
     </div>
     </div>
@@ -233,7 +233,7 @@
     </div>
     </div>
 
-    
+
     <div id="viewer"></div>
 
     <footer id="help"></footer>
@@ -250,101 +250,77 @@
       V.load_pdb("{{rhofitpdb}}");
 
       var blobs = {{xyzlist}};
-    
-
-    var index = 0;
-    var numblobs= blobs.length;
-
-    function nextblob(){
-        index = (index + 1) % numblobs;  
-        var blob =blobs[index];        
-        movetoblob(blob)          
-    }    
-    function previousblob(){
-        index = (index - 1) % numblobs;
-        if (index<0){index=numblobs-1}
-        var blob =blobs[index];        
-        movetoblob(blob)        
-    }
-
-    
-    function movetoblob(b){
-      V.recenter(b, null, 25);    
-      updateview()
-    }
 
 
+      var index = 0;
+      var numblobs= blobs.length;
 
-    lpos={{rpos}}
-    rpos={{lpos}}
-
-    function test(){
-      alert(rhofitModel)
-    }
-
-    function hiderhofit(){
-      V.model_bags[rpos].visible=false; 
-      V.redraw_all()
-      updateview();
-      document.getElementById("rhofit_radio").checked=0
-
-    }
-
-    function hideligfit(){
-      V.model_bags[lpos]  .visible=false; 
-      V.redraw_all()
-      updateview();
-      document.getElementById("ligfit_radio").checked=0
-
-    }
+      function nextblob(){
+          index = (index + 1) % numblobs;
+          var blob =blobs[index];
+          movetoblob(blob)
+      }
+      function previousblob(){
+          index = (index - 1) % numblobs;
+          if (index<0){index=numblobs-1}
+          var blob =blobs[index];
+          movetoblob(blob)
+      }
 
 
-    function showrhofit(){
-      V.model_bags[rpos].visible=true; 
-      V.redraw_all()
-      V.recenter({{rhofitcenter}},null,25)
-      updateview();
-      document.getElementById("rhofit_radio").checked=1
-    }
+      function movetoblob(b){
+        V.recenter(b, null, 25);
+        V.request_render();
+      }
 
-    function showligfit(){
-      V.model_bags[lpos]  .visible=true; 
-      V.redraw_all()
-      V.recenter({{ligfitcenter}},null,25)
-      updateview();
-      document.getElementById("ligfit_radio").checked=1
+      function showrhofit(){
+        V.model_bags[{{lpos}}].visible^=true;
+        V.redraw_all()
+        V.request_render();
+        document.getElementById("rhofit_radio").checked^=true
+      }
+      function centerrhofit(){
+        V.recenter({{rhofitcenter}},null,25)
+        V.request_render();
 
-    }
+      }
+      function showligfit(){
+        V.model_bags[{{rpos}}].visible^=true;
+        V.redraw_all()
+        V.request_render();
+        document.getElementById("ligfit_radio").checked^=true
+      }
+      function centerligfit(){
+        V.recenter({{ligfitcenter}},null,25)
+        V.request_render();
 
-    function showprotein(){
-      V.model_bags[-1].visible=true; 
-      V.redraw_all();
-      updateview();
-    }
+      }
+      function showprotein(){
+        V.model_bags[-1].visible=true;
+        V.redraw_all();
+        V.request_render();
+      }
 
-    function hideprotein(){
-      V.model_bags[-1].visible=false; 
-      V.redraw_all();
-      updateview();
-    }
+      function hideprotein(){
+        V.model_bags[-1].visible=false;
+        V.redraw_all();
+        V.request_render();
+      }
 
-    function updateview(){
-      var keyboardEvent = document.createEvent("KeyboardEvent");
-      var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
-      keyboardEvent[initMethod](
-                        "keydown", // event type : keydown, keyup, keypress
-                          true, // bubbles
-                          true, // cancelable
-                          window, // viewArg: should be window
-                          false, // ctrlKeyArg
-                          false, // altKeyArg
-                          false, // shiftKeyArg
-                          false, // metaKeyArg
-                          82, // keyCodeArg : unsigned long the virtual key code, else 0
-                          0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-      );
-      document.dispatchEvent(keyboardEvent);
-    }
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 37) previousblob();
+        });
+    });
+    $(document).ready(function(){
+        $(document).bind("keydown", function(e){
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if(charCode == 39) nextblob();
+        });
+    });
   </script>
 </body>
 </html>

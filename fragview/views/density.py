@@ -3,6 +3,7 @@ import shutil
 import csv
 from os import path
 from glob import glob
+from ast import literal_eval
 
 from django.shortcuts import render
 
@@ -164,12 +165,10 @@ def compare_poses(request):
     proj = current_project(request)
     static_url = project_static_url(proj)
 
-    a = str(request.GET.get("ligfit_dataset"))
-    data = a.split(";")[0]
-    blob = a.split(";")[1]
-    lig = data.split("-")[-1].split("_")[0]
-
-    ligpng = static_url + "/fragmax/process/fragment/" + proj.library + "/" + lig + "/" + lig + ".svg"
+    ligfit_dataset = str(request.GET.get("ligfit_dataset"))
+    data = ligfit_dataset.split(";")[0]
+    blob = ligfit_dataset.split(";")[1]
+    ligand = data.split("-")[-1].split("_")[0]
 
     entry_dir = path.join("_".join(data.split("_")[:2]), data.split("_")[2], data.split("_")[3])
 
@@ -177,6 +176,7 @@ def compare_poses(request):
     ligfit = sorted(glob(
         proj.data_path() + "/fragmax/results/" + entry_dir + "/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
     pdb = static_url + "/fragmax/results/" + entry_dir + "/final.pdb"
+    mtz = static_url + "/fragmax/results/" + entry_dir + "/final.mtz"
     nat = static_url + "/fragmax/results/" + entry_dir + "/final_mFo-DFc.ccp4"
     dif = static_url + "/fragmax/results/" + entry_dir + "/final_2mFo-DFc.ccp4"
 
@@ -199,17 +199,24 @@ def compare_poses(request):
     rhofit = rhofit.replace("/data/visitors/", "/static/")
     ligfit = ligfit.replace("/data/visitors/", "/static/")
 
+    l_dataset = "_".join(data.split("_")[:2])
+    process = data.split("_")[2]
+    refine = data.split("_")[3]
     return render(
         request,
         "fragview/dual_density.html",
         {
             "ligfit_dataset": data,
             "blob": blob,
-            "png": ligpng,
             "rhofitcenter": rhocenter,
             "ligandfitcenter": ligcenter,
-            "ligand": proj.library + "_" + lig,
+            "ligand": proj.library.name + "_" + ligand,
+            "lig": ligand,
             "pdb": pdb,
+            "mtz": mtz,
+            "l_dataset": l_dataset,
+            "process": process,
+            "refine": refine,
             "dif": dif,
             "nat": nat,
             "rhofit": rhofit,
@@ -391,6 +398,7 @@ def pandda_analyse(request):
                 k = False
         if k:
             bdc = k[2]
+            site_idx = k[11]
             center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
             resolution = k[18]
             rfree = k[20]
@@ -399,7 +407,6 @@ def pandda_analyse(request):
 
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
-                site = k[11]
 
             pdb = pdb.replace(base_static, "")
             map1 = \
@@ -420,6 +427,7 @@ def pandda_analyse(request):
                     k = i.split(",")
                     break
             bdc = k[0]
+            site_idx = 0
             center = "['','','']"
             resolution = k[2]
             rfree = 0
@@ -428,7 +436,6 @@ def pandda_analyse(request):
 
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
-                site = k[11]
 
             pdb = pdb.replace(base_static, "")
             map1 = ""
@@ -440,6 +447,9 @@ def pandda_analyse(request):
             "/" + method + "/pandda/processed_datasets/" + dataset + "/html/" + dataset + ".html"
         summarypath = summarypath.replace(base_static, "")
         mtzFile = pdb.replace(".pdb", ".mtz")
+
+        _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+        centroids = find_site_centroids(_sites)
 
         with open(path.join(project_process_protein_dir(proj), "panddainspects.csv"), "r") as csvFile:
             reader = csv.reader(csvFile)
@@ -463,7 +473,7 @@ def pandda_analyse(request):
             request,
             "fragview/pandda_densityA.html",
             {
-                "siten": site,
+                "siten": site_idx,
                 "event": event,
                 "method": method,
                 "rwork": rwork,
@@ -477,13 +487,15 @@ def pandda_analyse(request):
                 "fofc": map1,
                 "ligand": ligand,
                 "center": center,
+                "centroids": centroids,
                 "bdc": bdc,
                 "summary": summarypath,
                 "average_map": average_map,
                 "name": name,
                 "library": proj.library,
                 "prevstr": prevstr,
-                "nextstr": nextstr
+                "nextstr": nextstr,
+                "panddatype": "analyses"
             })
 
     else:
@@ -528,6 +540,10 @@ def pandda(request):
 
         modelledDir = path.join(datasets_dir, dataset, "modelled_structures")
 
+        pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+        _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+        centroids = find_site_centroids(_sites)
+
         pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
 
         with open(path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r") as inp:
@@ -539,6 +555,7 @@ def pandda(request):
                 break
         headers = inspect_events[0].split(",")
         bdc = k[2]
+        site_idx = k[11]
         center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
         resolution = k[18]
         rfree = k[20]
@@ -552,7 +569,6 @@ def pandda(request):
 
         if len(panddaInput.split(";")) == 3:
             event = k[1]
-            site = k[11]
 
         if "true" in ligplaced.lower():
             ligplaced = "lig_radio"
@@ -586,8 +602,9 @@ def pandda(request):
             request,
             "fragview/pandda_density.html",
             {
-                "siten": site,
+                "siten": site_idx,
                 "event": event,
+                "centroids": centroids,
                 "method": method,
                 "rwork": rwork,
                 "rfree": rfree,
@@ -605,7 +622,8 @@ def pandda(request):
                 "ligconfid": ligconfid,
                 "comment": comment,
                 "bdc": bdc,
-                "summary": summarypath
+                "summary": summarypath,
+                "panddatype": "inspection"
             })
     else:
         return render(
@@ -641,6 +659,8 @@ def pandda_consensus(request):
     ligand = dataset.split("-")[-1].split("_")[0] + ddtag
 
     pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
+    centroids = find_site_centroids(_sites)
     modelledDir = path.join(pandda_res_dir, "processed_datasets", f"{dataset}{ddtag}_{run}", "modelled_structures")
 
     pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
@@ -658,6 +678,7 @@ def pandda_consensus(request):
 
     headers = inspect_events[0].split(",")
     bdc = k[2]
+    site_idx = k[11]
     center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
     resolution = k[18]
     rfree = k[20]
@@ -723,6 +744,7 @@ def pandda_consensus(request):
             "library": library,
             "ligand": ligand,
             "center": center,
+            "centroids": centroids,
             "analysed": analysed,
             "interesting": interesting,
             "ligplaced": ligplaced,
@@ -731,7 +753,8 @@ def pandda_consensus(request):
             "bdc": bdc,
             "summary": summarypath,
             "prevstr": prevstr,
-            "nextstr": nextstr
+            "nextstr": nextstr,
+            "panddatype": "consensus"
         })
 
 
@@ -772,3 +795,13 @@ def find_ligandfitting_log(res_dir):
     else:
         ligandfitlog = ""
     return rhofitlog, ligandfitlog
+
+
+def find_site_centroids(_sites):
+    with open(_sites, "r") as r:
+        sitelist = r.readlines()
+    centroids = list()
+    for _site in sitelist[1:]:
+        centroid = literal_eval(",".join(_site.replace('"', "").split(",")[8:11]))
+        centroids.append(list(centroid))
+    return centroids

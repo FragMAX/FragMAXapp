@@ -8,16 +8,18 @@ import pyfastcopy  # noqa
 import shutil
 import xmltodict
 import subprocess
+import itertools
 from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
-from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
-from fragview.projects import project_data_collections_file, project_fragmax_dir
+from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir, project_fragmax_dir
+from fragview.projects import project_data_collections_file, project_update_status_script, project_script
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER
+from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS
+from fragview import hpc
 
 logger = get_task_logger(__name__)
 
@@ -100,14 +102,14 @@ def _make_fragmax_dir(proj):
 
     # look-up proposal group ID
     proposal_group = grp.getgrnam(f"{proj.proposal}-group")
-
-    os.mkdir(fragmax_dir)
-    # set owner group
-    os.chown(fragmax_dir, -1, proposal_group.gr_gid)
-    # make sure SETGID bit is set
-    os.chmod(fragmax_dir,
-             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
-             stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+    if not os.path.exists(fragmax_dir):
+        os.mkdir(fragmax_dir)
+        # set owner group
+        os.chown(fragmax_dir, -1, proposal_group.gr_gid)
+        # make sure SETGID bit is set
+        os.chmod(fragmax_dir,
+                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+                 stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
 
     return fragmax_dir
 
@@ -139,7 +141,7 @@ def _copy_script_files(proj, script_files):
 
 
 def _copy_scripts(proj):
-    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER]
+    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS]
     if proj.encrypted:
         script_files += ["crypt_files.py", "crypt_files.sh"]
 
@@ -246,13 +248,11 @@ def _write_project_status(proj):
 
     statusDict = dict()
     procList = list()
-    resList = list()
 
     for shift_dir in project_shift_dirs(proj):
         procList += [
             "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
             glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
-        resList += glob(f"{shift_dir}/fragmax/results/{proj.protein}*/")
 
     for i in procList:
         dataset_run = i.split("/")[-2]
@@ -270,78 +270,24 @@ def _write_project_status(proj):
             "ligfit": "none",
         }
 
-    for result in resList:
-        dts = result.split("/")[-2]
-        if dts not in statusDict:
-            statusDict[dts] = {
-                "autoproc": "none",
-                "dials": "none",
-                "EDNA": "none",
-                "fastdp": "none",
-                "xdsapp": "none",
-                "xdsxscale": "none",
-                "dimple": "none",
-                "fspipeline": "none",
-                "buster": "none",
-                "rhofit": "none",
-                "ligfit": "none",
-            }
-
-        for j in glob(result + "*"):
-            if os.path.exists(j + "/dimple/final.pdb"):
-                statusDict[dts].update({"dimple": "full"})
-
-            if os.path.exists(j + "/fspipeline/final.pdb"):
-                statusDict[dts].update({"fspipeline": "full"})
-
-            if os.path.exists(j + "/buster/final.pdb"):
-                statusDict[dts].update({"buster": "full"})
-
-            if glob(j + "/*/ligfit/LigandFit*/ligand_fit_*.pdb") != []:
-                statusDict[dts].update({"ligfit": "full"})
-
-            if glob(j + "/*/rhofit/best.pdb") != []:
-                statusDict[dts].update({"rhofit": "full"})
-
-    for process in procList:
-        dts = process.split("/")[-2]
-        j = list()
-
-        for shift_dir in project_shift_dirs(proj):
-            j += glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/{dts}/")
-
-        if j != []:
-            j = j[0]
-
-        if glob(j + "/autoproc/*staraniso*.mtz") + glob(j + "/autoproc/*aimless*.mtz") != []:
-            statusDict[dts].update({"autoproc": "full"})
-
-        if glob(j + "/dials/DataFiles/*mtz") != []:
-            statusDict[dts].update({"dials": "full"})
-
-        ej = list()
-        for shift_dir in project_shift_dirs(proj):
-            ej += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/EDNA_proc/results/*mtz")
-
-        if ej != []:
-            statusDict[dts].update({"EDNA": "full"})
-        fj = list()
-
-        for shift_dir in project_shift_dirs(proj):
-            fj += glob(f"{shift_dir}/process/{proj.protein}/*/*{dts}*/fastdp/results/*mtz.gz")
-
-        if fj != []:
-            statusDict[dts].update({"fastdp": "full"})
-
-        if glob(j + "/xdsapp/*mtz") != []:
-            statusDict[dts].update({"xdsapp": "full"})
-
-        if glob(j + "/xdsxscale/DataFiles/*mtz") != []:
-            statusDict[dts].update({"xdsxscale": "full"})
-
     with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
                          "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
+
+    h5s = list(itertools.chain(
+        *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
+          for p in proj.shifts()]))
+    script = project_script(proj, f"update_status.sh")
+    with open(script, "w") as outfile:
+        outfile.write("#!/bin/bash\n")
+        outfile.write("#!/bin/bash\n")
+        outfile.write("module purge\n")
+        outfile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
+        for h5 in h5s:
+            dataset, run = (h5.split("/")[-1][:-10].split("_"))
+            outfile.write(
+                f"python3 {project_update_status_script(proj)} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
+    hpc.run_sbatch(script)
