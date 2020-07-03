@@ -18,7 +18,7 @@ from fragview.projects import proposal_dir, project_xml_files, project_process_p
 from fragview.projects import project_data_collections_file, project_update_status_script, project_script
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER
+from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS
 from fragview import hpc
 
 logger = get_task_logger(__name__)
@@ -135,7 +135,7 @@ def _copy_script_files(proj, script_files):
 
 
 def _copy_scripts(proj):
-    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER]
+    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS]
     if proj.encrypted:
         script_files += ["crypt_files.py", "crypt_files.sh"]
 

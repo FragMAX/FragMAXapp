@@ -12,6 +12,7 @@ from fragview.projects import current_project, project_results_file, project_upd
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview import hpc, versions
+from worker.scripts import update_status_path
 
 
 def set_details(request):
@@ -480,7 +481,7 @@ def resync_status_project(proj):
         for h5 in h5s:
             dataset, run = (h5.split("/")[-1][:-10].split("_"))
             outfile.write(
-                f"python3 {project_update_status_script(proj)} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
+                f"python3 {update_status_path()} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
     hpc.run_sbatch(script)
 
 
