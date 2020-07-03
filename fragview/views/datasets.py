@@ -8,7 +8,7 @@ import itertools
 from django.shortcuts import render
 
 from fragview.projects import project_all_status_file, project_process_protein_dir, project_script
-from fragview.projects import current_project, project_results_file, project_update_status_script
+from fragview.projects import current_project, project_results_file
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview import hpc, versions
