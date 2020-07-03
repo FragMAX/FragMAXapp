@@ -14,7 +14,7 @@ import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
-from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir
+from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir, project_fragmax_dir
 from fragview.projects import project_data_collections_file, project_update_status_script, project_script
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
