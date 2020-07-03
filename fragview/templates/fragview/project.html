@@ -146,23 +146,13 @@ $(document).ready(function()
                         </td>
                     </tr>
                     <tr>
-                        <th>Shift</th>
-                        <td>
-                            <input class="selectbox"
-                                   name="shift"
-                                   placeholder="20190127"
-                                   value="{{ form.shift.value }}"
-                                   required/>
-                            <div class="err_msg">{{ form.shift.errors }}</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Connected experiments</th>
+                        <th>Shifts</th>
                         <td>
                             <input class="selectbox"
                                    name="shift_list"
                                    placeholder="20190622,20190629"
-                                   value="{{ form.shift_list.value }}"/>
+                                   value="{{form.shift_list.value}}"
+                                   required/>
                             <div class="err_msg">{{ form.shift_list.errors }}</div>
                         </td>
                     </tr>

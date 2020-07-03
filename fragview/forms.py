@@ -165,8 +165,7 @@ class ProjectForm(forms.Form):
     library_name = forms.CharField(required=False)
     fragments_file = forms.FileField(required=False)
     proposal = forms.CharField()
-    shift = forms.CharField()
-    shift_list = forms.CharField(required=False)
+    shift_list = forms.CharField()
     # set required=False for this field, as it's not always submitted when unchecked
     encrypted = forms.BooleanField(required=False)
 
@@ -213,15 +212,8 @@ class ProjectForm(forms.Form):
     def clean_proposal(self):
         return _is_8_digits(self.cleaned_data["proposal"], "proposal")
 
-    def clean_shift(self):
-        return _is_8_digits(self.cleaned_data["shift"])
-
     def clean_shift_list(self):
         shift_list = self.cleaned_data["shift_list"].strip()
-
-        if not shift_list:
-            # empty shift list is valid
-            return shift_list
 
         for shift in shift_list.split(","):
             _is_8_digits(shift)
@@ -248,14 +240,23 @@ class ProjectForm(forms.Form):
     def _validate_shift_list(self, proposal):
         shift_list = self.cleaned_data["shift_list"].strip()
 
-        if not shift_list:
-            # empty shift list, no need validate anything more
-            return {}
+        protein = self.cleaned_data["protein"]
 
-        for shift in shift_list.split(","):
+        shifts = shift_list.split(",")
+        for shift in shifts:
             if not path.isdir(projects.shift_dir(proposal, shift)):
                 # bail on first incorrect shift ID
                 return dict(shift_list=f"shift '{shift}' not found")
+
+            # check that this shift dir have the protein directory
+            if not path.isdir(projects.protein_dir(proposal, shift, protein)):
+                return dict(shift_list=f"shift '{shift}' have no data for protein '{protein}'")
+
+        if self.model is not None:
+            # while updating existing project, prevent user from removing the 'main' shift
+            main_shift = self.model.shift
+            if main_shift not in shifts:
+                return dict(shift_list=f"can't remove main shift '{main_shift}'")
 
         # all shifts looks good, no errors
         return {}
@@ -282,15 +283,6 @@ class ProjectForm(forms.Form):
             raise forms.ValidationError(
                 dict(proposal=f"proposal '{proposal}' not found"))
 
-        # check that shift directory exists
-        shift = self.cleaned_data["shift"]
-        if not path.isdir(projects.shift_dir(proposal, shift)):
-            errors["shift"] = f"shift '{shift}' not found"
-        else:  # only validate protein dir, if the shift dir is good
-            protein = self.cleaned_data["protein"]
-            if not path.isdir(projects.protein_dir(proposal, shift, protein)):
-                errors["protein"] = f"data for protein '{protein}' not found"
-
         shift_list_errors = self._validate_shift_list(proposal)
         errors.update(shift_list_errors)
 
@@ -306,7 +298,6 @@ class ProjectForm(forms.Form):
 
         self.model.protein = self.cleaned_data["protein"]
         self.model.proposal = self.cleaned_data["proposal"]
-        self.model.shift = self.cleaned_data["shift"]
         self.model.shift_list = self.cleaned_data["shift_list"]
 
         self.model.save()
@@ -316,21 +307,22 @@ class ProjectForm(forms.Form):
         library = fraglib.save_new_library(
             self.cleaned_data["library_name"], self.cleaned_data["fragments"])
 
+        #
         # save the 'Project' model to DB
+        #
+
         encrypted = self.cleaned_data["encrypted"]
-        args = dict(
+        shifts = self.cleaned_data["shift_list"]
+        # pick first specified shift as 'main' shift
+        shift = shifts.split(",")[0]
+
+        proj = Project(
             protein=self.cleaned_data["protein"],
             library=library,
             proposal=self.cleaned_data["proposal"],
-            shift=self.cleaned_data["shift"],
+            shift=shift,
+            shift_list=shifts,
             encrypted=encrypted)
-
-        # check if there is any shift_list specified
-        shift_list = self.cleaned_data["shift_list"]
-        if len(shift_list) > 0:
-            args["shift_list"] = shift_list
-
-        proj = Project(**args)
         proj.save()
 
         if encrypted:

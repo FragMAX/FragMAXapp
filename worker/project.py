@@ -92,7 +92,13 @@ def _make_fragmax_dir(proj):
     this ownership and permission makes all the files created under
     the fragmax folder accessible to all users in the proposal group
     """
-    fragmax_dir = path.join(proj.data_path(), "fragmax")
+    fragmax_dir = project_fragmax_dir(proj)
+    if path.exists(fragmax_dir):
+        # directory already exists,
+        # which can happen when different proteins are collected during same shift,
+        # and we create two different project which end up sharing 'main shift' folder
+        # let's hope the owner group and SETGID are correct
+        return fragmax_dir
 
     # look-up proposal group ID
     proposal_group = grp.getgrnam(f"{proj.proposal}-group")

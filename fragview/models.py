@@ -41,6 +41,7 @@ class Project(models.Model):
     protein = models.TextField()
     library = models.ForeignKey(Library, on_delete=models.CASCADE)
     proposal = models.TextField()
+    # 'main' shift, where we store fragmax generated data
     shift = models.TextField()
     shift_list = models.TextField(blank=True)
     # 'encrypted mode' for data processing is enabled
