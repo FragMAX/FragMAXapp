@@ -1310,21 +1310,21 @@
                                     <th class=" top-options">Fill missing reflections with CAD</th>
                                     <td class=" top-options">
                                         <select class="selectbox" id="use_CAD" name="use_CAD" disabled>
-                                                                                                                    <option disabled value="yes"> -- select an option -- </option>
-                                                                                                                    <option selected value="yes">Yes</option>
-                                                                                                                    <option value="no">No</option>
-                                                                                                                </select>
+                                            <option disabled value="yes"> -- select an option -- </option>
+                                            <option selected value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th class=" top-options">Refine populated MTZ</th>
                                     <td class=" top-options">
                                         <select class="selectbox" id="refine_popMTZ" name="refine_popMTZ" disabled>
-                                                                                                                    <option disabled value="no"> -- select an option -- </option>
-                                                                                                                    <option selected value="phenixRefine">Phenix.Refine</option>
-                                                                                                                    <option value="refmac">Refmac</option>
-                                                                                                                    <option value="no">No</option>
-                                                                                                                </select>
+                                            <option disabled value="no"> -- select an option -- </option>
+                                            <option selected value="phenixRefine">Phenix.Refine</option>
+                                            <option value="refmac">Refmac</option>
+                                            <option value="no">No</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1333,22 +1333,22 @@
                                         <form id="preprocessOptions">
                                             <div class="checkbox" id="ignoreErrcheck">
                                                 <label>
-                                                                                                                            <input checked class="filled-in dt-checkboxes" id="ignoreErr" name="ignoreErr" type="checkbox" value="ignoreErr">
-                                                                                                                                <span for="ignoreErr">Auto remove dataset with problems</span>
-                                                                                                                            </label>
+                                                    <input checked class="filled-in dt-checkboxes" id="ignoreErr" name="ignoreErr" type="checkbox" value="ignoreErr">
+                                                    <span for="ignoreErr">Auto remove dataset with problems</span>
+                                                </label>
                                             </div>
                                             <div class="checkbox" id="keepupcheck">
                                                 <label>
-                                                                                                                                <input class="filled-in dt-checkboxes" id="keepup" name="keepup" type="checkbox" value="keepup">
-                                                                                                                                <span for="keepup">Continue last analysis</span>
-                                                                                                                            </label>
+                                                    <input class="filled-in dt-checkboxes" id="keepup" name="keepup" type="checkbox" value="keepup">
+                                                    <span for="keepup">Continue last analysis</span>
+                                                </label>
                                             </div>
                                             <div class="checkbox" id="fixsymcheck">
                                                 <label>
-                                                                                                                                <input class="filled-in dt-checkboxes" id="fixsym" name="fixsym" type="checkbox" value="fixsym">
-                                                                                                                                <span for="fixsym">Ignore symlink issues</span>
-                                                                                                                            </label>
-                                            </div>
+                                                    <input class="filled-in dt-checkboxes" id="fixsym" name="fixsym" type="checkbox" value="fixsym">
+                                                    <span for="fixsym">Ignore symlink issues</span>
+                                                </label>
+                                        </div>
                                         </form>
                                     </td>
                                 </tr>
@@ -1361,14 +1361,14 @@
                                 <tr>
                                     <th class=" top-options">Maximum R<sub>free</sub></th>
                                     <td class=" top-options">
-                                        <input class="selectbox" id="pandda_max_rfree" placeholder="default: 0.40"></input>
+                                        <input class="selectbox" id="pandda_max_rfree" value="0.40" placeholder="default: 0.40"></input>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th class=" top-options">Resolution limits</th>
                                     <td class=" top-options" style="display: flex">
-                                        <div><input class="selectbox" id="pandda_res_low_limit" placeholder="min: 0.0"></input></div>
-                                        <div style="padding-left: 10%;"><input class="selectbox" id="pandda_res_high_limit" placeholder="max: 4.0" ></input></div>
+                                        <div><input class="selectbox" id="pandda_res_low_limit" value="0.0" placeholder="min: 0.0"></input></div>
+                                        <div style="padding-left: 10%;"><input class="selectbox" id="pandda_res_high_limit" value="4.0" placeholder="max: 4.0" ></input></div>
                                     </td>
                                 </tr>
                                 <tr class="custompar">
@@ -1402,12 +1402,12 @@
                                     <th class=" top-options">Available inspects1</th>
                                     <td class=" top-options">
                                         <select class="selectbox" id="inspects" name="inspects">
-                                                                                                                                        <option disabled selected value="yes"> -- select an option -- </option>
-                                                                                                                                        {% for method in methods %}
-                                                                                                                                        <option value="{{method}}">{{method}}</option>
-                                                                                                                                        {% endfor %}
-                            
-                                                                                                                                    </select>
+                                            <option disabled selected value="yes"> -- select an option -- </option>
+                                            {% for method in methods %}
+                                            <option value="{{method}}">{{method}}</option>
+                                            {% endfor %}
+
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
@@ -2247,11 +2247,14 @@
         var ign_symlink = document.getElementById("fixsym").checked
         var min_datasets = document.getElementById("min_datasets").value
         var PanDDAcustom = document.getElementById("PanDDAcustom").value
+        var pandda_max_rfree = "max_rfree="+document.getElementById("pandda_max_rfree").value
+        var pandda_high_res_upper_limit = "high_res_upper_limit="+document.getElementById("pandda_res_high_limit").value
+        var pandda_high_res_lowe_limit = "high_res_lower_limit="+document.getElementById("pandda_res_low_limit").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
-            ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter
-            + ";" + min_datasets + ";" + PanDDAcustom
+            ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter  + ";" + min_datasets + ";" +
+            PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " + pandda_high_res_lowe_limit
 
         document.getElementsByName("panddaform")[0].value = PanDDAout
 
