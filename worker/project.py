@@ -246,7 +246,8 @@ def _import_edna_fastdp(proj, shifts):
                     outfile.write("#!/bin/bash\n")
                     outfile.write("module purge\n")
                     # shutil.copytree(edna_path_src, edna_path_dst)
-                    outfile.write(f"cp {edna_path_src} {edna_path_dst}\n")
+                    outfile.write(f"mkdir -p {edna_path_dst}\n")
+                    outfile.write(f"rsync -r {edna_path_src} {edna_path_dst}\n")
                 hpc.run_sbatch(script)
 
         if path.exists(fastdp_path_src):
@@ -257,7 +258,8 @@ def _import_edna_fastdp(proj, shifts):
                     outfile.write("#!/bin/bash\n")
                     outfile.write("#!/bin/bash\n")
                     outfile.write("module purge\n")
-                    outfile.write(f"cp {fastdp_path_src} {fastdp_path_dst}\n")
+                    outfile.write(f"mkdir -p {fastdp_path_dst}\n")
+                    outfile.write(f"rsync -r {fastdp_path_src} {fastdp_path_dst}\n")
                     # subprocess.call(f"gzip -d {fastdp_path_dst}/*gz", shell=True)
                     outfile.write(f"gzip -d {fastdp_path_dst}/*gz\n")
                 hpc.run_sbatch(script)
@@ -270,7 +272,8 @@ def _import_edna_fastdp(proj, shifts):
                         outfile.write("#!/bin/bash\n")
                         outfile.write("#!/bin/bash\n")
                         outfile.write("module purge\n")
-                        outfile.write(f"cp {autoproc_path_src} {autoproc_path_dst}\n")
+                        outfile.write(f"mkdir -p {autoproc_path_dst}\n")
+                        outfile.write(f"rsync -r {autoproc_path_src} {autoproc_path_dst}\n")
                     hpc.run_sbatch(script)
 
 
