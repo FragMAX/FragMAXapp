@@ -1,6 +1,18 @@
 {% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMAX - Data Analysis{% endblock %} {% block content %}
 
 <style xmlns="http://www.w3.org/1999/html">
+    html {
+    overflow: scroll;
+    overflow-x: hidden;
+    }
+    ::-webkit-scrollbar {
+        width: 0px;  /* Remove scrollbar space */
+        background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+    /* Optional: show position indicator in red */
+    ::-webkit-scrollbar-thumb {
+        background: #FF0000;
+    }
     .floatedTable {
         float: left;
     }
@@ -362,7 +374,7 @@
                                                 <label>
                                                         <input class="refineform filled-in dt-checkboxes" id="dimplecheckboxinput"
                                                             name="useDimple" type="checkbox">
-                                                        <span for="dimplecheckboxinput">Dimple</span>
+                                                        <span for="dimplecheckboxinput">DIMPLE</span>
                                                     </label>
                                             </div>
                                             <div class="checkbox" id="xdsxscale">
@@ -376,7 +388,7 @@
                                                 <label>
                                                         <input class="refineform filled-in dt-checkboxes" id="fspcheckboxinput"
                                                             name="useFSpipeline" type="checkbox">
-                                                        <span for="fspcheckboxinput">FSpipeline</span>
+                                                        <span for="fspcheckboxinput">fspipeline</span>
                                                     </label>
                                             </div>
                                         </div>
@@ -512,7 +524,7 @@
         <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
         <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
+        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
         <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
         <button class="tablinks" onclick="openMethod(event, 'PanDDA')">PanDDA</button>
@@ -700,7 +712,7 @@
         </table>
     </div>
     <div class="card tabcontent" id="DIMPLE">
-        <div class="card-title">Dimple Options</div>
+        <div class="card-title">DIMPLE Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -897,8 +909,8 @@
             </tbody>
         </table>
     </div>
-    <div class="card tabcontent" id="FSPipeline">
-        <div class="card-title">FSPipeline Options</div>
+    <div class="card tabcontent" id="fspipeline">
+        <div class="card-title">fspipeline Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -1220,13 +1232,13 @@
                                             <div class="radio" id="dataref_type">
                                                 <label>
                                                     <input class="with-gap" id="dimple_radio" name="ref_type" type="radio" value="dimple">
-                                                    <span class="item-label" for="dimple_radio">Dimple</span>
+                                                    <span class="item-label" for="dimple_radio">DIMPLE</span>
                                                 </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
                                                     <input class="with-gap" id="fspipeline_radio" name="ref_type" type="radio" value="fspipeline">
-                                                    <span class="item-label" for="fspipeline_radio">FSpipeline</span>
+                                                    <span class="item-label" for="fspipeline_radio">fspipeline</span>
                                                 </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
@@ -1344,6 +1356,19 @@
                                     <th class=" top-options">Minimum dataset for building ground state</th>
                                     <td class=" top-options">
                                         <input class="selectbox" id="min_datasets" placeholder="default: 40"></input>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class=" top-options">Maximum R<sub>free</sub></th>
+                                    <td class=" top-options">
+                                        <input class="selectbox" id="pandda_max_rfree" placeholder="default: 0.40"></input>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class=" top-options">Resolution limits</th>
+                                    <td class=" top-options" style="display: flex">
+                                        <div><input class="selectbox" id="pandda_res_low_limit" placeholder="min: 0.0"></input></div>
+                                        <div style="padding-left: 10%;"><input class="selectbox" id="pandda_res_high_limit" placeholder="max: 4.0" ></input></div>
                                     </td>
                                 </tr>
                                 <tr class="custompar">

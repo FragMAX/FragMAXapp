@@ -14,7 +14,9 @@
      }
     .side-table{
     font-size: 15px;
-    line-height: 3px;
+    line-height: 2px;
+    margin-left: 9%;
+    width: 80%
     }
    #viewer {
      position: absolute;
@@ -70,10 +72,12 @@
     filter: contrast(0.5);
     }
     .ligandSVG{
-    padding-left: 5px;
+    left: 0px;
     position: absolute;
-    bottom: 10px;
+    bottom: 0px;
     width: 250px;
+    font-size: 22px;
+    font-weight: bold;
   }
   button.link {
 	font-family: "Verdana" sans-serif;
@@ -90,48 +94,46 @@
       width: 110px;
       font-size: 11px;
     }
+    .navbt{
+      width: 110px;
+      font-size: 11px;
+    }
+    .navbt2{
+      width: 170px;
+      font-size: 11px;
+    }
   </style>
-
-<script src="/static/libs/uglymol.js"></script>
-<script src="/static/libs/wasm/mtz.js"></script>
+  <script src="/static/libs/uglymol.js"></script>
+  <script src="/static/libs/wasm/mtz.js"></script>
 
 </head>
 <body style="background-color: white">
 
 
-
     <div id="left-controlpanel" >
 
       <div style="padding-left:30px !important;padding-top: 10px;">
+
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
-            <button  class="link" type="submit" value="{{refineLog}}" name="logFile" size="1" >Refinement Log</button>
-          </form>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
-            <button  class="link" type="submit" value="{{pipelineLog}}" name="logFile" size="1" >Pipeline Log</button>
-          </form>
-        </div>
-        <div>
-          <h6>Results navigation</h6>
+<!--          <h6>Results navigation</h6>-->
         </div>
       </div>
-      <div style="padding-left:18px !important;">
-        <input class="btn navbt" type="button" value="Prev Blob" onclick="return previousblob()" ></input>
-        <input  class="btn navbt" type="button" value="Next Blob" onclick="return nextblob()" ></input>
+      <div style="padding-left:15px !important; display:inline-flex">
+        <div><input class="btn navbt" type="button" value="Prev Blob" onclick="return previousblob()" ></input></div>
+        <div style="padding-left: 8px;"><input  class="btn navbt" type="button" value="Next Blob" onclick="return nextblob()"  ></input></div>
       </div>
-      <div style="padding-left:18px !important; padding-top:8px !important;">
+      <div style="padding-left:15px !important; padding-top:8px !important;">
         <div style="display:inline-flex">
         <form action="/density/" method="get" >
-          <button class="btn navbt" type="submit" value="{{prevstr}}" name="structure">Prev Modl</button>
+          <button class="btn navbt" type="submit" value="{{prevstr}}" name="structure">Prev Model</button>
         </form>
-        <form action="/density/" method="get" style="padding-left: 5px;">
-          <button class="btn navbt" type="submit" value="{{nextstr}}" name="structure">Next Modl</button>
+        <form action="/density/" method="get" style="padding-left: 8px;">
+          <button class="btn navbt" type="submit" value="{{nextstr}}" name="structure">Next Model</button>
         </form>
         </div>
       </div>
-      <div style="padding-top:20px">
+      <div >
         <table class="side-table">
-
           <tr>
             <th>Resolution
             </th>
@@ -168,19 +170,35 @@
             <td>{{spg}}
             </td>
           </tr>
-
+          <tr>
+            <th>Download</th>
+            <td><a href="{{pdb_path}}" download="{{name}}.pdb"> PDB</a> |
+                <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a></td>
+          </tr>
+          <tr style="border-bottom: 0;">
+            <th><p>Logs</p><form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
+            <button  class="link" type="submit" value="{{refineLog}}" name="logFile" size="1" >{{refineName}}</button>
+          </form></th>
+            <td><form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="padding-top:9px; height: 10px;">
+            <button  class="link" type="submit" value="{{pipelineLog}}" name="logFile" size="1" >{{pipelineName}}</button>
+          </form></td>
+          </tr>
         </table>
       </div>
 
+      <div>
+
+
+      </div>
       <div style="display:{{ligbox}};">
       <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
             <h6> RhoFit - <button  class="link" type="submit" value="{{rhofitlog}}" name="logFile" size="1" >Log</button></h6>
           </form>
         </div>
-        <input class="btn " type="button" value="Show/Hide"  onclick="showrhofit();"></input>
-        <input class="btn" type="button" value="Go"   onclick="centerrhofit();"></input>
+        <input class="btn navbt " type="button" value="Show/Hide"  onclick="showrhofit();"></input>
+        <input class="btn " type="button" value="Go"   onclick="centerrhofit();"></input>
         <div style="display: inline-block;vertical-align: middle;">
           <label >
             <input class="with-gap" id="rhofit_radio" name="rhofit_radio" type="radio" checked>
@@ -193,11 +211,11 @@
 
       <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
+          <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
             <h6> LigandFit - <button  class="link" type="submit" value="{{ligandfitlog}}" name="logFile" size="1" >Log</button></h6>
           </form>
         </div>
-        <input class="btn " type="button" value="Show/Hide" onclick="showligfit();"></input>
+        <input class="btn navbt" type="button" value="Show/Hide" onclick="showligfit();"></input>
         <input class="btn" type="button" value="Go"  onclick="centerligfit();"></input>
         <div style="display: inline-block;vertical-align: middle;">
           <label >
@@ -206,17 +224,35 @@
           </label>
         </div>
       </div>
-
-      <div style="padding-top: 30px;padding-left:30px !important; display:{{dualviewbox}}">
+      <div style="padding-top: 18px;padding-left:30px !important; display:{{dualviewbox}}">
         <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
-          <button class="btn" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
+          <button class="btn navbt2" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open Dual Viewer</button>
         </form>
+
+      </div >
+
+        <div style="padding-left:30px !important;padding-top: 8px" >
+        <h6>Structure rating</h6>
+        <div class="col s12 required inline" id="model_confidence">
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high" >
+              <span class="item-label" for="high_conf_radio">High confidence</span>
+          </label></div>
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
+              <span class="item-label" for="medium_conf_radio">Medium confidence</span>
+          </label></div>
+          <div class="radio" id="conf_level"><label>
+              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+              <span class="item-label" for="low_conf_radio">Low confidence</span>
+          </label></div>
+        </div>
       </div>
 
       {% if ligand %}
       <div class="ligandSVG">
           <div>
-            <h5 style="text-align: center;">{{ligand}}</h5>
+            <p style="text-align: center;">{{ligand}}</p>
           </div>
           <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
       </div>
@@ -225,10 +261,7 @@
     </div>
     <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
-    <!-- {% if ligand %}
-      <img class="ligpng svg" id="ligand" src="/fragment/{{ ligand }}/image">
-    {% endif %} -->
-    <b><h6>{{name }} </h6></b>
+    <b><h6>{{name}} </h6></b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
     </div>

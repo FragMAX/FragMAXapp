@@ -114,6 +114,9 @@ def show(request):
     ligfit = ligfit.replace("/data/visitors/", "/static/")
     rhofit = rhofit.replace("/data/visitors/", "/static/")
 
+    pdb_path = path.join(path.dirname(path.dirname(rhofit)), "final.pdb")
+    mtz_path = path.join(path.dirname(path.dirname(rhofit)), "final.mtz")
+
     # get xyz for ligands
     blist = blist.replace(" ", "")
     center = blist[1:blist.index("]") + 1]
@@ -123,12 +126,24 @@ def show(request):
     else:
         dualviewbox = "block"
 
+    if refineM == "dimple":
+        refineName = "Refmac"
+        pipelineName = "DIMPLE"
+    elif refineM == "fspipeline":
+        refineName = "Phenix.refine"
+        pipelineName = "fspipeline"
+    else:
+        refineName = "autoBUSTER"
+        pipelineName = ""
+
     return render(
         request,
         "fragview/density.html",
         {
             "name": usracr,
             "pdb": pdbout,
+            "pdb_path": pdb_path,
+            "mtz_path": mtz_path,
             "xyzlist": blist,
             "center": center,
             "ligand": ligand,
@@ -157,7 +172,9 @@ def show(request):
             "refineLog": refineLog,
             "pipelineLog": pipelineLog,
             "rhofitlog": rhofitlog,
-            "ligandfitlog": ligandfitlog
+            "ligandfitlog": ligandfitlog,
+            "pipelineName": pipelineName,
+            "refineName": refineName
         })
 
 
