@@ -114,6 +114,7 @@ def show(request):
     ligfit = ligfit.replace("/data/visitors/", "/static/")
     rhofit = rhofit.replace("/data/visitors/", "/static/")
 
+    fitres_dir = path.join(proj.data_path(), "fragmax", "results", ligfit_dataset, processM, refineM)
     pdb_path = path.join(fitres_dir, "final.pdb").replace("/data/visitors/", "/static/")
     mtz_path = path.join(fitres_dir, "final.mtz").replace("/data/visitors/", "/static/")
 
