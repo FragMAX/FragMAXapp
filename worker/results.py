@@ -104,7 +104,7 @@ def _generate_results_file(proj):
             nat_map = "/".join(entry.split("/")[3:-1]) + "/final_mFo-DFc.ccp4"
 
         if "buster" in usracr:
-            with open(entry, "r") as inp:
+            with open(entry, "r", encoding="utf-8") as inp:
                 pdb_file = inp.readlines()
             for line in pdb_file:
                 if "REMARK   3   R VALUE            (WORKING SET) :" in line:
@@ -146,7 +146,7 @@ def _generate_results_file(proj):
 
             if path.exists("/".join(entry.split("/")[:-1]) + "/mtz2map.log") and \
                     path.exists("/".join(entry.split("/")[:-1]) + "/blobs.log"):
-                with open(entry, "r") as inp:
+                with open(entry, "r", encoding="utf-8") as inp:
                     pdb_file = inp.readlines()
                 for line in pdb_file:
                     if "REMARK Final:" in line:
@@ -170,7 +170,7 @@ def _generate_results_file(proj):
 
                         spg = "".join(line.split()[7:])
 
-                with open("/".join(entry.split("/")[:-1]) + "/blobs.log", "r") as inp:
+                with open("/".join(entry.split("/")[:-1]) + "/blobs.log", "r", encoding="utf-8") as inp:
                     readFile = inp.readlines()
                     blist = []
                     for line in readFile:
@@ -183,7 +183,7 @@ def _generate_results_file(proj):
                         blist = "[" + blist[0] + "]"
                     except Exception:
                         blist = "[]"
-                with open("/".join(entry.split("/")[:-1]) + "/mtz2map.log", "r") as inp:
+                with open("/".join(entry.split("/")[:-1]) + "/mtz2map.log", "r", encoding="utf-8") as inp:
                     readFile = inp.readlines()
                     for mline in readFile:
                         if "_2mFo-DFc.ccp4" in mline:
@@ -206,7 +206,7 @@ def _generate_results_file(proj):
             if path.exists(rhofitPath):
                 hit_corr_log = path.join(rhofitPath, "Hit_corr.log")
                 if path.exists(hit_corr_log):
-                    with open(hit_corr_log, "r") as inp:
+                    with open(hit_corr_log, "r", encoding="utf-8") as inp:
                         rhofitscore = inp.readlines()[0].split()[1]
 
             if path.exists(ligfitPath):
@@ -215,12 +215,12 @@ def _generate_results_file(proj):
                     if glob(f"{res_dir}/ligfit/LigandFit*") != []:
                         if glob(ligfitRUNPath + "/LigandFit*.log") != []:
                             if path.exists(ligfitRUNPath + "/LigandFit_summary.dat"):
-                                with open(ligfitRUNPath + "/LigandFit_summary.dat", "r") as inp:
+                                with open(ligfitRUNPath + "/LigandFit_summary.dat", "r", encoding="utf-8") as inp:
                                     ligfitscore = inp.readlines()[6].split()[2]
 
                             ligfitlog = glob(ligfitRUNPath + "/LigandFit*.log")[0]
                             if path.exists(ligfitlog):
-                                with open(ligfitlog, "r") as inp:
+                                with open(ligfitlog, "r", encoding="utf-8") as inp:
                                     for line in inp.readlines():
                                         if line.startswith(" lig_xyz"):
                                             ligblob = line.split("lig_xyz ")[-1].replace("\n", "")
@@ -261,7 +261,7 @@ def _generate_results_file(proj):
 
     for log in xdsappLogs:
         dataset = log.split("/")[10]
-        with open(log, "r") as readFile:
+        with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for line in logfile:
             if "    ISa" in line:
