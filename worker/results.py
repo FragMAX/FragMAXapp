@@ -326,7 +326,7 @@ def _generate_results_file(proj):
         writer.writerow(
             ["usracr", "pdbout", "dif_map", "nat_map", "spg", "resolution", "ISa", "r_work", "r_free", "bonds",
              "angles", "a", "b", "c", "alpha", "beta", "gamma", "blist", "dataset", "pipeline", "rhofitscore",
-             "ligfitscore", "ligblob"])
+             "ligfitscore", "ligblob", "modelscore"])
         for entry in resultsList:
             row = ThreadWithReturnValue(target=info_func, args=(entry, isaDict,))
             row.start()

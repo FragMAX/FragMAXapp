@@ -396,11 +396,11 @@ def show_all(request):
                 rfentry.append(re)
 
                 lge = "<td>"
-                if status[0][10] == "full":
+                if status[0][11] == "full":
                     lge += \
                         '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
                         '<font size="2"> LigandFit</font></p>'
-                elif status[0][10] == "partial":
+                elif status[0][11] == "partial":
                     lge += \
                         '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
                         '<font size="2"> LigandFit</font></p>'
@@ -409,11 +409,11 @@ def show_all(request):
                         '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
                         '<font size="2"> LigandFit</font></p>'
 
-                if status[0][11] == "full":
+                if status[0][10] == "full":
                     lge += \
                         '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
                         '<font size="2"> RhoFit</font></p></td>'
-                elif status[0][11] == "partial":
+                elif status[0][10] == "partial":
                     lge += \
                         '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
                         '<font size="2"> RhoFit</font></p></td>'

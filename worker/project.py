@@ -7,7 +7,7 @@ from glob import glob
 import pyfastcopy  # noqa
 import shutil
 import xmltodict
-import subprocess
+# import subprocess
 import itertools
 from pathlib import Path
 import celery
@@ -227,20 +227,51 @@ def _import_edna_fastdp(proj, shifts):
         edna_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/"\
             f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
         edna_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/edna/"
+
         fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"\
             f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
+        autoproc_path_src = glob(f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"
+                                 f"/{dataset}/xds_{dataset}_{run}_1/autoPROC/cn*/AutoPROCv1_0_anom/HDF5_1/")
+        autoproc_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/autoproc/"
+
+        script = project_script(proj, f"import_edna_fastdp.sh")
+
         if path.exists(edna_path_src):
             if not path.exists(edna_path_dst):
                 logger.info("importing EDNA results")
-                shutil.copytree(edna_path_src, edna_path_dst)
+                with open(script, "w") as outfile:
+                    outfile.write("#!/bin/bash\n")
+                    outfile.write("#!/bin/bash\n")
+                    outfile.write("module purge\n")
+                    # shutil.copytree(edna_path_src, edna_path_dst)
+                    outfile.write(f"cp {edna_path_src} {edna_path_dst}\n")
+                hpc.run_sbatch(script)
 
         if path.exists(fastdp_path_src):
             if not path.exists(fastdp_path_dst):
                 logger.info("importing fast_dp results")
-                shutil.copytree(fastdp_path_src, fastdp_path_dst)
-                subprocess.call(f"gzip -d {fastdp_path_dst}/*gz", shell=True)
+                # shutil.copytree(fastdp_path_src, fastdp_path_dst)
+                with open(script, "w") as outfile:
+                    outfile.write("#!/bin/bash\n")
+                    outfile.write("#!/bin/bash\n")
+                    outfile.write("module purge\n")
+                    outfile.write(f"cp {fastdp_path_src} {fastdp_path_dst}\n")
+                    # subprocess.call(f"gzip -d {fastdp_path_dst}/*gz", shell=True)
+                    outfile.write(f"gzip -d {fastdp_path_dst}/*gz\n")
+                hpc.run_sbatch(script)
+        if autoproc_path_src:
+            autoproc_path_src = autoproc_path_src[0]
+            if path.exists(autoproc_path_src):
+                if not path.exists(autoproc_path_dst):
+                    logger.info("importing autoPROC results")
+                    with open(script, "w") as outfile:
+                        outfile.write("#!/bin/bash\n")
+                        outfile.write("#!/bin/bash\n")
+                        outfile.write("module purge\n")
+                        outfile.write(f"cp {autoproc_path_src} {autoproc_path_dst}\n")
+                    hpc.run_sbatch(script)
 
 
 def _write_project_status(proj):
