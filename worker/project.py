@@ -261,7 +261,7 @@ def _import_edna_fastdp(proj, shifts):
                     outfile.write(f"mkdir -p {fastdp_path_dst}\n")
                     outfile.write(f"rsync -r {fastdp_path_src} {fastdp_path_dst}\n")
                     # subprocess.call(f"gzip -d {fastdp_path_dst}/*gz", shell=True)
-                    outfile.write(f"gzip -d {fastdp_path_dst}/*gz\n")
+                    outfile.write(f"gzip -d {fastdp_path_dst}*gz\n")
                 hpc.run_sbatch(script)
         if autoproc_path_src:
             autoproc_path_src = autoproc_path_src[0]
@@ -274,7 +274,8 @@ def _import_edna_fastdp(proj, shifts):
                         outfile.write("module purge\n")
                         outfile.write(f"mkdir -p {autoproc_path_dst}\n")
                         outfile.write(f"rsync -r {autoproc_path_src} {autoproc_path_dst}\n")
-                        outfile.write(f"mv {autoproc_path_dst}HDF5_1/* .\n")
+                        outfile.write(f"cd {autoproc_path_dst}\n")
+                        outfile.write(f"mv {autoproc_path_dst}HDF5_1/*\n")
 
                     hpc.run_sbatch(script)
 

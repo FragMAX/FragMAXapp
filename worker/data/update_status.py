@@ -144,12 +144,13 @@ def get_status_dp(logfile):
 
     if "autoproc" in logfile:
         if path.exists(f"{logfile}"):
-            with open(f"{logfile}/summary.html", "r", encoding="utf-8") as r:
-                log = r.read()
-            if '<div class="errorheader">ERROR</d>' in log:
-                return logfile.split("fragmax")[-1].split("/")[-1] + "/partial"
-            else:
-                return logfile.split("fragmax")[-1].split("/")[-1] + "/full"
+            if path.exists(f"{logfile}/summary.html"):
+                with open(f"{logfile}/summary.html", "r", encoding="utf-8") as r:
+                    log = r.read()
+                if '<div class="errorheader">ERROR</d>' in log:
+                    return logfile.split("fragmax")[-1].split("/")[-1] + "/partial"
+                else:
+                    return logfile.split("fragmax")[-1].split("/")[-1] + "/full"
         else:
             return logfile.split("fragmax")[-1].split("/")[-1] + "/none"
 
