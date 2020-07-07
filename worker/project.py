@@ -233,7 +233,7 @@ def _import_edna_fastdp(proj, shifts):
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
         autoproc_path_src = glob(f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"
-                                 f"/{dataset}/xds_{dataset}_{run}_1/autoPROC/cn*/AutoPROCv1_0_anom/HDF5_1/")
+                                 f"/{dataset}/xds_{dataset}_{run}_1/autoPROC/cn*/AutoPROCv1_0_anom/")
         autoproc_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/autoproc/"
 
         script = project_script(proj, f"import_edna_fastdp.sh")
@@ -274,6 +274,8 @@ def _import_edna_fastdp(proj, shifts):
                         outfile.write("module purge\n")
                         outfile.write(f"mkdir -p {autoproc_path_dst}\n")
                         outfile.write(f"rsync -r {autoproc_path_src} {autoproc_path_dst}\n")
+                        outfile.write(f"mv {autoproc_path_dst}HDF5_1/* .\n")
+
                     hpc.run_sbatch(script)
 
 
