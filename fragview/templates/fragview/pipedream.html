@@ -497,9 +497,9 @@ function onChooseFile(event, onLoadFileHandler) {
     fr.readAsText(file);
 }
 
-var f = document.getElementById("sendpipedreamBtn");
+var fpipedream = document.getElementById("sendpipedreamBtn");
     
-    f.onsubmit = function submit_pipedream(){
+    fpipedream.onsubmit = function submit_pipedream(){
 
     var datasetSelect=document.getElementsByName("dropdownDataset")[0].value
     if (datasetSelect != "alldatasets"){
