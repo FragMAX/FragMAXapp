@@ -27,6 +27,9 @@ def show(request):
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
 
+    for n, line in enumerate(lines):
+        if len(line) == 23:
+            lines[n].append("")
     return render(request, "fragview/results.html", {"csvfile": lines})
 
 
