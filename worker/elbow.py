@@ -73,7 +73,7 @@ def _run_elbow(smiles, fragments, dest_dir):
         outfile.write("module purge\n")
         outfile.write("module load Phenix\n")
         outfile.write(f"cd {dest_dir}\n")
-        outfile.write(f"phenix.elbow --smiles={smiles} --output={first_frag}\n")
+        outfile.write(f"phenix.elbow --smiles='{smiles}' --output={first_frag}\n")
     hpc.run_sbatch(script)
 
     src_cif, src_pdb = _file_names(first_frag, dest_dir)
