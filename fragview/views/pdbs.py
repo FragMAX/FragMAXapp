@@ -92,7 +92,7 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
     # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
     with open_proj_file(proj, nohet_pdb.file_path()) as dest:
         for line in pdb_data.splitlines(keepends=True):
-            if line.startswith(b"ATOM"):
+            if not line.startswith(b"HETATM"):
                 dest.write(line)
 
 
