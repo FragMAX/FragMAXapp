@@ -141,7 +141,7 @@ def _copy_script_files(proj, script_files):
 
 
 def _copy_scripts(proj):
-    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS, UPDATE_RESULTS_STATUS]
+    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS, UPDATE_RESULTS_SCRIPT]
     if proj.encrypted:
         script_files += ["crypt_files.py", "crypt_files.sh"]
 
