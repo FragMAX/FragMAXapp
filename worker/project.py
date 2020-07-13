@@ -275,7 +275,7 @@ def _import_edna_fastdp(proj, shifts):
                         outfile.write(f"mkdir -p {autoproc_path_dst}\n")
                         outfile.write(f"rsync -r {autoproc_path_src} {autoproc_path_dst}\n")
                         outfile.write(f"cd {autoproc_path_dst}\n")
-                        outfile.write(f"mv {autoproc_path_dst}HDF5_1/*\n")
+                        outfile.write(f"mv {autoproc_path_dst}HDF5_1/* {autoproc_path_dst}\n")
 
                     hpc.run_sbatch(script)
 

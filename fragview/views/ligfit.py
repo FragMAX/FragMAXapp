@@ -22,7 +22,7 @@ def datasets(request):
         return HttpResponseBadRequest(f"invalid ligfit arguments {form.errors}")
 
     worker_args = (
-        proj, form.use_phenix_ligfit, form.use_rho_fit, form.datasets_filter
+        proj, form.use_phenix_ligfit, form.use_rho_fit, form.datasets_filter, form.cif_method
     )
 
     t1 = threading.Thread(target=auto_ligand_fit, args=worker_args)
@@ -32,9 +32,10 @@ def datasets(request):
     return render(request, "fragview/jobs_submitted.html")
 
 
-def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
+def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
     softwares = "autoPROC BUSTER Phenix CCP4"
+    lib = proj.library
 
     if filters == "ALL":
         filters = ""
@@ -61,9 +62,29 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
     header += f"module load {softwares}\n"
 
     for num, pdb in enumerate(pdbList):
+        fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
+        smiles = lib.get_fragment(fragID).smiles
+        clear_tmp_cmd = ""
+        move_cif_cmd = ""
+        if cifMethod == "elbow":
+            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output={proj.data_path()}/fragmax/fragments/{fragID}_part\n"
+            move_cif_cmd = f"mv {proj.data_path()}/fragmax/fragments/{fragID}_part.pdb " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pdb; mv " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.cif " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}.cif; mv " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.pickle " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pickle\n"
+        elif cifMethod == "acedrg":
+            cif_cmd = f"acedrg -i '{smiles}' -o {proj.data_path()}/fragmax/fragments/{fragID}_part\n"
+            clear_tmp_cmd = f"rm -rf {proj.data_path()}/fragmax/fragments/{fragID}_TMP/\n"
+            move_cif_cmd = f"mv {proj.data_path()}/fragmax/fragments/{fragID}_part.pdb " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pdb; mv " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.cif " \
+                           f"{proj.data_path()}/fragmax/fragments/{fragID}.cif\n"
+        else:
+            cif_cmd = ""
         rhofit_cmd = ""
         ligfit_cmd = ""
-        fragID = pdb.split("/")[8].split("-")[-1].split("_")[0]
 
         ligCIF = project_fragment_cif(proj, fragID)
         ligPDB = project_fragment_pdb(proj, fragID)
@@ -88,12 +109,15 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
         script = project_script(proj, f"autoligand_{sample}_{num}.sh")
         write_script(script,
                      f"{header}" +
+                     f"{cif_cmd}" +
+                     f"{move_cif_cmd}" +
                      f"{rhofit_cmd}" +
-                     f"{ligfit_cmd}" +
+                     f"{ligfit_cmd}\n" +
                      project_update_status_script_cmds(proj, sample, softwares) +
-                     "\n\n" +
+                     "\n" +
                      project_update_results_script_cmds(proj, sample, softwares) +
-                     "\n\n")
+                     "\n\n" +
+                     f"{clear_tmp_cmd}\n")
 
         hpc.run_sbatch(script)
         # os.remove(script)

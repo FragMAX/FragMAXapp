@@ -448,6 +448,8 @@
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterLigfit"/>
                         <input type="hidden" name="hpcNodes" id="hpcNodesLigfit"/>
+                        <input type="hidden" name="cifMethod" id="cifMethodLigfit"/>
+
                     <table class="optionstable">
                         <col width="8%">
                         <col width="17%">
@@ -489,7 +491,20 @@
                                                     <span for="panddacheckboxinput">PanDDA </span>
                                                 </label>
                                             </div>
+                                        </div>
 
+
+
+
+                                        <div class="radio" id="cif_gen_method" style="padding-top:20px">
+                                            <label>
+                                                <input class="with-gap" id="acedrug" name="library_method" type="radio" value="acedrg" >
+                                                <span class="item-label" for="acedrug">AceDRG</span>
+                                            </label>
+                                            <label>
+                                                <input checked class="with-gap" id="elbow" name="library_method" type="radio" value="elbow">
+                                                <span class="item-label" for="elbow">eLBOW</span>
+                                            </label>
                                         </div>
                                     </form>
                             </tr>
@@ -1962,6 +1977,10 @@
         return document.querySelector('input[name="node_number"]:checked').value;
     }
 
+    function getCIFmethod() {
+        return document.querySelector('input[name="library_method"]:checked').value;
+    }
+
     var f = document.getElementById("dtprocBtn");
 
     f.onsubmit = function dataproc() {
@@ -2012,6 +2031,7 @@
     f3.onsubmit = function ligandfitproc() {
         /* Ligand fit options */
         $("#hpcNodesLigfit").val(getHpcNodes());
+        $("#cifMethodLigfit").val(getCIFmethod());
         $("#dtsFilterLigfit").val(getDtsFilters());
     }
 
