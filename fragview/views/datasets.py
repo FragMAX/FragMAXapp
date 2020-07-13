@@ -550,7 +550,7 @@ def parse_aimless(pplog):
                 if "CRYSTAL MOSAICITY (DEGREES)" in line:
                     mosaicity = line.split()[-1]
                 if "ISa (" in line:
-                    ISa = line.split()[-1]
+                    ISa = log[n + 1].split()[-1]
             if spg == "None":
                 spg = ""
                 unique_rflns = ""
