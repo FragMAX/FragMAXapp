@@ -6,7 +6,6 @@ from fragview import hpc
 from fragview.forms import LigfitForm
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.projects import project_update_results_script_cmds
-from fragview.projects import project_fragment_cif, project_fragment_pdb
 from fragview.views.utils import write_script
 
 from glob import glob
@@ -66,28 +65,20 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
         smiles = lib.get_fragment(fragID).smiles
         clear_tmp_cmd = ""
         move_cif_cmd = ""
+        cif_out = pdb.replace("final.pdb", fragID)
         if cifMethod == "elbow":
-            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output={proj.data_path()}/fragmax/fragments/{fragID}_part\n"
-            move_cif_cmd = f"mv {proj.data_path()}/fragmax/fragments/{fragID}_part.pdb " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pdb; mv " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.cif " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}.cif; mv " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.pickle " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pickle\n"
+            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output={cif_out}\n"
         elif cifMethod == "acedrg":
-            cif_cmd = f"acedrg -i '{smiles}' -o {proj.data_path()}/fragmax/fragments/{fragID}_part\n"
-            clear_tmp_cmd = f"rm -rf {proj.data_path()}/fragmax/fragments/{fragID}_TMP/\n"
-            move_cif_cmd = f"mv {proj.data_path()}/fragmax/fragments/{fragID}_part.pdb " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}.pdb; mv " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}_part.cif " \
-                           f"{proj.data_path()}/fragmax/fragments/{fragID}.cif\n"
+            cif_cmd = f"acedrg -i '{smiles}' -o {cif_out}\n"
+            clear_tmp_cmd = f"rm -rf {cif_out}_TMP/\n"
+
         else:
             cif_cmd = ""
         rhofit_cmd = ""
         ligfit_cmd = ""
 
-        ligCIF = project_fragment_cif(proj, fragID)
-        ligPDB = project_fragment_pdb(proj, fragID)
+        ligCIF = f"{cif_out}.cif"
+        ligPDB = f"{cif_out}.pdb"
 
         rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
         ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
