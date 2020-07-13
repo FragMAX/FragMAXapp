@@ -8,6 +8,7 @@ from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.views import crypt_shell
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
+from fragview.projects import project_update_results_script_cmds
 from fragview.models import PDB
 from fragview.forms import RefineForm
 from .utils import Filter
@@ -134,6 +135,7 @@ rm -rf $WORK_DIR
                 outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
 
             outp.write(project_update_status_script_cmds(proj, sample, softwares))
+            outp.write(project_update_results_script_cmds(proj, sample, softwares))
             outp.write("\n\n")
 
         hpc.run_sbatch(script)

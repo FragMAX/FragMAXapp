@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.forms import LigfitForm
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
+from fragview.projects import project_update_results_script_cmds
 from fragview.projects import project_fragment_cif, project_fragment_pdb
 from fragview.views.utils import write_script
 
@@ -90,6 +91,8 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters):
                      f"{rhofit_cmd}" +
                      f"{ligfit_cmd}" +
                      project_update_status_script_cmds(proj, sample, softwares) +
+                     "\n\n" +
+                     project_update_results_script_cmds(proj, sample, softwares) +
                      "\n\n")
 
         hpc.run_sbatch(script)
