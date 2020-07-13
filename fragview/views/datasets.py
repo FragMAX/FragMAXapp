@@ -423,7 +423,7 @@ def show_all(request):
                             '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
                             '<font size="2"> RhoFit</font></p></td>'
                     lgentry.append(lge)
-                except:
+                except IndexError:
                     resync_status_project(proj)
         else:
             for i in prf_list:
