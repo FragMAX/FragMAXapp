@@ -183,7 +183,6 @@ def set_details(request):
         with open(results_file) as readFile:
             reader = csv.reader(readFile)
             lines = [line for line in list(reader)[1:] if prefix + "_" + run in line[0]]
-            
     else:
         lines = []
     # beamline parameters
@@ -536,15 +535,15 @@ def parse_aimless(pplog):
                     low_res_out, high_res_out = line.split()[3], line.split()[5]
                 if "total   " in line:
                     total_observations, unique_rflns = line.split()[1:3]
-                    multiplicity = str(int(total_observations)/int(unique_rflns))
+                    multiplicity = str(int(total_observations) / int(unique_rflns))
                     isig_avg = line.split()[8]
-                    isig_out = log[n-1].split()[8]
+                    isig_out = log[n - 1].split()[8]
                     rmeas_avg = perc2float(line.split()[9])
-                    rmeas_out = perc2float(log[n-1].split()[9])
+                    rmeas_out = perc2float(log[n - 1].split()[9])
                     completeness_avg = line.split()[4].replace("%", "")
-                    completeness_out = log[n-1].split()[4].replace("%", "")
+                    completeness_out = log[n - 1].split()[4].replace("%", "")
                     cc12_avg = line.split()[10]
-                    cc12_out = log[n-1].split()[10]
+                    cc12_out = log[n - 1].split()[10]
                     WilsonB = ""
                 if "CRYSTAL MOSAICITY (DEGREES)" in line:
                     mosaicity = line.split()[-1]
