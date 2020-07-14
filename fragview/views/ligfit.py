@@ -33,7 +33,7 @@ def datasets(request):
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
-    softwares = "autoPROC BUSTER Phenix CCP4"
+    softwares = "autoPROC BUSTER/20190607-3-PReSTO Phenix CCP4"
     lib = proj.library
 
     if filters == "ALL":
@@ -72,7 +72,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
             cif_cmd = f"acedrg -i '{smiles}' -o {cif_out}\n"
             clear_tmp_cmd = f"rm -rf {cif_out}_TMP/\n"
         elif cifMethod == "grade":
-            cif_cmd = f"grade '{smiles}' -ocif {cif_out} -opdb {cif_out} -nomogul\n"
+            cif_cmd = f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
         else:
             cif_cmd = ""
         rhofit_cmd = ""

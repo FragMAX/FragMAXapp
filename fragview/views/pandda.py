@@ -975,7 +975,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
             cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
             clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
         elif cifMethod == "grade":
-            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag} -opdb $WORK_DIR/{frag} -nomogul\n"
+            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
         copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
         if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
             copy_frags_cmd = \
@@ -991,7 +991,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
 module purge
-module load Phenix CCP4 BUSTER
+module load Phenix CCP4 BUSTER/20190607-3-PReSTO
 
 {crypt_shell.crypt_cmd(proj)}
 
