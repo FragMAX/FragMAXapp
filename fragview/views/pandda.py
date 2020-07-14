@@ -975,7 +975,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
             cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
             clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
         elif cifMethod == "grade":
-            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{cif_out} -opdb $WORK_DIR/{cif_out} -nomogul\n"
+            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag} -opdb $WORK_DIR/{frag} -nomogul\n"
         copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
         if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
             copy_frags_cmd = \
