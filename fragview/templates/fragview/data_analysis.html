@@ -1,4 +1,4 @@
-flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMAX - Data Analysis{% endblock %} {% block content %}
+{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMAX - Data Analysis{% endblock %} {% block content %}
 
 <style xmlns="http://www.w3.org/1999/html">
     html {
@@ -465,7 +465,7 @@ flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMA
                                                     <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
                                                         id="pipedreamcheckboxinputlig" name="pipedreamcheckboxname"
                                                         type="checkbox" value="pipedream">
-                                                    <span for="pipedreamcheckboxinputlig">Pipedream </span>
+                                                    <span for="pipedreamcheckboxinputlig">Pipedream</span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="rhofit">
@@ -480,7 +480,7 @@ flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMA
                                                     <input class="ligandform filled-in dt-checkboxes"
                                                         id="phenixligfitcheckboxinput" name="usePhenixLigfit"
                                                         type="checkbox">
-                                                    <span for="phenixligfitcheckboxinput">Phenix LigFit</span>
+                                                    <span for="phenixligfitcheckboxinput">LigandFit</span>
                                                 </label>
                                             </div>
                                             <div class="checkbox" id="pandda">
@@ -488,7 +488,7 @@ flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMA
                                                     <input class="ligandform filled-in dt-checkboxes"
                                                         id="panddacheckboxinput" name="panddacheckboxname"
                                                         type="checkbox" value="panddaanalysis">
-                                                    <span for="panddacheckboxinput">PanDDA </span>
+                                                    <span for="panddacheckboxinput">PanDDA</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -496,7 +496,11 @@ flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMA
 
 
 
-                                        <div class="radio" id="cif_gen_method" style="padding-top:20px">
+                                        <div class="radio" id="cif_gen_method" style="padding-top: 20px; max-width: 250px; display: inline-flex; margin-left: -175px;">
+                                            <label>
+                                                <input checked class="with-gap" id="grade" name="library_method" type="radio" value="grade">
+                                                <span class="item-label" for="grade">GRADE</span>
+                                            </label>
                                             <label>
                                                 <input class="with-gap" id="acedrug" name="library_method" type="radio" value="acedrg" >
                                                 <span class="item-label" for="acedrug">AceDRG</span>
@@ -505,6 +509,7 @@ flig{% extends 'fragview/base.html' %} {% load static %} {% block title %}FragMA
                                                 <input checked class="with-gap" id="elbow" name="library_method" type="radio" value="elbow">
                                                 <span class="item-label" for="elbow">eLBOW</span>
                                             </label>
+
                                         </div>
                                     </form>
                             </tr>
