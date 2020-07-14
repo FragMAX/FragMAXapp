@@ -72,7 +72,8 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
             cif_cmd = f"acedrg -i '{smiles}' -o {cif_out}\n"
             clear_tmp_cmd = f"rm -rf {cif_out}_TMP/\n"
         elif cifMethod == "grade":
-            cif_cmd = f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
+            cif_cmd = f"rm {cif_out}.cif {cif_out}.pdb\n" \
+                      f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
         else:
             cif_cmd = ""
         rhofit_cmd = ""
