@@ -185,6 +185,10 @@ def set_details(request):
             lines = [line for line in list(reader)[1:] if prefix + "_" + run in line[0]]
     else:
         lines = []
+
+    for n, line in enumerate(lines):
+        if len(line) == 23:
+            lines[n].append("")
     # beamline parameters
     BL_site = f"{versions.BL_site}"
     BL_name = f"{versions.BL_name}"
