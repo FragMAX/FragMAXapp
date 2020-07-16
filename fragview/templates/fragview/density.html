@@ -279,9 +279,12 @@
       GemmiMtz().then(function(Module) {
         UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
       });
-      V.load_pdb("{{ligfitpdb}}")
-      V.load_pdb("{{rhofitpdb}}");
+      V.model_bags[0].label = "protein"
 
+      V.load_pdb("{{ligfitpdb}}")
+      V.model_bags[1].label = "ligfit"
+      V.load_pdb("{{rhofitpdb}}");
+      V.model_bags[2].label = "rhofit"
       var blobs = {{xyzlist}};
 
 

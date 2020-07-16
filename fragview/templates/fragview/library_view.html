@@ -92,11 +92,31 @@ body {
 <h4>{{project.library.name}} Library</h4>
 <div class="card ">
     <h5>Update your library definitions</h5>
-    <form action="" method="get" id="saveBtn" name="saveBtnf" size="1">
-        <button class="btn-large center" style="margin-top: 30px;" type="submit" onsubmit="" value="Save" name="Save_button" size="1" disabled>Upload</button>
-    </form>
-</div>
 
+            <form id="library_update_form"
+                  enctype="multipart/form-data"
+                  action="/project/update_library"
+                  method="post">
+                {% csrf_token %}
+                <table class="table bordered">
+
+                    <tr>
+                        <th>Library Fragments</th>
+                        <td>
+                            <input class="frags_file" id="fragments_file" type="file" name="fragments_file"
+                                   value="{{ form.fragments_file.value }}"
+
+                                   {% if not project_id %}
+                                   {# don't require for existing project, otherwise we can't delete them #}
+                                   required
+                                   {% endif %}>
+                            <div class="err_msg">{{ form.fragments_file.errors }}</div>
+                        </td>
+                    </tr>
+                </table>
+                <button class="btn-large" type="submit" name="action" value="update_library" style="margin: 5px 0px 5px 40%;">UPDATE</button>
+            </form>
+</div>
 
 <div class="container">
   <div class="grid-row">

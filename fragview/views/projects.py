@@ -5,11 +5,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 
 from fragview.models import Project, PendingProject
-from fragview.forms import ProjectForm
+from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
 
-from worker import setup_project_files, add_new_shifts
+from worker import setup_project_files, add_new_shifts, _prepare_fragments
 
 
 def show(request):
@@ -80,6 +80,23 @@ def new(request):
     setup_project_files.delay(proj.id)
 
     return redirect("/projects/")
+
+
+def update_library(request):
+    """
+    GET requests show the 'Create new Project' page
+    POST requests will try to create a new project
+    """
+    if request.method == "GET":
+        return render(request, "fragview/pdbs.html")
+
+    form = NewLibraryForm(request.POST, request.FILES)
+    if not form.is_valid():
+        return render(request, "fragview/pdbs.html", {"form": "form"})
+
+    _prepare_fragments.delay(proj.id)
+
+    return redirect("/pdbs/")
 
 
 def set_current(request, id):
