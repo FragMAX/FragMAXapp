@@ -96,7 +96,7 @@ def update_library(request):
     if not form.is_valid():
         return render(request, "fragview/pdbs.html", {"form": "form"})
 
-    _prepare_fragments.delay(proj.id)
+    # _prepare_fragments(proj)
 
     return redirect("/pdbs/")
 

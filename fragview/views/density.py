@@ -752,6 +752,8 @@ def pandda_consensus(request):
         request,
         "fragview/pandda_densityC.html",
         {
+            "protein": proj.protein,
+            "data_path": proj.data_path().replace("/data/visitors", "/static"),
             "siten": site_idx,
             "event": event_idx,
             "dataset": dataset + ddtag + "_" + run,

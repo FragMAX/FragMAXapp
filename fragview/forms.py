@@ -343,29 +343,3 @@ class NewLibraryForm(forms.Form):
     model = None
 
     fragments_file = forms.FileField(required=False)
-
-    def _validate_library(self):
-        # make sure fragments specification file was provided
-        frags_file = self.files.get("fragments_file")
-        if frags_file is None:
-            if self.model is None:
-                return dict(fragments_file="please specify fragments definitions file")
-            return {}
-
-        # check if fragments file is valid by parsing it
-        try:
-            self.cleaned_data["fragments"] = fraglib.parse_uploaded_file(frags_file)
-        except fraglib.FraglibError as e:
-            # failed to parse fragments file, propagate parse error to the user
-            return dict(fragments_file=e.error_message())
-
-        return {}
-
-    def update_library(self):
-        # save the library
-        print("saving library")
-        # print(proj.library.name)
-        # library = fraglib.save_new_library(
-        #    self.cleaned_data["library_name"], self.cleaned_data["fragments"])
-
-        return True
