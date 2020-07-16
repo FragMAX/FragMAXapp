@@ -87,6 +87,8 @@ def update_library(request):
     GET requests show the 'Create new Project' page
     POST requests will try to create a new project
     """
+    proj = current_project(request)
+
     if request.method == "GET":
         return render(request, "fragview/pdbs.html")
 

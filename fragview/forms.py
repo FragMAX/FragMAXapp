@@ -2,7 +2,6 @@ import re
 from os import path
 from django import forms
 from fragview import projects, fraglib, encryption
-from fragview.projects import current_project
 from .models import Project, EncryptionKey
 
 
