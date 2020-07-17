@@ -219,7 +219,7 @@ def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
 
     with open(allcsv, "r") as readFile:
         csvfile = list(csv.reader(readFile))
-
+    csvfile = [x for x in csvfile if len(x) == 12]
     # Get index of the dataset to be updated
     dataset_names = [row[0] for row in csvfile if len(row) > 10]
 
@@ -236,7 +236,8 @@ def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
                     writer = csv.writer(writeFile)
                     writer.writerows(csvfile)
     if f"{dataset}_{run}" not in dataset_names and \
-            path.exists(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}"):
+            path.exists(f"/data/visitors/biomax/{proposal}/{shift}/fragmax"
+                        f"/process/{protein}/{dataset}/{dataset}_{run}"):
         updated_value = [dataset + "_" + run] + list(statusDict.values())
         csvfile.append(updated_value)
         # write the new csv file with updated values

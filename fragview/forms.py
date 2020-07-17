@@ -8,6 +8,7 @@ from .models import Project, EncryptionKey
 class _ProcJobForm(forms.Form):
     datasetsFilter = forms.CharField(required=False)
     hpcNodes = forms.IntegerField()
+    cifMethod = forms.CharField(required=False)
 
     def _get_field(self, name):
         return self.cleaned_data[name]
@@ -21,6 +22,10 @@ class _ProcJobForm(forms.Form):
     @property
     def hpc_nodes(self):
         return self._get_field("hpcNodes")
+
+    @property
+    def cif_method(self):
+        return self._get_field("cifMethod")
 
 
 class LigfitForm(_ProcJobForm):
@@ -332,3 +337,9 @@ class ProjectForm(forms.Form):
             key.save()
 
         return proj
+
+
+class NewLibraryForm(forms.Form):
+    model = None
+
+    fragments_file = forms.FileField(required=False)

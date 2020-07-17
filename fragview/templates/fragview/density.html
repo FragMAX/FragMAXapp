@@ -275,13 +275,19 @@
     <script>
 
       V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-      V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}")
+      V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}", null, function(){
+          this.V.model_bags[V.model_bags.length - 1].label="protein"
+      })
       GemmiMtz().then(function(Module) {
         UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
       });
-      V.load_pdb("{{ligfitpdb}}")
-      V.load_pdb("{{rhofitpdb}}");
 
+      V.load_pdb("{{ligfitpdb}}", null, function(){
+          this.V.model_bags[V.model_bags.length - 1].label="ligfit"
+      });
+      V.load_pdb("{{rhofitpdb}}", null, function(){
+          this.V.model_bags[V.model_bags.length - 1].label="rhofit"
+      });
       var blobs = {{xyzlist}};
 
 
@@ -307,7 +313,8 @@
       }
 
       function showrhofit(){
-        V.model_bags[{{lpos}}].visible^=true;
+        var rpos = search("rhofit", V.model_bags)
+        V.model_bags[rpos].visible^=true;
         V.redraw_all()
         V.request_render();
         document.getElementById("rhofit_radio").checked^=true
@@ -318,7 +325,8 @@
 
       }
       function showligfit(){
-        V.model_bags[{{rpos}}].visible^=true;
+        var lpos = search("ligfit", V.model_bags)
+        V.model_bags[lpos].visible^=true;
         V.redraw_all()
         V.request_render();
         document.getElementById("ligfit_radio").checked^=true
@@ -354,6 +362,13 @@
             if(charCode == 39) nextblob();
         });
     });
+    function search(nameKey, myArray){
+        for (var i=0; i < myArray.length; i++) {
+            if (myArray[i].label === nameKey) {
+                return i;
+            }
+        }
+    }
   </script>
 </body>
 </html>

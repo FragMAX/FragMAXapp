@@ -127,7 +127,10 @@
         background-color: #f0f0f0;
     }
     .ligpng {
-        height: 95px;
+        height: 25%;
+        left: 53%;
+        position: absolute;
+        bottom: 3%;
     }
     .card-title {
         display:inline-flex !important;
@@ -277,7 +280,7 @@
             <table class="optionstable"  id="processingTable">
                 <thead>
                     <tr>
-                        <td class="resultsHeader"  style="height: 60px;">Parameters</td>
+                        <td class="resultsHeader"  style="height: 60px;"></td>
                         <td class="resultsHeader" >autoPROC</td>
                         <td class="resultsHeader" >EDNA_proc</td>
                         <td class="resultsHeader" >fastdp</td>
@@ -396,7 +399,7 @@
                                 <tbody>
                                     <tr>
                                     </tr>
-                                    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob in csvfile %}
+                                    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob, modelscore in csvfile %}
 
                                     <tr>
                                     <td style="text-align:center;padding-top: 10px;">
@@ -640,34 +643,41 @@
                     </tbody>
                 </table>
                 <br>
-                <div class="card-title">Soaking parameters</div>
-                <table class="tableSoak">
-                    <col width="320">
-                    <col width="300">
-                    <col width="450">
-                    <tbody>
-                        <tr>
-                            <td style="font-weight: bold;">Soaking time</td>
-                            <td>{{soakTime}} </td>
-                            <td rowspan="3" >
-                                <img class="ligpng"
-                                     id="ligand"
-                                     src="/fragment/{{ligand}}/image"
-                                     onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Fragment Concentration</td>
-                            <td>{{fragConc}}</td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">DMSO Concentration (final)</td>
-                            <td>{{solventConc}}</td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
+                {% if soakTime == "Soaking not performed" %}
+                    <div hidden>
+                {% else %}
+                    <div>
+                {% endif %}
+                    <div class="card-title">Soaking parameters</div>
+                    <div>
+                        <table class="tableSoak">
+                            <col width="320">
+                            <col width="300">
+                            <col width="450">
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: bold;">Soaking time</td>
+                                    <td>{{soakTime}} </td>
+
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold;">Fragment Concentration</td>
+                                    <td>{{fragConc}}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold;">DMSO Concentration (final)</td>
+                                    <td>{{solventConc}}</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <img class="ligpng"
+                             id="ligand"
+                             src="/fragment/{{ligand}}/image"
+                             onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -677,12 +687,24 @@
 
 <div class=" card_options">
     <div class="card tab">
-        <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
-        <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-        <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
-        <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
-        <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+        {% if ednaOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
+        {% endif %}
+        {% if fastdpOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
+        {% endif %}
+        {% if dialsOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
+        {% endif %}
+        {% if xdsOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
+        {% endif %}
+        {% if xdsappOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
+        {% endif %}
+        {% if autoprocOK == "ready" %}
+            <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+        {% endif %}
 <!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>

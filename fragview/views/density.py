@@ -20,8 +20,14 @@ def show(request):
         reader = csv.reader(readFile)
         lines = list(reader)[1:]
     result_info = list(filter(lambda x: x[0] == value, lines))[0]
-    usracr, pdbout, nat_map, dif_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, \
-        alpha, beta, gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob, modelscore = result_info
+    if len(result_info) == 23:
+        usracr, pdbout, nat_map, dif_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, \
+            alpha, beta, gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, \
+            ligblob = result_info
+    else:
+        usracr, pdbout, nat_map, dif_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, \
+            alpha, beta, gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, \
+            ligblob, modelscore = result_info
 
     res_dir = path.join(project_results_dir(proj), "_".join(usracr.split("_")[:-2]), *pipeline.split("_"))
     mtzfd = path.join(res_dir, "final.mtz")
@@ -620,6 +626,8 @@ def pandda(request):
             request,
             "fragview/pandda_density.html",
             {
+                "method": method,
+                "data_path": proj.data_path().replace("/data/visitors", "/static"),
                 "siten": site_idx,
                 "event": event,
                 "centroids": centroids,
@@ -746,6 +754,8 @@ def pandda_consensus(request):
         request,
         "fragview/pandda_densityC.html",
         {
+            "protein": proj.protein,
+            "data_path": proj.data_path().replace("/data/visitors", "/static"),
             "siten": site_idx,
             "event": event_idx,
             "dataset": dataset + ddtag + "_" + run,

@@ -18,6 +18,15 @@ def save_new_library(lib_name, fragments):
     return lib
 
 
+def update_current_library(lib_name, fragments):
+    lib = lib_name
+
+    for frag_name, smiles_exp in fragments:
+        Fragment(library=lib, name=frag_name, smiles=smiles_exp).save()
+
+    return lib
+
+
 def _parse_csv(csv_reader):
     fragmens = []
     for row in csv_reader:

@@ -11,6 +11,7 @@ from fragview.projects import project_all_status_file, project_process_protein_d
 from fragview.projects import current_project, project_results_file
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
+from fragview.views.misc import perc2float
 from fragview import hpc, versions
 
 
@@ -108,7 +109,7 @@ def set_details(request):
     if path.exists(path.join(autoproc_dir, "summary.html")):
         autoprocOK = "ready"
         autoprocLogs = _logs(autoproc_dir)
-    _tables["autoproc"] = parse_aimless(path.join(dataset_dir, "autoproc", "aimless.log"))
+    _tables["autoproc"] = parse_aimless(path.join(dataset_dir, "autoproc", "summary.html"))
 
     # EDNA logs
     edna_dir = path.join(dataset_dir, "edna")
@@ -184,6 +185,10 @@ def set_details(request):
             lines = [line for line in list(reader)[1:] if prefix + "_" + run in line[0]]
     else:
         lines = []
+
+    for n, line in enumerate(lines):
+        if len(line) == 23:
+            lines[n].append("")
     # beamline parameters
     BL_site = f"{versions.BL_site}"
     BL_name = f"{versions.BL_name}"
@@ -294,134 +299,136 @@ def show_all(request):
             lines = list(reader)[1:]
         for i, j in zip(prf_list, run_list):
             dictEntry = i + "_" + j
-            print(dictEntry)
             status = [line for line in lines if line[0] == dictEntry]
 
             if status:
-                da = "<td>"
-                if status[0][1] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> autoPROC</font></p>'
-                elif status[0][1] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> autoPROC</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> autoPROC</font></p>'
+                try:
+                    da = "<td>"
+                    if status[0][1] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> autoPROC</font></p>'
+                    elif status[0][1] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> autoPROC</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> autoPROC</font></p>'
 
-                if status[0][2] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> XIA2/DIALS</font></p>'
-                elif status[0][2] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> XIA2/DIALS</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> XIA2/DIALS</font></p>'
+                    if status[0][2] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> XIA2/DIALS</font></p>'
+                    elif status[0][2] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> XIA2/DIALS</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> XIA2/DIALS</font></p>'
 
-                if status[0][3] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> EDNA_proc</font></p>'
-                elif status[0][3] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> EDNA_proc</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> EDNA_proc</font></p>'
+                    if status[0][3] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> EDNA_proc</font></p>'
+                    elif status[0][3] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> EDNA_proc</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> EDNA_proc</font></p>'
 
-                if status[0][4] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> fastdp</font></p>'
-                elif status[0][4] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> fastdp</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> fastdp</font></p>'
+                    if status[0][4] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> fastdp</font></p>'
+                    elif status[0][4] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> fastdp</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> fastdp</font></p>'
 
-                if status[0][5] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> XDSAPP</font></p>'
-                elif status[0][5] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> XDSAPP</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> XDSAPP</font></p>'
+                    if status[0][5] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> XDSAPP</font></p>'
+                    elif status[0][5] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> XDSAPP</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> XDSAPP</font></p>'
 
-                if status[0][6] == "full":
-                    da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> XIA2/XDS</font></p>'
+                    if status[0][6] == "full":
+                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> XIA2/XDS</font></p>'
 
-                elif status[0][6] == "partial":
-                    da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> XIA2/XDS</font></p>'
-                else:
-                    da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> XIA2/XDS</font></p></td>'
+                    elif status[0][6] == "partial":
+                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> XIA2/XDS</font></p>'
+                    else:
+                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> XIA2/XDS</font></p></td>'
 
-                dpentry.append(da)
-                re = "<td>"
+                    dpentry.append(da)
+                    re = "<td>"
 
-                if status[0][9] == "full":
-                    re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> BUSTER</font></p>'
-                elif status[0][9] == "partial":
-                    re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> BUSTER</font></p>'
-                else:
-                    re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> BUSTER</font></p>'
+                    if status[0][9] == "full":
+                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> BUSTER</font></p>'
+                    elif status[0][9] == "partial":
+                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> BUSTER</font></p>'
+                    else:
+                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> BUSTER</font></p>'
 
-                if status[0][7] == "full":
-                    re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> DIMPLE</font></p>'
-                elif status[0][7] == "partial":
-                    re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> DIMPLE</font></p>'
-                else:
-                    re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> DIMPLE</font></p>'
+                    if status[0][7] == "full":
+                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> DIMPLE</font></p>'
+                    elif status[0][7] == "partial":
+                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> DIMPLE</font></p>'
+                    else:
+                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> DIMPLE</font></p>'
 
-                if status[0][8] == "full":
-                    re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                          '<font size="2"> fspipeline</font></p>'
-                elif status[0][8] == "partial":
-                    re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                          '<font size="2"> fspipeline</font></p>'
-                else:
-                    re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                          '<font size="2"> fspipeline</font></p></td>'
+                    if status[0][8] == "full":
+                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> fspipeline</font></p>'
+                    elif status[0][8] == "partial":
+                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> fspipeline</font></p>'
+                    else:
+                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> fspipeline</font></p></td>'
 
-                rfentry.append(re)
+                    rfentry.append(re)
 
-                lge = "<td>"
-                if status[0][11] == "full":
-                    lge += \
-                        '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                        '<font size="2"> LigandFit</font></p>'
-                elif status[0][11] == "partial":
-                    lge += \
-                        '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                        '<font size="2"> LigandFit</font></p>'
-                else:
-                    lge += \
-                        '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                        '<font size="2"> LigandFit</font></p>'
+                    lge = "<td>"
+                    if status[0][11] == "full":
+                        lge += \
+                            '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                            '<font size="2"> LigandFit</font></p>'
+                    elif status[0][11] == "partial":
+                        lge += \
+                            '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                            '<font size="2"> LigandFit</font></p>'
+                    else:
+                        lge += \
+                            '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                            '<font size="2"> LigandFit</font></p>'
 
-                if status[0][10] == "full":
-                    lge += \
-                        '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                        '<font size="2"> RhoFit</font></p></td>'
-                elif status[0][10] == "partial":
-                    lge += \
-                        '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
-                        '<font size="2"> RhoFit</font></p></td>'
-                else:
-                    lge += \
-                        '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                        '<font size="2"> RhoFit</font></p></td>'
-                lgentry.append(lge)
+                    if status[0][10] == "full":
+                        lge += \
+                            '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                            '<font size="2"> RhoFit</font></p></td>'
+                    elif status[0][10] == "partial":
+                        lge += \
+                            '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                            '<font size="2"> RhoFit</font></p></td>'
+                    else:
+                        lge += \
+                            '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                            '<font size="2"> RhoFit</font></p></td>'
+                    lgentry.append(lge)
+                except IndexError:
+                    resync_status_project(proj)
         else:
             for i in prf_list:
                 dpentry.append("""<td>
@@ -522,6 +529,54 @@ def parse_aimless(pplog):
                     cc12_out = line.split()[-1][1:-1]
                 if "ISa" in line:
                     ISa = line.split()[-1]
+        if "autoproc" in pplog:
+            spg = "None"
+            for n, line in enumerate(log):
+                if "Unit cell and space group:" in line:
+                    spg = "".join(line.split()[11:]).replace("'", "")
+                    unit_cell = ",".join(line.split()[5:11])
+                if "Low resolution limit  " in line:
+                    low_res_avg, low_res_out = line.split()[3], line.split()[5]
+                if "High resolution limit  " in line:
+                    high_res_out, high_res_avg = line.split()[3], line.split()[5]
+                if "total   " in line:
+                    total_observations, unique_rflns = line.split()[1:3]
+                    multiplicity = str("{:.1f}".format(int(total_observations) / int(unique_rflns)))
+                    isig_avg = line.split()[8]
+                    isig_out = log[n - 1].split()[8]
+                    rmeas_avg = perc2float(line.split()[9])
+                    rmeas_out = perc2float(log[n - 1].split()[9])
+                    completeness_avg = line.split()[4].replace("%", "")
+                    completeness_out = log[n - 1].split()[4].replace("%", "")
+                    cc12_avg = line.split()[10]
+                    cc12_out = log[n - 1].split()[10]
+                    WilsonB = ""
+                if "CRYSTAL MOSAICITY (DEGREES)" in line:
+                    mosaicity = line.split()[-1]
+                if "ISa (" in line:
+                    ISa = log[n + 1].split()[-1]
+            if spg == "None":
+                spg = ""
+                unique_rflns = ""
+                total_observations = ""
+                low_res_avg = ""
+                low_res_out = ""
+                high_res_avg = ""
+                high_res_out = ""
+                unit_cell = ""
+                multiplicity = ""
+                isig_avg = ""
+                isig_out = ""
+                rmeas_avg = ""
+                rmeas_out = ""
+                completeness_avg = ""
+                completeness_out = ""
+                mosaicity = ""
+                ISa = ""
+                WilsonB = ""
+                cc12_avg = ""
+                cc12_out = ""
+
         else:
             for line in log:
                 if "Space group:" in line:

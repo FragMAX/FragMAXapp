@@ -94,11 +94,17 @@
   #viewer1 { left: 550px; }
   #viewer2 { right: 0; }
 
-  .ligandSVG{
-    padding-left: 7.5px;
+  .svg {
+    -webkit-filter: contrast(0.5);
+    filter: contrast(0.5);
+    }
+    .ligandSVG{
+    left: 0px;
     position: absolute;
-    bottom: 10px;
+    bottom: 0px;
     width: 250px;
+    font-size: 22px;
+    font-weight: bold;
   }
   </style>
     
@@ -194,11 +200,7 @@
         <h6>Load dataset or mtz</h6>
 
         <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Next mdld"  disabled></input> </div>
-          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Avg  map"  disabled></input> </div>
-        </div>
-        <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  disabled></input> </div>
+          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  onclick="show_input_mtz()"></input> </div>
           <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Unfitted"  disabled></input> </div>
         </div>
       </div>
@@ -263,26 +265,13 @@
 
 
 
-    {% comment %} <div style="display:flex;">
-    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
-      <img class="ligpng svg" id="ligand" src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/fragment/{{project.library}}/{{ligand}}/{{ligand}}.svg" >
-      <b><h6>{{dataset }}_{{method}}</h6></b>
-      <header id="hud">Electron density viewer. Press H for help.</header>      
-    </div>
-    </div> {% endcomment %}
-    {% comment %} <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
-    <img class="ligpng svg" id="ligand" src="{{ligand}}" >
-    <b><h6> </h6></b>
-      <header id="hud">Electron density viewer. Press H for help.</header>
-    </div> {% endcomment %}
-
     <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">    
-    {% comment %} <img class="ligpng svg" id="ligand" src="/static/biomax/20180479/20190330/fragmax/process/fragment/{{library}}/{{ligand}}/{{ligand}}.svg"> 
-    <img class="ligpng svg" id="ligand" src="/fragment/{{ligand}}/image">{% endcomment %}
-    <b><h6>{{name}} </h6></b>
+
+    <b><h6>{{name}}</h6></b>
+    <b><h6>{{method}}</h6></b>
   
-      <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
+      <header id="hud">PanDDA event and average map for ligand {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
     </div>
     </div>
 
@@ -292,42 +281,37 @@
   <header id="hud"></header>
   <footer id="help"></footer>
     
-    {% comment %} <div id="viewer"></div> {% endcomment %}
 
     <footer id="help"></footer>
     <div id="inset"></div>
 
     <script>
-      {% comment %} V = new UM.Viewer({viewer: "viewer", hud: "hud", help: "help"});
-      
-      V.load_pdb("/static/{{pdb}}",null, function(){
-          V.recenter({{center}}, null, 25);
-      });
-      V.load_ccp4_maps("/static/{{2fofc}}","/static/{{fofc}}"); {% endcomment %}
 
-      document.getElementById('{{interesting}}').checked = true;
-      document.getElementById('{{ligplaced}}'  ).checked = true;
-      document.getElementById('{{ligconfid}}'  ).checked = true;
 
-    V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
+        document.getElementById('{{interesting}}').checked = true;
+        document.getElementById('{{ligplaced}}'  ).checked = true;
+        document.getElementById('{{ligconfid}}'  ).checked = true;
 
-    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-                              "/static/{{2fofc}}",
-                              "/static/{{fofc}}");
-    
+        V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
 
-    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
-    {% comment %} V2.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-                              "/static/{{average_map}}",
-                              "/static/{{average_map}}");
-                                   {% endcomment %}
-    V2.load_pdb("/static/{{pdb}}",null, function(){
-          V2.recenter({{center}}, null, 25);
-      });
-    V2.load_ccp4_maps("/static/{{average_map}}");
-    V1.recenter({{center}}, null, 25)
-    V1.renderer.domElement.focus();
-    V1.change_zoom_by_factor(3.5);
+        V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
+                                  "/static/{{2fofc}}",
+                                  "/static/{{fofc}}");
+
+
+        V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
+
+        V2.load_pdb("/static/{{pdb}}",null, function(){
+              V2.recenter({{center}}, null, 25);
+          });
+        V2.load_ccp4_maps("/static/{{average_map}}", null, function () {
+                        V2.map_bags[V2.map_bags.length - 1].name = "average_map"
+                    });
+        V1.recenter({{center}}, null, 25)
+        V1.renderer.domElement.focus();
+        V1.change_zoom_by_factor(3.5);
+
+
 
     var ligcenter = [{{center}}]
     var centroid = {{centroids}};
@@ -336,10 +320,12 @@
     var site_idxs = [{{siten}}].concat(range(1,centroidL));
     var index = 0;
     var numsites= sites.length;
+
     function centerligand(){
       V1.recenter({{center}}, null, 25)
       V1.request_render()
     }
+
     function nextsite(){
         index = (index + 1) % numsites;
         var site =sites[index];
@@ -357,6 +343,12 @@
       V1.recenter(b, null, 25);
       V1.request_render();
     }
+
+    $(document).on('click','#ligand',function(){
+        V1.recenter({{center}}, null, 25)
+        V1.request_render();
+    });
+
     function range(start, end) {
         /* generate a range : [start, start+1, ..., end-1, end] */
         var len = end - start + 1;
@@ -385,6 +377,27 @@
             if(charCode == 88) centerligand();
         });
     });
+
+    function show_input_mtz() {
+
+        mtz = "{{data_path}}/fragmax/results/pandda/{{protein}}/{{method}}/{{name}}/final.mtz"
+        map_name = "inputMTZ"
+        if (search_maps(map_name, V1.map_bags) === undefined) {
+            GemmiMtz().then(function (Module) {
+                UM.load_maps_from_mtz(Module, V1, mtz, null, function () {
+                    V1.map_bags[V1.map_bags.length - 1].name = map_name
+                });
+            });
+        }
+    }
+
+    function search_maps(nameKey, myArray){
+        for (var i=0; i < myArray.length; i++) {
+            if (myArray[i].name === nameKey) {
+                return i;
+            }
+        }
+    }
   </script>
 </body>
 </html>

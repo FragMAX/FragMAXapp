@@ -44,6 +44,7 @@ urlpatterns = [
     path('projects/', projects.show, name='manage_projects'),
     path('project/<int:id>/', projects.edit),
     path('project/new', projects.new, name='new_project'),
+    path('project/update_library', projects.update_library, name='update_library'),
     path('project/current/<int:id>/', projects.set_current),
 
     # encryption key management views

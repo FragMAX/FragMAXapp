@@ -686,7 +686,8 @@ def submit(request):
 
     if "analyse" in panddaCMD:
         function, proc, ref, complete, use_apo, use_dmso, reproZmaps, use_CAD, ref_CAD, \
-            ign_errordts, keepup_last, ign_symlink, PanDDAfilter, min_dataset, customPanDDA = panddaCMD.split(";")
+            ign_errordts, keepup_last, ign_symlink, PanDDAfilter, min_dataset, customPanDDA, \
+            cifMethod = panddaCMD.split(";")
 
         method = proc + "_" + ref
 
@@ -712,7 +713,8 @@ def submit(request):
             "dtsfilter": PanDDAfilter,
             "customPanDDA": customPanDDA,
             "reprocessing": False,
-            "reprocessing_mode": "reload"
+            "reprocessing_mode": "reload",
+            "nproc": 32
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -726,7 +728,7 @@ def submit(request):
         methodshort = proc[:2] + ref[:2]
         _write_main_script(proj, method, methodshort, options)
 
-        t1 = threading.Thread(target=pandda_worker, args=(proj, method, options))
+        t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
         t1.daemon = True
         t1.start()
 
@@ -748,8 +750,9 @@ def _write_main_script(proj, method, methodshort, options):
 #SBATCH -J PDD{methodshort}
 #SBATCH --exclusive
 #SBATCH -N1
-#SBATCH --cpus-per-task=48
-#SBATCH --mem=220000
+#SBATCH -p fujitsu
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=310G
 #SBATCH -o {log_prefix}out.txt
 #SBATCH -e {log_prefix}err.txt
 
@@ -895,7 +898,7 @@ def giant_score(proj, method):
     hpc.frontend_run(giant_worker_script)
 
 
-def pandda_worker(proj, method, options):
+def pandda_worker(proj, method, options, cifMethod):
     rn = str(randint(10000, 99999))
 
     fragDict = dict()
@@ -932,7 +935,7 @@ def pandda_worker(proj, method, options):
         if path.exists(pdb):
             hklin = pdb.replace(".pdb", ".mtz")
             resHigh, freeRflag, fsigf_Flag = _read_mtz_file(proj, hklin)
-            script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag)
+            script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod)
 
             hpc.run_sbatch(script)
             # os.remove(script)
@@ -949,12 +952,13 @@ def pandda_worker(proj, method, options):
     # os.remove(script)
 
 
-def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag):
+def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod):
     mtz = path.join(path.dirname(pdb), "final.mtz")
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
     script = f"pandda_prepare_{proj.protein}{fset}.sh"
+    lib = proj.library
 
     copy_frags_cmd = ""
 
@@ -963,8 +967,17 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         frag = dataset.split("-")[-1].split("_")[0]
         frag_cif = path.join(fragments_path, f"{frag}.cif")
         frag_pdb = path.join(fragments_path, f"{frag}.pdb")
-
-        if path.exists(f"{os.path.join(fragments_path, frag_cif)}"):
+        smiles = lib.get_fragment(frag).smiles
+        if cifMethod == "elbow":
+            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag}\n"
+            clear_tmp_cmd = ""
+        elif cifMethod == "acedrg":
+            cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
+            clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
+        elif cifMethod == "grade":
+            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
+        copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
+        if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
             copy_frags_cmd = \
                 f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
 
@@ -977,6 +990,8 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
 #SBATCH --mem=2500
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
+module purge
+module load Phenix CCP4 BUSTER/20190607-3-PReSTO
 
 {crypt_shell.crypt_cmd(proj)}
 

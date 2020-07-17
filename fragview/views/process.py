@@ -32,9 +32,6 @@ def datasets(request):
         "customxdsapp": form.custom_xdsapp
     }
 
-    if filters != "ALL":
-        nodes = 1
-
     if form.use_xdsapp:
         t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
         t.daemon = True
@@ -131,8 +128,9 @@ def run_xdsapp(proj, nodes, filters, options):
     header += """#SBATCH -J XDSAPP\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=40\n"""
-    # header+= """#SBATCH --mem=220000\n"""
+    header += """#SBATCH -p fujitsu\n"""
+    header += """#SBATCH --cpus-per-task=64\n"""
+    header += """#SBATCH --mem=300G\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
@@ -166,7 +164,7 @@ def run_xdsapp(proj, nodes, filters, options):
         script = \
             f"mkdir -p {outdir}/xdsapp\n" \
             f"cd {outdir}/xdsapp\n" \
-            f"xdsapp --cmd --dir={outdir}/xdsapp -j 8 -c 5 -i {h5master} {spg} {customxdsapp} --delphi=10 " \
+            f"xdsapp --cmd --dir={outdir}/xdsapp -j 1 -c 64 -i {h5master} {spg} {customxdsapp} --delphi=10 " \
             f"{friedel} --range=1\\ {nImg}\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
 
@@ -207,8 +205,9 @@ def run_autoproc(proj, nodes, filters, options):
     header += """#SBATCH -J autoPROC\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=48\n"""
-    # header+= """#SBATCH --mem=220000\n"""
+    header += """#SBATCH -p fujitsu\n"""
+    header += """#SBATCH --cpus-per-task=64\n"""
+    header += """#SBATCH --mem=300G\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
@@ -253,8 +252,8 @@ def run_autoproc(proj, nodes, filters, options):
             f'''process -h5 {h5master} {friedel} {spg} {unit_cell} ''' + \
             f'''autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
             f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
-            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=8 ''' + \
-            f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=5 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
+            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=1 ''' + \
+            f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
             f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} ''' + \
             f'''-d {outdir}/autoproc\n''' + project_update_status_script_cmds(proj, sample, softwares)
 
@@ -319,8 +318,9 @@ def run_xdsxscale(proj, nodes, filters, options):
     header += """#SBATCH -J xdsxscale\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=48\n"""
-    # header+= """#SBATCH --mem=220000\n"""
+    header += """#SBATCH -p fujitsu\n"""
+    header += """#SBATCH --cpus-per-task=64\n"""
+    header += """#SBATCH --mem=300G\n"""
     # header += """#SBATCH --mem-per-cpu=2000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_err.txt\n"""
@@ -363,8 +363,8 @@ def run_xdsxscale(proj, nodes, filters, options):
             f"mkdir -p {outdir}/xdsxscale\n" \
             f"cd {outdir}/xdsxscale \n" \
             f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} " \
-            f"nproc=40 {friedel} image={h5master}:1:{nImg}" \
-            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
+            f"nproc=64 {friedel} image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1 \n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 
@@ -427,10 +427,11 @@ def run_dials(proj, nodes, filters, options):
     header += """#SBATCH -J DIALS\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
-    header += """#SBATCH --cpus-per-task=48\n"""
+    header += """#SBATCH --cpus-per-task=64\n"""
+    header += """#SBATCH -p fujitsu\n"""
     # it seems we need around ~210G of RAM to process some datasets,
     # when we do a 48-way parallelization
-    header += """#SBATCH --mem=210G\n"""
+    header += """#SBATCH --mem=300G\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
@@ -472,8 +473,8 @@ def run_dials(proj, nodes, filters, options):
             f"mkdir -p {outdir}/dials\n" \
             f"cd {outdir}/dials \n" \
             f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} " \
-            f"nproc=48 {friedel} image={h5master}:1:{nImg}" \
-            f" multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=auto\n" + \
+            f"nproc=64 {friedel} image={h5master}:1:{nImg}" \
+            f" multiprocessing.mode=serial multiprocessing.njob=1\n" + \
             project_update_status_script_cmds(proj, sample, softwares)
         scriptList.append(script)
 
