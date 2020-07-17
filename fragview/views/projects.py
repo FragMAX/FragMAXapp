@@ -12,6 +12,7 @@ from fragview.projects import current_project, project_shift_dirs
 # from worker import setup_project_files, add_new_shifts, _prepare_fragments
 from worker import setup_project_files, add_new_shifts
 
+
 def show(request):
     """
     projects list page, aka 'manage projects' page
