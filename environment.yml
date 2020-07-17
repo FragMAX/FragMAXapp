@@ -4,7 +4,6 @@ channels:
 dependencies:
   - python=3.6
   - Django=2.2.1
-  - django-material=1.5.8
   - sqlparse=0.3.0
   - natsort=6.0.0
   - matplotlib=3.1.1
@@ -22,3 +21,4 @@ dependencies:
     - pypdb==1.300
     - redlock==1.2.0
     - zipstream-new==1.1.7
+    - django-material==1.6.7
