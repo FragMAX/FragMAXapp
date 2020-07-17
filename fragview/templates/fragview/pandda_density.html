@@ -80,10 +80,12 @@
       font-size: 11px;
     }
     .ligandSVG{
-    padding-left: 7.5px;
+    left: 0px;
     position: absolute;
-    bottom: 10px;
+    bottom: 0px;
     width: 250px;
+    font-size: 22px;
+    font-weight: bold;
   }
       #viewer1 b, #viewer2 b { color: #FCFCFC;}
   #viewer1 b { overflow: hidden; font-size: 22px; position: absolute; bottom: 60px; left: 50%; }
@@ -175,11 +177,7 @@
         <h6>Load dataset or mtz</h6>
 
         <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Next mdld"  disabled></input> </div>
-          <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Avg  map"  disabled></input> </div>
-        </div>
-        <div style="display:flex">
-          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  disabled></input> </div>
+          <div style="padding-top:10px"><input  class="btn-small" type="button" value="Input mtz "  onclick="show_input_mtz()"></input> </div>
           <div style="padding-top:10px;padding-left:5px"><input  class="btn-small" type="button" value="Unfitted"  disabled></input> </div>
         </div>
       </div>
@@ -245,9 +243,9 @@
 
    <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
-    <b><h6>{{name}}</h6></b>
+    <b><h6>{{dataset}}</h6></b>
 
-      <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
+      <header id="hud">PanDDA event and average map for ligand {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
     </div>
     </div>
 
@@ -340,6 +338,33 @@
             if(charCode == 88) centerligand();
         });
     });
+    function show_input_mtz() {
+
+        mtz = "{{data_path}}/fragmax/results/pandda/{{project.protein}}/{{method}}/{{dataset}}/final.mtz"
+        map_name = "inputMTZ"
+        if (search_maps(map_name, V1.map_bags) === undefined) {
+            GemmiMtz().then(function (Module) {
+                UM.load_maps_from_mtz(Module, V1, mtz, null, function () {
+                    V1.map_bags[V1.map_bags.length - 1].name = map_name
+                });
+            });
+        }
+    }
+
+    function search_maps(nameKey, myArray){
+        for (var i=0; i < myArray.length; i++) {
+            if (myArray[i].name === nameKey) {
+                return i;
+            }
+        }
+    }
+
+
+    $(document).on('click','#ligand',function(){
+        V1.recenter({{center}}, null, 25)
+        V1.request_render();
+    });
+
   </script>
 </body>
 </html>

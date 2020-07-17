@@ -626,6 +626,8 @@ def pandda(request):
             request,
             "fragview/pandda_density.html",
             {
+                "method": method,
+                "data_path": proj.data_path().replace("/data/visitors", "/static"),
                 "siten": site_idx,
                 "event": event,
                 "centroids": centroids,

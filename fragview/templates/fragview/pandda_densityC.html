@@ -271,7 +271,7 @@
     <b><h6>{{name}}</h6></b>
     <b><h6>{{method}}</h6></b>
   
-      <header id="hud">PanDDA event map for ligand {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
+      <header id="hud">PanDDA event and average map for ligand {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
     </div>
     </div>
 
@@ -288,28 +288,30 @@
     <script>
 
 
-      document.getElementById('{{interesting}}').checked = true;
-      document.getElementById('{{ligplaced}}'  ).checked = true;
-      document.getElementById('{{ligconfid}}'  ).checked = true;
+        document.getElementById('{{interesting}}').checked = true;
+        document.getElementById('{{ligplaced}}'  ).checked = true;
+        document.getElementById('{{ligconfid}}'  ).checked = true;
 
-    V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
+        V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
 
-    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-                              "/static/{{2fofc}}",
-                              "/static/{{fofc}}");
-    
+        V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
+                                  "/static/{{2fofc}}",
+                                  "/static/{{fofc}}");
 
-    V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
 
-    V2.load_pdb("/static/{{pdb}}",null, function(){
-          V2.recenter({{center}}, null, 25);
-      });
-    V2.load_ccp4_maps("/static/{{average_map}}", null, function () {
-                    V2.map_bags[V2.map_bags.length - 1].name = "average_map"
-                });
-    V1.recenter({{center}}, null, 25)
-    V1.renderer.domElement.focus();
-    V1.change_zoom_by_factor(3.5);
+        V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help"});
+
+        V2.load_pdb("/static/{{pdb}}",null, function(){
+              V2.recenter({{center}}, null, 25);
+          });
+        V2.load_ccp4_maps("/static/{{average_map}}", null, function () {
+                        V2.map_bags[V2.map_bags.length - 1].name = "average_map"
+                    });
+        V1.recenter({{center}}, null, 25)
+        V1.renderer.domElement.focus();
+        V1.change_zoom_by_factor(3.5);
+
+
 
     var ligcenter = [{{center}}]
     var centroid = {{centroids}};
@@ -318,10 +320,12 @@
     var site_idxs = [{{siten}}].concat(range(1,centroidL));
     var index = 0;
     var numsites= sites.length;
+
     function centerligand(){
       V1.recenter({{center}}, null, 25)
       V1.request_render()
     }
+
     function nextsite(){
         index = (index + 1) % numsites;
         var site =sites[index];
@@ -377,7 +381,7 @@
     function show_input_mtz() {
 
         mtz = "{{data_path}}/fragmax/results/pandda/{{protein}}/{{method}}/{{name}}/final.mtz"
-        map_name = "InputMTZ_button"
+        map_name = "inputMTZ"
         if (search_maps(map_name, V1.map_bags) === undefined) {
             GemmiMtz().then(function (Module) {
                 UM.load_maps_from_mtz(Module, V1, mtz, null, function () {

@@ -9,8 +9,8 @@ from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
 
-from worker import setup_project_files, add_new_shifts, _prepare_fragments
-
+# from worker import setup_project_files, add_new_shifts, _prepare_fragments
+from worker import setup_project_files, add_new_shifts
 
 def show(request):
     """
@@ -87,7 +87,7 @@ def update_library(request):
     GET requests show the 'Create new Project' page
     POST requests will try to create a new project
     """
-    proj = current_project(request)
+    # proj = current_project(request)
 
     if request.method == "GET":
         return render(request, "fragview/pdbs.html")
