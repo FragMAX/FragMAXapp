@@ -40,6 +40,21 @@
     max-width: 100% !important;
     width: calc(100% - 350px) !important;
   }
+    .ligpng {
+    height:88px;
+    width:88px;
+  }
+    button.link {
+	font-family: "Verdana" sans-serif;
+	font-size: 1.1em;
+	text-align: left;
+	color: #039be5;
+	background: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
 
 </style>
  <div>
@@ -93,7 +108,11 @@
       
       </td>
       <td>{{dataset}}</td>
-      <td><a href="{{summaryFile}}">Summary</a></td>
+      <td><a href="{{summaryFile}}">Summary</a>
+        <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
+            <button  class="link" type="submit" value="{{summaryFile}}" name="logFile" size="1" >Summary2</button>
+          </form>
+      </td>
       <td>{{spacegroup}}</td>
       <td>{{resolution}}</td>
       <td>{{rwork}}</td>
@@ -106,7 +125,11 @@
       <td>{{beta}}</td>
       <td>{{gamma}}</td>
       <td><a href={{ligsvg}} target="_blank">
-        <img class="ligpng" id="ligand" src={{ligsvg}} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="116" >
+        {% if fragment %}
+          <a href="/fragment/{{ fragment }}/image" target="_blank">
+            <img class="ligpng" src="/fragment/{{ fragment }}/image" height="40" width="86">
+          </a>
+        {% endif %}
       </a></td>
 
       

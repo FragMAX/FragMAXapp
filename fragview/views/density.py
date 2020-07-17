@@ -309,6 +309,7 @@ def show_pipedream(request):
         {
             "name": sample.replace("/data/visitors/", "/static/"),
             "pdb": pdb.replace("/data/visitors/", "/static/"),
+            "mtz": pdb.replace("/data/visitors/", "/static/").replace(".pdb", ".mtz"),
             "sample": sample,
             "process": process,
             "rhofit": rhofit.replace("/data/visitors/", "/static/"),
