@@ -1,17 +1,14 @@
 import os
 import csv
-import time
-import pypdb
 import shutil
 import natsort
 import xmltodict
-import subprocess
 from os import path
 from glob import glob
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
-from fragview.projects import project_shift_dirs, project_static_url, project_model_path, project_fragment_cif
+from fragview.projects import project_shift_dirs, project_static_url, project_model_path
 from fragview.projects import project_script
 from .utils import scrsplit
 
