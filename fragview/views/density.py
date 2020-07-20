@@ -260,7 +260,7 @@ def show_pipedream(request):
     for n, line in enumerate(lines):
         if line[0] == sample:
             ligand = line[2]
-            symmetry = sym2spg(line[4])
+            symmetry = line[4]
             resolution = line[5]
             rwork = line[6]
             rfree = line[7]
@@ -280,9 +280,9 @@ def show_pipedream(request):
 
     if "Apo" not in sample:
         process = "rhofit"
-        files = glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/rhofit*/")
+        files = glob(f"{project_results_dir(proj)}/{sample}/pipedream/rhofit*/")
         files.sort(key=lambda x: path.getmtime(x))
-        if files != []:
+        if files:
             pdb = files[-1] + "refine.pdb"
             rhofit = files[-1] + "best.pdb"
 
@@ -296,7 +296,7 @@ def show_pipedream(request):
         process = "refine"
         files = glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/refine*/")
         files.sort(key=lambda x: path.getmtime(x))
-        if files != []:
+        if files:
             pdb = files[-1] + "refine.pdb"
             rhofit = ""
             rhofitscore = "-"
@@ -329,7 +329,7 @@ def show_pipedream(request):
 
 def sym2spg(sym):
     spgDict = {
-        "1": "P 1", "2": " P -1", "3": " P 2    ", "4": "P 21", "5": "C 2",
+        "1": "P 1", "2": " P -1", "3": " P 2 ", "4": "P 21", "5": "C 2",
         "6": "P m", "7": " P c    ", "8": " C m    ", "9": "C c", "10": "P 2/m",
         "11": "P 21/m", "12": " C 2/m", "13": " P 2/c", "14": "P 21/c", "15": "C 2/c",
         "16": "P 2 2 2", "17": " P 2 2 21    ", "18": " P 21 21 2 ", "19": "P 21 21 21", "20": "C 2 2 21",

@@ -10,6 +10,7 @@ from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
 from fragview.projects import project_shift_dirs, project_static_url, project_model_path
 from fragview.projects import project_script
+from fragview.views.density import sym2spg
 from .utils import scrsplit
 
 
@@ -57,7 +58,7 @@ def get_pipedream_results(proj, pipedream_csv):
 
         pipedreamXML = list()
         for shift_dir in project_shift_dirs(proj):
-            xml_glob = f"{shift_dir}/fragmax/process/{proj.protein}/*/*/pipedream/summary.xml"
+            xml_glob = f"{shift_dir}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
             pipedreamXML += glob(xml_glob)
 
         for summary in pipedreamXML:
@@ -74,6 +75,7 @@ def get_pipedream_results(proj, pipedream_csv):
                 gamma = doc["GPhL-pipedream"]["refdata"]["cell"]["gamma"]
                 ligandID = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["@id"]
                 symm = doc["GPhL-pipedream"]["refdata"]["symm"]
+                symm = f'{symm} ({sym2spg(symm).replace(" ", "")})'
                 rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"][
                     "correlationcoefficient"]
                 R = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
@@ -83,7 +85,7 @@ def get_pipedream_results(proj, pipedream_csv):
                     f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{ligandID}/{ligandID}.svg"
 
                 writer.writerow([
-                    sample, summary.replace("/data/visitors/", "/static/").replace(".xml", ".out"), ligandID,
+                    sample, summary.replace(".xml", ".out"), ligandID,
                     proj.library, symm, resolution, R, Rfree, rhofitscore, a, b, c, alpha, beta, gamma, ligsvg])
 
             except Exception:

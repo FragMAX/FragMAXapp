@@ -5,7 +5,7 @@ from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.forms import LigfitForm
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
-from fragview.projects import project_update_results_script_cmds
+from fragview.projects import project_update_results_script_cmds, project_fragment_cif, project_fragment_pdb
 from fragview.views.utils import write_script
 
 from glob import glob
@@ -64,7 +64,6 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
         fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
         smiles = lib.get_fragment(fragID).smiles
         clear_tmp_cmd = ""
-        move_cif_cmd = ""
         cif_out = pdb.replace("final.pdb", fragID)
         if cifMethod == "elbow":
             cif_cmd = f"phenix.elbow --smiles='{smiles}' --output={cif_out}\n"
@@ -81,7 +80,9 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
 
         ligCIF = f"{cif_out}.cif"
         ligPDB = f"{cif_out}.pdb"
-
+        projCIF = project_fragment_cif(proj, fragID)
+        projPDB = project_fragment_pdb(proj, fragID)
+        move_cif_cmd = f"cp {ligCIF} {projCIF}\ncp {ligPDB} {projPDB}"
         rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
         ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
         mtz_input = pdb.replace(".pdb", ".mtz")

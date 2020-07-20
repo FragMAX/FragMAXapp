@@ -9,7 +9,9 @@
   <meta name="viewport" content="width=device-width, user-scalable=no">
   <meta name="theme-color" content="#333333">
   <style>
-   body { font-family: sans-serif; }
+   body {
+     font-family: sans-serif;
+     overflow: hidden}
    canvas {
      display: flex;
      }
@@ -22,7 +24,6 @@
    #viewer {
      position: absolute;
      left: 550px;
-
      width: calc(100% - 550px);
      height: 100%;
    }
@@ -73,7 +74,6 @@
     filter: contrast(0.5);
     }
     .ligandSVG{
-    left: 15px;
     position: absolute;
     bottom: 0px;
     width: 250px;
@@ -220,7 +220,7 @@
         V.request_render();
       }
       function centerrhofit(){
-        V.recenter({{center}},null,25)
+        V.recenter(V.model_bags[search("rhofit", V.model_bags)].atom_array[0].xyz,null,25)
         V.request_render();
       }
 
@@ -240,7 +240,7 @@
         }
     }
     $(document).on('click','#ligand',function(){
-        V.recenter({{center}}, null, 25)
+        V.recenter(V.model_bags[search("rhofit", V.model_bags)].atom_array[0].xyz, null, 25)
         V.request_render();
     });
   </script>

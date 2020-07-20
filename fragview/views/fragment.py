@@ -6,6 +6,8 @@ from fragview import smiles
 def svg(request, fragment):
     proj = current_project(request)
 
+    if proj.protein in fragment:
+        fragment = fragment.split("-")[-1].split("_")[0]
     frag = proj.library.get_fragment(fragment)
     if frag is None:
         return HttpResponseNotFound(f"no '{fragment}' fragment in {proj.library.name} library")
