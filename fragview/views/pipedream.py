@@ -5,10 +5,11 @@ import natsort
 import xmltodict
 from os import path
 from glob import glob
+from operator import itemgetter
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
-from fragview.projects import project_shift_dirs, project_static_url, project_model_path
+from fragview.projects import project_static_url, project_model_path
 from fragview.projects import project_script
 from fragview.views.density import sym2spg
 from .utils import scrsplit
@@ -43,6 +44,7 @@ def results(request):
         with open(pipedream_csv, "r") as readFile:
             reader = csv.reader(readFile)
             lines = list(reader)[1:]
+            lines = sorted(lines, key=itemgetter(0))
 
         return render(request, "fragview/pipedream_results.html", {"lines": lines})
     else:
@@ -57,9 +59,8 @@ def get_pipedream_results(proj, pipedream_csv):
              "rhofitscore", "a", "b", "c", "alpha", "beta", "gamma", "ligsvg"])
 
         pipedreamXML = list()
-        for shift_dir in project_shift_dirs(proj):
-            xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
-            pipedreamXML += glob(xml_glob)
+        xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
+        pipedreamXML += glob(xml_glob)
 
         for summary in pipedreamXML:
             try:
