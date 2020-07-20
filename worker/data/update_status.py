@@ -41,7 +41,9 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
             dp_status[proc] = status
 
     # REFINEMENT
-    rf_folders = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/")
+    rf_folders = [x for x in glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/")
+                  if "pipedream" not in x]
+
     rf_state = [get_status_ref(x) for x in rf_folders]
     rf_status = dict(
         xdsapp_dimple="none",
@@ -122,10 +124,13 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     order_lg = sorted(lg_status.items(), key=lambda pair: a_list.index(pair[1]), reverse=True)
     lg_status_simple = {k[0].split("_")[-1]: k[1] for k in order_lg}
 
-    print(lg_status)
+    # print(lg_status)
     d4 = dict(dp_status, **rf_status_simple, **lg_status_simple)
 
-    print(d4)
+    [print(k, ":", v) for (k, v) in d4.items()]
+
+    ppd_folders = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/")
+    print(ppd_folders)
 
     return d4
 
