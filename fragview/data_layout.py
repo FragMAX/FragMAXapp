@@ -1,8 +1,8 @@
 import re
+from glob import glob
 from os import path, walk
 from datetime import datetime
 from fragmax import sites
-from fragview.projects import project_raw_protein_dir
 
 
 class ValidationError(Exception):
@@ -37,6 +37,15 @@ class ShiftsDirsLayout:
         return f"{proposal}-group"
 
     @staticmethod
+    def get_project_datasets(project):
+        from fragview.projects import project_raw_master_h5_files
+        for master_file in project_raw_master_h5_files(project):
+            file_name = path.basename(master_file)
+            # chopping of the '_master.h5' from the file name
+            # gives us the data set name in the format we are using
+            yield file_name[:-len("_master.h5")]
+
+    @staticmethod
     def get_experiment_date(project):
         # use main shift's date as somewhat random experiment data
         return datetime.strptime(project.shift, "%Y%m%d")
@@ -44,6 +53,7 @@ class ShiftsDirsLayout:
 
 def _get_cbf_experiment_timestamp(project):
     def _find_path():
+        from fragview.projects import project_raw_protein_dir
         raw = project_raw_protein_dir(project)
 
         # look for any random CBF folder inside raw folder
@@ -58,6 +68,39 @@ def _get_cbf_experiment_timestamp(project):
 
     timestamp = path.getmtime(_find_path())
     return datetime.fromtimestamp(timestamp)
+
+
+def _get_cbf_datasets(project):
+    """
+    list the data sets by looking at existing *.cbf files in
+    subdirectories under the 'raw' folder
+    """
+    def _run_exists(set_dir, set_name, run):
+        for n in range(1, 10):
+            file_name = f"{set_name}_{run}_{n:04}.cbf"
+            if path.isfile(path.join(set_dir, file_name)):
+                return True
+
+        return False
+
+    def _sets(set_dir):
+        """
+        list all runs of a particular dataset by probing
+        the *.cbf file names
+        """
+        run = 1
+        set_name = path.basename(set_dir)
+        while _run_exists(set_dir, set_name, run):
+            yield f"{set_name}_{run}"
+            run += 1
+
+    from fragview.projects import project_raw_protein_dir
+    raw = project_raw_protein_dir(project)
+
+    for dir_name in glob(f"{raw}/*"):
+        # list all datasets for each folder under 'raw'
+        for set_name in _sets(dir_name):
+            yield set_name
 
 
 class PlainDirLayout:
@@ -87,6 +130,10 @@ class PlainDirLayout:
     @staticmethod
     def get_experiment_date(project):
         return _get_cbf_experiment_timestamp(project)
+
+    @staticmethod
+    def get_project_datasets(project):
+        return _get_cbf_datasets(project)
 
 
 _STYLE_CLS = {
