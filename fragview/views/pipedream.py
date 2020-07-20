@@ -1,18 +1,16 @@
 import os
 import csv
-import time
-import pypdb
 import shutil
 import natsort
 import xmltodict
-import subprocess
 from os import path
 from glob import glob
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
-from fragview.projects import project_shift_dirs, project_static_url, project_model_path, project_fragment_cif
+from fragview.projects import project_shift_dirs, project_static_url, project_model_path
 from fragview.projects import project_script
+from fragview.views.density import sym2spg
 from .utils import scrsplit
 
 
@@ -60,7 +58,7 @@ def get_pipedream_results(proj, pipedream_csv):
 
         pipedreamXML = list()
         for shift_dir in project_shift_dirs(proj):
-            xml_glob = f"{shift_dir}/fragmax/process/{proj.protein}/*/*/pipedream/summary.xml"
+            xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
             pipedreamXML += glob(xml_glob)
 
         for summary in pipedreamXML:
@@ -77,6 +75,7 @@ def get_pipedream_results(proj, pipedream_csv):
                 gamma = doc["GPhL-pipedream"]["refdata"]["cell"]["gamma"]
                 ligandID = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["@id"]
                 symm = doc["GPhL-pipedream"]["refdata"]["symm"]
+                symm = f'{symm} ({sym2spg(symm).replace(" ", "")})'
                 rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"][
                     "correlationcoefficient"]
                 R = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
@@ -86,7 +85,7 @@ def get_pipedream_results(proj, pipedream_csv):
                     f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{ligandID}/{ligandID}.svg"
 
                 writer.writerow([
-                    sample, summary.replace("/data/visitors/", "/static/").replace(".xml", ".out"), ligandID,
+                    sample, summary.replace(".xml", ".out"), ligandID,
                     proj.library, symm, resolution, R, Rfree, rhofitscore, a, b, c, alpha, beta, gamma, ligsvg])
 
             except Exception:
@@ -94,27 +93,6 @@ def get_pipedream_results(proj, pipedream_csv):
 
 
 def submit(request):
-    def get_user_pdb_path():
-        if len(b_userPDBcode.replace("b_userPDBcode:", "")) == 4:
-            userPDB = b_userPDBcode.replace("b_userPDBcode:", "")
-            userPDBpath = project_model_path(proj, f"{userPDB}.pdb")
-
-            # Download and prepare PDB _file - remove waters and HETATM
-            with open(userPDBpath, "w") as pdb:
-                pdb.write(pypdb.get_pdb_file(userPDB, filetype='pdb'))
-
-            preparePDB = \
-                "pdb_selchain -" + pdbchains + " " + userPDBpath + " | pdb_delhetatm | pdb_tidy > " + \
-                userPDBpath.replace(".pdb", "_tidy.pdb")
-            subprocess.call(preparePDB, shell=True)
-        else:
-            if len(b_userPDBcode.split("b_userPDBcode:")) == 2:
-                if proj.data_path() in b_userPDBcode.split("b_userPDBcode:")[1]:
-                    userPDBpath = b_userPDBcode.split("b_userPDBcode:")[1]
-                else:
-                    userPDBpath = project_model_path(proj, b_userPDBcode.split("b_userPDBcode:")[1])
-
-        return userPDBpath
 
     proj = current_project(request)
     ppdCMD = str(request.GET.get("ppdform"))
@@ -126,161 +104,167 @@ def submit(request):
         rho_postrefine, rho_occuprefine, rho_fittingproc, rho_scanchirals, rho_custompar, extras = ppdCMD.split(";;")
 
     nodes = 10
-    # variables init
-    ligand = "none"
-    ppdoutdir = "none"
-    ppd = "INITVALUE"
-
-    pdbchains = "A"
-    userPDBpath = ""
+    PDBmodel = b_userPDBfile.replace("b_userPDBfile:", "").replace(".pdb", "")
     # Select one dataset or entire project
-    if "alldatasets" not in input_data:
-        input_data = input_data.replace("input_data:", "")
-        ppdoutdir = path.join(
-            project_process_protein_dir(proj),
-            input_data.split(proj.protein + "/")[-1].replace("_master.h5", ""),
-            "pipedream")
-        os.makedirs("/".join(ppdoutdir.split("/")[:-1]), mode=0o760, exist_ok=True)
 
-        # we need to make sure that pipedream output directory does
-        # not exist before invoking pipedream, as pipedream can potentionally
-        # refuse to run if the directory already exists
-        if path.exists(ppdoutdir):
-            shutil.rmtree(ppdoutdir)
+    if "ALL" not in input_data:
+        input_data_list = input_data.replace("input_data:", "").split(",")
 
-        userPDBpath = get_user_pdb_path()
+        def pipedream_single_dataset(_data):
+            ppdoutdir = path.join(proj.data_path(), "fragmax", "results", _data, "pipedream")
+            ppdprocessdir = path.join(project_process_protein_dir(proj), _data.split("_")[0], _data, "pipedream")
 
-        # STARANISO setting
-        if "true" in ap_staraniso:
-            useANISO = " -useaniso"
-        else:
-            useANISO = ""
+            os.makedirs(path.dirname(ppdoutdir), mode=0o775, exist_ok=True)
+            os.makedirs(path.dirname(ppdprocessdir), mode=0o775, exist_ok=True)
 
-        # BUSTER refinement mode
-        if "thorough" in b_refinemode:
-            refineMode = " -thorough"
-        elif "quick" in b_refinemode:
-            refineMode = " -quick"
-        else:
-            refineMode = " "
+            # we need to make sure that pipedream output directory does
+            # not exist before invoking pipedream, as pipedream will
+            # refuse to run if the directory already exists
+            if path.exists(ppdoutdir):
+                shutil.rmtree(ppdoutdir)
 
-        # PDB_REDO options
-        pdbREDO = ""
-        if "true" in b_sideaiderefit:
-            pdbREDO += " -remediate"
-            refineMode = " -thorough"
-        if "true" in b_sideaiderebuild:
-            if "remediate" not in pdbREDO:
+            userPDBpath = project_model_path(proj, f"{PDBmodel}.pdb")
+
+            # STARANISO setting
+            if "false" in ap_staraniso:
+                useANISO = ""
+            else:
+                useANISO = " -useaniso"
+
+            # BUSTER refinement mode
+            if "thorough" in b_refinemode:
+                refineMode = " -thorough"
+            elif "quick" in b_refinemode:
+                refineMode = " -quick"
+            else:
+                refineMode = " "
+
+            # PDB_REDO options
+            pdbREDO = ""
+            if "true" in b_sideaiderefit:
                 pdbREDO += " -remediate"
-            pdbREDO += " -sidechainrebuild"
-        if "true" in b_pepflip:
-            pdbREDO += " -runpepflip"
+                refineMode = " -thorough"
+            if "true" in b_sideaiderebuild:
+                if "remediate" not in pdbREDO:
+                    pdbREDO += " -remediate"
+                pdbREDO += " -sidechainrebuild"
+            if "true" in b_pepflip:
+                pdbREDO += " -runpepflip"
 
-        # Rhofit ligand
-        if "true" in rho_ligandfromname:
-            ligand = input_data.split("/")[8].split("-")[-1]
+            # Rhofit ligand
+            if "Apo" not in _data:
+                ligand = _data.split("-")[-1].split("_")[0]
+                lib = proj.library
+                smiles = lib.get_fragment(ligand).smiles
+                cif_out = f"{ppdprocessdir}/{ligand}"
+                cif_cmd = f"mkdir -p {ppdprocessdir}\n" \
+                          f"rm {cif_out}.cif {cif_out}.pdb\n" \
+                          f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
 
-        elif "false" in rho_ligandfromname:
-            if len(rho_ligandcode) > 15:
-                ligand = rho_ligandcode.replace("rho_ligandcode:", "")
-            elif len(rho_ligandsmiles) > 17:
-                ligand = rho_ligandsmiles.replace("rho_ligandsmiles:", "")
+                rhofitINPUT = f" -rhofit {cif_out}.cif"
+            else:
+                cif_cmd = ""
+                ligand = ""
+                rhofitINPUT = ""
+            # Keep Hydrogen RhoFit
+            keepH = ""
+            if "true" in rho_keepH:
+                keepH = " -keepH"
 
-        rhofitINPUT = f" -rhofit {project_fragment_cif(proj, ligand)}"
+            # Cluster to search for ligands
+            clusterSearch = ""
+            ncluster = "1"
 
-        # Keep Hydrogen RhoFit
-        keepH = ""
-        if "true" in rho_keepH:
-            keepH = " -keepH"
-
-        # Cluster to search for ligands
-        clusterSearch = ""
-        ncluster = "1"
-        if len(rho_allclusters) > 16:
-            if "true" in rho_allclusters.split(":")[-1].lower():
-                clusterSearch = " -allclusters"
+            if len(rho_allclusters) > 16:
+                if "true" in rho_allclusters.split(":")[-1].lower():
+                    clusterSearch = " -allclusters"
+                else:
+                    ncluster = rho_xclusters.split(":")[-1]
+                    if ncluster == "":
+                        ncluster = 1
+                    clusterSearch = " -xcluster " + ncluster
             else:
                 ncluster = rho_xclusters.split(":")[-1]
                 if ncluster == "":
-                    ncluster = 1
+                    ncluster = "1"
                 clusterSearch = " -xcluster " + ncluster
-        else:
-            ncluster = rho_xclusters.split(":")[-1]
-            if ncluster == "":
-                ncluster = "1"
-            clusterSearch = " -xcluster " + ncluster
 
-        # Search mode for RhoFit
-        if "thorough" in rho_fittingproc:
-            fitrefineMode = " -rhothorough"
-        elif "quick" in rho_fittingproc:
-            fitrefineMode = " -rhoquick"
-        else:
-            fitrefineMode = " "
-        # Post refine for RhoFit
-        if "thorough" in rho_postrefine:
-            postrefineMode = " -postthorough"
-        elif "standard" in rho_postrefine:
-            postrefineMode = " -postref"
-        elif "quick" in rho_postrefine:
-            postrefineMode = " -postquick"
-        else:
-            postrefineMode = " "
+            # Search mode for RhoFit
+            if "thorough" in rho_fittingproc:
+                fitrefineMode = " -rhothorough"
+            elif "quick" in rho_fittingproc:
+                fitrefineMode = " -rhoquick"
+            else:
+                fitrefineMode = " "
+            # Post refine for RhoFit
+            if "thorough" in rho_postrefine:
+                postrefineMode = " -postthorough"
+            elif "standard" in rho_postrefine:
+                postrefineMode = " -postref"
+            elif "quick" in rho_postrefine:
+                postrefineMode = " -postquick"
+            else:
+                postrefineMode = " "
 
-        scanChirals = ""
-        if "false" in rho_scanchirals:
-            scanChirals = " -nochirals"
+            scanChirals = ""
+            if "false" in rho_scanchirals:
+                scanChirals = " -nochirals"
 
-        occRef = ""
-        if "false" in rho_occuprefine:
-            occRef = " -nooccref"
+            occRef = ""
+            if "false" in rho_occuprefine:
+                occRef = " -nooccref"
 
-        singlePipedreamOut = ""
-        singlePipedreamOut += """#!/bin/bash\n"""
-        singlePipedreamOut += """#!/bin/bash\n"""
-        singlePipedreamOut += """#SBATCH -t 99:55:00\n"""
-        singlePipedreamOut += """#SBATCH -J pipedream\n"""
-        singlePipedreamOut += """#SBATCH --exclusive\n"""
-        singlePipedreamOut += """#SBATCH -N1\n"""
-        singlePipedreamOut += """#SBATCH --cpus-per-task=48\n"""
-        singlePipedreamOut += """#SBATCH --mem=220000\n"""
-        singlePipedreamOut += \
-            """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_out.txt\n"""
-        singlePipedreamOut += \
-            """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_err.txt\n"""
-        singlePipedreamOut += """module purge\n"""
-        singlePipedreamOut += """module load autoPROC BUSTER\n\n"""
+            singlePipedreamOut = ""
+            singlePipedreamOut += """#!/bin/bash\n"""
+            singlePipedreamOut += """#!/bin/bash\n"""
+            singlePipedreamOut += """#SBATCH -t 99:55:00\n"""
+            singlePipedreamOut += """#SBATCH -J pipedream\n"""
+            singlePipedreamOut += """#SBATCH --exclusive\n"""
+            singlePipedreamOut += """#SBATCH -N1\n"""
+            # singlePipedreamOut += """#SBATCH -p fujitsu\n"""
+            singlePipedreamOut += """#SBATCH --cpus-per-task=48\n"""
+            singlePipedreamOut += """#SBATCH --mem=220000\n"""
+            singlePipedreamOut += \
+                """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_out.txt\n"""
+            singlePipedreamOut += \
+                """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_err.txt\n"""
+            singlePipedreamOut += """module purge\n"""
+            singlePipedreamOut += """module load autoPROC BUSTER/20190607-3-PReSTO\n\n"""
+            _data_path = [x for x in project_raw_master_h5_files(proj) if _data in x][0]
+            chdir = f"mkdir -p {path.dirname(ppdoutdir)}; cd {path.dirname(ppdoutdir)}\n\n"
+            ppd = \
+                "pipedream -h5 " + _data_path + " -d " + ppdoutdir + " -xyzin " + \
+                userPDBpath + rhofitINPUT + useANISO + refineMode + pdbREDO + keepH + clusterSearch + \
+                fitrefineMode + postrefineMode + scanChirals + occRef + " -nofreeref -nthreads -1 -v"
 
-        chdir = "cd " + "/".join(ppdoutdir.split("/")[:-1])
-        ppd = \
-            "pipedream -h5 " + input_data + " -d " + ppdoutdir + " -xyzin " + userPDBpath + rhofitINPUT + useANISO + \
-            refineMode + pdbREDO + keepH + clusterSearch + fitrefineMode + postrefineMode + scanChirals + occRef + \
-            " -nofreeref -nthreads -1 -v"
+            singlePipedreamOut += chdir + "\n"
+            singlePipedreamOut += cif_cmd + "\n"
+            singlePipedreamOut += """module purge\n"""
+            singlePipedreamOut += """module load autoPROC BUSTER\n\n"""
+            singlePipedreamOut += ppd
 
-        singlePipedreamOut += chdir + "\n"
-        singlePipedreamOut += ppd
+            script = project_script(proj, f"pipedream_{_data}.sh")
+            with open(script, "w") as ppdsh:
+                ppdsh.write(singlePipedreamOut)
 
-        script = project_script(proj, f"pipedream_{ligand}.sh")
-        with open(script, "w") as ppdsh:
-            ppdsh.write(singlePipedreamOut)
+            hpc.run_sbatch(script)
 
-        hpc.run_sbatch(script)
+        for _input in input_data_list:
+            pipedream_single_dataset(_input)
 
-    if "alldatasets" in input_data:
+    if "ALL" in input_data:
         ppddatasetList = list(project_raw_master_h5_files(proj))
+        ppddatasetList_s = [path.basename(x).replace("_master.h5", "") for x in ppddatasetList]
+        ppdoutdirList = [path.join(proj.data_path(), "fragmax", "results", _data, "pipedream")
+                         for _data in ppddatasetList_s]
 
-        ppdoutdirList = [
-            f"{project_process_protein_dir(proj)}/" + x.split(proj.protein + "/")[-1].replace("_master.h5",
-                                                                                              "") + "/pipedream"
-            for x in ppddatasetList]
-
-        userPDBpath = get_user_pdb_path()
+        userPDBpath = project_model_path(proj, f"{PDBmodel}.pdb")
 
         # STARANISO setting
-        if "true" in ap_staraniso:
-            useANISO = " -useaniso"
-        else:
+        if "false" in ap_staraniso:
             useANISO = ""
+        else:
+            useANISO = " -useaniso"
 
         # BUSTER refinement mode
         if "thorough" in b_refinemode:
@@ -360,30 +344,49 @@ def submit(request):
         header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
         header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""
         header += """module purge\n"""
-        header += """module load autoPROC BUSTER\n\n"""
+        header += """module load autoPROC BUSTER/20190607-3-PReSTO\n\n"""
         scriptList = list()
 
         for ppddata, ppdout in zip(ppddatasetList, ppdoutdirList):
-            chdir = "cd " + "/".join(ppdout.split("/")[:-1])
+            chdir = f"mkdir -p {path.dirname(ppdout)};\ncd {path.dirname(ppdout)}\n"
+            _data = path.basename(ppddata).replace("_master.h5", "")
+            ppdprocessdir = path.join(project_process_protein_dir(proj), _data.split("_")[0], _data, "pipedream")
+            if path.exists(ppdout):
+                rmdir = f"rm -rf {ppdout}"
+            else:
+                rmdir = ""
             if "apo" not in ppddata.lower():
-                ligand = ppddata.split("/")[8].split("-")[-1]
-                rhofitINPUT = f" -rhofit {project_fragment_cif(proj, ligand)} {keepH}{clusterSearch}" \
-                              f"{fitrefineMode}{postrefineMode}{scanChirals}{occRef}"
-            if "apo" in ppddata.lower():
+                ligand = _data.split("-")[-1].split("_")[0]
+                lib = proj.library
+                smiles = lib.get_fragment(ligand).smiles
+                cif_out = f"{ppdprocessdir}/{ligand}"
+                cif_cmd = f"mkdir -p {ppdprocessdir}\n" \
+                          f"rm {cif_out}.cif {cif_out}.pdb\n" \
+                          f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul"
+
+                rhofitINPUT = f" -rhofit {cif_out}.cif {keepH} {clusterSearch} " \
+                              f"{fitrefineMode} {postrefineMode} {scanChirals} {occRef}"
+
+            else:
                 rhofitINPUT = ""
+                cif_cmd = ""
             ppd = \
                 "pipedream -h5 " + ppddata + " -d " + ppdout + " -xyzin " + userPDBpath + rhofitINPUT + useANISO + \
                 refineMode + pdbREDO + " -nofreeref -nthreads -1 -v"
 
-            allPipedreamOut = chdir + "\n"
-            allPipedreamOut += chdir.replace("cd ", "rm -rf ") + "/pipedream/" + "\n"
+            allPipedreamOut = f"{chdir}"
+            allPipedreamOut += "module purge\n"
+            allPipedreamOut += "module load autoPROC BUSTER/20190607-3-PReSTO\n"
+            allPipedreamOut += f"{cif_cmd}\n"
+            allPipedreamOut += f"{rmdir}\n"
+            allPipedreamOut += "module purge\n"
+            allPipedreamOut += "module load autoPROC BUSTER\n"
             allPipedreamOut += ppd + "\n\n"
 
             scriptList.append(allPipedreamOut)
         chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
 
         for num, chunk in enumerate(chunkScripts):
-            time.sleep(0.2)
             script = project_script(proj, f"pipedream_part{num}.sh")
             with open(script, "w") as outfile:
                 outfile.write(chunk)

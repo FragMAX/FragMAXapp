@@ -1660,9 +1660,9 @@
                                 <tr>
                                     <th class=" top-options">PDB model</th>
                                     <td class=" top-options">
-                                        <select class="refineform selectbox" name="pdbModel">
+                                        <select class="refineform selectbox" id="pdbModel_buster" name="pdbModel">
                                             {% for pdb in pdbs %}
-                                                <option value="{{pdb.id}}">{{pdb.filename}}</option>
+                                                <option value="{{pdb.filename}}">{{pdb.filename}}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -1879,7 +1879,7 @@
 
         </div>
             <div style="padding-left: 45%;">
-                <form action="/submit_pipedream/" id="sendpipedreamBtn" method="get" name="sendpipedreamBtn" size="1">
+                <form action="/submit_pipedream/" id="sendpipedreamBtn" method="get" name="sendpipedreamBtn" size="1" target="_blank">
                     <button class="btn-large maxivorange" name="ppdform" onsubmit="return submit_pipedream()" size="1" type="submit" value="pipedreamInput">Run Pipedream</button>
                 </form>
             </div>
@@ -2038,79 +2038,6 @@
         $("#cifMethodLigfit").val(getCIFmethod());
         $("#dtsFilterLigfit").val(getDtsFilters());
     }
-
-    // { % comment % }
-    // var fAll = document.getElementById("allprocBtn");
-
-    // fAll.onsubmit = function dataprocess() {
-    //     //Data proc options
-    //     var dialsSW = ";;dials:" + document.getElementsByName("dialscheckboxname")[0].checked
-    //     var xdsxscaleSW = ";;xdsxscale:" + document.getElementsByName("xdsxscalecheckboxname")[0].checked
-    //     var xdsappSW = ";;xdsapp:" + document.getElementsByName("xdsappcheckboxname")[0].checked
-    //     var autoprocSW = ";;autoproc:" + document.getElementsByName("autoproccheckboxname")[0].checked
-    //     var spacegroup = ";;spacegroup:" + document.getElementsByName("spacegroup")[0].value
-    //     var cellparam = ";;cellparam:" + document.getElementsByName("cellparam")[0].value
-    //     var friedel = ";;friedel:" + document.getElementsByName("friedel")[0].value
-    //     var datarange = ";;datarange:" + document.getElementsByName("datarange")[0].value
-    //     var rescutoff = ";;rescutoff:" + document.getElementsByName("rescutoff")[0].value
-    //     var cccutoff = ";;cccutoff:" + document.getElementsByName("cccutoff")[0].value
-    //     var isigicutoff = ";;isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
-
-    //     //Refinement options
-    //     var dimpleSW = ";;dimpleSW:" + document.getElementsByName("dimplecheckboxname")[0].checked
-    //     var fspSW = ";;fspSW:" + document.getElementsByName("fspcheckboxname")[0].checked
-    //     var busterSW = ";;busterSW:" + document.getElementsByName("bustercheckboxname")[0].checked
-    //     var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
-    //     var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
-    //     var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
-    //     if (document.getElementById("pdbcontent").innerHTML.includes("ATOM")) {
-    //         var pdbmodel = ";;pdbupload:" + document.getElementById("pdbcontent").innerHTML
-    //     } else {
-    //         var pdbmodel = ";;pdbmodel:" + document.getElementsByName("pdbcode")[0].value
-    //     }
-    //     var customrefparam = ";;customrefine:" + document.getElementsByName("customrefine")[0].value
-
-    //     //Ligand fit options
-    //     var rhofitSW = ";;rhofitSW:" + document.getElementsByName("rhofitcheckboxname")[0].checked
-    //     var ligfitSW = ";;ligfitSW:" + document.getElementsByName("phenixligfitcheckboxname")[0].checked
-    //     var ligandfile = ";;ligandfile:" + document.getElementById("ligcontent").innerHTML
-    //     var fitprocess = ";;fitprocess:" + document.getElementsByName("fitprocess")[0].value
-    //     var scanchirals = ";;scanchirals:" + document.getElementsByName("scanchirals")[0].value
-    //     var customligfit = ";;customligfit:" + document.getElementsByName("customligfit")[0].value
-
-    //     var dtproccmd = dialsSW + xdsxscaleSW + xdsappSW + autoprocSW + spacegroup + cellparam + friedel +
-    //         datarange + rescutoff + cccutoff + isigicutoff
-    //     var refinecmd = dimpleSW + fspSW + busterSW + refinemode + mrthreshold + refinerescutoff + pdbmodel
-    //     var ligfitcmd = rhofitSW + ligfitSW + ligandfile + fitprocess + scanchirals + customligfit
-    //     if (document.getElementById("processALLckbox").checked) {
-    //         var dtsfilters = ";;filters: "
-    //     } else {
-    //         var dtsfilters = ";;filters:" + document.getElementsByName("dropdownDataset")[0].value
-    //     }
-
-    //     document.getElementsByName("submitallProc")[0].value = dtproccmd + refinecmd + ligfitcmd + dtsfilters
-
-    // }
-
-    // function onFileLoad(elementId, event) {
-    //     document.getElementById(elementId).innerText = event.target.result;
-    // }
-
-    // function onChooseFile(event, onLoadFileHandler) {
-    //     if (typeof window.FileReader !== 'function')
-    //         throw ("The file API isn't supported on this browser.");
-    //     let input = event.target;
-    //     if (!input)
-    //         throw ("The browser does not properly implement the event object");
-    //     if (!input.files)
-    //         throw ("This browser does not support the `files` property of the file input.");
-    //     if (!input.files[0])
-    //         return undefined;
-    //     let file = input.files[0];
-    //     let fr = new FileReader();
-    //     fr.onload = onLoadFileHandler;
-    //     fr.readAsText(file);
-    // } { % endcomment % }
 
 
     var sliderj = document.getElementById("jellyRange");
@@ -2274,111 +2201,95 @@
 
     fpipedream.onsubmit = function submit_pipedream(){
 
-    var datasetSelect=document.getElementsByName("dropdownDataset")[0].value
-    if (datasetSelect != "alldatasets"){
-        var outdir=datasetSelect.replace("/raw/","/fragmax/process/pipedream/")
-        outdir = outdir.replace("_master.h5","")
-    }
+        var datasetSelect=getDtsFilters()
 
-    //autoPROC parameters
-    var ap_spacegroup       = document.getElementsByName("spacegroup")[0].value;
-    var ap_cellparam        = document.getElementsByName("cellparameters")[0].value;
-    var ap_staraniso        = document.getElementsByName("staraniso")[0].value;
-    var ap_xbeamcent        = document.getElementsByName("xbeampos")[0].value;
-    var ap_ybeamcent        = document.getElementsByName("ybeampos")[0].value;
-    var ap_datarange        = document.getElementsByName("datarange")[0].value;
-    var ap_rescutoff        = document.getElementsByName("rescutoff")[0].value;
-    var ap_highreslim       = document.getElementsByName("rmin")[0].value;
-    var ap_maxrpim          = document.getElementsByName("rpim")[0].value;
-    var ap_mincomplet       = document.getElementsByName("completeness")[0].value;
-    var ap_cchalfcut        = document.getElementsByName("cccutoff")[0].value;
-    var ap_isigicut         = document.getElementsByName("isigmacutoff")[0].value;
-    var ap_custompar        = document.getElementsByName("customdataproc")[0].value;
+        //autoPROC parameters
+        var ap_spacegroup       = document.getElementsByName("spacegroup")[0].value;
+        var ap_cellparam        = document.getElementsByName("cellparameters")[0].value;
+        var ap_staraniso        = document.getElementsByName("staraniso")[0].value;
+        var ap_xbeamcent        = document.getElementsByName("xbeampos")[0].value;
+        var ap_ybeamcent        = document.getElementsByName("ybeampos")[0].value;
+        var ap_datarange        = document.getElementsByName("datarange")[0].value;
+        var ap_rescutoff        = document.getElementsByName("rescutoff")[0].value;
+        var ap_highreslim       = document.getElementsByName("rmin")[0].value;
+        var ap_maxrpim          = document.getElementsByName("rpim")[0].value;
+        var ap_mincomplet       = document.getElementsByName("completeness")[0].value;
+        var ap_cchalfcut        = document.getElementsByName("cccutoff")[0].value;
+        var ap_isigicut         = document.getElementsByName("isigmacutoff")[0].value;
+        var ap_custompar        = document.getElementsByName("customdataproc")[0].value;
 
 
-    //BUSTER parameters
-    var b_userPDBfile       = document.getElementById("pdbcontent").innerHTML
-    var b_userPDBcode       = document.getElementsByName("PDBID_code")[0].value;
-    var b_userMTZfile       = document.getElementById("mtzcontent").innerHTML;
-    var b_refinemode        = document.getElementsByName("refMode")[0].value;
-    var b_MRthreshold       = document.getElementsByName("mrthresh")[0].value;
-    var b_chainsgroup       = document.getElementsByName("chains")[0].value;
-    var b_bruteforcetf      = document.getElementsByName("btf")[0].value;
-    var b_reslimits         = document.getElementsByName("resolutionlimits")[0].value;
-    var b_angularrf         = document.getElementsByName("bigrotrange")[0].value;
-    var b_sideaiderefit     = document.getElementsByName("remediateckbx")[0].checked;
-    var b_sideaiderebuild   = document.getElementsByName("sidechainbuildckbx")[0].checked;
-    var b_pepflip           = document.getElementsByName("runpepflipckbx")[0].checked;
-    var b_custompar         = document.getElementsByName("custombuster")[0].value;
+        //BUSTER parameters
+        var b_refinemode        = document.getElementsByName("refMode")[0].value;
+        var b_MRthreshold       = document.getElementsByName("mrthresh")[0].value;
+        var b_chainsgroup       = document.getElementsByName("chains")[0].value;
+        var b_bruteforcetf      = document.getElementsByName("btf")[0].value;
+        var b_reslimits         = document.getElementsByName("resolutionlimits")[0].value;
+        var b_angularrf         = document.getElementsByName("bigrotrange")[0].value;
+        var b_sideaiderefit     = document.getElementsByName("remediateckbx")[0].checked;
+        var b_sideaiderebuild   = document.getElementsByName("sidechainbuildckbx")[0].checked;
+        var b_pepflip           = document.getElementsByName("runpepflipckbx")[0].checked;
+        var b_custompar         = document.getElementsByName("custombuster")[0].value;
 
-    //RhoFit parameters
+        //RhoFit parameters
 
-    var rho_ligandsmiles    = document.getElementsByName("ligsmiles")[0].value;
-    var rho_ligandcode      = document.getElementsByName("ligscreencode")[0].value;
-    var rho_ligandfromname  = document.getElementsByName("ligfromname")[0].checked;
-    var rho_copiestosearch  = document.getElementsByName("numberofcopies")[0].value;
-    var rho_keepH           = document.getElementsByName("keepH")[0].value;
-    var rho_allclusters     = document.getElementsByName("allclusters")[0].value;
-    var rho_xclusters       = document.getElementsByName("xclusters")[0].value;
-    var rho_postrefine      = document.getElementsByName("postrefine")[0].value;
-    var rho_occuprefine     = document.getElementsByName("nooccref")[0].value;
-    var rho_fittingproc     = document.getElementsByName("fitprocess")[0].value;
-    var rho_scanchirals     = document.getElementsByName("scanchirals")[0].value;
-    var rho_custompar       = document.getElementsByName("customrhofit")[0].value;
+        var rho_copiestosearch  = document.getElementsByName("numberofcopies")[0].value;
+        var rho_keepH           = document.getElementsByName("keepH")[0].value;
+        var rho_allclusters     = document.getElementsByName("allclusters")[0].value;
+        var rho_xclusters       = document.getElementsByName("xclusters")[0].value;
+        var rho_postrefine      = document.getElementsByName("postrefine")[0].value;
+        var rho_occuprefine     = document.getElementsByName("nooccref")[0].value;
+        var rho_fittingproc     = document.getElementsByName("fitprocess")[0].value;
+        var rho_scanchirals     = document.getElementsByName("scanchirals")[0].value;
+        var rho_custompar       = document.getElementsByName("customrhofit")[0].value;
 
 
-    //processed
-    var rho_ligand ="still not here" //define the ligand from one of the options
-    var pdbinp="3ks3" //get path or file content from user
-    var beamcentre = '"'+ap_xbeamcent+' '+ap_ybeamcent+'"'
+        //pipedream command line generator
+        var pipedream_cmd= ""
+
+        pipedream_cmd+=";;input_data:"+datasetSelect
+        pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup
+        pipedream_cmd+=";;ap_cellparam:"+ap_cellparam
+        pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
+        pipedream_cmd+=";;ap_xbeamcent:"+ap_xbeamcent
+        pipedream_cmd+=";;ap_ybeamcent:"+ap_ybeamcent
+        pipedream_cmd+=";;ap_datarange:"+ap_datarange
+        pipedream_cmd+=";;ap_rescutoff:"+ap_rescutoff
+        pipedream_cmd+=";;ap_highreslim:"+ap_highreslim
+        pipedream_cmd+=";;ap_maxrpim:"+ap_maxrpim
+        pipedream_cmd+=";;ap_mincomplet:"+ap_mincomplet
+        pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
+        pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
+        pipedream_cmd+=";;ap_custompar:"+ap_custompar
+        pipedream_cmd+=";;b_userPDBfile:"+document.getElementById("pdbModel_buster").value
+        pipedream_cmd+=";;b_userPDBcode:"+"None"
+        pipedream_cmd+=";;b_userMTZfile:"+"b_userMTZfile"
+        pipedream_cmd+=";;b_refinemode:"+b_refinemode
+        pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
+        pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
+        pipedream_cmd+=";;b_bruteforcetf:"+b_bruteforcetf
+        pipedream_cmd+=";;b_reslimits:"+b_reslimits
+        pipedream_cmd+=";;b_angularrf:"+b_angularrf
+        pipedream_cmd+=";;b_sideaiderefit:"+b_sideaiderefit
+        pipedream_cmd+=";;b_sideaiderebuild:"+b_sideaiderebuild
+        pipedream_cmd+=";;b_pepflip:"+b_pepflip
+        pipedream_cmd+=";;b_custompar:"+b_custompar
+        pipedream_cmd+=";;rho_ligandsmiles:"+""
+        pipedream_cmd+=";;rho_ligandcode:"+""
+        pipedream_cmd+=";;rho_ligandfromname:"+"true"
+        pipedream_cmd+=";;rho_copiestosearch:"+rho_copiestosearch
+        pipedream_cmd+=";;rho_keepH:"+rho_keepH
+        pipedream_cmd+=";;rho_allclusters:"+rho_allclusters
+        pipedream_cmd+=";;rho_xclusters:"+rho_xclusters
+        pipedream_cmd+=";;rho_postrefine:"+rho_postrefine
+        pipedream_cmd+=";;rho_occuprefine:"+rho_occuprefine
+        pipedream_cmd+=";;rho_fittingproc:"+rho_fittingproc
+        pipedream_cmd+=";;rho_scanchirals:"+rho_scanchirals
+        pipedream_cmd+=";;rho_custompar:"+rho_custompar
+        pipedream_cmd+=';;extras:-nthreads -1  -v '
 
 
-    //pipedream command line generator
-    var pipedream_cmd= ""
-
-    pipedream_cmd+=";;input_data:"+datasetSelect
-    pipedream_cmd+=";;ap_spacegroup:"+ap_spacegroup
-    pipedream_cmd+=";;ap_cellparam:"+ap_cellparam
-    pipedream_cmd+=";;ap_staraniso:"+ap_staraniso
-    pipedream_cmd+=";;ap_xbeamcent:"+ap_xbeamcent
-    pipedream_cmd+=";;ap_ybeamcent:"+ap_ybeamcent
-    pipedream_cmd+=";;ap_datarange:"+ap_datarange
-    pipedream_cmd+=";;ap_rescutoff:"+ap_rescutoff
-    pipedream_cmd+=";;ap_highreslim:"+ap_highreslim
-    pipedream_cmd+=";;ap_maxrpim:"+ap_maxrpim
-    pipedream_cmd+=";;ap_mincomplet:"+ap_mincomplet
-    pipedream_cmd+=";;ap_cchalfcut:"+ap_cchalfcut
-    pipedream_cmd+=";;ap_isigicut:"+ap_isigicut
-    pipedream_cmd+=";;ap_custompar:"+ap_custompar
-    pipedream_cmd+=";;b_userPDBfile:"+"b_userPDBfile"
-    pipedream_cmd+=";;b_userPDBcode:"+b_userPDBcode
-    pipedream_cmd+=";;b_userMTZfile:"+"b_userMTZfile"
-    pipedream_cmd+=";;b_refinemode:"+b_refinemode
-    pipedream_cmd+=";;b_MRthreshold:"+b_MRthreshold
-    pipedream_cmd+=";;b_chainsgroup:"+b_chainsgroup
-    pipedream_cmd+=";;b_bruteforcetf:"+b_bruteforcetf
-    pipedream_cmd+=";;b_reslimits:"+b_reslimits
-    pipedream_cmd+=";;b_angularrf:"+b_angularrf
-    pipedream_cmd+=";;b_sideaiderefit:"+b_sideaiderefit
-    pipedream_cmd+=";;b_sideaiderebuild:"+b_sideaiderebuild
-    pipedream_cmd+=";;b_pepflip:"+b_pepflip
-    pipedream_cmd+=";;b_custompar:"+b_custompar
-    pipedream_cmd+=";;rho_ligandsmiles:"+rho_ligandsmiles
-    pipedream_cmd+=";;rho_ligandcode:"+rho_ligandcode
-    pipedream_cmd+=";;rho_ligandfromname:"+rho_ligandfromname
-    pipedream_cmd+=";;rho_copiestosearch:"+rho_copiestosearch
-    pipedream_cmd+=";;rho_keepH:"+rho_keepH
-    pipedream_cmd+=";;rho_allclusters:"+rho_allclusters
-    pipedream_cmd+=";;rho_xclusters:"+rho_xclusters
-    pipedream_cmd+=";;rho_postrefine:"+rho_postrefine
-    pipedream_cmd+=";;rho_occuprefine:"+rho_occuprefine
-    pipedream_cmd+=";;rho_fittingproc:"+rho_fittingproc
-    pipedream_cmd+=";;rho_scanchirals:"+rho_scanchirals
-    pipedream_cmd+=";;rho_custompar:"+rho_custompar
-    pipedream_cmd+=';;extras:-nthreads -1  -v '
-
-
-    document.getElementsByName("ppdform")[0].value = pipedream_cmd
+        document.getElementsByName("ppdform")[0].value = pipedream_cmd
 
 }
 

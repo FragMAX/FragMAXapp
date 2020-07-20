@@ -40,11 +40,30 @@
     max-width: 100% !important;
     width: calc(100% - 350px) !important;
   }
-
+    .ligpng {
+    height:88px;
+    width:88px;
+  }
+    button.link {
+	font-family: "Verdana" sans-serif;
+	font-size: 1.1em;
+	text-align: left;
+	color: #039be5;
+	background: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
+    .resync_btn{
+        position: absolute;
+        right: 50px;
+        top: 25px;
+    }
 </style>
  <div>
-    <h4>Results - Structure refinement </h4> 
-    <div style="display:flex;">
+    <h4>Pipedream results </h4>
+    <div class="resync_btn">
       <form action="/pipedream_results/" method="get" id="syncButton"  >
         <button class="btn" type="submit" value="resyncresults" name="resync" size="1">Resync results</button>
       </form>  
@@ -62,13 +81,13 @@
  <table  id="resultsTable">
    <thead>
   <tr>
-   <th>Open Structure</th>
+   <th>View Structure</th>
    <th>Dataset</th>
    <th>Pipedream summary</th>
    <th>Space group</th>
    <th>Res. [&Aring;]</th>
-   <th>R<sub>work</sub> [%]</th>
-   <th>R<sub>free</sub> [%]</th>   
+   <th>R<sub>work</sub></th>
+   <th>R<sub>free</sub></th>
    <th>RhoFit Score</th>
    <th>a</th>
    <th>b</th>
@@ -88,12 +107,19 @@
     <tr>
       <td>
       <form action="/pipedream_density/" method="get" id="pipedream_form" target="_blank">
-      <button class="btn" type="submit" value="{{dataset}}" name="structure" size="1">Open</button>
+      <button class="btn" type="submit" value="{{dataset}}"
+              name="structure" size="1" style="height: 48px">
+          <i class="material-icons" style="font-size:28px;">3d_rotation</i>
+      </button>
       </form>
       
       </td>
       <td>{{dataset}}</td>
-      <td><a href="{{summaryFile}}">Summary</a></td>
+      <td>
+        <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
+            <button  class="link" type="submit" value="{{summaryFile}}" name="logFile" size="1" >Summary</button>
+          </form>
+      </td>
       <td>{{spacegroup}}</td>
       <td>{{resolution}}</td>
       <td>{{rwork}}</td>
@@ -106,7 +132,11 @@
       <td>{{beta}}</td>
       <td>{{gamma}}</td>
       <td><a href={{ligsvg}} target="_blank">
-        <img class="ligpng" id="ligand" src={{ligsvg}} onerror="if (this.src != '/static/blog/nopic/noloop.png') this.src='/static/blog/nopic/noloop.png';" height="116" >
+        {% if fragment %}
+          <a href="/fragment/{{ fragment }}/image" target="_blank">
+            <img class="ligpng" src="/fragment/{{ fragment }}/image" height="40" width="86">
+          </a>
+        {% endif %}
       </a></td>
 
       
