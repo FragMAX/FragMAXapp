@@ -58,7 +58,7 @@ def get_pipedream_results(proj, pipedream_csv):
 
         pipedreamXML = list()
         for shift_dir in project_shift_dirs(proj):
-            xml_glob = f"{shift_dir}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
+            xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
             pipedreamXML += glob(xml_glob)
 
         for summary in pipedreamXML:
