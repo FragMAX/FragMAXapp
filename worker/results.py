@@ -5,11 +5,12 @@ from glob import glob
 import pyfastcopy  # noqa
 import shutil
 import celery
+import subprocess
 from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
 from fragview.projects import project_results_dir, project_process_protein_dir, project_results_file, project_datasets
-from fragview import result_plots, fileio
+from fragview import result_plots, fileio, hpc
 from fragview.views.utils import open_txt
 
 logger = get_task_logger(__name__)
@@ -51,6 +52,23 @@ class ThreadWithReturnValue(threading.Thread):
 
 
 def _generate_results_file(proj):
+    resultsList = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*")
+    resultscsv = f"{proj.data_path()}/fragmax/process/{proj.protein}/results.csv"
+    if not path.exists(resultscsv):
+        subprocess.call(['touch', resultscsv])
+    script = f"{proj.data_path()}/fragmax/scripts/update_results.sh"
+    with open(f"{proj.data_path()}/fragmax/scripts/update_results.sh", "w") as writeFile:
+        writeFile.write("#!/bin/bash\n")
+        writeFile.write("#!/bin/bash\n")
+        writeFile.write("module purge\n")
+        writeFile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
+        for result in resultsList:
+            writeFile.write(f"python3 {proj.data_path()}/fragmax/scripts/update_results.py {path.basename(result)} "
+                            f"{proj.proposal}/{proj.shift}\n")
+    hpc.run_sbatch(script)
+
+
+def _generate_results_file2(proj):
     def info_func(entry, isaDict):
         usracr, pdbout, dif_map, nat_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, alpha, \
             beta, gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob = [""] * 23
