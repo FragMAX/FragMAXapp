@@ -501,8 +501,8 @@ def show_all(request):
                     lge += "</td>"
                     lgentry.append(lge)
                 except IndexError:
-
-                    return resync_status_project(proj)
+                    resync_status_project(proj)
+                    raise
         else:
             for i in prf_list:
                 dpentry.append("""<td>
