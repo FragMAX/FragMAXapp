@@ -487,17 +487,20 @@ def show_all(request):
                             '<font size="4" color="#fdd835">&#9679;</font>' \
                             '<font size="2"> RhoFit</font></p>'
                     if status[0][14] == "full":
-                        lge += '<p align="left" style="white-space: nowrap;">' \
-                              '<font size="4" color="#82be00">&#9679;</font>' \
-                              '<font size="2"> Pipedream</font></p>'
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#82be00">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
                     elif status[0][14] == "partial":
-                        lge += '<p align="left" style="white-space: nowrap;"><' \
-                              'font size="4" color="#f44336">&#9679;</font>' \
-                              '<font size="2"> Pipedream</font></p>'
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;"><' \
+                            'font size="4" color="#f44336">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
                     else:
-                        lge += '<p align="left" style="white-space: nowrap;">' \
-                              '<font size="4" color="#fdd835">&#9679;</font>' \
-                              '<font size="2"> Pipedream</font></p>'
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#fdd835">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
                     lge += "</td>"
                     lgentry.append(lge)
                 except IndexError:
@@ -506,29 +509,42 @@ def show_all(request):
         else:
             for i in prf_list:
                 dpentry.append("""<td>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
 
                     </td>""")
                 rfentry.append("""<td>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
-                    <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
                         </td>""")
 
             for i, j in zip(prf_list, run_list):
                 lge = \
                     """<td>
-              <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
-              <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> LigandFit</font></p>
-              <p align="left" style="white-space: nowrap;"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
-              
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> LigandFit</font></p>
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
                      </td>"""
                 lgentry.append(lge)
 
