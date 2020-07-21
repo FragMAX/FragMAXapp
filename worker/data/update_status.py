@@ -125,14 +125,61 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     lg_status_simple = {k[0].split("_")[-1]: k[1] for k in order_lg}
 
     # print(lg_status)
-    d4 = dict(dp_status, **rf_status_simple, **lg_status_simple)
+    ppd_proc = glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/process*/summary.html")
+    ppd_ref = glob(
+        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/BUSTER_model.pdb")
+    ppd_lig = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/best.pdb")
+
+    ppd_status = get_status_pipedream(ppd_proc, ppd_ref, ppd_lig)
+    d4 = dict(dp_status, **rf_status_simple, **lg_status_simple, **ppd_status)
 
     [print(k, ":", v) for (k, v) in d4.items()]
 
-    ppd_folders = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/")
-    print(ppd_folders)
-
     return d4
+
+
+def get_status_pipedream(proc, ref, lig):
+    ppd = {"pipedreamproc": "",
+           "pipedreamref": "",
+           "pipedreamlig": ""}
+    if proc:
+        logfile = proc[0]
+        if path.exists(f"{logfile}"):
+            if path.exists(f"{logfile}"):
+                with open(f"{logfile}", "r", encoding="utf-8") as r:
+                    log = r.read()
+                if '<div class="errorheader">ERROR</d>' in log:
+                    ppd["pipedreamproc"] = "partial"
+                else:
+                    ppd["pipedreamproc"] = "full"
+        else:
+            ppd["pipedreamproc"] = "none"
+
+    if ref:
+        pdb_file = ref[0]
+        if path.exists(f"{pdb_file}"):
+            with open(f"{pdb_file}", "r", encoding="utf-8") as r:
+                log = r.read()
+            if '<div class="errorheader">ERROR</d>' in log:
+                ppd["pipedreamref"] = "partial"
+            else:
+                ppd["pipedreamref"] = "full"
+    else:
+        ppd["pipedreamref"] = "none"
+
+    if lig:
+        rhofit_file = lig[0]
+        if path.exists(f"{rhofit_file}"):
+            with open(f"{rhofit_file}", "r", encoding="utf-8") as r:
+                log = r.read()
+            if '<div class="errorheader">ERROR</d>' in log:
+                ppd["pipedreamlig"] = "partial"
+            else:
+                ppd["pipedreamlig"] = "full"
+    else:
+        ppd["pipedreamlig"] = "none"
+    return ppd
 
 
 def get_status_dp(logfile):
@@ -224,7 +271,7 @@ def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
 
     with open(allcsv, "r") as readFile:
         csvfile = list(csv.reader(readFile))
-    csvfile = [x for x in csvfile if len(x) == 12]
+    csvfile = [x for x in csvfile if len(x) == 15]
     # Get index of the dataset to be updated
     dataset_names = [row[0] for row in csvfile if len(row) > 10]
 
@@ -245,6 +292,7 @@ def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
                         f"/process/{protein}/{dataset}/{dataset}_{run}"):
         updated_value = [dataset + "_" + run] + list(statusDict.values())
         csvfile.append(updated_value)
+        print(updated_value)
         # write the new csv file with updated values
         with open(allcsv, "w") as writeFile:
             writer = csv.writer(writeFile)

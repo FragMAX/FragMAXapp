@@ -222,9 +222,9 @@ def submit(request):
             singlePipedreamOut += """#SBATCH -J pipedream\n"""
             singlePipedreamOut += """#SBATCH --exclusive\n"""
             singlePipedreamOut += """#SBATCH -N1\n"""
-            # singlePipedreamOut += """#SBATCH -p fujitsu\n"""
-            singlePipedreamOut += """#SBATCH --cpus-per-task=48\n"""
-            singlePipedreamOut += """#SBATCH --mem=220000\n"""
+            singlePipedreamOut += """#SBATCH -p fujitsu\n"""
+            singlePipedreamOut += """#SBATCH --cpus-per-task=64\n"""
+            singlePipedreamOut += """#SBATCH --mem=310G\n"""
             singlePipedreamOut += \
                 """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_out.txt\n"""
             singlePipedreamOut += \
