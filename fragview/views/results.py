@@ -1,3 +1,4 @@
+import pandas
 from os import path
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -39,3 +40,21 @@ def resync(request):
     _start_resync_job(current_project(request))
 
     return HttpResponse("ok")
+
+
+def isa(request):
+    """
+    return ISa statistics for datasets in the results,
+    in Json format, suitable for drawing interactive plots
+    """
+    proj = current_project(request)
+
+    data = pandas.read_csv(project_results_file(proj))
+
+    data["dataset"] = data["dataset"].map(lambda name: name[-9:])
+    isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean().round(2).to_frame(name="mean").reset_index()
+    isa_std_by_dataset = data.groupby("dataset")["ISa"].std().round(2).to_frame(name="std").reset_index()
+
+    result = isa_mean_by_dataset.merge(isa_std_by_dataset)
+
+    return HttpResponse(result.to_json(), content_type="application/json")
