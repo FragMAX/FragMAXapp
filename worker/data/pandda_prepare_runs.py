@@ -92,7 +92,7 @@ def pandda_run(method, options):
 
     command = "pandda.analyse data_dirs='" + path + "/*' " + \
               ground_state_parameter + " " + options["customPanDDA"] + \
-              "min_build_datasets=" + str(options["min_datasets"]) + " cpus=" + str(options["nproc"])
+              " min_build_datasets=" + str(options["min_datasets"]) + " cpus=" + str(options["nproc"])
 
     subprocess.call(command, shell=True)
 

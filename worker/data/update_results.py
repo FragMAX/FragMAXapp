@@ -26,10 +26,10 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/BUSTER_model.pdb")
     if ppdrefFiles:
         resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + [ppdrefFiles[-1]] + \
-                      glob(f"{res_dir}**/*/buster/refine.pdb")
+            glob(f"{res_dir}**/*/buster/refine.pdb")
     else:
         resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + \
-                      glob(f"{res_dir}**/*/buster/refine.pdb")
+            glob(f"{res_dir}**/*/buster/refine.pdb")
     isaDict = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": "", "pipedream": ""}
 
     project_results_file = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}/results.csv"
@@ -144,7 +144,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
 
 def _get_results_func(usracr, entry, isaDict, res_dir):
     pdbout, dif_map, nat_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, alpha, beta, \
-    gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob, modelscore = [""] * 23
+        gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob, modelscore = [""] * 23
     pdbout = ""
 
     if "pipedream" in entry:
