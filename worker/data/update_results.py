@@ -405,7 +405,10 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
             except Exception:
                 pass
 
-    ligfit_dataset = "_".join(usracr.split("_")[:-2])
+    if "pipedream" in usracr:
+        ligfit_dataset = "_".join(usracr.split("_")[:-1])
+    else:
+        ligfit_dataset = "_".join(usracr.split("_")[:-2])
     print(usracr)
 
     return [
