@@ -57,6 +57,7 @@ def log_viewer(request):
     else:
         log = ""
         downloadPath = ""
+        filetype = ""
 
     return render(
         request,
