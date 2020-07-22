@@ -305,151 +305,246 @@ def show_all(request):
                 try:
                     da = "<td>"
                     if status[0][1] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> autoPROC</font></p>'
                     elif status[0][1] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> autoPROC</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> autoPROC</font></p>'
 
                     if status[0][2] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> XIA2/DIALS</font></p>'
                     elif status[0][2] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> XIA2/DIALS</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> XIA2/DIALS</font></p>'
 
                     if status[0][3] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> EDNA_proc</font></p>'
                     elif status[0][3] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> EDNA_proc</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> EDNA_proc</font></p>'
 
                     if status[0][4] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> fastdp</font></p>'
                     elif status[0][4] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> fastdp</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> fastdp</font></p>'
 
                     if status[0][5] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> XDSAPP</font></p>'
                     elif status[0][5] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> XDSAPP</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> XDSAPP</font></p>'
 
                     if status[0][6] == "full":
-                        da += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> XIA2/XDS</font></p>'
 
                     elif status[0][6] == "partial":
-                        da += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        da += '<p align="left" style="white-space: nowrap;"><' \
+                              'font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> XIA2/XDS</font></p>'
                     else:
-                        da += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                              '<font size="2"> XIA2/XDS</font></p></td>'
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> XIA2/XDS</font></p>'
 
+                    if status[0][12] == "full":
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+
+                    elif status[0][12] == "partial":
+                        da += '<p align="left" style="white-space: nowrap;"><' \
+                              'font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+                    else:
+                        da += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+                    da += "</td>"
                     dpentry.append(da)
                     re = "<td>"
 
                     if status[0][9] == "full":
-                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> BUSTER</font></p>'
                     elif status[0][9] == "partial":
-                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> BUSTER</font></p>'
                     else:
-                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> BUSTER</font></p>'
 
                     if status[0][7] == "full":
-                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> DIMPLE</font></p>'
                     elif status[0][7] == "partial":
-                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> DIMPLE</font></p>'
                     else:
-                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
                               '<font size="2"> DIMPLE</font></p>'
 
                     if status[0][8] == "full":
-                        re += '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
                               '<font size="2"> fspipeline</font></p>'
                     elif status[0][8] == "partial":
-                        re += '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#f44336">&#9679;</font>' \
                               '<font size="2"> fspipeline</font></p>'
                     else:
-                        re += '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                              '<font size="2"> fspipeline</font></p></td>'
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> fspipeline</font></p>'
 
+                    if status[0][13] == "full":
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#82be00">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+                    elif status[0][13] == "partial":
+                        re += '<p align="left" style="white-space: nowrap;"><' \
+                              'font size="4" color="#f44336">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+                    else:
+                        re += '<p align="left" style="white-space: nowrap;">' \
+                              '<font size="4" color="#fdd835">&#9679;</font>' \
+                              '<font size="2"> Pipedream</font></p>'
+                    re += "</td>"
                     rfentry.append(re)
 
                     lge = "<td>"
                     if status[0][11] == "full":
                         lge += \
-                            '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#82be00">&#9679;</font>' \
                             '<font size="2"> LigandFit</font></p>'
                     elif status[0][11] == "partial":
                         lge += \
-                            '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#f44336">&#9679;</font>' \
                             '<font size="2"> LigandFit</font></p>'
                     else:
                         lge += \
-                            '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#fdd835">&#9679;</font>' \
                             '<font size="2"> LigandFit</font></p>'
 
                     if status[0][10] == "full":
                         lge += \
-                            '<p align="left"><font size="4" color="#82be00">&#9679;</font>' \
-                            '<font size="2"> RhoFit</font></p></td>'
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#82be00">&#9679;</font>' \
+                            '<font size="2"> RhoFit</font></p>'
                     elif status[0][10] == "partial":
                         lge += \
-                            '<p align="left"><font size="4" color="#f44336">&#9679;</font>' \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#f44336">&#9679;</font>' \
                             '<font size="2"> RhoFit</font></p></td>'
                     else:
                         lge += \
-                            '<p align="left"><font size="4" color="#fdd835">&#9679;</font>' \
-                            '<font size="2"> RhoFit</font></p></td>'
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#fdd835">&#9679;</font>' \
+                            '<font size="2"> RhoFit</font></p>'
+                    if status[0][14] == "full":
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#82be00">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
+                    elif status[0][14] == "partial":
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;"><' \
+                            'font size="4" color="#f44336">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
+                    else:
+                        lge += \
+                            '<p align="left" style="white-space: nowrap;">' \
+                            '<font size="4" color="#fdd835">&#9679;</font>' \
+                            '<font size="2"> Pipedream</font></p>'
+                    lge += "</td>"
                     lgentry.append(lge)
                 except IndexError:
                     resync_status_project(proj)
+                    raise
         else:
             for i in prf_list:
                 dpentry.append("""<td>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> autoPROC</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/DIALS</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XIA2/XDS</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> XDSAPP</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> fastdp</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> EDNA_proc</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
+
                     </td>""")
                 rfentry.append("""<td>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
-                    <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> BUSTER</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> DIMPLE</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> fspipeline</font></p>
+                    <p align="left" style="white-space: nowrap;">
+                    <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
                         </td>""")
 
             for i, j in zip(prf_list, run_list):
                 lge = \
                     """<td>
-              <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
-              <p align="left"><font size="4" color="#fdd835">&#9679;</font><font size="2"> Phenix LigandFit</font></p>
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> RhoFit</font></p>
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> LigandFit</font></p>
+              <p align="left" style="white-space: nowrap;">
+              <font size="4" color="#fdd835">&#9679;</font><font size="2"> Pipedream</font></p>
                      </td>"""
                 lgentry.append(lge)
 

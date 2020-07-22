@@ -11,6 +11,8 @@ from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
 from fragview.projects import project_static_url, project_model_path
 from fragview.projects import project_script
+from fragview.projects import project_update_results_script_cmds, project_update_status_script_cmds
+
 from fragview.views.density import sym2spg
 from .utils import scrsplit
 
@@ -107,7 +109,7 @@ def submit(request):
     nodes = 10
     PDBmodel = b_userPDBfile.replace("b_userPDBfile:", "").replace(".pdb", "")
     # Select one dataset or entire project
-
+    softwares = "autoPROC BUSTER"
     if "ALL" not in input_data:
         input_data_list = input_data.replace("input_data:", "").split(",")
 
@@ -222,9 +224,9 @@ def submit(request):
             singlePipedreamOut += """#SBATCH -J pipedream\n"""
             singlePipedreamOut += """#SBATCH --exclusive\n"""
             singlePipedreamOut += """#SBATCH -N1\n"""
-            # singlePipedreamOut += """#SBATCH -p fujitsu\n"""
-            singlePipedreamOut += """#SBATCH --cpus-per-task=48\n"""
-            singlePipedreamOut += """#SBATCH --mem=220000\n"""
+            singlePipedreamOut += """#SBATCH -p fujitsu\n"""
+            singlePipedreamOut += """#SBATCH --cpus-per-task=64\n"""
+            singlePipedreamOut += """#SBATCH --mem=310G\n"""
             singlePipedreamOut += \
                 """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_out.txt\n"""
             singlePipedreamOut += \
@@ -240,9 +242,11 @@ def submit(request):
 
             singlePipedreamOut += chdir + "\n"
             singlePipedreamOut += cif_cmd + "\n"
-            singlePipedreamOut += """module purge\n"""
-            singlePipedreamOut += """module load autoPROC BUSTER\n\n"""
-            singlePipedreamOut += ppd
+            singlePipedreamOut += "module purge\n"
+            singlePipedreamOut += f"module load {softwares}\n\n"
+            singlePipedreamOut += ppd + "\n"
+            singlePipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
+            singlePipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
 
             script = project_script(proj, f"pipedream_{_data}.sh")
             with open(script, "w") as ppdsh:
@@ -347,7 +351,7 @@ def submit(request):
         header += """module purge\n"""
         header += """module load autoPROC BUSTER/20190607-3-PReSTO\n\n"""
         scriptList = list()
-
+        softwares = "autoPROC BUSTER"
         for ppddata, ppdout in zip(ppddatasetList, ppdoutdirList):
             chdir = f"mkdir -p {path.dirname(ppdout)};\ncd {path.dirname(ppdout)}\n"
             _data = path.basename(ppddata).replace("_master.h5", "")
@@ -381,8 +385,10 @@ def submit(request):
             allPipedreamOut += f"{cif_cmd}\n"
             allPipedreamOut += f"{rmdir}\n"
             allPipedreamOut += "module purge\n"
-            allPipedreamOut += "module load autoPROC BUSTER\n"
-            allPipedreamOut += ppd + "\n\n"
+            allPipedreamOut += f"module load {softwares}\n"
+            allPipedreamOut += ppd + "\n"
+            allPipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
+            allPipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
 
             scriptList.append(allPipedreamOut)
         chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]

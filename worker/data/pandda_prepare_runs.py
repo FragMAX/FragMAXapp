@@ -1,5 +1,4 @@
 import os
-import csv
 import sys
 import subprocess
 import shutil
@@ -99,28 +98,8 @@ def pandda_run(method, options):
     logs = glob(path + "/pandda/logs/*.log")
     if len(logs) > 0:
         lastlog = sorted(logs)[-1]
-        with open(lastlog, "r") as logfile:
-            log = logfile.readlines()
 
         badDataset = find_bad_dataset(lastlog, options)
-
-        if options["rerun_state"]:
-            pandda_run(method, options)
-
-        for line in log:
-            if "Writing PanDDA End-of-Analysis Summary" in line and \
-                    all([options["reprocessZmap"], options["initpass"]]):
-
-                with open(path + "/pandda/analyses/pandda_analyse_events.csv", "r") as readFile:
-                    events = csv.reader(readFile)
-                    events = [x for x in events][1:]
-
-                noZmap = [x[0] for x in events]
-                alldts = [x.split("/")[-1] for x in glob(path + "/" + protein + "*")]
-                newGroundStates = ",".join(list(set(alldts) - set(noZmap)))
-                options["useSelected"] = newGroundStates
-                options["initpass"] = False
-                pandda_run(method, options)
 
         for k, v in badDataset.items():
             if all([v, options["initpass"]]):
@@ -128,8 +107,7 @@ def pandda_run(method, options):
                     shutil.rmtree(v[0])
                     if os.path.exists(path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k):
                         shutil.rmtree(path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k)
-                # pandda_run(method, options)
-                print("I used to run pandda again here")
+                pandda_run(method, options)
 
 
 pandda_run(method, options)

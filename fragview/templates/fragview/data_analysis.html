@@ -2169,8 +2169,8 @@
         var min_datasets = document.getElementById("min_datasets").value
         var PanDDAcustom = document.getElementById("PanDDAcustom").value
         var pandda_max_rfree = "max_rfree="+document.getElementById("pandda_max_rfree").value
-        var pandda_high_res_upper_limit = "high_res_upper_limit="+document.getElementById("pandda_res_high_limit").value
-        var pandda_high_res_lowe_limit = "high_res_lower_limit="+document.getElementById("pandda_res_low_limit").value
+        var pandda_high_res_upper_limit = "high_res_upper_limit="+document.getElementById("pandda_res_low_limit").value
+        var pandda_high_res_lowe_limit = "high_res_lower_limit="+document.getElementById("pandda_res_high_limit").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
