@@ -3,7 +3,6 @@ from glob import glob
 from django.shortcuts import render
 from django.conf import settings
 from fragview.projects import current_project
-from fragview.views.utils import open_txt
 from ast import literal_eval
 
 
