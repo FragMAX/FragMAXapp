@@ -51,4 +51,4 @@ class TestImage(test.TestCase, ViewTesterMixin):
         with patch("os.path.isfile") as isfile_mock:
             isfile_mock.return_value = False
             resp = self.client.get(self.url)
-            self.assertContains(resp, "H5 file found", status_code=404)
+            self.assertContains(resp, "diffraction source file not found", status_code=404)

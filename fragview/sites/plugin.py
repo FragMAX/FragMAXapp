@@ -14,6 +14,9 @@ class SitePlugin:
     def get_project_layout(self):
         raise NotImplementedError()
 
+    def get_diffraction_img_maker(self):
+        raise NotImplementedError()
+
     def get_group_name(self, project):
         """
         get the name of the filesystem group, which
@@ -43,4 +46,25 @@ class ProjectLayout:
         raise NotImplementedError()
 
     def check_subdirs(self, subdirs):
+        raise NotImplementedError()
+
+
+class DiffractionImageMaker:
+    class SourceImageNotFound(Exception):
+        pass
+
+    def get_file_names(self, project, dataset, run, image_num):
+        """
+        return tuple of (source_file, pic_file_name)
+
+        where:
+          source_file - is the full path to use as source file for generating the diffraction picture
+          pic_file_name - the picture file name to use
+        """
+        raise NotImplementedError()
+
+    def get_command(self, source_file, dest_pic_file):
+        """
+        return command to create diffraction picture from the source file
+        """
         raise NotImplementedError()

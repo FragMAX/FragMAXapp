@@ -2,6 +2,8 @@ from os import path
 from django.shortcuts import redirect
 from django.http import HttpResponseNotFound
 from fragview.projects import current_project, project_shift_dirs, project_process_protein_dir, project_static_url
+from fragview.sites import SITE
+from fragview.sites.plugin import DiffractionImageMaker
 from worker.diffractions import get_diffraction
 
 
@@ -23,18 +25,17 @@ def image(request, dataset, run, image_num):
     """
     proj = current_project(request)
 
-    h5_data_num = f"{image_num:06d}"
+    diffraction_maker = SITE.get_diffraction_img_maker()
+    try:
+        src_file, jpeg_name = diffraction_maker.get_file_names(proj, dataset, run, image_num)
+    except DiffractionImageMaker.SourceImageNotFound:
+        return HttpResponseNotFound("diffraction source file not found")
 
-    h5_file = _find_h5_file(proj, dataset, run, h5_data_num)
-    if h5_file is None:
-        return HttpResponseNotFound("H5 file found")
-
-    jpeg_name = f"diffraction_{run}_{h5_data_num}.jpeg"
     jpeg_file = path.join(project_process_protein_dir(proj), dataset, jpeg_name)
     jpeg_url = path.join(project_static_url(proj), "fragmax", "process", proj.protein, dataset, jpeg_name)
 
     # request worker to generate diffraction jpeg and wait until it's completed
-    get_diffraction.delay(h5_file, jpeg_file).wait()
+    get_diffraction.delay(src_file, jpeg_file).wait()
 
     # redirect client to the generated jpeg file
     return redirect(jpeg_url)
