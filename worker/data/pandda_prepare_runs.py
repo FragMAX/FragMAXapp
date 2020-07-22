@@ -1,5 +1,4 @@
 import os
-import csv
 import sys
 import subprocess
 import shutil
@@ -99,8 +98,6 @@ def pandda_run(method, options):
     logs = glob(path + "/pandda/logs/*.log")
     if len(logs) > 0:
         lastlog = sorted(logs)[-1]
-        with open(lastlog, "r") as logfile:
-            log = logfile.readlines()
 
         badDataset = find_bad_dataset(lastlog, options)
 
