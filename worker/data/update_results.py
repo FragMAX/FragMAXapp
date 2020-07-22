@@ -3,7 +3,8 @@ from os import path
 import csv
 import sys
 import shutil
-import xmltodict
+from collections import defaultdict
+from xml.etree import cElementTree as ET
 
 dataset, run = sys.argv[1].split("_")
 proposal, shift = sys.argv[2].split("/")
@@ -26,10 +27,10 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/BUSTER_model.pdb")
     if ppdrefFiles:
         resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + [ppdrefFiles[-1]] + \
-            glob(f"{res_dir}**/*/buster/refine.pdb")
+                      glob(f"{res_dir}**/*/buster/refine.pdb")
     else:
         resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + \
-            glob(f"{res_dir}**/*/buster/refine.pdb")
+                      glob(f"{res_dir}**/*/buster/refine.pdb")
     isaDict = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": "", "pipedream": ""}
 
     project_results_file = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}/results.csv"
@@ -41,6 +42,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
             resultsFile.append(row)
 
     for log in xdsappLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for line in logfile:
@@ -49,6 +51,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
                 isaDict["xdsapp"] = isa
 
     for log in autoprocLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -57,6 +60,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["autoproc"] = isa
 
     for log in ppdprocLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -65,6 +69,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["pipedream"] = isa
 
     for log in dialsLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -73,6 +78,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["dials"] = isa
 
     for log in xdsxscaleLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -82,6 +88,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["xdsxscale"] = isa
 
     for log in fastdpLogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -90,6 +97,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["fastdp"] = isa
 
     for log in EDNALogs:
+        isa = 0
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -144,7 +152,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
 
 def _get_results_func(usracr, entry, isaDict, res_dir):
     pdbout, dif_map, nat_map, spg, resolution, isa, r_work, r_free, bonds, angles, a, b, c, alpha, beta, \
-        gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob, modelscore = [""] * 23
+    gamma, blist, ligfit_dataset, pipeline, rhofitscore, ligfitscore, ligblob, modelscore = [""] * 23
     pdbout = ""
 
     if "pipedream" in entry:
@@ -297,7 +305,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
 
         summary = glob(f"{res_dir}/{dataset}*/pipedream/summary.xml")[0]
         with open(summary, "r") as fd:
-            doc = xmltodict.parse(fd.read())
+            doc = etree_to_dict(ET.XML(fd.read()))
 
         a = doc["GPhL-pipedream"]["refdata"]["cell"]["a"]
         b = doc["GPhL-pipedream"]["refdata"]["cell"]["b"]
@@ -308,7 +316,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         if "Apo" not in usracr:
             rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"]["correlationcoefficient"]
         else:
-            rhofitscore = ""
+            rhofitscore = "-"
         symm = doc["GPhL-pipedream"]["refdata"]["symm"]
         spg = f'{symm} ({sym2spg(symm).replace(" ", "")})'
         r_work = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
@@ -400,6 +408,30 @@ def sym2spg(sym):
         "226": "F m -3 c ", "227": " F d -3 m ", "228": " F d -3 c ", "229": "I m -3 m", "230": "I a -3 d"}
 
     return spgDict[sym]
+
+
+def etree_to_dict(t):
+    gpl_str = "{http://www.globalphasing.com/buster/manual/pipedream/manual/index.html?xmlversion=0.0.1}"
+    d = {t.tag.replace(gpl_str, ""): {} if t.attrib else None}
+    children = list(t)
+    if children:
+        dd = defaultdict(list)
+        for dc in map(etree_to_dict, children):
+            for k, v in dc.items():
+                dd[k].append(v)
+        d = {t.tag.replace(gpl_str, ""): {k: v[0] if len(v) == 1 else v
+                     for k, v in dd.items()}}
+    if t.attrib:
+        d[t.tag.replace(gpl_str, "")].update(('@' + k, v)
+                        for k, v in t.attrib.items())
+    if t.text:
+        text = t.text.strip()
+        if children or t.attrib:
+            if text:
+              d[t.tag.replace(gpl_str, "")]['#text'] = text
+        else:
+            d[t.tag.replace(gpl_str, "")] = text
+    return d
 
 
 _generate_results_file(dataset, run, proposal, shift, protein)
