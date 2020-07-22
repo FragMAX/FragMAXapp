@@ -1,3 +1,6 @@
 {
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": false,
+    "python.pythonPath": "/home/guslim/.conda/envs/FragMAX/bin/python",
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
 }

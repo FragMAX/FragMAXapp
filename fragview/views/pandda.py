@@ -64,15 +64,15 @@ def inspect(request):
     if filterform is not None:
         if ";" in filterform:
             AP, DI, FD, ED, XD, XA, BU, DP, FS = filterform.split(";")
-            xdsapp = (1 if "true" in XA else 0)
-            autoproc = (1 if "true" in AP else 0)
-            dials = (1 if "true" in DI else 0)
-            edna = (1 if "true" in ED else 0)
-            fastdp = (1 if "true" in FD else 0)
-            xdsxscale = (1 if "true" in XD else 0)
-            dimple = (1 if "true" in DP else 0)
-            fspipeline = (1 if "true" in FS else 0)
-            buster = (1 if "true" in BU else 0)
+            xdsapp = 1 if "true" in XA else 0
+            autoproc = 1 if "true" in AP else 0
+            dials = 1 if "true" in DI else 0
+            edna = 1 if "true" in ED else 0
+            fastdp = 1 if "true" in FD else 0
+            xdsxscale = 1 if "true" in XD else 0
+            dimple = 1 if "true" in DP else 0
+            fspipeline = 1 if "true" in FS else 0
+            buster = 1 if "true" in BU else 0
             filters = list()
             filters.append("autoproc") if AP == "true" else ""
             filters.append("dials") if DI == "true" else ""
@@ -85,27 +85,27 @@ def inspect(request):
             filters.append("buster") if BU == "true" else ""
         else:
             flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
-            xdsapp = (1 if "xdsapp" in flat_filters else 0)
-            autoproc = (1 if "autoproc" in flat_filters else 0)
-            dials = (1 if "dials" in flat_filters else 0)
-            edna = (1 if "edna" in flat_filters else 0)
-            fastdp = (1 if "fastdp" in flat_filters else 0)
-            xdsxscale = (1 if "xdsxscale" in flat_filters else 0)
-            dimple = (1 if "dimple" in flat_filters else 0)
-            fspipeline = (1 if "fspipeline" in flat_filters else 0)
-            buster = (1 if "buster" in flat_filters else 0)
+            xdsapp = 1 if "xdsapp" in flat_filters else 0
+            autoproc = 1 if "autoproc" in flat_filters else 0
+            dials = 1 if "dials" in flat_filters else 0
+            edna = 1 if "edna" in flat_filters else 0
+            fastdp = 1 if "fastdp" in flat_filters else 0
+            xdsxscale = 1 if "xdsxscale" in flat_filters else 0
+            dimple = 1 if "dimple" in flat_filters else 0
+            fspipeline = 1 if "fspipeline" in flat_filters else 0
+            buster = 1 if "buster" in flat_filters else 0
 
     else:
         flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
-        xdsapp = (1 if "xdsapp" in flat_filters else 0)
-        autoproc = (1 if "autoproc" in flat_filters else 0)
-        dials = (1 if "dials" in flat_filters else 0)
-        edna = (1 if "edna" in flat_filters else 0)
-        fastdp = (1 if "fastdp" in flat_filters else 0)
-        xdsxscale = (1 if "xdsxscale" in flat_filters else 0)
-        dimple = (1 if "dimple" in flat_filters else 0)
-        fspipeline = (1 if "fspipeline" in flat_filters else 0)
-        buster = (1 if "buster" in flat_filters else 0)
+        xdsapp = 1 if "xdsapp" in flat_filters else 0
+        autoproc = 1 if "autoproc" in flat_filters else 0
+        dials = 1 if "dials" in flat_filters else 0
+        edna = 1 if "edna" in flat_filters else 0
+        fastdp = 1 if "fastdp" in flat_filters else 0
+        xdsxscale = 1 if "xdsxscale" in flat_filters else 0
+        dimple = 1 if "dimple" in flat_filters else 0
+        fspipeline = 1 if "fspipeline" in flat_filters else 0
+        buster = 1 if "buster" in flat_filters else 0
 
     method = request.GET.get("methods")
     if method is None or "panddaSelect" in method or ";" in method:
@@ -152,80 +152,88 @@ def inspect(request):
                         bdc = v1[1]
                         writer.writerow([dataset, site_idx, event_idx, proc_method, ddtag, run, bdc])
 
-            html = ''
+            html = ""
             # HTML Head
-            html += '    <!DOCTYPE html>\n'
+            html += "    <!DOCTYPE html>\n"
             html += '    <html lang="en">\n'
-            html += '      <head>\n'
+            html += "      <head>\n"
             html += '        <meta charset="utf-8">\n'
             html += '        <meta name="viewport" content="width=device-width, initial-scale=1">\n'
-            html += '        <link rel="stylesheet" ' \
-                    'href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n'
-            html += '        <link rel="stylesheet" ' \
-                    'href="https://cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css">\n'
+            html += (
+                '        <link rel="stylesheet" '
+                'href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n'
+            )
+            html += (
+                '        <link rel="stylesheet" '
+                'href="https://cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css">\n'
+            )
             html += '        <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>\n'
             html += '        <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>\n'
-            html += '        <script ' \
-                    'src="https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>\n'
+            html += (
+                "        <script "
+                'src="https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>\n'
+            )
             html += '          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>\n'
             html += '          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>\n'
             html += '        <script type="text/javascript" class="init">\n'
-            html += '    $(document).ready(function() {\n'
+            html += "    $(document).ready(function() {\n"
             html += "        $('#main-table').DataTable();\n"
-            html += '    } );\n'
-            html += '        </script>   \n'
-            html += '    <title>PANDDA Inspect Summary</title>\n'
-            html += '</head>\n'
-            html += '<body>\n'
+            html += "    } );\n"
+            html += "        </script>   \n"
+            html += "    <title>PANDDA Inspect Summary</title>\n"
+            html += "</head>\n"
+            html += "<body>\n"
             html += '    <div class="container">\n'
-            html += '      <h1>Consensus of PANDDA Inspect Summaries ' + "_".join(filters) + '</h1>\n'
-            html += '      <h2>Summary of Inspection of Datasets</h2>\n'
-            html += '      \n'
+            html += "      <h1>Consensus of PANDDA Inspect Summaries " + "_".join(filters) + "</h1>\n"
+            html += "      <h2>Summary of Inspection of Datasets</h2>\n"
+            html += "      \n"
 
             # Styles CSS
-            html += '<style>\n'
-            html += '    .container {\n'
-            html += '        max-width: 100% !important;\n'
-            html += '        margin: 0 50px 50px 150px !important;\n'
-            html += '        width: calc(100% - 200px) !important;\n'
-            html += '    }\n'
-            html += '    .col-md-8 {\n'
-            html += '    width: 100% !important;\n'
-            html += '    }\n'
-            html += '    </style>\n'
+            html += "<style>\n"
+            html += "    .container {\n"
+            html += "        max-width: 100% !important;\n"
+            html += "        margin: 0 50px 50px 150px !important;\n"
+            html += "        width: calc(100% - 200px) !important;\n"
+            html += "    }\n"
+            html += "    .col-md-8 {\n"
+            html += "    width: 100% !important;\n"
+            html += "    }\n"
+            html += "    </style>\n"
 
             # Fitting process plot (necessary?)
             html += '      <div class="row">\n'
             html += '        <div class="col-xs-12">\n'
-            html += '          <p>Fitting Progress</p>\n'
+            html += "          <p>Fitting Progress</p>\n"
             html += '          <div class="progress">\n'
             html += '            <div class="progress-bar progress-bar-success" style="width:100%">\n'
-            html += '              <span class="sr-only">Fitted - ' + str(ligEvents) + ' Events</span>\n'
-            html += '              <strong>Fitted - ' + str(ligEvents) + ' Events (100%)</strong>\n'
-            html += '            </div>\n'
+            html += '              <span class="sr-only">Fitted - ' + str(ligEvents) + " Events</span>\n"
+            html += "              <strong>Fitted - " + str(ligEvents) + " Events (100%)</strong>\n"
+            html += "            </div>\n"
             html += '            <div class="progress-bar progress-bar-warning" style="width:0.0%">\n'
             html += '              <span class="sr-only">Unviewed - 0 Events</span>\n'
-            html += '              <strong>Unviewed - 0 Events (0%)</strong>\n'
-            html += '            </div>\n'
+            html += "              <strong>Unviewed - 0 Events (0%)</strong>\n"
+            html += "            </div>\n"
             html += '            <div class="progress-bar progress-bar-danger" style="width:0.0%">\n'
             html += '              <span class="sr-only">No Ligand Fitted - 10 Events</span>\n'
-            html += '              <strong>No Ligand Fitted - 10 Events (16%)</strong>\n'
-            html += '            </div>\n'
-            html += '            </div>\n'
-            html += '        </div>\n'
+            html += "              <strong>No Ligand Fitted - 10 Events (16%)</strong>\n"
+            html += "            </div>\n"
+            html += "            </div>\n"
+            html += "        </div>\n"
 
             # Site distribution plot
             html += '        <div class="col-xs-12">\n'
-            html += '          <p>Identified Ligands by Site</p>\n'
+            html += "          <p>Identified Ligands by Site</p>\n"
             html += '          <div class="progress">\n'
             colour = "progress-bar-info"
             for k, v1 in siteP.items():
 
                 v = siteN[k]
                 html += '            <div class="progress-bar ' + colour + '" style="width:' + str(siteP[k]) + '%">\n'
-                html += '              <span class="sr-only">S' + k + ': ' + str(v) + ' hits</span>\n'
-                html += '              <strong>S' + k + ': ' + str(v) + ' hits (' + str(int(siteP[k])) + '%)</strong>\n'
-                html += '            </div>\n'
+                html += '              <span class="sr-only">S' + k + ": " + str(v) + " hits</span>\n"
+                html += (
+                    "              <strong>S" + k + ": " + str(v) + " hits (" + str(int(siteP[k])) + "%)</strong>\n"
+                )
+                html += "            </div>\n"
                 if colour == "progress-bar-info":
                     colour = "progress-bar-default"
                 else:
@@ -233,45 +241,52 @@ def inspect(request):
 
             # Inspections facts
 
-            html += '            </div>\n'
-            html += '        </div>\n'
-            html += '        </div>\n'
-            html += '      \n'
-            html += '      \n'
+            html += "            </div>\n"
+            html += "        </div>\n"
+            html += "        </div>\n"
+            html += "      \n"
+            html += "      \n"
             html += '      <div class="row">\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">' \
-                '<strong>Datasets w. ligands: ' + str(ligEvents) + ' (of #dataset collected)</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">' \
-                '<strong>Sites w. ligands: ' + str(len(siteP)) + ' (of 10)</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-info" role="alert">' \
-                '<strong>Unique fragments: ' + uniqueEvents + '</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-info" role="alert">' \
-                '<strong>Total number of events: ' + str(totalEvents) + '</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-success" role="alert">' \
-                '<strong>High confidence hits:   ' + str(high_conf) + '</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-warning" role="alert">' \
-                '<strong>Medium confidence hits: ' + str(medium_conf) + '</strong></div></div>\n'
-            html += \
-                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-danger" role="alert">' \
-                '<strong>Low confidence hits:    ' + str(low_conf) + '</strong></div></div>\n'
-            html += '        </div>\n'
-            html += '      \n'
-            html += '      \n'
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">'
+                "<strong>Datasets w. ligands: " + str(ligEvents) + " (of #dataset collected)</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">'
+                "<strong>Sites w. ligands: " + str(len(siteP)) + " (of 10)</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-info" role="alert">'
+                "<strong>Unique fragments: " + uniqueEvents + "</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-info" role="alert">'
+                "<strong>Total number of events: " + str(totalEvents) + "</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-success" role="alert">'
+                "<strong>High confidence hits:   " + str(high_conf) + "</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-warning" role="alert">'
+                "<strong>Medium confidence hits: " + str(medium_conf) + "</strong></div></div>\n"
+            )
+            html += (
+                '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-danger" role="alert">'
+                "<strong>Low confidence hits:    " + str(low_conf) + "</strong></div></div>\n"
+            )
+            html += "        </div>\n"
+            html += "      \n"
+            html += "      \n"
             html += '      <div class="row">\n'
-            html += '        </div>\n'
-            html += '<hr>\n'
+            html += "        </div>\n"
+            html += "<hr>\n"
 
             # Table header
             html += '<div class="table-responsive">\n'
             html += '<table id="main-table" class="table table-bordered table-striped" data-page-length="50">\n'
-            html += '    <thead>\n'
-            html += '    <tr>\n'
+            html += "    <thead>\n"
+            html += "    <tr>\n"
             html += '        <th class="text-nowrap"></th>\n'
 
             html += '        <th class="text-nowrap">Dataset</th>\n'
@@ -285,11 +300,11 @@ def inspect(request):
             html += '        <th class="text-nowrap">Confidence</th>\n'
             html += '        <th class="text-nowrap">Comment</th>\n'
             html += '        <th class="text-nowrap"></th>\n'
-            html += '        </tr>\n'
-            html += '    </thead>\n'
+            html += "        </tr>\n"
+            html += "    </thead>\n"
 
             # Table body
-            html += '<tbody>\n'
+            html += "<tbody>\n"
 
             for k, v in natsort.natsorted(eventDict.items()):
                 for k1, v1 in v.items():
@@ -304,70 +319,94 @@ def inspect(request):
 
                     ds = dataset + ";" + site_idx + ";" + event_idx + ";" + proc_method + ";" + ddtag + ";" + run
 
-                    if detailsDict["viewed"] == "False\n" or \
-                            detailsDict["ligplaced"] == "False" or \
-                            detailsDict["interesting"] == "False":
-                        html += '        <tr class=info>\n'
+                    if (
+                        detailsDict["viewed"] == "False\n"
+                        or detailsDict["ligplaced"] == "False"
+                        or detailsDict["interesting"] == "False"
+                    ):
+                        html += "        <tr class=info>\n"
                     else:
-                        html += '        <tr class=success>\n'
+                        html += "        <tr class=success>\n"
 
-                    html += \
-                        '          <th class="text-nowrap" scope="row" style="text-align: center;">' \
-                        '<form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank">' \
-                        '<button class="btn" type="submit" value="' + ds + '" name="structure" size="1">' \
-                                                                           'Open</button></form></th>\n'
-                    html += \
-                        '          <th class="text-nowrap" scope="row">' + k + v1[0][-3:] + '</th>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>' + \
-                        v1[0][:-4] + '</td>\n'
+                    html += (
+                        '          <th class="text-nowrap" scope="row" style="text-align: center;">'
+                        '<form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank">'
+                        '<button class="btn" type="submit" value="' + ds + '" name="structure" size="1">'
+                        "Open</button></form></th>\n"
+                    )
+                    html += '          <th class="text-nowrap" scope="row">' + k + v1[0][-3:] + "</th>\n"
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>'
+                        + v1[0][:-4]
+                        + "</td>\n"
+                    )
 
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict['event_idx'] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["site_idx"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["bdc"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["z_peak"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["map_res"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["map_unc"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["ligconfid"] + '</td>\n'
-                    html += \
-                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> ' + \
-                        detailsDict["comment"] + '</td>\n'
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["event_idx"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["site_idx"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["bdc"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["z_peak"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["map_res"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["map_unc"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["ligconfid"]
+                        + "</td>\n"
+                    )
+                    html += (
+                        '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span> '
+                        + detailsDict["comment"]
+                        + "</td>\n"
+                    )
                     html += '          <td><span class="label label-success">Hit</span></td></tr>\n'
-            html += '\n'
-            html += '</tbody>\n'
-            html += '</table>\n'
-            html += '</div>\n'
-            html += '\n'
-            html += '</body>\n'
-            html += '</html>\n'
+            html += "\n"
+            html += "</tbody>\n"
+            html += "</table>\n"
+            html += "</div>\n"
+            html += "\n"
+            html += "</body>\n"
+            html += "</html>\n"
 
-            return render(request, 'fragview/pandda_inspect.html', {
-                'proc_methods': proc_methods,
-                'Report': html,
-                'xdsapp': xdsapp,
-                'autoproc': autoproc,
-                'dials': dials,
-                'edna': edna,
-                'fastdp': fastdp,
-                'xdsxscale': xdsxscale,
-                'dimple': dimple,
-                'fspipeline': fspipeline,
-                'buster': buster,
-            })
+            return render(
+                request,
+                "fragview/pandda_inspect.html",
+                {
+                    "proc_methods": proc_methods,
+                    "Report": html,
+                    "xdsapp": xdsapp,
+                    "autoproc": autoproc,
+                    "dials": dials,
+                    "edna": edna,
+                    "fastdp": fastdp,
+                    "xdsxscale": xdsxscale,
+                    "dimple": dimple,
+                    "fspipeline": fspipeline,
+                    "buster": buster,
+                },
+            )
 
     else:
         inspect_file = os.path.join(res_dir, method, "pandda", "analyses", "html_summaries", "pandda_inspect.html")
@@ -381,37 +420,39 @@ def inspect(request):
 
                         event = inspectfile[n + 4].split("/span>")[-1].split("</td>")[0].replace(" ", "")
                         site = inspectfile[n + 5].split("/span>")[-1].split("</td>")[0].replace(" ", "")
-                        ds = method + ";" + line.split('row">')[-1].split('</th')[0] + ";" + event + ";" + site
+                        ds = method + ";" + line.split('row">')[-1].split("</th")[0] + ";" + event + ";" + site
 
-                        html += \
-                            '<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank">' \
-                            '<button class="btn" type="submit" value="' + ds + ';stay" name="structure" size="1">' \
-                                                                               'Open</button></form>'
+                        html += (
+                            '<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank">'
+                            '<button class="btn" type="submit" value="' + ds + ';stay" name="structure" size="1">'
+                            "Open</button></form>"
+                        )
                         html += line
                     else:
                         html += line
 
                 html = "".join(html)
-                html = html.replace('<th class="text-nowrap">Dataset</th>',
-                                    '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
+                html = html.replace(
+                    '<th class="text-nowrap">Dataset</th>',
+                    '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
+                )
                 flat_filters = method.split("_")
-                xdsapp = (1 if "xdsapp" in flat_filters else 0)
-                autoproc = (1 if "autoproc" in flat_filters else 0)
-                dials = (1 if "dials" in flat_filters else 0)
-                edna = (1 if "edna" in flat_filters else 0)
-                fastdp = (1 if "fastdp" in flat_filters else 0)
-                xdsxscale = (1 if "xdsxscale" in flat_filters else 0)
-                dimple = (1 if "dimple" in flat_filters else 0)
-                fspipeline = (1 if "fspipeline" in flat_filters else 0)
-                buster = (1 if "buster" in flat_filters else 0)
+                xdsapp = 1 if "xdsapp" in flat_filters else 0
+                autoproc = 1 if "autoproc" in flat_filters else 0
+                dials = 1 if "dials" in flat_filters else 0
+                edna = 1 if "edna" in flat_filters else 0
+                fastdp = 1 if "fastdp" in flat_filters else 0
+                xdsxscale = 1 if "xdsxscale" in flat_filters else 0
+                dimple = 1 if "dimple" in flat_filters else 0
+                fspipeline = 1 if "fspipeline" in flat_filters else 0
+                buster = 1 if "buster" in flat_filters else 0
 
                 return render(
                     request,
                     "fragview/pandda_inspect.html",
                     {
                         "proc_methods": proc_methods,
-                        "Report": html.replace("PANDDA Inspect Summary",
-                                               "PANDDA Inspect Summary for " + method),
+                        "Report": html.replace("PANDDA Inspect Summary", "PANDDA Inspect Summary for " + method),
                         "xdsapp": xdsapp,
                         "autoproc": autoproc,
                         "dials": dials,
@@ -420,7 +461,9 @@ def inspect(request):
                         "xdsxscale": xdsxscale,
                         "dimple": dimple,
                         "fspipeline": fspipeline,
-                        "buster": buster})
+                        "buster": buster,
+                    },
+                )
         else:
             return render(
                 request,
@@ -435,7 +478,9 @@ def inspect(request):
                     "xdsxscale": 0,
                     "dimple": 0,
                     "fspipeline": 0,
-                    "buster": 0})
+                    "buster": 0,
+                },
+            )
 
 
 def pandda_events(proj, filters):
@@ -494,8 +539,9 @@ def pandda_events(proj, filters):
 def dataset_details(proj, dataset, site_idx, method):
     detailsDict = dict()
 
-    events_csv = os.path.join(project_results_dir(proj), "pandda", proj.protein,
-                              method, "pandda", "analyses", "pandda_inspect_events.csv")
+    events_csv = os.path.join(
+        project_results_dir(proj), "pandda", proj.protein, method, "pandda", "analyses", "pandda_inspect_events.csv"
+    )
 
     with open(events_csv, "r") as inp:
         a = inp.readlines()
@@ -506,23 +552,23 @@ def dataset_details(proj, dataset, site_idx, method):
                 k = i.split(",")
 
     headers = a[0].split(",")
-    detailsDict['event_idx'] = k[1]
-    detailsDict['bdc'] = k[2]
-    detailsDict['site_idx'] = k[11]
-    detailsDict['center'] = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
-    detailsDict['z_peak'] = k[16]
-    detailsDict['resolution'] = k[18]
-    detailsDict['rfree'] = k[20]
-    detailsDict['rwork'] = k[21]
-    detailsDict['spg'] = k[35]
-    detailsDict['map_res'] = k[headers.index("analysed_resolution")]
-    detailsDict['map_unc'] = k[headers.index("map_uncertainty")]
-    detailsDict['analysed'] = k[headers.index("analysed")]
-    detailsDict['interesting'] = k[headers.index("Interesting")]
-    detailsDict['ligplaced'] = k[headers.index("Ligand Placed")]
-    detailsDict['ligconfid'] = k[headers.index("Ligand Confidence")]
-    detailsDict['comment'] = k[headers.index("Comment")]
-    detailsDict['viewed'] = k[headers.index("Viewed\n")]
+    detailsDict["event_idx"] = k[1]
+    detailsDict["bdc"] = k[2]
+    detailsDict["site_idx"] = k[11]
+    detailsDict["center"] = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
+    detailsDict["z_peak"] = k[16]
+    detailsDict["resolution"] = k[18]
+    detailsDict["rfree"] = k[20]
+    detailsDict["rwork"] = k[21]
+    detailsDict["spg"] = k[35]
+    detailsDict["map_res"] = k[headers.index("analysed_resolution")]
+    detailsDict["map_unc"] = k[headers.index("map_uncertainty")]
+    detailsDict["analysed"] = k[headers.index("analysed")]
+    detailsDict["interesting"] = k[headers.index("Interesting")]
+    detailsDict["ligplaced"] = k[headers.index("Ligand Placed")]
+    detailsDict["ligconfid"] = k[headers.index("Ligand Confidence")]
+    detailsDict["comment"] = k[headers.index("Comment")]
+    detailsDict["viewed"] = k[headers.index("Viewed\n")]
 
     return detailsDict
 
@@ -531,7 +577,8 @@ def giant(request):
     proj = current_project(request)
 
     available_scores = glob(
-        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda-scores/residue_scores.html")
+        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda-scores/residue_scores.html"
+    )
 
     if not available_scores:
         # no panda scores files found
@@ -542,9 +589,10 @@ def giant(request):
             with open(score, "r") as readFile:
                 htmlcontent = "".join(readFile.readlines())
 
-            htmlcontent = htmlcontent.replace('src="./residue_plots',
-                                              'src="/static/' + '/'.join(score.split('/')[3:-1]) + '/residue_plots')
-            scoreDict[score.split('/')[-3]] = htmlcontent
+            htmlcontent = htmlcontent.replace(
+                'src="./residue_plots', 'src="/static/' + "/".join(score.split("/")[3:-1]) + "/residue_plots"
+            )
+            scoreDict[score.split("/")[-3]] = htmlcontent
 
         return render(request, "fragview/pandda_export.html", {"scores_plots": scoreDict})
 
@@ -560,7 +608,7 @@ def analyse(request):
         t1.start()
 
     proc_methods = [x.split("/")[-2] for x in glob(panda_results_path + "/*/pandda")]
-    newest = datetime.strptime("2000-01-01-1234", '%Y-%m-%d-%H%M')
+    newest = datetime.strptime("2000-01-01-1234", "%Y-%m-%d-%H%M")
     newestpath = ""
     newestmethod = ""
     for methods in proc_methods:
@@ -568,7 +616,7 @@ def analyse(request):
             last = sorted(glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
             last_path = last + "/html_summaries/"
             if os.path.exists(last_path + "pandda_initial.html") or os.path.exists(last_path + "pandda_analsyse.html"):
-                cur_time = datetime.strptime(last.split("analyses-")[-1], '%Y-%m-%d-%H%M')
+                cur_time = datetime.strptime(last.split("analyses-")[-1], "%Y-%m-%d-%H%M")
                 if cur_time > newest:
                     newest = cur_time
                     newestpath = last
@@ -585,82 +633,116 @@ def analyse(request):
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
                     dt = line.split('scope="row">')[-1].split("<")[0]
-                    pandda_html[n] = f'<td class="sorting_1" style="text-align: center;" >' \
-                                     f'<form action="/pandda_densityA/" method="get" id="pandda_form" ' \
-                                     f'target="_blank"><button class="btn" type="submit" ' \
-                                     f'value="{newestmethod};{dt};1;1;stay" ' \
-                                     f'name="structure" size="1">Open</button></form></td>' + line
+                    pandda_html[n] = (
+                        f'<td class="sorting_1" style="text-align: center;" >'
+                        f'<form action="/pandda_densityA/" method="get" id="pandda_form" '
+                        f'target="_blank"><button class="btn" type="submit" '
+                        f'value="{newestmethod};{dt};1;1;stay" '
+                        f'name="structure" size="1">Open</button></form></td>' + line
+                    )
             pandda_html = "".join(pandda_html)
-            pandda_html = pandda_html.replace('<th class="text-nowrap">Dataset</th>',
-                                              '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
-            pandda_html = pandda_html.replace('class="table table-bordered table-striped"',
-                                              'class="table table-bordered table-striped" data-page-length="50"')
-            pandda_html = pandda_html.replace("PANDDA Processing Output",
-                                              "PANDDA Processing Output for " + newestmethod)
-            return render(request, 'fragview/pandda_analyse.html',
-                          {"opencmd": localcmd, 'proc_methods': proc_methods,
-                           'Report': pandda_html})
+            pandda_html = pandda_html.replace(
+                '<th class="text-nowrap">Dataset</th>',
+                '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
+            )
+            pandda_html = pandda_html.replace(
+                'class="table table-bordered table-striped"',
+                'class="table table-bordered table-striped" data-page-length="50"',
+            )
+            pandda_html = pandda_html.replace(
+                "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
+            )
+            return render(
+                request,
+                "fragview/pandda_analyse.html",
+                {"opencmd": localcmd, "proc_methods": proc_methods, "Report": pandda_html},
+            )
         elif os.path.exists(newestpath + "/html_summaries/pandda_initial.html"):
             with open(newestpath + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
                 a = "".join(inp.readlines())
                 localcmd = "initial"
 
-                return render(request, 'fragview/pandda_analyse.html',
-                              {"opencmd": localcmd,
-                               'proc_methods': proc_methods,
-                               'Report': a.replace("PANDDA Processing Output",
-                                                   "PANDDA Processing Output for " + newestmethod)})
+                return render(
+                    request,
+                    "fragview/pandda_analyse.html",
+                    {
+                        "opencmd": localcmd,
+                        "proc_methods": proc_methods,
+                        "Report": a.replace(
+                            "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
+                        ),
+                    },
+                )
 
         else:
             running = [x.split("/")[10] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+            return render(request, "fragview/pandda_notready.html", {"Report": "<br>".join(running)})
 
     else:
         if os.path.exists(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
-                      "r", encoding="utf-8") as inp:
+            with open(
+                panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
+                "r",
+                encoding="utf-8",
+            ) as inp:
                 pandda_html = inp.readlines()
                 localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
                     dt = line.split('scope="row">')[-1].split("<")[0]
-                    pandda_html[n] = f'<td class="sorting_1" style="text-align: center;" >' \
-                                     f'<form action="/pandda_densityA/" method="get" id="pandda_form" ' \
-                                     f'target="_blank"><button class="btn" type="submit" ' \
-                                     f'value="{method};{dt};1;1;stay" ' \
-                                     f'name="structure" size="1">Open</button></form></td>' + line
+                    pandda_html[n] = (
+                        f'<td class="sorting_1" style="text-align: center;" >'
+                        f'<form action="/pandda_densityA/" method="get" id="pandda_form" '
+                        f'target="_blank"><button class="btn" type="submit" '
+                        f'value="{method};{dt};1;1;stay" '
+                        f'name="structure" size="1">Open</button></form></td>' + line
+                    )
             pandda_html = "".join(pandda_html)
-            pandda_html = pandda_html.replace('<th class="text-nowrap">Dataset</th>',
-                                              '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>')
-            pandda_html = pandda_html.replace("PANDDA Processing Output",
-                                              "PANDDA Processing Output for " + method)
-            return render(request, 'fragview/pandda_analyse.html',
-                          {"opencmd": localcmd, 'proc_methods': proc_methods,
-                           'Report': pandda_html})
+            pandda_html = pandda_html.replace(
+                '<th class="text-nowrap">Dataset</th>',
+                '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
+            )
+            pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
+            return render(
+                request,
+                "fragview/pandda_analyse.html",
+                {"opencmd": localcmd, "proc_methods": proc_methods, "Report": pandda_html},
+            )
         else:
             running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, 'fragview/pandda_notready.html', {'Report': "<br>".join(running)})
+            return render(request, "fragview/pandda_notready.html", {"Report": "<br>".join(running)})
 
 
 def fix_pandda_symlinks(proj):
     os.system("chmod -R 777 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
-        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
-        """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
-        shell=True)
+        "cd "
+        + proj.data_path()
+        + "/fragmax/results/pandda/"
+        + proj.protein
+        + """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
+        shell=True,
+    )
 
     subprocess.call(
-        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein +
-        """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
-        shell=True)
+        "cd "
+        + proj.data_path()
+        + "/fragmax/results/pandda/"
+        + proj.protein
+        + """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
+        shell=True,
+    )
 
-    subprocess.call("cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""",
-                    shell=True)
+    subprocess.call(
+        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""", shell=True
+    )
 
-    glob_pattern = f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/" \
-                   f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+    glob_pattern = (
+        f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/"
+        f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
+    )
     linksFolder = glob(glob_pattern)
 
     for dst in linksFolder:
@@ -685,9 +767,24 @@ def submit(request):
         return render(request, "fragview/jobs_submitted.html", {"command": giantCMD})
 
     if "analyse" in panddaCMD:
-        function, proc, ref, complete, use_apo, use_dmso, reproZmaps, use_CAD, ref_CAD, \
-            ign_errordts, keepup_last, ign_symlink, PanDDAfilter, min_dataset, customPanDDA, \
-            cifMethod = panddaCMD.split(";")
+        (
+            function,
+            proc,
+            ref,
+            complete,
+            use_apo,
+            use_dmso,
+            reproZmaps,
+            use_CAD,
+            ref_CAD,
+            ign_errordts,
+            keepup_last,
+            ign_symlink,
+            PanDDAfilter,
+            min_dataset,
+            customPanDDA,
+            cifMethod,
+        ) = panddaCMD.split(";")
 
         method = proc + "_" + ref
 
@@ -714,7 +811,7 @@ def submit(request):
             "customPanDDA": customPanDDA,
             "reprocessing": False,
             "reprocessing_mode": "reload",
-            "nproc": 32
+            "nproc": 32,
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -799,14 +896,14 @@ def giant_score(proj, method):
     pandda_dir = os.path.join(res_dir, "pandda")
     export_dir = os.path.join(res_dir, "pandda-export")
 
-    header = '''#!/bin/bash\n'''
-    header += '''#!/bin/bash\n'''
-    header += '''#SBATCH -t 00:05:00\n'''
-    header += '''#SBATCH -J GiantScore\n'''
-    header += '''#SBATCH --nice=25\n'''
-    header += '''#SBATCH --cpus-per-task=1\n'''
-    header += '''#SBATCH --mem=2500\n'''
-    header += '''sleep 15000\n'''
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
+    header += """#SBATCH -t 00:05:00\n"""
+    header += """#SBATCH -J GiantScore\n"""
+    header += """#SBATCH --nice=25\n"""
+    header += """#SBATCH --cpus-per-task=1\n"""
+    header += """#SBATCH --mem=2500\n"""
+    header += """sleep 15000\n"""
 
     script = project_script(proj, "giant_holder.sh")
     utils.write_script(script, header)
@@ -814,17 +911,17 @@ def giant_score(proj, method):
 
     rn = str(randint(10000, 99999))
     jname = "Gnt" + rn
-    header = '''#!/bin/bash\n'''
-    header += '''#!/bin/bash\n'''
-    header += '''#SBATCH -t 02:00:00\n'''
-    header += '''#SBATCH -J ''' + jname + '''\n'''
-    header += '''#SBATCH --nice=25\n'''
-    header += '''#SBATCH --cpus-per-task=2\n'''
-    header += '''#SBATCH --mem=5000\n'''
-    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.out\n'''
-    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_export_%j.err\n\n'''
-    header += '''module purge\n'''
-    header += '''module load CCP4 Phenix\n'''
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
+    header += """#SBATCH -t 02:00:00\n"""
+    header += """#SBATCH -J """ + jname + """\n"""
+    header += """#SBATCH --nice=25\n"""
+    header += """#SBATCH --cpus-per-task=2\n"""
+    header += """#SBATCH --mem=5000\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.out\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.err\n\n"""
+    header += """module purge\n"""
+    header += """module load CCP4 Phenix\n"""
 
     panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
@@ -832,17 +929,17 @@ def giant_score(proj, method):
     utils.write_script(export_script, header + panddaExport)
     hpc.frontend_run(export_script)
 
-    header = '''#!/bin/bash\n'''
-    header += '''#!/bin/bash\n'''
-    header += '''#SBATCH -t 02:00:00\n'''
-    header += '''#SBATCH -J ''' + jname + '''\n'''
-    header += '''#SBATCH --nice=25\n'''
-    header += '''#SBATCH --cpus-per-task=1\n'''
-    header += '''#SBATCH --mem=2500\n'''
-    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_giant_%j_err.txt\n\n'''
-    header += '''module purge\n'''
-    header += '''module load CCP4 Phenix\n'''
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
+    header += """#SBATCH -t 02:00:00\n"""
+    header += """#SBATCH -J """ + jname + """\n"""
+    header += """#SBATCH --nice=25\n"""
+    header += """#SBATCH --cpus-per-task=1\n"""
+    header += """#SBATCH --mem=2500\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_err.txt\n\n"""
+    header += """module purge\n"""
+    header += """module load CCP4 Phenix\n"""
 
     _dirs = glob(f"{export_dir}/*")
 
@@ -866,16 +963,20 @@ def giant_score(proj, method):
                 make_restraints = "giant.make_restraints " + ens + " all=True resname=XXX"
                 inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
                 frag = _dir.split("/")[-1].split("-")[-1].split("_")[0]
-                quick_refine = \
-                    "giant.quick_refine " + ens + " " + inp_mtz + " " + frag + \
-                    ".cif multi-state-restraints.refmac.params resname=XXX"
+                quick_refine = (
+                    "giant.quick_refine "
+                    + ens
+                    + " "
+                    + inp_mtz
+                    + " "
+                    + frag
+                    + ".cif multi-state-restraints.refmac.params resname=XXX"
+                )
             except Exception:
                 make_restraints = ""
                 quick_refine = ""
         script = project_script(proj, f"giant_pandda_{frag}.sh")
-        utils.write_script(script,
-                           f"{header}\n"
-                           f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
+        utils.write_script(script, f"{header}\n" f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
 
         line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.05"
@@ -883,21 +984,21 @@ def giant_score(proj, method):
     pandda_score_script = project_script(proj, "pandda-score.sh")
     giant_worker_script = project_script(proj, "giant_worker.sh")
 
-    utils.write_script(giant_worker_script,
-                       f"{line}\n\n"
-                       f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}")
+    utils.write_script(
+        giant_worker_script, f"{line}\n\n" f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}"
+    )
 
-    header = '''#!/bin/bash\n'''
-    header += '''#!/bin/bash\n'''
-    header += '''#SBATCH -t 02:00:00\n'''
-    header += '''#SBATCH -J ''' + jname + '''\n'''
-    header += '''#SBATCH --nice=25\n'''
-    header += '''#SBATCH --cpus-per-task=2\n'''
-    header += '''#SBATCH --mem=2000\n'''
-    header += '''#SBATCH -o ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_out.txt\n'''
-    header += '''#SBATCH -e ''' + proj.data_path() + '''/fragmax/logs/pandda_score_%j_err.txt\nn'''
-    header += '''module purge\n'''
-    header += '''module load CCP4 Phenix\n\n'''
+    header = """#!/bin/bash\n"""
+    header += """#!/bin/bash\n"""
+    header += """#SBATCH -t 02:00:00\n"""
+    header += """#SBATCH -J """ + jname + """\n"""
+    header += """#SBATCH --nice=25\n"""
+    header += """#SBATCH --cpus-per-task=2\n"""
+    header += """#SBATCH --mem=2000\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\nn"""
+    header += """module purge\n"""
+    header += """module load CCP4 Phenix\n\n"""
 
     scores_dir = os.path.join(res_dir, "pandda-scores")
     scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
@@ -911,11 +1012,11 @@ def giant_score(proj, method):
 
         body += "\ncp -f " + src + " " + dst
 
-    scorecmd = \
+    scorecmd = (
         f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
+    )
 
-    utils.write_script(pandda_score_script,
-                       f"{header}{body}{scorecmd}")
+    utils.write_script(pandda_score_script, f"{header}{body}{scorecmd}")
 
     hpc.frontend_run(giant_worker_script)
 
@@ -939,8 +1040,9 @@ def pandda_worker(proj, method, options, cifMethod):
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
     else:
         method_dir = method.replace("_", "/")
-        datasetList = set([x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"
-                                                          f"/*/*/final.pdb")])
+        datasetList = set(
+            [x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*" f"/*/*/final.pdb")]
+        )
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/*/final.pdb"))
@@ -1000,8 +1102,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
             cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
         copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
         if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
-            copy_frags_cmd = \
-                f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
+            copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
 
     body = f"""#!/bin/bash
 #!/bin/bash

@@ -316,7 +316,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         if "Apo" not in usracr:
             rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"]["correlationcoefficient"]
         else:
-            rhofitscore = "-"
+            rhofitscore = ""
         symm = doc["GPhL-pipedream"]["refdata"]["symm"]
         spg = f'{symm} ({sym2spg(symm).replace(" ", "")})'
         r_work = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
