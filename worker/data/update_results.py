@@ -69,7 +69,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         "modelscore",
     ]
     if resultsFile[0] != header:
-        resultsFile = header + resultsFile
+        resultsFile.insert(0, header)
 
     for log in xdsappLogs:
         isa = 0
