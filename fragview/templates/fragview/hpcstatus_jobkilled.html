@@ -1,7 +1,7 @@
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - HPC Status{% endblock %}
+
 {% block content %}
 
 
@@ -11,12 +11,14 @@
     border-collapse: collapse;
 
   }
+
   th {
     text-align: center;
 
   }
 
-  td, th {
+  td,
+  th {
     border: 1px solid #f0f0f0;
     padding: 8px;
     height: 60px;
@@ -29,76 +31,96 @@
 
 
   th {
-      cursor: pointer;
+    cursor: pointer;
   }
+
   .container {
-    padding-left: 200px;
+    padding-left: 250px;
     max-width: 1440 !important;
     width: calc(100% - 75px) !important;
   }
-    .btn-right {
-            float:right !important;
+
+  .btn-right {
+    float: right !important;
+  }
+
+  button.link {
+    font-family: "Verdana"sans-serif;
+    font-size: 1.1em;
+    text-align: left;
+    color: #039be5;
+    background: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    cursor: pointer;
   }
 </style>
 <h4>MAX IV HPC Status</h4>
 
 
 
-<div class="card">
-        <div class="card-content">
-            
-            <div class="card-title">HPC Status for user: {{user}}
-                <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
-            </div>
-            <br>
-            <table class="table bordered">
-                <thead>
-                <tr>
-                    <th>JOB ID</th>
-                    <th>PARTITION</th>
-                    <th>NAME</th>
-                    <th>USER</th>
-                    <th>ST  </th>
-                    <th>TIME</th>
-                    <th>NODES</th>
-                    <th>NODE</th>       
-                    <th>Software</th>                          
-                    <th>Output file</th>             
-                    <th>Error file</th>             
-                    <th>Kill Job</th>             
-                </tr>
-                </thead>
-                <tbody>
-                    {{command | safe}}                
-                </tbody>
-            </table>
-        </div>
+<div class="card" style="min-width: 1020px;">
+  <div class="card-content">
+    <div class="card-title">HPC Status for user: {{user}}
+      <br>Proposal: {{proposal}}
+      <br><a href="/jobhistory" target="_blank">Job History</a>
+      <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
     </div>
-{% comment %} 
-<div class="card">
-        <div class="card-content">
-            
-            <div class="card-title">HPC Workload manager for user: {{user}}
-            </div>
-            <br>
-            <table class="table bordered">
-                <thead>
-                <tr>
-                    <th>JOB ID</th>
-                    <th>JOB NAME</th>
-                    <th>PARTITION</th>
-                    <th>ACCOUNT</th>
-                    <th>ALLOC CPUS</th>
-                    <th>STATE  </th>
-                    <th>EXIT CODE</th>
-                    
-                </tr>
-                </thead>
-                <tbody>
-                    {{history | safe}}                
-                </tbody>
-            </table>
-        </div>
-    </div> {% endcomment %}
+    <br>
+    <table class="table bordered">
+      <thead>
+        <tr>
+          <th>JOB ID</th>
+          <th>PARTITION</th>
+          <th>NAME</th>
+          <th>USER</th>
+          <th>ST </th>
+          <th>TIME</th>
+          <th>NODES</th>
+          <th>NODE</th>
 
+          <th>Output file</th>
+          <th>Error file</th>
+          <th>Kill Job</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for jobid,partition,name,user,ST,TIME,NODE,NODEname,StdERR,StdOUT in hpcList %}
+        {% if StdERR != "None" %}
+
+        <tr>
+          <td>{{jobid}}</td>
+          <td>{{partition}}</td>
+          <td>{{name}}</td>
+          <td>{{user}}</td>
+          <td>{{ST}}</td>
+          <td>{{TIME}}</td>
+          <td>{{NODE}}</td>
+          <td>{{NODEname}}</td>
+          <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
+          <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
+          <td>
+            <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
+              <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
+            </form>
+          </td>
+          <td>
+            <label style="padding-top: 10px; padding-left: 20px">
+              <input class="filled-in dt-checkboxes" id="selecttokill" name="jobselect" type="checkbox"
+                value="{{jobid}}">
+              <span for="checkALLdatasets"> </span>
+            </label>
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="display: flow-root;margin-top: 20px;">
+      <button class="btn btn-right" onClick="window.location.reload()">Kill Selected</button>
+    </div>
+  </div>
+</div>
 {% endblock %}

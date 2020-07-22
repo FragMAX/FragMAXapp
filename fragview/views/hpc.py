@@ -26,11 +26,8 @@ def status(request):
                 NODEn = NODEn1 + NODEn2
             try:
                 log_pairs = [
-                    item for it in
-                    [
-                        glob(f"{shift_dir}/fragmax/logs/*{jobid}*")
-                        for shift_dir in project_shift_dirs(proj)
-                    ]
+                    item
+                    for it in [glob(f"{shift_dir}/fragmax/logs/*{jobid}*") for shift_dir in project_shift_dirs(proj)]
                     for item in it
                 ]
 
@@ -48,49 +45,26 @@ def status(request):
 
             hpcList.append([jobid, partition, name, user, ST, TIME, NODE, NODEn, stdErr, stdOut])
 
-    return render(request,
-                  "fragview/hpcstatus.html",
-                  {"hpcList": hpcList, "proposal": proj.proposal})
+    return render(request, "fragview/hpcstatus.html", {"hpcList": hpcList, "proposal": proj.proposal})
 
 
 def kill_job(request):
     jobid_k = str(request.GET.get("jobid_kill"))
+    jobid_kl = str(request.GET.get("jobid_klist"))
 
-    subprocess.Popen(['ssh', '-t', 'clu0-fe-1', 'scancel', jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if jobid_k != "None":
+        subprocess.Popen(
+            ["ssh", "-t", "clu0-fe-1", "scancel", jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    else:
+        jobid_lst = jobid_kl.split(",")
+        subprocess.Popen(
+            ["ssh", "-t", "clu0-fe-1", "scancel"] + jobid_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
 
-    sleep(5)
+    sleep(1)
 
-    out = hpc.jobs_list(request.user)
-    output = ""
-
-    for i in out.decode("UTF-8").split("\n")[1:-1]:
-        proc_info = subprocess.Popen(
-            ["ssh", "-t", "clu0-fe-1", "scontrol", "show", "jobid", "-dd", i.split()[0]],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        out_info, err_info = proc_info.communicate()
-        stdout_file = [
-            x for x in out_info.decode("UTF-8").splitlines() if "StdOut=" in x][0].split("/data/visitors")[-1]
-        stderr_file = [
-            x for x in out_info.decode("UTF-8").splitlines() if "StdErr=" in x][0].split("/data/visitors")[-1]
-        try:
-            prosw = [x for x in out_info.decode("UTF-8").splitlines() if "#SW=" in x][0].split("#SW=")[-1]
-        except Exception:
-            prosw = "Unknown"
-        output += "<tr><td>" + "</td><td>".join(i.split()) + "</td><td>" + prosw + \
-                  "</td><td><a href='/static" + stdout_file + "'> job_" + i.split()[0] + \
-                  "_out.txt</a></td><td><a href='/static" + stderr_file + "'>job_" + i.split()[0] + """_err.txt</a></td><td>
-
-        <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{0}" >
-            <button class="btn-small" type="submit" value={0} name="jobid_kill" size="1">Kill</button>
-        </form>
-
-        </tr>""".format(i.split()[0])
-
-    return render(
-        request,
-        "fragview/hpcstatus_jobkilled.html",
-        {"command": output, "history": ""})
+    return status(request)
 
 
 def jobhistory(request):
@@ -118,9 +92,6 @@ def jobhistory(request):
             logHistory.append([logName, jobID, datetime.fromtimestamp(epoch), errFile, outFile])
 
     # sort jobs by date, newest first
-    logHistory.sort(key=lambda e: e[2],
-                    reverse=True)
+    logHistory.sort(key=lambda e: e[2], reverse=True)
 
-    return render(request,
-                  "fragview/jobhistory.html",
-                  {"logHistory": logHistory})
+    return render(request, "fragview/jobhistory.html", {"logHistory": logHistory})

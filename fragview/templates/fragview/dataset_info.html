@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#333333">
 
 <style>
-    td, th {
+    td,
+    th {
         padding: 5px 5px;
         display: table-cell;
         text-align: left;
@@ -16,52 +17,64 @@
         font-size: 12px;
 
     }
+
     #resultsTable th {
-      cursor: pointer;
+        cursor: pointer;
     }
-    .resultsHeader{
-        text-align: center; 
-        font-size:16px;
+
+    .resultsHeader {
+        text-align: center;
+        font-size: 16px;
         font-weight: bold;
     }
+
     .top-options {
         font-size: 15px !important;
     }
+
     .content {
         margin: auto !important;
         max-width: 100% !important;
         width: 100% !important;
     }
-    .card-content-left{
+
+    .card-content-left {
         padding: 0px 0px 38px 0px !important;
     }
-    .card-content-right{
+
+    .card-content-right {
         padding: 24px 24px 28px 24px !important;
     }
+
     .card_options {
-        padding-left: 310px  !important;
-        max-width: calc(100% - 50px)  !important;
+        padding-left: 310px !important;
+        max-width: calc(100% - 50px) !important;
     }
+
     .flexdiv {
         display: flex;
         padding-left: 300px;
-        max-width: calc(100% - 50px)  !important;
+        max-width: calc(100% - 50px) !important;
     }
+
     .flexdiv_options {
         display: flex;
     }
+
     .flex-left {
-        max-width:750px; 
+        max-width: 750px;
         width: 33%
     }
+
     .flex-right {
-        margin-left:10px;    
-        max-width:750px; 
+        margin-left: 10px;
+        max-width: 750px;
         width: 33%
-    }    
+    }
+
     .flex-center {
-        margin-left:10px;
-        max-width:750px;
+        margin-left: 10px;
+        max-width: 750px;
         width: 33%
     }
 
@@ -70,109 +83,133 @@
         max-width: 400px;
         padding: 10px;
     }
+
     .diffimg {
         max-width: 100%;
         height: auto;
-        width: auto\9; /* ie8 */
-        }
-    .diffsnap{
-        max-width:400px;
-        padding:10px;
+        width: auto\9;
+        /* ie8 */
     }
+
+    .diffsnap {
+        max-width: 400px;
+        padding: 10px;
+    }
+
     .flexdiv_snapshot {
         display: flex;
     }
 
     #snaps {
-    width: 800px;
-    height: 800px;
-    margin: 0 auto;
+        width: 800px;
+        height: 800px;
+        margin: 0 auto;
     }
 
-    #snaps > img {
-    float: left;
-    width: 45%;
-    margin: 1.66%;
+    #snaps>img {
+        float: left;
+        width: 45%;
+        margin: 1.66%;
     }
 
     .selectbox {
         display: flex !important;
     }
+
     .optionstable {
         border-collapse: separate;
         border-spacing: 0;
     }
+
     .tableSoak {
         border-collapse: separate;
         border-spacing: 0;
         width: 100% !important;
 
     }
+
     .tableInfo {
         width: 100% !important;
     }
 
-    .bottom-right    {
+    .bottom-right {
         right: 30;
         bottom: 20;
         position: absolute;
     }
+
     .btn-right {
-        float:right !important;
+        float: right !important;
     }
+
     .maxivorange {
         background-color: #fea901;
     }
+
     .custompar {
         background-color: #f0f0f0;
     }
+
     .ligpng {
         height: 25%;
         left: 53%;
         position: absolute;
         bottom: 3%;
     }
+
     .card-title {
-        display:inline-flex !important;
+        display: inline-flex !important;
     }
+
     button.link {
-	font-family: "Verdana" sans-serif;
-	font-size: 1.1em;
-	text-align: left;
-	color: #039be5;
-	background: none;
-	margin: 0;
-	padding: 0;
-	border: none;
-	cursor: pointer;
+        font-family: "Verdana"sans-serif;
+        font-size: 1.1em;
+        text-align: left;
+        color: #039be5;
+        background: none;
+        margin: 0;
+        padding: 0;
+        border: none;
+        cursor: pointer;
     }
-    .logtab{
+
+    .logtab {
         padding-bottom: 20px;
     }
 </style>
 
 <style>
     .myImg {
-        cursor: pointer;}
+        cursor: pointer;
+    }
 
     /* The Modal (background) */
     .modal {
-        display: none; /* Hidden by default */
-        position: fixed; /* Stay in place */
-        z-index: 1; /* Sit on top */
-        padding-top: 100px; /* Location of the box */
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        padding-top: 100px;
+        /* Location of the box */
         max-height: 100%;
         left: 250px;
         top: 0;
-        width: calc(100% - 200px); /* Full width */
-        height: 100%; /* Full height */
-        overflow: auto; /* Enable scroll if needed */
-        background-color: rgb(0,0,0); /* Fallback color */
-        background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+        width: calc(100% - 200px);
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.7);
+        /* Black w/ opacity */
     }
 
     /* Modal Content (image) */
-        .modal-content {
+    .modal-content {
         margin: auto;
         display: block;
         max-height: 960px;
@@ -215,78 +252,82 @@
     #processingTable tr:nth-child(even) {
         background-color: #e2e2e2;
     }
+
     #resultsTable tr:nth-child(even) {
         background-color: #e2e2e2;
     }
 </style>
 
 
-<body >
+<body>
 
-<div >
-    <h5 style="padding-left:310px;" > {{imgprf}}_{{run}} Dataset information </h5>
-    {{new_proc_run | safe}}
-    <div style="display:flex; padding-left:310px; ">
-        <h6 >Open processing report</h6>
-        
-        {% if dialsOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader" size="1">DIALS</button>
-        </form>
-        {% endif %}
-        {% if xdsOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader" size="1">XDS/XSCALE</button>
-        </form>        
-        {% endif %}
-        {% if autoprocOK == "ready" %}
-        <form action="/procReport/" method="get"  size="1" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader" size="1">autoPROC</button>
-        </form>
-        {% endif %}
-        {% if xdsappOK == "ready" %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{xdsappreport}}" name="logFile" size="1" >XDSAPP</button>
-        </form>
-        {% endif %}
-        {% if fastdpOK == "ready" %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1" >Fastdp</button>
-        </form>
-        {% endif %}
-        {% if ednaOK == "ready" %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="btn-small" type="submit" value="{{ednareport}}" name="logFile" size="1" >EDNA</button>
-        </form>
-        {% endif %}
+    <div>
+        <h5 style="padding-left:310px;"> {{imgprf}}_{{run}} Dataset information </h5>
+        {{new_proc_run | safe}}
+        <div style="display:flex; padding-left:310px; ">
+            <h6>Open processing report</h6>
+
+            {% if dialsOK == "ready" %}
+            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader"
+                    size="1">DIALS</button>
+            </form>
+            {% endif %}
+            {% if xdsOK == "ready" %}
+            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader"
+                    size="1">XDS/XSCALE</button>
+            </form>
+            {% endif %}
+            {% if autoprocOK == "ready" %}
+            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader"
+                    size="1">autoPROC</button>
+            </form>
+            {% endif %}
+            {% if xdsappOK == "ready" %}
+            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{xdsappreport}}" name="logFile" size="1">XDSAPP</button>
+            </form>
+            {% endif %}
+            {% if fastdpOK == "ready" %}
+            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1">Fastdp</button>
+            </form>
+            {% endif %}
+            {% if ednaOK == "ready" %}
+            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <button class="btn-small" type="submit" value="{{ednareport}}" name="logFile" size="1">EDNA</button>
+            </form>
+            {% endif %}
+        </div>
     </div>
-</div>
 
 
-<!-- The Modal -->
-<div id="myModal" class="modal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="img01">
-    <div id="caption"></div>
-</div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
 
     <div class="card_options">
         <div class="card tab">
-        <button class="tablinks" onclick="openMethod(event, 'dataProcess')">Data Processing</button>
-        <button class="tablinks" onclick="openMethod(event, 'structRefinement')">Structure Refinement</button>
-        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
-    </div>
+            <button class="tablinks" onclick="openMethod(event, 'dataProcess')">Data Processing</button>
+            <button class="tablinks" onclick="openMethod(event, 'structRefinement')">Structure Refinement</button>
+            <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
+        </div>
         <div id="dataProcess" class="card tabcontent ">
-            <table class="optionstable"  id="processingTable">
+            <table class="optionstable" id="processingTable">
                 <thead>
                     <tr>
-                        <td class="resultsHeader"  style="height: 60px;"></td>
-                        <td class="resultsHeader" >autoPROC</td>
-                        <td class="resultsHeader" >EDNA_proc</td>
-                        <td class="resultsHeader" >fastdp</td>
-                        <td class="resultsHeader" >XDSAPP</td>
-                        <td class="resultsHeader" >XIA2/DIALS</td>
-                        <td class="resultsHeader" >XIA2/XDS</td>
+                        <td class="resultsHeader" style="height: 60px;"></td>
+                        <td class="resultsHeader">autoPROC</td>
+                        <td class="resultsHeader">EDNA_proc</td>
+                        <td class="resultsHeader">fastdp</td>
+                        <td class="resultsHeader">XDSAPP</td>
+                        <td class="resultsHeader">XIA2/DIALS</td>
+                        <td class="resultsHeader">XIA2/XDS</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -299,31 +340,39 @@
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Unit cell parameters</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Unit cell
+                            parameters</td>
                         {% for dim, ang in unit_cell_list %}
-                        <td style="text-align:center"><div>{{dim}}</div><div> {{ang}}</div></td>
+                        <td style="text-align:center">
+                            <div>{{dim}}</div>
+                            <div> {{ang}}</div>
+                        </td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Resolution limit</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Resolution
+                            limit</td>
                         {% for inner, outter in resolution_list %}
                         <td style="text-align:center">{{inner}} {{outter}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of reflections</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of
+                            reflections</td>
                         {% for value in total_observations_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of uniques</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of
+                            uniques</td>
                         {% for value in unique_rflns_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Multiplicity</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Multiplicity
+                        </td>
                         {% for inner in multiplicity_list %}
                         <td style="text-align:center">{{inner}}</td>
                         {% endfor %}
@@ -342,19 +391,22 @@
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Completeness [%]</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Completeness
+                            [%]</td>
                         {% for inner, outter in completeness_list %}
                         <td style="text-align:center">{{inner}} {{outter}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson) [A^2]</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson) [A^2]
+                        </td>
                         {% for value in WilsonB_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [deg]</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [deg]
+                        </td>
                         {% for value in mosaicity_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
@@ -373,409 +425,404 @@
         </div>
         <div id="structRefinement" class="card tabcontent ">
 
-                        <div class="card-content card-content-left">
+            <div class="card-content card-content-left">
 
-                            <table class="optionstable"  id="resultsTable">
-                                <thead>
-                                    <tr>
-                                    <td class="resultsHeader" style="height: 60px">View Structure</td>
-                                    <td class="resultsHeader">Data set</td>
-                                    <td class="resultsHeader">Space group</td>
-                                    <td class="resultsHeader">Res. [&Aring;]</td>
-                                    <td class="resultsHeader">R<sub>work</sub> [%]</td>
-                                    <td class="resultsHeader">R<sub>free</sub> [%]</td>
-                                    <td class="resultsHeader">RMS bonds [&Aring;]</td>
-                                    <td class="resultsHeader">RMS angles [&deg;]</td>
-                                    <td class="resultsHeader">a</td>
-                                    <td class="resultsHeader">b</td>
-                                    <td class="resultsHeader">c</td>
-                                    <td class="resultsHeader">&alpha;</td>
-                                    <td class="resultsHeader">&beta;</td>
-                                    <td class="resultsHeader">&gamma;</td>
-                                    <td class="resultsHeader">RhoFit</td>
-                                    <td class="resultsHeader">LigFit</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                    </tr>
-                                    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob, modelscore in csvfile %}
-
-                                    <tr>
-                                    <td style="text-align:center;padding-top: 10px;">
-                                        <form action="/density/" method="get" target="_blank">
-                                        <button class="btn" type="submit"
-                                        value="{{usracr}}"
-                                        name="structure" >Open</button>
-                                        </form>
-                                    </td>
-                                    <td >{{usracr}}</td>
-                                    <td style="text-align:center">{{spg}}</td>
-                                    <td style="text-align:center">{{resolution}}</td>
-                                    <td style="text-align:center">{{r_work}}</td>
-                                    <td style="text-align:center">{{r_free}}</td>
-                                    <td style="text-align:center">{{bonds}}</td>
-                                    <td class="rms" style="text-align:center">{{angles}}</td>
-                                    <td style="text-align:center">{{a}}</td>
-                                    <td style="text-align:center">{{b}}</td>
-                                    <td style="text-align:center">{{c}}</td>
-                                    <td style="text-align:center">{{alpha}}</td>
-                                    <td style="text-align:center">{{beta}}</td>
-                                    <td style="text-align:center">{{gamma}}</td>
-                                    <td style="text-align:center">{{rhofitscore}}</td>
-                                    <td style="text-align:center">{{ligfitscore}}</td>
-
-                                    </tr>
-                                    {% endfor %}
-
-                                </tbody>
-
-                        </table>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-
-
-<div class="flexdiv">
-    <div id="snaps">
-                {% if dialsOK == "ready" %}
-                    <form action="/reciprocal_lattice/{{imgprf}}/{{run}}"
-                          method="get" size="1" style="padding-left:25%;"
-                          target="_blank">
-                        <button class="btn-large" type="submit" size="1">Open Reciprocal Lattice Viewer</button>
-                    </form>
-                {% endif %}
-
-                <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
-                <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
-        
-                <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
-                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
-                <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
-                     onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
-        
-        
-    </div>
-    <div class="flex-left">
-        <div class="card" style="min-height:700px">
-            <div class="card-content card-content-right">
-                <div class="card-title">Experiment parameters</div>
-                <table id="tableinfo1" class="tableInfo">
-                    <col width="200">
-                    <col width="450">
+                <table class="optionstable" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <td class="resultsHeader" style="height: 60px">View Structure</td>
+                            <td class="resultsHeader">Data set</td>
+                            <td class="resultsHeader">Space group</td>
+                            <td class="resultsHeader">Res. [&Aring;]</td>
+                            <td class="resultsHeader">R<sub>work</sub> [%]</td>
+                            <td class="resultsHeader">R<sub>free</sub> [%]</td>
+                            <td class="resultsHeader">RMS bonds [&Aring;]</td>
+                            <td class="resultsHeader">RMS angles [&deg;]</td>
+                            <td class="resultsHeader">a</td>
+                            <td class="resultsHeader">b</td>
+                            <td class="resultsHeader">c</td>
+                            <td class="resultsHeader">&alpha;</td>
+                            <td class="resultsHeader">&beta;</td>
+                            <td class="resultsHeader">&gamma;</td>
+                            <td class="resultsHeader">RhoFit</td>
+                            <td class="resultsHeader">LigFit</td>
+                        </tr>
+                    </thead>
                     <tbody>
                         <tr>
-                            <td style="font-weight: bold;">Img directory</td>
-                            <td name="imgdirNAME" id="imgdirID">
-                                <p style="word-break: break-all;">
-                                    {{xsdata.imageDirectory}}
-                                </p>
+                        </tr>
+                        {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob, modelscore in csvfile %}
+
+                        <tr>
+                            <td style="text-align:center;padding-top: 10px;">
+                                <form action="/density/" method="get" target="_blank">
+                                    <button class="btn" type="submit" value="{{usracr}}" name="structure">Open</button>
+                                </form>
                             </td>
+                            <td>{{usracr}}</td>
+                            <td style="text-align:center">{{spg}}</td>
+                            <td style="text-align:center">{{resolution}}</td>
+                            <td style="text-align:center">{{r_work}}</td>
+                            <td style="text-align:center">{{r_free}}</td>
+                            <td style="text-align:center">{{bonds}}</td>
+                            <td class="rms" style="text-align:center">{{angles}}</td>
+                            <td style="text-align:center">{{a}}</td>
+                            <td style="text-align:center">{{b}}</td>
+                            <td style="text-align:center">{{c}}</td>
+                            <td style="text-align:center">{{alpha}}</td>
+                            <td style="text-align:center">{{beta}}</td>
+                            <td style="text-align:center">{{gamma}}</td>
+                            <td style="text-align:center">{{rhofitscore}}</td>
+                            <td style="text-align:center">{{ligfitscore}}</td>
+
                         </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Img prefix</td>
-                            <td>{{project.protein}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Run number</td>
-                            <td>{{run}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;"># of images</td>
-                            <td>{{xsdata.numberOfImages}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Start time</td>
-                            <td>{{xsdata.startTime}} </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">End time</td>
-                            <td>{{xsdata.endTime}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Type of experiment</td>
-                            <td>OSC</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Wavelength</td>
-                            <td>{{xsdata.wavelength|floatformat:6}} Å</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Energy</td>
-                            <td>{{energy}} keV</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Phi Start</td>
-                            <td>{{xsdata.axisStart}}°</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Oscillation range</td>
-                            <td>{{xsdata.axisRange}}°</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Overlap</td>
-                            <td>{{xsdata.overlap|floatformat:1}}°</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Exposure time</td>
-                            <td>{{xsdata.exposureTime|floatformat:3}} s</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Total Exposure time</td>
-                            <td>{{totalExposure}} s</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Estimated dose</td>
-                            <td>Not defined</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Detector distance</td>
-                            <td>{{xsdata.detectorDistance|floatformat:2}} mm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Resolution at edge</td>
-                            <td>{{xsdata.resolution|floatformat:2}} Å</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Resolution at corner</td>
-                            <td>{{edgeResolution}} Å</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Xbeam</td>
-                            <td>{{xsdata.xbeam}} mm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Ybeam</td>
-                            <td>{{xsdata.ybeam}} mm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Kappa</td>
-                            <td>0</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Phi</td>
-                            <td>0</td>
-                        </tr>
+                        {% endfor %}
 
                     </tbody>
 
                 </table>
             </div>
 
+
         </div>
     </div>
+    </div>
 
-    <div class="flex-right">
-        <div class="card" style="min-height:700px">
-            <div class="card-content card-content-right">
-                <div class="card-title">Beamline parameters</div>
-                <table id="tableinfo2" class="tableInfo">
-                    <col width="200">
-                    <col width="450">
-                    <tbody>
-                        <tr>
-                            <td style="font-weight: bold;">Synchrotron</td>
-                            <td>{{BL_site}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Filling mode</td>
-                            <td>{{xsdata.synchrotronMode}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Beamline</td>
-                            <td>{{BL_name}}</td>
-                        </tr>                        
-                        <tr>
-                            <td style="font-weight: bold;">Detector type</td>
-                            <td>{{BL_detector_type}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Detector model</td>
-                            <td>{{BL_detector}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Detector pixel size (HxV)</td>
-                            <td>{{BL_detector_pixel_size}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Focusing optics</td>
-                            <td>{{BL_focusing_optics}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Monochromator type</td>
-                            <td>{{BL_monochrom_type}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Beam shape</td>
-                            <td>{{xsdata.beamShape}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Beam transmission</td>
-                            <td>{{xsdata.transmission|floatformat:3}}%</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Slit gap hor</td>
-                            <td>{{xsdata.slitGapHorizontal|floatformat:1}} μm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Slit gap ver</td>
-                            <td>{{xsdata.slitGapVertical|floatformat:1}} μm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Flux (estimated)</td>
-                            <td>{{xsdata.flux|stringformat:".3e" }} ph/s</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Beam size at sample (HxV)</td>
-                            <td>{{xsdata.beamSizeSampleX}} μm x {{xsdata.beamSizeSampleY}} μm</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Beam divergence (HxV)</td>
-                            <td>{{BL_beam_divergence}}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Polarisation</td>
-                            <td>{{BL_polarisation}}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <br>
-                {% if soakTime == "Soaking not performed" %}
+
+    <div class="flexdiv">
+        <div id="snaps">
+            {% if dialsOK == "ready" %}
+            <form action="/reciprocal_lattice/{{imgprf}}/{{run}}" method="get" size="1" style="padding-left:25%;"
+                target="_blank">
+                <button class="btn-large" type="submit" size="1">Open Reciprocal Lattice Viewer</button>
+            </form>
+            {% endif %}
+
+            <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
+            <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
+
+            <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
+                onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+            <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
+                onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+
+
+        </div>
+        <div class="flex-left">
+            <div class="card" style="min-height:700px">
+                <div class="card-content card-content-right">
+                    <div class="card-title">Experiment parameters</div>
+                    <table id="tableinfo1" class="tableInfo">
+                        <col width="200">
+                        <col width="450">
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: bold;">Img directory</td>
+                                <td name="imgdirNAME" id="imgdirID">
+                                    <p style="word-break: break-all;">
+                                        {{xsdata.imageDirectory}}
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Img prefix</td>
+                                <td>{{project.protein}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Run number</td>
+                                <td>{{run}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;"># of images</td>
+                                <td>{{xsdata.numberOfImages}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Start time</td>
+                                <td>{{xsdata.startTime}} </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">End time</td>
+                                <td>{{xsdata.endTime}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Type of experiment</td>
+                                <td>OSC</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Wavelength</td>
+                                <td>{{xsdata.wavelength|floatformat:6}} Å</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Energy</td>
+                                <td>{{energy}} keV</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Phi Start</td>
+                                <td>{{xsdata.axisStart}}°</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Oscillation range</td>
+                                <td>{{xsdata.axisRange}}°</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Overlap</td>
+                                <td>{{xsdata.overlap|floatformat:1}}°</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Exposure time</td>
+                                <td>{{xsdata.exposureTime|floatformat:3}} s</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Total Exposure time</td>
+                                <td>{{totalExposure}} s</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Estimated dose</td>
+                                <td>Not defined</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Detector distance</td>
+                                <td>{{xsdata.detectorDistance|floatformat:2}} mm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Resolution at edge</td>
+                                <td>{{xsdata.resolution|floatformat:2}} Å</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Resolution at corner</td>
+                                <td>{{edgeResolution}} Å</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Xbeam</td>
+                                <td>{{xsdata.xbeam}} mm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Ybeam</td>
+                                <td>{{xsdata.ybeam}} mm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Kappa</td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Phi</td>
+                                <td>0</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="flex-right">
+            <div class="card" style="min-height:700px">
+                <div class="card-content card-content-right">
+                    <div class="card-title">Beamline parameters</div>
+                    <table id="tableinfo2" class="tableInfo">
+                        <col width="200">
+                        <col width="450">
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: bold;">Synchrotron</td>
+                                <td>{{BL_site}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Filling mode</td>
+                                <td>{{xsdata.synchrotronMode}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Beamline</td>
+                                <td>{{BL_name}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Detector type</td>
+                                <td>{{BL_detector_type}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Detector model</td>
+                                <td>{{BL_detector}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Detector pixel size (HxV)</td>
+                                <td>{{BL_detector_pixel_size}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Focusing optics</td>
+                                <td>{{BL_focusing_optics}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Monochromator type</td>
+                                <td>{{BL_monochrom_type}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Beam shape</td>
+                                <td>{{xsdata.beamShape}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Beam transmission</td>
+                                <td>{{xsdata.transmission|floatformat:3}}%</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Slit gap hor</td>
+                                <td>{{xsdata.slitGapHorizontal|floatformat:1}} μm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Slit gap ver</td>
+                                <td>{{xsdata.slitGapVertical|floatformat:1}} μm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Flux (estimated)</td>
+                                <td>{{xsdata.flux|stringformat:".3e" }} ph/s</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Beam size at sample (HxV)</td>
+                                <td>{{xsdata.beamSizeSampleX}} μm x {{xsdata.beamSizeSampleY}} μm</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Beam divergence (HxV)</td>
+                                <td>{{BL_beam_divergence}}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;">Polarisation</td>
+                                <td>{{BL_polarisation}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br>
+                    {% if soakTime == "Soaking not performed" %}
                     <div hidden>
-                {% else %}
-                    <div>
-                {% endif %}
-                    <div class="card-title">Soaking parameters</div>
-                    <div>
-                        <table class="tableSoak">
-                            <col width="320">
-                            <col width="300">
-                            <col width="450">
-                            <tbody>
-                                <tr>
-                                    <td style="font-weight: bold;">Soaking time</td>
-                                    <td>{{soakTime}} </td>
+                        {% else %}
+                        <div>
+                            {% endif %}
+                            <div class="card-title">Soaking parameters</div>
+                            <div>
+                                <table class="tableSoak">
+                                    <col width="320">
+                                    <col width="300">
+                                    <col width="450">
+                                    <tbody>
+                                        <tr>
+                                            <td style="font-weight: bold;">Soaking time</td>
+                                            <td>{{soakTime}} </td>
 
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold;">Fragment Concentration</td>
-                                    <td>{{fragConc}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold;">DMSO Concentration (final)</td>
-                                    <td>{{solventConc}}</td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <img class="ligpng"
-                             id="ligand"
-                             src="/fragment/{{ligand}}/image"
-                             onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Fragment Concentration</td>
+                                            <td>{{fragConc}}</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">DMSO Concentration (final)</td>
+                                            <td>{{solventConc}}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <img class="ligpng" id="ligand" src="/fragment/{{ligand}}/image"
+                                    onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<h5 style="padding-left:310px;">Advanced log viewer</h5>
+        <h5 style="padding-left:310px;">Advanced log viewer</h5>
 
-<div class=" card_options">
-    <div class="card tab">
-        {% if ednaOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
-        {% endif %}
-        {% if fastdpOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-        {% endif %}
-        {% if dialsOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-        {% endif %}
-        {% if xdsOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
-        {% endif %}
-        {% if xdsappOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
-        {% endif %}
-        {% if autoprocOK == "ready" %}
-            <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
-        {% endif %}
-<!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+        <div class=" card_options">
+            <div class="card tab">
+                {% if ednaOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
+                {% endif %}
+                {% if fastdpOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
+                {% endif %}
+                {% if dialsOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
+                {% endif %}
+                {% if xdsOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
+                {% endif %}
+                {% if xdsappOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
+                {% endif %}
+                {% if autoprocOK == "ready" %}
+                <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+                {% endif %}
+                <!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
         <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
         <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>-->
-        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
+                <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
 
 
-    </div>
-    <div id="EDNA" class="card tabcontent ">
-        <div class="card-title logtab">EDNA_proc Logs</div>
-        {% if ednaOK == "ready" %}
-        {% for logName,logPath in ednaLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-    <div id="fastdp" class="card tabcontent ">
-        <div class="card-title logtab">FastDP Logs</div>
-        {% if fastdpOK == "ready" %}
-        {% for logName,logPath in fastdpLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-    <div id="DIALS" class="card tabcontent ">
-        <div class="card-title logtab">XIA2/Dials Logs</div>
-        {% if dialsOK == "ready" %}
-        {% for logName,logPath in dialsLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-    <div id="XDS_XSCALE" class="card tabcontent ">
-        <div class="card-title logtab">XIA2/XDS_xscale Logs</div>
-        {% if xdsOK == "ready" %}
-        {% for logName,logPath in xdsLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-    <div id="XDSAPP" class="card tabcontent ">
-        <div class="card-title logtab">XDSAPP Logs</div>
-        {% if xdsappOK == "ready" %}
-        {% for logName,logPath in xdsappLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-    <div id="autoPROC" class="card tabcontent ">
-        <div class="card-title logtab">autoPROC Logs</div>
-        {% if autoprocOK == "ready" %}
-        {% for logName,logPath in autoprocLogs %}
-        <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-            <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1" >{{logName}}</button>
-        </form>
-        {% endfor %}
-        {% endif %}
-    </div>
-<!--    <div id="DIMPLE" class="card tabcontent">
+            </div>
+            <div id="EDNA" class="card tabcontent ">
+                <div class="card-title logtab">EDNA_proc Logs</div>
+                {% if ednaOK == "ready" %}
+                {% for logName,logPath in ednaLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div id="fastdp" class="card tabcontent ">
+                <div class="card-title logtab">FastDP Logs</div>
+                {% if fastdpOK == "ready" %}
+                {% for logName,logPath in fastdpLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div id="DIALS" class="card tabcontent ">
+                <div class="card-title logtab">XIA2/Dials Logs</div>
+                {% if dialsOK == "ready" %}
+                {% for logName,logPath in dialsLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div id="XDS_XSCALE" class="card tabcontent ">
+                <div class="card-title logtab">XIA2/XDS_xscale Logs</div>
+                {% if xdsOK == "ready" %}
+                {% for logName,logPath in xdsLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div id="XDSAPP" class="card tabcontent ">
+                <div class="card-title logtab">XDSAPP Logs</div>
+                {% if xdsappOK == "ready" %}
+                {% for logName,logPath in xdsappLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div id="autoPROC" class="card tabcontent ">
+                <div class="card-title logtab">autoPROC Logs</div>
+                {% if autoprocOK == "ready" %}
+                {% for logName,logPath in autoprocLogs %}
+                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                    <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
+                </form>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <!--    <div id="DIMPLE" class="card tabcontent">
         <div class="card-title">DIMPLE Logs</div>
         <p>file 1</p>
         <p>file 2</p>
@@ -806,12 +853,12 @@
         <p>file 2</p>
     </div>-->
 
-</div>
+        </div>
 
 </body>
 
 <script>
-    
+
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -851,18 +898,18 @@
 
     const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
-    const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
         v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-        )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
     // do the work...
     document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
         const table = th.closest('table');
         Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
             .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-            .forEach(tr => table.appendChild(tr) );
+            .forEach(tr => table.appendChild(tr));
     })));
-    
+
 </script>
 
 
