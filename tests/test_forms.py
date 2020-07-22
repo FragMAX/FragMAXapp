@@ -4,7 +4,7 @@ from unittest import mock
 from django import test
 from django.test.client import RequestFactory
 from fragview import forms
-from django.conf import settings
+from fragview.sites import SITE
 from django.core.files.uploadedfile import SimpleUploadedFile
 from fragview import projects
 from fragview.models import Project
@@ -223,11 +223,11 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
             self.assertTrue(is_valid)
 
             isdir.assert_has_calls([
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
-                mock.call(path.join(settings.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)),
+                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL)),
+                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
+                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)),
+                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
+                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)),
             ])
 
     def test_invalid_empty_subdirs_list(self):

@@ -1,7 +1,6 @@
 import glob
 from os import path
-from django.conf import settings
-from fragview import data_layout
+from fragview.sites import SITE
 from .proposals import get_proposals
 
 UPDATE_STATUS_SCRIPT = "update_status.py"
@@ -21,7 +20,7 @@ def have_pending_projects(request):
 
 
 def proposal_dir(proposal_number):
-    return path.join(settings.PROPOSALS_DIR, proposal_number)
+    return path.join(SITE.PROPOSALS_DIR, proposal_number)
 
 
 def shift_dir(proposal_number, shift):
@@ -153,7 +152,7 @@ def project_raw_master_h5_files(project):
 
 
 def project_datasets(project):
-    return data_layout.get_layout().get_project_datasets(project)
+    return SITE.get_project_datasets(project)
 
 
 def shifts_xml_files(project, shifts):

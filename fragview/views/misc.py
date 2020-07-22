@@ -1,7 +1,7 @@
 from os import path
 from glob import glob
 from django.shortcuts import render
-from django.conf import settings
+from fragview.sites import SITE
 from fragview.projects import current_project
 from ast import literal_eval
 
@@ -39,8 +39,10 @@ def ugly(request):
 
 def log_viewer(request):
     logFile = request.GET["logFile"]
-    downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
+
+    downloadPath = f"/static/biomax{logFile[len(SITE.PROPOSALS_DIR):]}"
     clusters_png = None
+
     if path.exists(logFile):
         if path.splitext(logFile)[-1] == ".json" and "pandda" in logFile:
             clusters = path.join(path.dirname(logFile), "clustered-datasets", "dendrograms")

@@ -3,8 +3,8 @@ from os import path
 from django import forms
 from fragview import projects, fraglib, encryption
 from fragview.models import Project, EncryptionKey
-from fragview import data_layout
-from fragview.data_layout import get_layout
+from fragview.sites import SITE
+from fragview.sites.plugin import ProjectLayout
 
 
 class _ProcJobForm(forms.Form):
@@ -170,7 +170,7 @@ class ProjectForm(forms.Form):
     encrypted = forms.BooleanField(required=False)
 
     def __init__(self, data, files, model=None):
-        self.data_layout = get_layout()
+        self.proj_layout = SITE.get_project_layout()
         self.model = model
         if data is None and model is not None:
             data = dict(
@@ -205,8 +205,8 @@ class ProjectForm(forms.Form):
         root = self.cleaned_data["root"].strip()
 
         try:
-            self.data_layout.check_root(root)
-        except data_layout.ValidationError as e:
+            self.proj_layout.check_root(root)
+        except ProjectLayout.ValidationError as e:
             raise forms.ValidationError(str(e))
 
         return root
@@ -215,8 +215,8 @@ class ProjectForm(forms.Form):
         subdirs = self.cleaned_data["subdirs"].strip()
 
         try:
-            self.data_layout.check_subdirs(subdirs)
-        except data_layout.ValidationError as e:
+            self.proj_layout.check_subdirs(subdirs)
+        except ProjectLayout.ValidationError as e:
             raise forms.ValidationError(str(e))
 
         return subdirs
@@ -299,7 +299,7 @@ class ProjectForm(forms.Form):
             raise forms.ValidationError(
                 dict(root=f"proposal '{root}' not found"))
 
-        if self.data_layout.subdirs() is None:
+        if self.proj_layout.subdirs() is None:
             # for plain data layout, check that root folder have the protein
             root_errors = self._validate_root(root, protein)
             errors.update(root_errors)

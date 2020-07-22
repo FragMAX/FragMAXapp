@@ -125,23 +125,23 @@ $(document).ready(function()
                     </tr>
                     {% endif %}
                     <tr>
-                        <th>{{data_layout.root.name}}</th>
+                        <th>{{proj_layout.root.name}}</th>
                         <td>
                             <input class="selectbox"
                                    name="root"
-                                   placeholder="{{data_layout.root.placeholder}}"
+                                   placeholder="{{proj_layout.root.placeholder}}"
                                    value="{{form.root.value}}"
                                    required/>
                             <div class="err_msg">{{form.root.errors}}</div>
                         </td>
                     </tr>
-                    {% if data_layout.subdirs %}
+                    {% if proj_layout.subdirs %}
                         <tr>
-                            <th>{{data_layout.subdirs.name}}</th>
+                            <th>{{proj_layout.subdirs.name}}</th>
                             <td>
                                 <input class="selectbox"
                                        name="subdirs"
-                                       placeholder="{{data_layout.subdirs.placeholder}}"
+                                       placeholder="{{proj_layout.subdirs.placeholder}}"
                                        value="{{form.subdirs.value}}"
                                        required/>
                                 <div class="err_msg">{{form.subdirs.errors}}</div>

@@ -4,13 +4,11 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 
+from fragview.sites import SITE
 from fragview.models import Project, PendingProject
 from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project, project_shift_dirs
-from fragview.data_layout import get_layout, get_project_experiment_date
-
-# from worker import setup_project_files, add_new_shifts, _prepare_fragments
 from worker import setup_project_files, add_new_shifts
 
 
@@ -61,7 +59,7 @@ def edit(request, id):
     return render(
         request,
         "fragview/project.html",
-        {"form": form, "project_id": proj.id, "data_layout": get_layout()})
+        {"form": form, "project_id": proj.id, "proj_layout": SITE.get_project_layout()})
 
 
 def new(request):
@@ -72,14 +70,14 @@ def new(request):
     if request.method == "GET":
         return render(request,
                       "fragview/project.html",
-                      {"data_layout": get_layout()})
+                      {"proj_layout": SITE.get_project_layout()})
 
     form = ProjectForm(request.POST, request.FILES)
 
     if not form.is_valid():
         return render(request,
                       "fragview/project.html",
-                      {"form": form, "data_layout": get_layout()})
+                      {"form": form, "proj_layout": SITE.get_project_layout()})
 
     proj = form.save()
     proj.set_pending()
@@ -140,5 +138,5 @@ def project_summary(request):
             "totalapo": totalapo,
             "totaldata": totaldata,
             "fraglib": proj.library.name,
-            "experiment_date": get_project_experiment_date(proj),
+            "experiment_date": SITE.get_project_experiment_date(proj),
         })

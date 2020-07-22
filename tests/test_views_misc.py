@@ -3,7 +3,7 @@ from unittest.mock import patch
 from os import path
 from django import test
 from django.urls import reverse
-from django.conf import settings
+from fragview.sites import SITE
 from tests.utils import ViewTesterMixin
 
 
@@ -15,7 +15,7 @@ class TestLogViewer(test.TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
         self.setup_project()
-        self.log_path = path.join(settings.PROPOSALS_DIR, self.PROP1, self.SHIFT, self.LOG)
+        self.log_path = path.join(SITE.PROPOSALS_DIR, self.PROP1, self.SHIFT, self.LOG)
 
     @patch("os.path.exists")
     def test_no_log(self, exists_mock):

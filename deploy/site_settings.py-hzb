@@ -1,9 +1,2 @@
-SITE = "hzb"
-
-PROPOSALS_DIR = "/data/fragmaxrpc/user"
-
-# use authentication against local database
-AUTHENTICATION_BACKENDS = ["fragview.auth.LocalBackend"]
-
 # celery warns about memory leaks if debug is ON
 DEBUG = False
