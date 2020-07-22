@@ -28,9 +28,11 @@ class ActiveMenuCtx:
     Each group of URLs with same active menu are expressed as named regexp group.
     If URL matches some group, we add that group's name as 'active_menu' template context variable.
     """
-    URL_REGEXP = \
-        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/library_view|^/encryption|^/$)|" + \
-        r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$|^/pandda_export/$)"
+
+    URL_REGEXP = (
+        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/library_view|^/encryption|^/$)|"
+        + r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$|^/pandda_export/$)"
+    )
     # URLs 'project' submenus
 
     def __init__(self):
