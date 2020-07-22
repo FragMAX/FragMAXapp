@@ -1,4 +1,3 @@
-from pathlib import Path
 from fragview import tokens
 from fragview.projects import project_script, project_fragmax_dir
 from django.conf import settings
@@ -35,7 +34,5 @@ def upload_dir(proj, src_dir, res_dir):
     if not res_dir.startswith(project_fragmax_dir(proj)):
         # refuse to do any 'rm -rf' outside of project's fragmax directory
         raise Exception(f"{res_dir} outside of project directory")
-
-    parent_dir = Path(res_dir).parent
 
     return f"rsync -r {src_dir}/* {res_dir}\n"

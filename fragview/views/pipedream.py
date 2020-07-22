@@ -510,4 +510,3 @@ def submit(request):
             hpc.run_sbatch(script)
 
     return render(request, "fragview/jobs_submitted.html", {"command": "<br>".join(ppdCMD.split(";;"))})
-
