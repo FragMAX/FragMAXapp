@@ -38,6 +38,4 @@ def upload_dir(proj, src_dir, res_dir):
 
     parent_dir = Path(res_dir).parent
 
-    return f"rm -rf {res_dir}\n" + \
-           f"mkdir -p {parent_dir}\n" + \
-           f"cp -r {src_dir} {res_dir}\n"
+    return f"rsync -r {src_dir}/* {res_dir}\n"

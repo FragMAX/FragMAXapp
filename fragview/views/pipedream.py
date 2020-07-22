@@ -21,9 +21,11 @@ def processing_form(request):
     proj = current_project(request)
 
     datasetPathList = project_raw_master_h5_files(proj)
-    datasetPathList = natsort.natsorted(datasetPathList,
-                                        # sort by dataset names
-                                        path.basename)
+    datasetPathList = natsort.natsorted(
+        datasetPathList,
+        # sort by dataset names
+        path.basename,
+    )
 
     datasetNameList = [i.split("/")[-1].replace("_master.h5", "") for i in datasetPathList if "ref-" not in i]
     datasetList = zip(datasetPathList, datasetNameList)
@@ -57,8 +59,25 @@ def get_pipedream_results(proj, pipedream_csv):
     with open(pipedream_csv, "w") as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(
-            ["sample", "summaryFile", "fragment", "fragmentLibrary", "symmetry", "resolution", "rwork", "rfree",
-             "rhofitscore", "a", "b", "c", "alpha", "beta", "gamma", "ligsvg"])
+            [
+                "sample",
+                "summaryFile",
+                "fragment",
+                "fragmentLibrary",
+                "symmetry",
+                "resolution",
+                "rwork",
+                "rfree",
+                "rhofitscore",
+                "a",
+                "b",
+                "c",
+                "alpha",
+                "beta",
+                "gamma",
+                "ligsvg",
+            ]
+        )
 
         pipedreamXML = list()
         xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
@@ -80,16 +99,35 @@ def get_pipedream_results(proj, pipedream_csv):
                 symm = doc["GPhL-pipedream"]["refdata"]["symm"]
                 symm = f'{symm} ({sym2spg(symm).replace(" ", "")})'
                 rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"][
-                    "correlationcoefficient"]
+                    "correlationcoefficient"
+                ]
                 R = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
                 Rfree = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["Rfree"]
                 resolution = doc["GPhL-pipedream"]["inputdata"]["table1"]["shellstats"][0]["reshigh"]
-                ligsvg = \
+                ligsvg = (
                     f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{ligandID}/{ligandID}.svg"
+                )
 
-                writer.writerow([
-                    sample, summary.replace(".xml", ".out"), ligandID,
-                    proj.library, symm, resolution, R, Rfree, rhofitscore, a, b, c, alpha, beta, gamma, ligsvg])
+                writer.writerow(
+                    [
+                        sample,
+                        summary.replace(".xml", ".out"),
+                        ligandID,
+                        proj.library,
+                        symm,
+                        resolution,
+                        R,
+                        Rfree,
+                        rhofitscore,
+                        a,
+                        b,
+                        c,
+                        alpha,
+                        beta,
+                        gamma,
+                        ligsvg,
+                    ]
+                )
 
             except Exception:
                 pass
@@ -99,12 +137,49 @@ def submit(request):
 
     proj = current_project(request)
     ppdCMD = str(request.GET.get("ppdform"))
-    empty, input_data, ap_spacegroup, ap_cellparam, ap_staraniso, ap_xbeamcent, ap_ybeamcent, ap_datarange, \
-        ap_rescutoff, ap_highreslim, ap_maxrpim, ap_mincomplet, ap_cchalfcut, ap_isigicut, ap_custompar, \
-        b_userPDBfile, b_userPDBcode, b_userMTZfile, b_refinemode, b_MRthreshold, b_chainsgroup, b_bruteforcetf, \
-        b_reslimits, b_angularrf, b_sideaiderefit, b_sideaiderebuild, b_pepflip, b_custompar, rho_ligandsmiles, \
-        rho_ligandcode, rho_ligandfromname, rho_copiestosearch, rho_keepH, rho_allclusters, rho_xclusters, \
-        rho_postrefine, rho_occuprefine, rho_fittingproc, rho_scanchirals, rho_custompar, extras = ppdCMD.split(";;")
+    (
+        empty,
+        input_data,
+        ap_spacegroup,
+        ap_cellparam,
+        ap_staraniso,
+        ap_xbeamcent,
+        ap_ybeamcent,
+        ap_datarange,
+        ap_rescutoff,
+        ap_highreslim,
+        ap_maxrpim,
+        ap_mincomplet,
+        ap_cchalfcut,
+        ap_isigicut,
+        ap_custompar,
+        b_userPDBfile,
+        b_userPDBcode,
+        b_userMTZfile,
+        b_refinemode,
+        b_MRthreshold,
+        b_chainsgroup,
+        b_bruteforcetf,
+        b_reslimits,
+        b_angularrf,
+        b_sideaiderefit,
+        b_sideaiderebuild,
+        b_pepflip,
+        b_custompar,
+        rho_ligandsmiles,
+        rho_ligandcode,
+        rho_ligandfromname,
+        rho_copiestosearch,
+        rho_keepH,
+        rho_allclusters,
+        rho_xclusters,
+        rho_postrefine,
+        rho_occuprefine,
+        rho_fittingproc,
+        rho_scanchirals,
+        rho_custompar,
+        extras,
+    ) = ppdCMD.split(";;")
 
     nodes = 10
     PDBmodel = b_userPDBfile.replace("b_userPDBfile:", "").replace(".pdb", "")
@@ -160,9 +235,11 @@ def submit(request):
                 lib = proj.library
                 smiles = lib.get_fragment(ligand).smiles
                 cif_out = f"{ppdprocessdir}/{ligand}"
-                cif_cmd = f"mkdir -p {ppdprocessdir}\n" \
-                          f"rm {cif_out}.cif {cif_out}.pdb\n" \
-                          f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
+                cif_cmd = (
+                    f"mkdir -p {ppdprocessdir}\n"
+                    f"rm {cif_out}.cif {cif_out}.pdb\n"
+                    f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
+                )
 
                 rhofitINPUT = f" -rhofit {cif_out}.cif"
             else:
@@ -227,23 +304,40 @@ def submit(request):
             singlePipedreamOut += """#SBATCH -p fujitsu\n"""
             singlePipedreamOut += """#SBATCH --cpus-per-task=64\n"""
             singlePipedreamOut += """#SBATCH --mem=310G\n"""
-            singlePipedreamOut += \
+            singlePipedreamOut += (
                 """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_out.txt\n"""
-            singlePipedreamOut += \
+            )
+            singlePipedreamOut += (
                 """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_err.txt\n"""
+            )
             singlePipedreamOut += """module purge\n"""
-            singlePipedreamOut += """module load autoPROC BUSTER/20190607-3-PReSTO\n\n"""
+            singlePipedreamOut += """module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n\n"""
             _data_path = [x for x in project_raw_master_h5_files(proj) if _data in x][0]
             chdir = f"mkdir -p {path.dirname(ppdoutdir)}; cd {path.dirname(ppdoutdir)}\n\n"
-            ppd = \
-                "pipedream -h5 " + _data_path + " -d " + ppdoutdir + " -xyzin " + \
-                userPDBpath + rhofitINPUT + useANISO + refineMode + pdbREDO + keepH + clusterSearch + \
-                fitrefineMode + postrefineMode + scanChirals + occRef + " -nofreeref -nthreads -1 -v"
+            ppd = (
+                "pipedream -h5 "
+                + _data_path
+                + " -d "
+                + ppdoutdir
+                + " -xyzin "
+                + userPDBpath
+                + rhofitINPUT
+                + useANISO
+                + refineMode
+                + pdbREDO
+                + keepH
+                + clusterSearch
+                + fitrefineMode
+                + postrefineMode
+                + scanChirals
+                + occRef
+                + " -nofreeref -nthreads -1 -v"
+            )
 
             singlePipedreamOut += chdir + "\n"
             singlePipedreamOut += cif_cmd + "\n"
             singlePipedreamOut += "module purge\n"
-            singlePipedreamOut += f"module load {softwares}\n\n"
+            singlePipedreamOut += f"module load gopresto {softwares}\n\n"
             singlePipedreamOut += ppd + "\n"
             singlePipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
             singlePipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
@@ -260,8 +354,9 @@ def submit(request):
     if "ALL" in input_data:
         ppddatasetList = list(project_raw_master_h5_files(proj))
         ppddatasetList_s = [path.basename(x).replace("_master.h5", "") for x in ppddatasetList]
-        ppdoutdirList = [path.join(proj.data_path(), "fragmax", "results", _data, "pipedream")
-                         for _data in ppddatasetList_s]
+        ppdoutdirList = [
+            path.join(proj.data_path(), "fragmax", "results", _data, "pipedream") for _data in ppddatasetList_s
+        ]
 
         userPDBpath = project_model_path(proj, f"{PDBmodel}.pdb")
 
@@ -349,7 +444,7 @@ def submit(request):
         header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
         header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""
         header += """module purge\n"""
-        header += """module load autoPROC BUSTER/20190607-3-PReSTO\n\n"""
+        header += """module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n\n"""
         scriptList = list()
         softwares = "autoPROC BUSTER"
         for ppddata, ppdout in zip(ppddatasetList, ppdoutdirList):
@@ -365,27 +460,41 @@ def submit(request):
                 lib = proj.library
                 smiles = lib.get_fragment(ligand).smiles
                 cif_out = f"{ppdprocessdir}/{ligand}"
-                cif_cmd = f"mkdir -p {ppdprocessdir}\n" \
-                          f"rm {cif_out}.cif {cif_out}.pdb\n" \
-                          f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul"
+                cif_cmd = (
+                    f"mkdir -p {ppdprocessdir}\n"
+                    f"rm {cif_out}.cif {cif_out}.pdb\n"
+                    f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul"
+                )
 
-                rhofitINPUT = f" -rhofit {cif_out}.cif {keepH} {clusterSearch} " \
-                              f"{fitrefineMode} {postrefineMode} {scanChirals} {occRef}"
+                rhofitINPUT = (
+                    f" -rhofit {cif_out}.cif {keepH} {clusterSearch} "
+                    f"{fitrefineMode} {postrefineMode} {scanChirals} {occRef}"
+                )
 
             else:
                 rhofitINPUT = ""
                 cif_cmd = ""
-            ppd = \
-                "pipedream -h5 " + ppddata + " -d " + ppdout + " -xyzin " + userPDBpath + rhofitINPUT + useANISO + \
-                refineMode + pdbREDO + " -nofreeref -nthreads -1 -v"
+            ppd = (
+                "pipedream -h5 "
+                + ppddata
+                + " -d "
+                + ppdout
+                + " -xyzin "
+                + userPDBpath
+                + rhofitINPUT
+                + useANISO
+                + refineMode
+                + pdbREDO
+                + " -nofreeref -nthreads -1 -v"
+            )
 
             allPipedreamOut = f"{chdir}"
             allPipedreamOut += "module purge\n"
-            allPipedreamOut += "module load autoPROC BUSTER/20190607-3-PReSTO\n"
+            allPipedreamOut += "module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n"
             allPipedreamOut += f"{cif_cmd}\n"
             allPipedreamOut += f"{rmdir}\n"
             allPipedreamOut += "module purge\n"
-            allPipedreamOut += f"module load {softwares}\n"
+            allPipedreamOut += f"module load gopresto {softwares}\n"
             allPipedreamOut += ppd + "\n"
             allPipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
             allPipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
@@ -400,7 +509,5 @@ def submit(request):
 
             hpc.run_sbatch(script)
 
-    return render(
-        request,
-        "fragview/jobs_submitted.html",
-        {"command": "<br>".join(ppdCMD.split(";;"))})
+    return render(request, "fragview/jobs_submitted.html", {"command": "<br>".join(ppdCMD.split(";;"))})
+

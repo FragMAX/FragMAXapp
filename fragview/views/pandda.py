@@ -932,7 +932,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.out\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.err\n\n"""
     header += """module purge\n"""
-    header += """module load CCP4 Phenix\n"""
+    header += """module load gopresto CCP4 Phenix\n"""
 
     panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
@@ -950,7 +950,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_err.txt\n\n"""
     header += """module purge\n"""
-    header += """module load CCP4 Phenix\n"""
+    header += """module load gopresto CCP4 Phenix\n"""
 
     _dirs = glob(f"{export_dir}/*")
 
@@ -1009,7 +1009,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\nn"""
     header += """module purge\n"""
-    header += """module load CCP4 Phenix\n\n"""
+    header += """module load gopresto CCP4 Phenix\n\n"""
 
     scores_dir = os.path.join(res_dir, "pandda-scores")
     scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
@@ -1125,7 +1125,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
 module purge
-module load Phenix CCP4 BUSTER/20190607-3-PReSTO
+module load gopresto Phenix CCP4 BUSTER/20190607-3-PReSTO
 
 {crypt_shell.crypt_cmd(proj)}
 
@@ -1137,7 +1137,7 @@ cd $WORK_DIR
 {crypt_shell.fetch_file(proj, mtz, "final.mtz")}
 
 module purge
-module load CCP4 Phenix
+module load gopresto CCP4 Phenix
 
 echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
     cad hklin1 final.mtz hklout final.mtz
