@@ -726,6 +726,8 @@ def submit(request):
             shutil.rmtree(res_dir)
 
         methodshort = proc[:2] + ref[:2]
+        if methodshort == "bebe":
+            methodshort = "best"
         _write_main_script(proj, method, methodshort, options)
 
         t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
@@ -743,8 +745,10 @@ def _write_main_script(proj, method, methodshort, options):
     data_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
 
     pandda_script = project_script(proj, PANDDA_WORKER)
+    pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
 
-    body = f"""#!/bin/bash
+    if proj.encrypted:
+        body = f"""#!/bin/bash
 #!/bin/bash
 #SBATCH -t 99:00:00
 #SBATCH -J PDD{methodshort}
@@ -768,6 +772,24 @@ python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 
 {crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
 rm -rf "$WORK_DIR"
+"""
+    else:
+        body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 99:00:00
+#SBATCH -J PDD{methodshort}
+#SBATCH --exclusive
+#SBATCH -N1
+#SBATCH -p fujitsu
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=310G
+#SBATCH -o {log_prefix}out.txt
+#SBATCH -e {log_prefix}err.txt
+
+cd {pandda_method_dir}
+module purge
+module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
 """
     utils.write_script(script, body)
 
