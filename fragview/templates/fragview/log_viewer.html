@@ -1,22 +1,71 @@
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - Log Viewer{% endblock %}
 {% block content %}
 
 {% load static %}
+
 <style>
-.log{
-  font-family:"Lucida Console", Monaco, monospace;
-}
-</style>    
-{% if not downloadPath == "None" %}
+  .log {
+    font-family: "Dejavu Sans", monospace;
+  }
+
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+
+  th {
+    text-align: center;
+    height: 50px;
+
+  }
+
+  td,
+  th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+
+  td {
+    height: 100px;
+
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n) {
+    text-align: center;
+  }
+
+  th {
+    cursor: pointer;
+  }
+
+  .container {
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+  }
+</style>
+{% if not downloadPath == "" %}
 Log file - <a href="{{downloadPath}}"> {{dataset}} </a>
 {% endif %}
 <div class="log">
-{{log|linebreaks}}
+
+  {% if filetype == "json" %}
+
+  <div class="card">
+    <div class="card-content">
+      {{log|safe}}
+    </div>
+  </div>
+  {% else %}
+  {{log|linebreaks}}
+  {% endif %}
 </div>
 {% endblock %}
-
-
-    

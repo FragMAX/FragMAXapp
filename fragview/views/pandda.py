@@ -628,7 +628,7 @@ def analyse(request):
         if os.path.exists(newestpath + "/html_summaries/pandda_analyse.html"):
             with open(newestpath + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
                 pandda_html = inp.readlines()
-                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+                localcmd = panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
@@ -655,7 +655,12 @@ def analyse(request):
             return render(
                 request,
                 "fragview/pandda_analyse.html",
-                {"opencmd": localcmd, "proc_methods": proc_methods, "Report": pandda_html},
+                {
+                    "opencmd": localcmd,
+                    "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
+                    "proc_methods": proc_methods,
+                    "Report": pandda_html,
+                },
             )
         elif os.path.exists(newestpath + "/html_summaries/pandda_initial.html"):
             with open(newestpath + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
@@ -667,6 +672,7 @@ def analyse(request):
                     "fragview/pandda_analyse.html",
                     {
                         "opencmd": localcmd,
+                        "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
                         "proc_methods": proc_methods,
                         "Report": a.replace(
                             "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
@@ -686,7 +692,7 @@ def analyse(request):
                 encoding="utf-8",
             ) as inp:
                 pandda_html = inp.readlines()
-                localcmd = "cd " + panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+                localcmd = panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
 
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
@@ -707,7 +713,12 @@ def analyse(request):
             return render(
                 request,
                 "fragview/pandda_analyse.html",
-                {"opencmd": localcmd, "proc_methods": proc_methods, "Report": pandda_html},
+                {
+                    "opencmd": localcmd,
+                    "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
+                    "proc_methods": proc_methods,
+                    "Report": pandda_html,
+                },
             )
         else:
             running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
@@ -736,7 +747,7 @@ def fix_pandda_symlinks(proj):
     )
 
     subprocess.call(
-        "cd " + proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""", shell=True
+        proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""", shell=True
     )
 
     glob_pattern = (
