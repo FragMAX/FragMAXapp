@@ -174,7 +174,7 @@
     </style>
 </head>
 
-<body>
+<body onresize="resizeView()">
     {% block sidenav %}
     <dmc-sidenav>
         <ul id="slide-out" class="sidenav sidenav_local sidenav-fixed ps ps--theme_default menu"
@@ -359,3 +359,17 @@
 </body>
 
 </html>
+<script>
+    function resizeView() {
+        if (window.devicePixelRatio != 1) {
+            document.body.style.zoom = "75%"
+        }
+        else if (window.devicePixelRatio == 1) {
+            document.body.style.zoom = "100%"
+        }
+        else {
+            document.body.style.zoom = "100%"
+        }
+    }
+    resizeView();
+</script>
