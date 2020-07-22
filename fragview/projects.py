@@ -115,21 +115,23 @@ def project_update_results_script(project):
 
 
 def project_update_status_script_cmds(project, sample, softwares):
-    return \
-        "module purge\n" + \
-        "module load GCCcore/8.3.0 Python/3.7.4\n" + \
-        f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n" + \
-        "module purge\n" + \
-        f"module load {softwares}\n"
+    return (
+        "module purge\n"
+        + "module load gopresto GCCcore/8.3.0 Python/3.7.4\n"
+        + f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
+        + "module purge\n"
+        + f"module load gopresto {softwares}\n"
+    )
 
 
 def project_update_results_script_cmds(project, sample, softwares):
-    return \
-        "module purge\n" + \
-        "module load GCCcore/8.3.0 Python/3.7.4\n" + \
-        f"python3 {project_update_results_script(project)} {sample} {project.proposal}/{project.shift}\n" + \
-        "module purge\n" + \
-        f"module load {softwares}\n"
+    return (
+        "module purge\n"
+        + "module load gopresto GCCcore/8.3.0 Python/3.7.4\n"
+        + f"python3 {project_update_results_script(project)} {sample} {project.proposal}/{project.shift}\n"
+        + "module purge\n"
+        + f"module load gopresto {softwares}\n"
+    )
 
 
 def shifts_raw_master_h5_files(project, shifts):
@@ -154,7 +156,7 @@ def project_datasets(project):
         file_name = path.basename(master_file)
         # chopping of the '_master.h5' from the file name
         # gives us the data set name in the format we are using
-        yield file_name[:-len("_master.h5")]
+        yield file_name[: -len("_master.h5")]
 
 
 def shifts_xml_files(project, shifts):
@@ -167,8 +169,9 @@ def shifts_xml_files(project, shifts):
     shift_dirs = [shift_dir(project.proposal, s) for s in shifts]
     for sdir in shift_dirs:
         for file in glob.glob(
-                f"{sdir}**/process/{project.protein}/**/**/fastdp/cn**/"
-                f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"):
+            f"{sdir}**/process/{project.protein}/**/**/fastdp/cn**/"
+            f"ISPyBRetrieveDataCollectionv1_4/ISPyBRetrieveDataCollectionv1_4_dataOutput.xml"
+        ):
             yield file
 
 

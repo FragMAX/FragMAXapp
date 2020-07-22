@@ -29,7 +29,7 @@ def datasets(request):
         "customxds": form.custom_xds,
         "customautoproc": form.custom_autoproc,
         "customdials": form.custom_dials,
-        "customxdsapp": form.custom_xdsapp
+        "customxdsapp": form.custom_xdsapp,
     }
 
     if form.use_xdsapp:
@@ -53,9 +53,8 @@ def datasets(request):
         t.start()
 
     return render(
-        request,
-        "fragview/dataproc_datasets.html",
-        {"allproc": "Jobs submitted using " + str(nodes) + " per method"})
+        request, "fragview/dataproc_datasets.html", {"allproc": "Jobs submitted using " + str(nodes) + " per method"}
+    )
 
 
 def run_xdsapp(proj, nodes, filters, options):
@@ -116,10 +115,13 @@ def run_xdsapp(proj, nodes, filters, options):
         filters = ""
 
     if filters == "NEW":
-        processedDatasets = [x.split("/")[-1] for x in
-                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
-        allDatasets = [x.split("/")[-2] for x in
-                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        processedDatasets = [
+            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
+        ]
+        allDatasets = [
+            x.split("/")[-2]
+            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
+        ]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -134,7 +136,7 @@ def run_xdsapp(proj, nodes, filters, options):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xdsapp_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += f"""module load {softwares}\n\n"""
+    header += f"""module load gopresto {softwares}\n\n"""
     scriptList = list()
 
     # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
@@ -144,8 +146,14 @@ def run_xdsapp(proj, nodes, filters, options):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
-                           dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
+        outdir = path.join(
+            proj.data_path(),
+            "fragmax",
+            "process",
+            proj.protein,
+            dtc["imagePrefix"],
+            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
+        )
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         sample = outdir.split("/")[-1]
@@ -161,12 +169,12 @@ def run_xdsapp(proj, nodes, filters, options):
             friedel = "--fried=True"
         else:
             friedel = "--fried=False"
-        script = \
-            f"mkdir -p {outdir}/xdsapp\n" \
-            f"cd {outdir}/xdsapp\n" \
-            f"xdsapp --cmd --dir={outdir}/xdsapp -j 1 -c 64 -i {h5master} {spg} {customxdsapp} --delphi=10 " \
-            f"{friedel} --range=1\\ {nImg}\n" + \
-            project_update_status_script_cmds(proj, sample, softwares)
+        script = (
+            f"mkdir -p {outdir}/xdsapp\n"
+            f"cd {outdir}/xdsapp\n"
+            f"xdsapp --cmd --dir={outdir}/xdsapp -j 1 -c 64 -i {h5master} {spg} {customxdsapp} --delphi=10 "
+            f"{friedel} --range=1\\ {nImg}\n" + project_update_status_script_cmds(proj, sample, softwares)
+        )
 
         scriptList.append(script)
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -193,10 +201,13 @@ def run_autoproc(proj, nodes, filters, options):
     if filters == "ALL":
         filters = ""
     if filters == "NEW":
-        processedDatasets = [x.split("/")[-1] for x in
-                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
-        allDatasets = [x.split("/")[-2] for x in
-                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        processedDatasets = [
+            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
+        ]
+        allDatasets = [
+            x.split("/")[-2]
+            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
+        ]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -211,7 +222,7 @@ def run_autoproc(proj, nodes, filters, options):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_autoproc_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += f"""module load {softwares}\n\n"""
+    header += f"""module load gopresto {softwares}\n\n"""
 
     scriptList = list()
 
@@ -222,8 +233,14 @@ def run_autoproc(proj, nodes, filters, options):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
-                           dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
+        outdir = path.join(
+            proj.data_path(),
+            "fragmax",
+            "process",
+            proj.protein,
+            dtc["imagePrefix"],
+            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
+        )
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -245,17 +262,19 @@ def run_autoproc(proj, nodes, filters, options):
             friedel = "-ANO"
         else:
             friedel = "-noANO"
-        script = \
-            f"rm -rf {outdir}/autoproc\n" \
-            f"mkdir -p {outdir}/\n" \
-            f'''cd {outdir}\n''' + \
-            f'''process -h5 {h5master} {friedel} {spg} {unit_cell} ''' + \
-            f'''autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" ''' + \
-            f'''autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so ''' + \
-            f'''autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=1 ''' + \
-            f'''autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ ''' + \
-            f'''{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} ''' + \
-            f'''-d {outdir}/autoproc\n''' + project_update_status_script_cmds(proj, sample, softwares)
+        script = (
+            f"rm -rf {outdir}/autoproc\n"
+            f"mkdir -p {outdir}/\n"
+            f"""cd {outdir}\n"""
+            + f"""process -h5 {h5master} {friedel} {spg} {unit_cell} """
+            + f"""autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" """
+            + f"""autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so """
+            + f"""autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=1 """
+            + f"""autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ """
+            + f"""{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} """
+            + f"""-d {outdir}/autoproc\n"""
+            + project_update_status_script_cmds(proj, sample, softwares)
+        )
 
         scriptList.append(script)
 
@@ -306,10 +325,13 @@ def run_xdsxscale(proj, nodes, filters, options):
     if filters == "ALL":
         filters = ""
     if filters == "NEW":
-        processedDatasets = [x.split("/")[-1] for x in
-                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
-        allDatasets = [x.split("/")[-2] for x in
-                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        processedDatasets = [
+            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
+        ]
+        allDatasets = [
+            x.split("/")[-2]
+            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
+        ]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -325,7 +347,7 @@ def run_xdsxscale(proj, nodes, filters, options):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2XDS_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += f"""module load {softwares}\n\n"""
+    header += f"""module load gopresto {softwares}\n\n"""
 
     scriptList = list()
 
@@ -336,8 +358,14 @@ def run_xdsxscale(proj, nodes, filters, options):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
-                           dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
+        outdir = path.join(
+            proj.data_path(),
+            "fragmax",
+            "process",
+            proj.protein,
+            dtc["imagePrefix"],
+            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
+        )
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -359,13 +387,14 @@ def run_xdsxscale(proj, nodes, filters, options):
             friedel = "-atom X"
         else:
             friedel = ""
-        script = \
-            f"mkdir -p {outdir}/xdsxscale\n" \
-            f"cd {outdir}/xdsxscale \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} " \
-            f"nproc=64 {friedel} image={h5master}:1:{nImg}" \
-            f" multiprocessing.mode=serial multiprocessing.njob=1 \n" + \
-            project_update_status_script_cmds(proj, sample, softwares)
+        script = (
+            f"mkdir -p {outdir}/xdsxscale\n"
+            f"cd {outdir}/xdsxscale \n"
+            f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} "
+            f"nproc=64 {friedel} image={h5master}:1:{nImg}"
+            f" multiprocessing.mode=serial multiprocessing.njob=1 \n"
+            + project_update_status_script_cmds(proj, sample, softwares)
+        )
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
@@ -415,10 +444,13 @@ def run_dials(proj, nodes, filters, options):
     if filters == "ALL":
         filters = ""
     if filters == "NEW":
-        processedDatasets = [x.split("/")[-1] for x in
-                             sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))]
-        allDatasets = [x.split("/")[-2] for x in
-                       sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))]
+        processedDatasets = [
+            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
+        ]
+        allDatasets = [
+            x.split("/")[-2]
+            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
+        ]
         filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -435,7 +467,7 @@ def run_dials(proj, nodes, filters, options):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/multi_xia2DIALS_""" + epoch + """_%j_err.txt\n"""
     header += """module purge\n\n"""
-    header += f"""module load {softwares}\n\n"""
+    header += f"""module load gopresto {softwares}\n\n"""
 
     scriptList = list()
 
@@ -446,8 +478,14 @@ def run_dials(proj, nodes, filters, options):
         with open(xml) as fd:
             doc = xmltodict.parse(fd.read())
         dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(proj.data_path(), "fragmax", "process", proj.protein, dtc["imagePrefix"],
-                           dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"])
+        outdir = path.join(
+            proj.data_path(),
+            "fragmax",
+            "process",
+            proj.protein,
+            dtc["imagePrefix"],
+            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
+        )
         h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
         nImg = dtc["numberOfImages"]
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -469,13 +507,14 @@ def run_dials(proj, nodes, filters, options):
             friedel = "-atom X"
         else:
             friedel = ""
-        script = \
-            f"mkdir -p {outdir}/dials\n" \
-            f"cd {outdir}/dials \n" \
-            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} " \
-            f"nproc=64 {friedel} image={h5master}:1:{nImg}" \
-            f" multiprocessing.mode=serial multiprocessing.njob=1\n" + \
-            project_update_status_script_cmds(proj, sample, softwares)
+        script = (
+            f"mkdir -p {outdir}/dials\n"
+            f"cd {outdir}/dials \n"
+            f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} "
+            f"nproc=64 {friedel} image={h5master}:1:{nImg}"
+            f" multiprocessing.mode=serial multiprocessing.njob=1\n"
+            + project_update_status_script_cmds(proj, sample, softwares)
+        )
         scriptList.append(script)
 
     chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
