@@ -1,6 +1,7 @@
 import sys
 import subprocess
 from django.conf import settings
+from fragview.sites import SITE
 
 
 def _hpc_user(logged_in_user):
@@ -67,14 +68,4 @@ def jobs_list(logged_in_user):
 
 
 def run_sbatch(sbatch_script, sbatch_options=None):
-    cmd = "sbatch"
-
-    # add options to sbatch command, if specified
-    if sbatch_options is not None:
-        cmd += f" {sbatch_options}"
-
-    # add script for sbatch to run
-    cmd += f" {sbatch_script}"
-
-    # TODO: check exit code and bubble up error on exit code != 0
-    _ssh_on_frontend(cmd)
+    SITE.get_hpc_runner().run_sbatch(sbatch_script, sbatch_options)

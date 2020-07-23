@@ -21,6 +21,9 @@ class SitePlugin:
     def get_beamline_info(self):
         raise NotImplementedError()
 
+    def get_hpc_runner(self):
+        raise NotImplementedError()
+
     def get_group_name(self, project):
         """
         get the name of the filesystem group, which
@@ -84,3 +87,8 @@ class BeamlineInfo:
     monochrom_type = None
     beam_divergence = None
     polarisation = None
+
+
+class HPC:
+    def run_sbatch(self, sbatch_script, sbatch_options=None):
+        raise NotImplementedError()

@@ -1,6 +1,7 @@
 import re
 from glob import glob
 from os import path, walk
+import subprocess
 from datetime import datetime
 from fragview.sites import plugin
 from fragview.fileio import makedirs
@@ -138,6 +139,9 @@ class SitePlugin(plugin.SitePlugin):
     def get_beamline_info(self):
         return BeamlineInfo()
 
+    def get_hpc_runner(self):
+        return HPC()
+
     def get_group_name(self, project):
         return "fragadm"
 
@@ -152,3 +156,15 @@ class SitePlugin(plugin.SitePlugin):
         for dataset in self.get_project_datasets(project):
             dataset_dir, _ = dataset.rsplit("_", 2)
             makedirs(path.join(root_dir, dataset_dir, dataset))
+
+
+class HPC(plugin.HPC):
+    def run_sbatch(self, sbatch_script, sbatch_options=None):
+        if sbatch_options is not None:
+            # not sure how this should be handled, TODO investigate
+            raise NotImplementedError("sbatch options support")
+
+        cmd = f"sh {sbatch_script}"
+
+        print(f"running on HKL8 '{cmd}'")
+        subprocess.Popen(cmd, shell=True)

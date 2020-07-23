@@ -1,6 +1,8 @@
 import re
 from os import path
+import subprocess
 from datetime import datetime
+from django.conf import settings
 from fragview.sites import plugin
 
 
@@ -100,6 +102,9 @@ class SitePlugin(plugin.SitePlugin):
     def get_beamline_info(self):
         return BeamlineInfo()
 
+    def get_hpc_runner(self):
+        return HPC()
+
     def get_group_name(self, project):
         return f"{project.proposal}-group"
 
@@ -109,3 +114,31 @@ class SitePlugin(plugin.SitePlugin):
     def prepare_project_folders(self, project, shifts):
         from fragview.autoproc import import_autoproc
         import_autoproc(project, shifts)
+
+
+def _ssh_on_frontend(command):
+    """
+    return a tuple of (stdout, stderr, exit_code)
+    """
+    print(f"running on HPC '{command}'")
+    with subprocess.Popen(["ssh", settings.HPC_FRONT_END],
+                          stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE) as proc:
+
+        stdout, stderr = proc.communicate(command.encode("utf-8"))
+        return stdout, stderr, proc.returncode
+
+
+class HPC(plugin.HPC):
+    def run_sbatch(self, sbatch_script, sbatch_options=None):
+        cmd = "sbatch"
+
+        # add options to sbatch command, if specified
+        if sbatch_options is not None:
+            cmd += f" {sbatch_options}"
+
+        # add script for sbatch to run
+        cmd += f" {sbatch_script}"
+
+        # TODO: check exit code and bubble up error on exit code != 0
+        _ssh_on_frontend(cmd)
