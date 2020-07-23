@@ -69,6 +69,13 @@ class DiffractionImageMaker(plugin.DiffractionImageMaker):
         return ["/soft/pxsoft/64/adxv/adxv", "-sa", source_file, dest_pic_file]
 
 
+class BeamlineInfo(plugin.BeamlineInfo):
+    name = "BESSY-II 14.x"
+    detector_type = "Hybrid Photon Counting"
+    detector_model = "PILATUS3 2M"
+    detector_pixel_size = "0.172 mm x 0.172 mm"
+
+
 def _get_datasets(project):
     """
     list the data sets by looking at existing *.cbf files in
@@ -103,6 +110,7 @@ def _get_datasets(project):
 
 
 class SitePlugin(plugin.SitePlugin):
+    NAME = "Helmholtz-Zentrum Berlin"
     LOGO = "hzb.png"
 
     FEATURES_DISABLED = [
@@ -126,6 +134,9 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_diffraction_img_maker(self):
         return DiffractionImageMaker()
+
+    def get_beamline_info(self):
+        return BeamlineInfo()
 
     def get_group_name(self, project):
         return "fragadm"

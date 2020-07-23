@@ -628,36 +628,42 @@
                         <tbody>
                             <tr>
                                 <td style="font-weight: bold;">Synchrotron</td>
-                                <td>{{BL_site}}</td>
+                                <td>{{site.NAME}}</td>
                             </tr>
+                            {% if xsdata.synchrotronMode %}
                             <tr>
                                 <td style="font-weight: bold;">Filling mode</td>
                                 <td>{{xsdata.synchrotronMode}}</td>
                             </tr>
+                            {% endif %}
                             <tr>
                                 <td style="font-weight: bold;">Beamline</td>
-                                <td>{{BL_name}}</td>
+                                <td>{{beamline.name}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Detector type</td>
-                                <td>{{BL_detector_type}}</td>
+                                <td>{{beamline.detector_type}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Detector model</td>
-                                <td>{{BL_detector}}</td>
+                                <td>{{beamline.detector_model}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Detector pixel size (HxV)</td>
-                                <td>{{BL_detector_pixel_size}}</td>
+                                <td>{{beamline.detector_pixel_size}}</td>
                             </tr>
+                            {% if beamline.focusing_optics %}
                             <tr>
                                 <td style="font-weight: bold;">Focusing optics</td>
-                                <td>{{BL_focusing_optics}}</td>
+                                <td>{{beamline.focusing_optics}}</td>
                             </tr>
+                            {% endif %}
+                            {% if beamline.monochrom_type %}
                             <tr>
                                 <td style="font-weight: bold;">Monochromator type</td>
-                                <td>{{BL_monochrom_type}}</td>
+                                <td>{{beamline.monochrom_type}}</td>
                             </tr>
+                            {% endif %}
                             <tr>
                                 <td style="font-weight: bold;">Beam shape</td>
                                 <td>{{xsdata.beamShape}}</td>
@@ -682,14 +688,18 @@
                                 <td style="font-weight: bold;">Beam size at sample (HxV)</td>
                                 <td>{{xsdata.beamSizeSampleX}} μm x {{xsdata.beamSizeSampleY}} μm</td>
                             </tr>
+                            {% if beamline.beam_divergence %}
                             <tr>
                                 <td style="font-weight: bold;">Beam divergence (HxV)</td>
-                                <td>{{BL_beam_divergence}}</td>
+                                <td>{{beamline.beam_divergence}}</td>
                             </tr>
+                            {% endif %}
+                            {% if beamline.polarisation %}
                             <tr>
                                 <td style="font-weight: bold;">Polarisation</td>
-                                <td>{{BL_polarisation}}</td>
+                                <td>{{beamline.polarisation}}</td>
                             </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                     <br>

@@ -50,6 +50,17 @@ class DiffractionImageMaker(plugin.DiffractionImageMaker):
         return ["adxv", "-sa", "-slabs", "10", "-weak_data", source_file, dest_pic_file]
 
 
+class BeamlineInfo(plugin.BeamlineInfo):
+    name = "BioMAX"
+    detector_name = "EIGER 16M"
+    detector_type = "Hybrid pixel direct counting device"
+    detector_pixel_size = "0.075 mm x 0.075 mm"
+    focusing_optics = "KB Mirrors"
+    monochrom_type = "Si(111)"
+    beam_divergence = "6 μrad x 104 μrad"
+    polarisation = "0.99˚"
+
+
 def _copy_xmls_from_raw(project):
     from worker.xsdata import copy_collection_metadata_files
     from fragview.projects import project_xml_files
@@ -61,6 +72,7 @@ def _copy_xmls_from_raw(project):
 
 
 class SitePlugin(plugin.SitePlugin):
+    NAME = "MAX IV Laboratory"
     LOGO = "maxiv.png"
     DISABLED_FEATURES = ["soaking_plan"]
     ACCOUNT_STYLE = "DUO"
@@ -84,6 +96,9 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_diffraction_img_maker(self):
         return DiffractionImageMaker()
+
+    def get_beamline_info(self):
+        return BeamlineInfo()
 
     def get_group_name(self, project):
         return f"{project.proposal}-group"

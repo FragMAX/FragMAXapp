@@ -12,7 +12,7 @@ from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview.views.misc import perc2float
 from fragview.status import run_update_status
-from fragview import versions
+from fragview.sites import SITE
 
 
 def set_details(request):
@@ -189,17 +189,7 @@ def set_details(request):
     for n, line in enumerate(lines):
         if len(line) == 23:
             lines[n].append("")
-    # beamline parameters
-    BL_site = f"{versions.BL_site}"
-    BL_name = f"{versions.BL_name}"
-    BL_detector = f"{versions.BL_detector}"
-    BL_detector_type = f"{versions.BL_detector_type}"
-    BL_detector_pixel_size = f"{versions.BL_detector_pixel_size}"
-    BL_focusing_optics = f"{versions.BL_focusing_optics}"
-    BL_monochrom_type = f"{versions.BL_monochrom_type}"
-    BL_beam_shape = f"{versions.BL_beam_shape}"
-    BL_beam_divergence = f"{versions.BL_beam_divergence}"
-    BL_polarisation = f"{versions.BL_polarisation}"
+
     return render(request, "fragview/dataset_info.html", {
         "csvfile": lines,
         "shift": curp.split("/")[-1],
@@ -234,16 +224,8 @@ def set_details(request):
         "xdsappLogs": xdsappLogs,
         "xdsLogs": xdsLogs,
         "dialsLogs": dialsLogs,
-        "BL_site": BL_site,
-        "BL_name": BL_name,
-        "BL_detector": BL_detector,
-        "BL_detector_type": BL_detector_type,
-        "BL_detector_pixel_size": BL_detector_pixel_size,
-        "BL_focusing_optics": BL_focusing_optics,
-        "BL_monochrom_type": BL_monochrom_type,
-        "BL_beam_shape": BL_beam_shape,
-        "BL_beam_divergence": BL_beam_divergence,
-        "BL_polarisation": BL_polarisation,
+        "site": SITE,
+        "beamline": SITE.get_beamline_info(),
         "spg_list": spg_list,
         "unique_rflns_list": unique_rflns_list,
         "total_observations_list": total_observations_list,

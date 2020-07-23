@@ -1,4 +1,5 @@
 class SitePlugin:
+    NAME = None
     LOGO = None
     DISABLED_FEATURES = []
     ACCOUNT_STYLE = None
@@ -15,6 +16,9 @@ class SitePlugin:
         raise NotImplementedError()
 
     def get_diffraction_img_maker(self):
+        raise NotImplementedError()
+
+    def get_beamline_info(self):
         raise NotImplementedError()
 
     def get_group_name(self, project):
@@ -68,3 +72,15 @@ class DiffractionImageMaker:
         return command to create diffraction picture from the source file
         """
         raise NotImplementedError()
+
+
+class BeamlineInfo:
+    # beamline's name
+    name = None
+    detector_type = None
+    detector_model = None
+    detector_pixel_size = None
+    focusing_optics = None
+    monochrom_type = None
+    beam_divergence = None
+    polarisation = None
