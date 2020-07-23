@@ -28,7 +28,7 @@ class TestLogViewer(test.TestCase, ViewTesterMixin):
         ctx = resp.context
         self.assertEqual(self.log_path, ctx["dataset"])
         self.assertEqual("", ctx["log"])
-        # self.assertEqual(path.join("/static/biomax", self.PROP1, self.SHIFT, self.LOG), ctx["downloadPath"])
+        self.assertEqual("", ctx["downloadPath"])
 
     @patch("os.path.exists")
     @patch("builtins.open")
@@ -44,4 +44,4 @@ class TestLogViewer(test.TestCase, ViewTesterMixin):
         ctx = resp.context
         self.assertEqual(self.log_path, ctx["dataset"])
         self.assertEqual(self.LOG_DATA, ctx["log"])
-        # self.assertEqual(path.join("/static/biomax", self.PROP1, self.SHIFT, self.LOG), ctx["downloadPath"])
+        self.assertEqual(path.join("/static/biomax", self.PROP1, self.SHIFT, self.LOG), ctx["downloadPath"])
