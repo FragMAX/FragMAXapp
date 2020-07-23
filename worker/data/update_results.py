@@ -72,7 +72,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         resultsFile.insert(0, header)
 
     for log in xdsappLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for line in logfile:
@@ -81,7 +81,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
                 isaDict["xdsapp"] = isa
 
     for log in autoprocLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -90,7 +90,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["autoproc"] = isa
 
     for log in ppdprocLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -99,7 +99,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["pipedream"] = isa
 
     for log in dialsLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -108,7 +108,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["dials"] = isa
 
     for log in xdsxscaleLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -118,7 +118,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["xdsxscale"] = isa
 
     for log in fastdpLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -127,7 +127,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["fastdp"] = isa
 
     for log in EDNALogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):

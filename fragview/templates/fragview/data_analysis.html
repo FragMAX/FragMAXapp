@@ -1250,6 +1250,13 @@
                                         <div class="col s12 required inline" id="processing_method">
                                             <div class="radio" id="dataproc_type">
                                                 <label>
+                                                    <input checked="checked" class="with-gap" id="bestdp_radio"
+                                                        name="proc_type" type="radio" value="bestdp">
+                                                    <span class="item-label" for="bestdp_radio">Best</span>
+                                                </label>
+                                            </div>
+                                            <div class="radio" id="dataproc_type">
+                                                <label>
                                                     <input class="with-gap" id="xdsapp_radio" name="proc_type"
                                                         type="radio" value="xdsapp">
                                                     <span class="item-label" for="xdsapp_radio">XDSAPP</span>
@@ -1292,9 +1299,9 @@
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                    <input checked="checked" class="with-gap" id="bestdp_radio"
-                                                        name="proc_type" type="radio" value="bestdp">
-                                                    <span class="item-label" for="bestdp_radio">Best</span>
+                                                    <input class="with-gap" id="ppdproc_radio" name="proc_type"
+                                                        type="radio" value="pipedream">
+                                                    <span class="item-label" for="ppdproc_radio">Pipedream</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -1304,6 +1311,13 @@
                                     <th class=" top-options">Refinement</th>
                                     <td class=" top-options">
                                         <div class="col s12 required inline" id="refinement_method">
+                                            <div class="radio" id="dataref_type">
+                                                <label>
+                                                    <input checked="checked" class="with-gap" id="bestproc_radio"
+                                                        name="ref_type" type="radio" value="bestproc">
+                                                    <span class="item-label" for="bestproc_radio">Best</span>
+                                                </label>
+                                            </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
                                                     <input class="with-gap" id="dimple_radio" name="ref_type"
@@ -1327,9 +1341,9 @@
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                    <input checked="checked" class="with-gap" id="bestproc_radio"
-                                                        name="ref_type" type="radio" value="bestproc">
-                                                    <span class="item-label" for="bestproc_radio">Best</span>
+                                                    <input class="with-gap" id="ppdref_radio" name="ref_type"
+                                                        type="radio" value="refine">
+                                                    <span class="item-label" for="ppdref_radio">Pipedream</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -1483,7 +1497,7 @@
             </div>
         </div>
         <hr>
-        <div class="card-title">Giant PanDDA</div>
+        <div class="card-title">PanDDA Export (Giant scripts)</div>
         <div class="flexdiv_options  ">
             <div class="flex-left">
                 <div>
@@ -1493,7 +1507,7 @@
                             <col width="17%">
                             <tbody>
                                 <tr>
-                                    <th class=" top-options">Available inspects1</th>
+                                    <th class=" top-options">Available inspects</th>
                                     <td class=" top-options">
                                         <select class="selectbox" id="inspects" name="inspects">
                                             <option disabled selected value="yes"> -- select an option -- </option>
