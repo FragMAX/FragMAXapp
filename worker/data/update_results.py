@@ -19,7 +19,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     dialsLogs = glob(f"{fmax_proc_dir}/{dataset}/*/dials/LogFiles/*log")
     xdsxscaleLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsxscale/LogFiles/*XSCALE.log")
     fastdpLogs = glob(f"{fmax_proc_dir}/{dataset}/*/fastdp/*.LP")
-    EDNALogs = glob(f"{fmax_proc_dir}/{dataset}/*/edna/*.LP")
+    EDNALogs = sorted(glob(f"{fmax_proc_dir}/{dataset}/*/edna/*XSCALE.LP"), reverse=True)
     ppdprocLogs = glob(f"{res_dir}/{dataset}*/pipedream/process/process.log")
     ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/BUSTER_model.pdb")
     if ppdrefFiles:
@@ -129,8 +129,8 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
-                if logfile[n + 3].split():
-                    isa = logfile[n + 3].split()[-2]
+                if logfile[n + 1].split():
+                    isa = logfile[n + 1].split()[-2]
                     if isa == "b":
                         isa = ""
         isaDict["edna"] = isa
@@ -406,7 +406,6 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         ligfit_dataset = "_".join(usracr.split("_")[:-1])
     else:
         ligfit_dataset = "_".join(usracr.split("_")[:-2])
-    print(usracr)
 
     return [
         usracr,
