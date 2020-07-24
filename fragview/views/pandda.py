@@ -1145,6 +1145,8 @@ cd $WORK_DIR
 {crypt_shell.fetch_file(proj, pdb, "final.pdb")}
 {crypt_shell.fetch_file(proj, mtz, "final.mtz")}
 
+{copy_frags_cmd}
+
 module purge
 module load gopresto CCP4 Phenix
 
@@ -1159,8 +1161,6 @@ echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
 phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
 mv final.mtz final_original.mtz
 mv final_map_coeffs.mtz final.mtz
-
-{copy_frags_cmd}
 
 mkdir -p $DEST_DIR
 {crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
