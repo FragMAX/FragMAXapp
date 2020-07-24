@@ -1251,7 +1251,7 @@
                                             <div class="radio" id="dataproc_type">
                                                 <label>
                                                     <input checked="checked" class="with-gap" id="bestdp_radio"
-                                                        name="proc_type" type="radio" value="bestdp">
+                                                        name="proc_type" type="radio" value="frag">
                                                     <span class="item-label" for="bestdp_radio">Best</span>
                                                 </label>
                                             </div>
@@ -1314,7 +1314,7 @@
                                             <div class="radio" id="dataref_type">
                                                 <label>
                                                     <input checked="checked" class="with-gap" id="bestproc_radio"
-                                                        name="ref_type" type="radio" value="bestproc">
+                                                        name="ref_type" type="radio" value="plex">
                                                     <span class="item-label" for="bestproc_radio">Best</span>
                                                 </label>
                                             </div>
@@ -1403,6 +1403,13 @@
                             <col width="8%">
                             <col width="17%">
                             <tbody>
+                                <tr>
+                                    <th class=" top-options">Number of cores (max: 64)</th>
+                                    <td class=" top-options">
+                                        <input class="selectbox" id="pandda_nproc" value="32"
+                                            placeholder="default: 32"></input>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <th class=" top-options">Fill missing reflections with CAD</th>
                                     <td class=" top-options">
@@ -2296,7 +2303,13 @@
         var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
-        var cpus_pandda = 32
+        var cpus_pandda = document.getElementById("pandda_nproc").value;
+        if (cpus_pandda == "") {
+            cpus_pandda = 32
+        }
+        else if (cpus_pandda >= 64) { cpus_pandda = 64 }
+        else if (cpus_pandda <= 0) { cpus_pandda = 16 }
+
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
             ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +

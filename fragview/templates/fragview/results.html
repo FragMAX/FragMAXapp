@@ -184,7 +184,7 @@
               style="font-size:28px;">3d_rotation</i></button>
         </form>
         {% else %}
-        <form action="/pipedream_density/" method="get" id="pipedream_form" target="_blank">
+        <form action="/pipedream_density/" method="get" target="_blank">
           <button class="btn" type="submit" value="hCAII-FMLv03-A02a_1" name="structure" size="1" style="height: 48px">
             <i class="material-icons" style="font-size:28px;">3d_rotation</i>
           </button>
@@ -192,7 +192,7 @@
         {% endif %}
       </td>
       <td>{{usracr}}</td>
-      <td hidden>{{modelscore}}</td>
+      <td id="score-{{usracr}}" hidden>{{modelscore}}</td>
       <td>{{spg}}</td>
       <td>{{resolution}}</td>
       <td>{{isa}}</td>
@@ -253,6 +253,23 @@
       if (td) {
         txtValue = td.textContent || td.innerText;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+  }
+  function searchPlotState(filter) {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("searchDataset");
+    table = document.getElementById("resultsTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[2];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.indexOf(filter) > -1) {
           tr[i].style.display = "";
         } else {
           tr[i].style.display = "none";

@@ -1213,7 +1213,7 @@ def _get_pdb_data(proj, pdb_file):
 
 
 def get_best_alt_dataset(proj, dataset, options):
-    if options["method"] == "bestdp_bestproc":
+    if options["method"] == "frag_plex":
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
             f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
         )
