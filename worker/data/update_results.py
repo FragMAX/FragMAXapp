@@ -6,10 +6,7 @@ import shutil
 from collections import defaultdict
 from xml.etree import cElementTree as ET
 
-dataset, run = sys.argv[1].split("_")
 proposal, shift = sys.argv[2].split("/")
-protein = dataset.split("-")[0]
-
 biomax_path = "/data/visitors/biomax"
 
 
@@ -18,7 +15,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
 
     xdsappLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsapp/results*txt")
-    autoprocLogs = glob(f"{fmax_proc_dir}/{dataset}/*/autoproc/process.log")
+    autoprocLogs = glob(f"{fmax_proc_dir}/{dataset}/*/autoproc/summary.html")
     dialsLogs = glob(f"{fmax_proc_dir}/{dataset}/*/dials/LogFiles/*log")
     xdsxscaleLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsxscale/LogFiles/*XSCALE.log")
     fastdpLogs = glob(f"{fmax_proc_dir}/{dataset}/*/fastdp/*.LP")
@@ -85,7 +82,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
-            if "ISa" in line:
+            if "ISa (" in line:
                 isa = logfile[n + 1].split()[-1]
         isaDict["autoproc"] = isa
 
@@ -698,4 +695,14 @@ def etree_to_dict(t):
     return d
 
 
-_generate_results_file(dataset, run, proposal, shift, protein)
+if sys.argv[1] == "alldatasets":
+    res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
+    datasets = [path.basename(x) for x in glob(f"{res_dir}/*_*")]
+    for d_r in datasets:
+        dataset, run = d_r.split("_")
+        protein = dataset.split("-")[0]
+        _generate_results_file(dataset, run, proposal, shift, protein)
+else:
+    dataset, run = sys.argv[1].split("_")
+    protein = dataset.split("-")[0]
+    _generate_results_file(dataset, run, proposal, shift, protein)
