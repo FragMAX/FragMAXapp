@@ -32,17 +32,6 @@ def str2bool(v):
         return v
 
 
-def processing_form(request):
-    proj = current_project(request)
-
-    methods = [
-        x.split("/")[10]
-        for x in glob(f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda/analyses/*inspect_events*")
-    ]
-
-    return render(request, "fragview/pandda.html", {"methods": methods})
-
-
 def inspect(request):
     proj = current_project(request)
 
@@ -52,7 +41,7 @@ def inspect(request):
     proc_methods = [x.split("/")[-5] for x in glob(glob_pattern)]
 
     if not proc_methods:
-        localcmd = f"cd {proj.data_path()}/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
+        localcmd = f"none"
         return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
 
     filters = []
@@ -692,7 +681,7 @@ def analyse(request):
                 encoding="utf-8",
             ) as inp:
                 pandda_html = inp.readlines()
-                localcmd = panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+                localcmd = panda_results_path + "/" + method + "/pandda/; pandda.inspect"
 
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
@@ -746,10 +735,6 @@ def fix_pandda_symlinks(proj):
         shell=True,
     )
 
-    subprocess.call(
-        proj.data_path() + "/fragmax/results/pandda/" + proj.protein + """/ ; chmod -R 770 .""", shell=True
-    )
-
     glob_pattern = (
         f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/"
         f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
@@ -795,6 +780,7 @@ def submit(request):
             min_dataset,
             customPanDDA,
             cifMethod,
+            ncpus,
         ) = panddaCMD.split(";")
 
         method = proc + "_" + ref
@@ -822,7 +808,7 @@ def submit(request):
             "customPanDDA": customPanDDA,
             "reprocessing": False,
             "reprocessing_mode": "reload",
-            "nproc": 32,
+            "nproc": ncpus,
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -854,7 +840,22 @@ def _write_main_script(proj, method, methodshort, options):
 
     pandda_script = project_script(proj, PANDDA_WORKER)
     pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
-
+    giant_cluster = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"
+    pandda_cluster = f"{giant_cluster} {pandda_method_dir}/*/final.pdb pdb_label=foldername"
+    fixsymlink1 = (
+        "cd "
+        + proj.data_path()
+        + "/fragmax/results/pandda/"
+        + proj.protein
+        + """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;"""  # noqa W605
+    )
+    fixsymlink2 = (
+        "cd "
+        + proj.data_path()
+        + "/fragmax/results/pandda/"
+        + proj.protein
+        + """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;"""  # noqa W605
+    )
     if proj.encrypted:
         body = f"""#!/bin/bash
 #!/bin/bash
@@ -875,7 +876,7 @@ cd $WORK_DIR
 
 {crypt_shell.fetch_dir(proj, data_dir, ".")}
 
-module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
 python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 
 {crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
@@ -896,9 +897,13 @@ rm -rf "$WORK_DIR"
 
 cd {pandda_method_dir}
 module purge
-module add CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+{pandda_cluster}
 python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
-"""
+
+chmod -R 777 {proj.data_path()}/fragmax/results/pandda/
+{fixsymlink1}
+{fixsymlink2}"""
     utils.write_script(script, body)
 
 
@@ -1088,7 +1093,10 @@ def pandda_worker(proj, method, options, cifMethod):
 
 
 def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod):
-    mtz = path.join(path.dirname(pdb), "final.mtz")
+    if "pipedream" in pdb or "buster" in pdb:
+        mtz = path.join(path.dirname(pdb), "refine.mtz")
+    else:
+        mtz = path.join(path.dirname(pdb), "final.mtz")
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
@@ -1111,6 +1119,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
             clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
         elif cifMethod == "grade":
             cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
+            clear_tmp_cmd = ""
         copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
         if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
             copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
@@ -1136,6 +1145,8 @@ cd $WORK_DIR
 {crypt_shell.fetch_file(proj, pdb, "final.pdb")}
 {crypt_shell.fetch_file(proj, mtz, "final.mtz")}
 
+{copy_frags_cmd}
+
 module purge
 module load gopresto CCP4 Phenix
 
@@ -1150,8 +1161,6 @@ echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
 phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
 mv final.mtz final_original.mtz
 mv final_map_coeffs.mtz final.mtz
-
-{copy_frags_cmd}
 
 mkdir -p $DEST_DIR
 {crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
@@ -1189,30 +1198,51 @@ def _read_mtz_file(proj, mtz_file):
 
 def _get_pdb_data(proj, pdb_file):
     r_work = ""
+    r_free = ""
     resolution = ""
 
     for line in read_text_lines(proj, pdb_file):
-        if "REMARK Final:" in line:
-            r_work = line.split()[4]
+        if "REMARK   3   R VALUE            (WORKING SET) :" in line:
+            r_work = line.split()[-1]
+        if "REMARK   3   FREE R VALUE                     :" in line:
+            r_free = line.split()[-1]
         if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-            resolution = line.split(":")[-1].replace(" ", "").replace("\n", "")
+            resolution = line.split()[-1]
 
-    return r_work, resolution
+    return r_work, r_free, resolution
 
 
 def get_best_alt_dataset(proj, dataset, options):
-    if options["complete_results"]:
-        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb")
+    if options["method"] == "frag_plex":
+        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
+            f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
+        )
+    elif options["complete_results"]:
+        proc, ref = options["method"].split("_")
+        if proc == "pipedream":
+            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb")
+        else:
+            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
+        if not optionList:
+            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
+            )
     else:
         proc, ref = options["method"].split("_")
-        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
+        if proc == "pipedream":
+            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb")
+        else:
+            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
     rwork_res = list()
 
     if not optionList:
         return ""
     else:
         for pdb in optionList:
-            r_work, resolution = _get_pdb_data(proj, pdb)
-            rwork_res.append((pdb, r_work, resolution))
-        rwork_res.sort(key=lambda pair: pair[1:3])
+            r_work, r_free, resolution = _get_pdb_data(proj, pdb)
+            rwork_res.append((pdb, r_work, r_free, resolution))
+        rwork_res.sort(key=lambda pair: pair[1:4])
+        print("FragMAX selected:")
+        print("pdb, r_work, r_free, resolution")
+        print(rwork_res[0])
         return rwork_res[0][0]

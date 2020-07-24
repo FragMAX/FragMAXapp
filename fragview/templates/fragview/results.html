@@ -1,5 +1,3 @@
-
-
 {% extends 'fragview/base.html' %}
 
 {% block title %}FragMAX - Results{% endblock %}
@@ -10,21 +8,25 @@
     border-collapse: collapse;
 
   }
+
   th {
     text-align: center;
     height: 50px;
 
   }
 
-  td, th {
+  td,
+  th {
     border: 1px solid #f0f0f0;
     padding: 5px;
   }
-  td{
-        height: 100px;
-        
+
+  td {
+    height: 100px;
+
 
   }
+
   tr:nth-child(even) {
     background-color: #e2e2e2;
   }
@@ -32,155 +34,165 @@
   tr td:nth-child(n) {
     text-align: center;
   }
-  
+
   th {
-      cursor: pointer;
+    cursor: pointer;
   }
+
   .container {
     margin: 0 50px 50px 300px !important;
     max-width: 100% !important;
     width: calc(100% - 350px) !important;
   }
+
   /* Style the tab */
-    .tab {
-        overflow: hidden;
+  .tab {
+    overflow: hidden;
 
-        background-color: #f1f1f1;
-    }
+    background-color: #f1f1f1;
+  }
 
-    /* Style the buttons inside the tab */
-    .tab button {
-        background-color: inherit;
-        float: left;
-        border: none;
-        outline: none;
-        cursor: pointer;
-        padding: 14px 16px;
-        transition: 0.3s;
-        font-size: 17px;
-    }
+  /* Style the buttons inside the tab */
+  .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+  }
 
 
 
-    /* Create an active/current tablink class */
-    .tab button.active {
-        background-color: #82be00;
-    }
+  /* Create an active/current tablink class */
+  .tab button.active {
+    background-color: #82be00;
+  }
 
-    /* Style the tab content */
-    .tabcontent {
-        display: none;
-        padding: 6px 12px;
-    }
+  /* Style the tab content */
+  .tabcontent {
+    display: none;
+    padding: 6px 12px;
+  }
 
-    .top-right{
-      position: absolute;
-      right: 50px;
-      top: 25px;
-    }
-    .ligpng {
-    height:88px;
-    width:88px;
+  .top-right {
+    position: absolute;
+    right: 50px;
+    top: 25px;
+  }
+
+  .ligpng {
+    height: 88px;
+    width: 88px;
   }
 </style>
 <div>
-  <h4>Results</h4> 
-  
+  <h4>Results</h4>
+
   <div style="display:flex;">
-      <button class="btn top-right" type="submit" id="resync_button" size="1">Resync results</button>
+    <button class="btn top-right" type="submit" id="resync_button" size="1">Resync results</button>
   </div>
 
-</div>       
+</div>
 <div class=" card_options">
-    <div class="card tab">
-        <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
-        <button class="tablinks" onclick="openMethod(event, 'Resolution')" >Resolution</button>
-        <button class="tablinks" onclick="openMethod(event, 'rfactorstab')">R<sub>work/</sub>R<sub>free</sub></button>
-        <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')" disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
-        <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
-        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
-    </div>
+  <div class="card tab">
+    <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
+    <button class="tablinks" onclick="openMethod(event, 'Resolution')">Resolution</button>
+    <button class="tablinks" onclick="openMethod(event, 'rfactorstab')">R<sub>work/</sub>R<sub>free</sub></button>
+    <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')"
+      disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
+    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
+    <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
+  </div>
 
-    <div id="ISa" class="card tabcontent">
-        <div class="card-title">ISa distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/ISas.png" style="width: 100%;"></img>
-    </div>
-    <div id="Resolution" class="card tabcontent">
-        <div class="card-title">Resolution distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png" style="width: 100%;"></img>
-        
-    </div>
-    <div id="Cell_Parameters" class="card tabcontent">
-        <div class="card-title">Cell Parameters distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png" style="width: 100%;"></img>
-    </div>
-    <div id="rfactorstab" class="card tabcontent">
-        <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfactors.png" style="width: 100%;"></img>
-    </div>
-    <div id="ccfactorstab" class="card tabcontent">
-        <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
-        <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png" style="width: 100%;"></img>
-    </div>
-    <div id="Hide" >
-    </div>
+  <div id="ISa" class="card tabcontent">
+    <div class="card-title">ISa distribution</div>
+    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/ISas.png"
+      style="width: 100%;"></img>
+  </div>
+  <div id="Resolution" class="card tabcontent">
+    <div class="card-title">Resolution distribution</div>
+    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png"
+      style="width: 100%;"></img>
+
+  </div>
+  <div id="Cell_Parameters" class="card tabcontent">
+    <div class="card-title">Cell Parameters distribution</div>
+    <img
+      src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png"
+      style="width: 100%;"></img>
+  </div>
+  <div id="rfactorstab" class="card tabcontent">
+    <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
+    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfactors.png"
+      style="width: 100%;"></img>
+  </div>
+  <div id="ccfactorstab" class="card tabcontent">
+    <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
+    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png"
+      style="width: 100%;"></img>
+  </div>
+  <div id="Hide">
+  </div>
 </div>
 
 <div class="input-field col s12" id="searchDiv">
   <i class="material-icons prefix">search</i>
-  <input type="text" id="searchDataset" onkeyup="searchDatasetName()"  title="Type in a dataset name">
+  <input type="text" id="searchDataset" onkeyup="searchDatasetName()" title="Type in a dataset name">
   <label for="searchDataset">Search for Dataset..</label>
 </div>
 
 
 
- <table  id="resultsTable">
-   <thead>
-  <tr>
-   <th>View Structure</th>
-   <th>Data set</th>
-   <th hidden>Model Score</th>
-   <th>Space group</th>
-   <th>Res. [&Aring;]</th>
-   <th>ISa</th>
-   <th>R<sub>work</sub></th>
-   <th>R<sub>free</sub></th>
-   <th>RMS bonds [&Aring;]</th>
-   <th>RMS angles [&deg;]</th>
-   <th>a</th>
-   <th>b</th>
-   <th>c</th>
-   <th>&alpha;</th>
-   <th>&beta;</th>
-   <th>&gamma;</th>
-   <th>RhoFit</th>
-   <th>LigandFit</th>
-   <th>Ligand</th>
-  </tr>
- </thead>
+<table id="resultsTable">
+  <thead>
+    <tr>
+      <th>View Structure</th>
+      <th>Data set</th>
+      <th hidden>Model Score</th>
+      <th>Space group</th>
+      <th>Res. [&Aring;]</th>
+      <th>ISa</th>
+      <th>R<sub>work</sub></th>
+      <th>R<sub>free</sub></th>
+      <th>RMS bonds [&Aring;]</th>
+      <th>RMS angles [&deg;]</th>
+      <th>a</th>
+      <th>b</th>
+      <th>c</th>
+      <th>&alpha;</th>
+      <th>&beta;</th>
+      <th>&gamma;</th>
+      <th>RhoFit</th>
+      <th>LigandFit</th>
+      <th>Ligand</th>
+    </tr>
+  </thead>
   <tbody>
-    <tr>    
+    <tr>
     </tr>
     {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob,modelscore in csvfile %}
 
-    <tr>    
+    <tr>
       <td>
-          {% if pdbout %}
-          <form action="/density/" method="get" target="_blank">
-          <button class="btn" type="submit" 
-          value="{{usracr}}" 
-          name="structure" style="height: 48px"><i class="material-icons" style="font-size:28px;">3d_rotation</i></button>
-          </form>
-          {% else %}
-          <form action="/pipedream_density/" method="get" id="pipedream_form" target="_blank">
-              <button class="btn" type="submit" value="hCAII-FMLv03-A02a_1" name="structure" size="1" style="height: 48px">
-                  <i class="material-icons" style="font-size:28px;">3d_rotation</i>
-              </button>
-          </form>
-          {% endif %}
+        {% if pdbout %}
+        <form action="/density/" method="get" target="_blank">
+          <button class="btn" type="submit" value="{{usracr}}" name="structure"
+            style="height: 48px; margin-top: 15px;"><i class="material-icons"
+              style="font-size:28px;">3d_rotation</i></button>
+        </form>
+        {% else %}
+        <form action="/pipedream_density/" method="get" target="_blank">
+          <button class="btn" type="submit" value="hCAII-FMLv03-A02a_1" name="structure" size="1" style="height: 48px">
+            <i class="material-icons" style="font-size:28px;">3d_rotation</i>
+          </button>
+        </form>
+        {% endif %}
       </td>
       <td>{{usracr}}</td>
-      <td hidden>{{modelscore}}</td>
+      <td id="score-{{usracr}}" hidden>{{modelscore}}</td>
       <td>{{spg}}</td>
       <td>{{resolution}}</td>
       <td>{{isa}}</td>
@@ -196,98 +208,112 @@
       <td>{{gamma}}</td>
       <td>{{rhofitscore}}</td>
       <td>{{ligfitscore}}</td>
-        <td>
+      <td>
         {% if "Apo" not in dataset %}
-          <a href="/fragment/{{ dataset }}/image" target="_blank">
-            <img class="ligpng" src="/fragment/{{ dataset }}/image" height="40" width="86">
-          </a>
+        <a href="/fragment/{{ dataset }}/image" target="_blank">
+          <img class="ligpng" src="/fragment/{{ dataset }}/image" height="40" width="86">
+        </a>
         {% endif %}
 
-        </td>
-      
+      </td>
+
     </tr>
-    {% endfor %}                   
-              
-  </tbody>
-  </table>
-
+    {% endfor %}
 
   </tbody>
+</table>
+
+
+</tbody>
 
 </table>
 <script>
-const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+  const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
-const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+  const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+  )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
-// do the work...
-document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+  // do the work...
+  document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
     const table = th.closest('table');
     Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-        .forEach(tr => table.appendChild(tr) );
-})));
+      .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+      .forEach(tr => table.appendChild(tr));
+  })));
 
-function searchDatasetName() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchDataset");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("resultsTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[1];
-            if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-            }       
+  function searchDatasetName() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("searchDataset");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("resultsTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[1];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
         }
+      }
+    }
+  }
+  function searchPlotState(filter) {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("searchDataset");
+    table = document.getElementById("resultsTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[2];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
         }
+      }
+    }
+  }
 </script>
 <script>
-    function openMethod(evt, methodName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(methodName).style.display = "block";
-        evt.currentTarget.className += " active";
+  function openMethod(evt, methodName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
     }
-
-    function request_resync()
-    {
-        /* avoid double clicks */
-        $("#resync_button").prop("disabled", true);
-
-        const req = $.get("resync");
-
-        /* show possible error to the user */
-        req.fail(function(resp) {
-          alert("error synchronizing results\n" + resp.responseText);
-        });
-
-        /* ask user to be patient */
-        req.done(function() {
-          alert("results synchronization started,\nit make take a while to complete");
-          location.reload();
-        });
-
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
+    document.getElementById(methodName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
 
-    $(document).ready(function()
-    {
-        $("#resync_button").click(request_resync);
+  function request_resync() {
+    /* avoid double clicks */
+    $("#resync_button").prop("disabled", true);
+
+    const req = $.get("resync");
+
+    /* show possible error to the user */
+    req.fail(function (resp) {
+      alert("error synchronizing results\n" + resp.responseText);
     });
+
+    /* ask user to be patient */
+    req.done(function () {
+      alert("results synchronization started,\nit make take a while to complete");
+      location.reload();
+    });
+
+  }
+
+  $(document).ready(function () {
+    $("#resync_button").click(request_resync);
+  });
 </script>
 {% endblock %}
-

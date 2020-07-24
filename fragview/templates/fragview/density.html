@@ -201,9 +201,19 @@
           </td>
         </tr>
         <tr>
+          {% if ligand %}
+
+          <td colspan="2"><b>Download</b>
+            <a href="{{pdb_path}}" download="{{name}}.pdb" style="padding-left: 10px;"> PDB</a> |
+            <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a> |
+            <a href="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/fragments/{{ligand}}.cif"
+              download="{{ligand}}.cif"> CIF</a></td>
+          {% else %}
+
           <th>Download</th>
           <td><a href="{{pdb_path}}" download="{{name}}.pdb"> PDB</a> |
-            <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a></td>
+            <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a> </td>
+          {% endif %}
         </tr>
         <tr style="border-bottom: 0;">
           <th>
@@ -271,28 +281,28 @@
 
       </div>
 
-      <div style="padding-left:30px !important;padding-top: 8px">
-        <h6>Structure rating</h6>
-        <div class="col s12 required inline" id="model_confidence">
-          <div class="radio" id="conf_level"><label>
-              <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high">
-              <span class="item-label" for="high_conf_radio">High confidence</span>
-            </label></div>
-          <div class="radio" id="conf_level"><label>
-              <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
-              <span class="item-label" for="medium_conf_radio">Medium confidence</span>
-            </label></div>
-          <div class="radio" id="conf_level"><label>
-              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
-              <span class="item-label" for="low_conf_radio">Low confidence</span>
-            </label></div>
-          <div class="radio" id="conf_level"><label>
-              <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
-              <span class="item-label" for="low_conf_radio">Undefined</span>
-            </label></div>
-        </div>
-      </div>
 
+    </div>
+    <div style="padding-left:30px !important;padding-top: 8px">
+      <h6>Structure rating</h6>
+      <div class="col s12 required inline" id="model_confidence">
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high">
+            <span class="item-label" for="high_conf_radio">High confidence</span>
+          </label></div>
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
+            <span class="item-label" for="medium_conf_radio">Medium confidence</span>
+          </label></div>
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+            <span class="item-label" for="low_conf_radio">Low confidence</span>
+          </label></div>
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+            <span class="item-label" for="low_conf_radio">Undefined</span>
+          </label></div>
+      </div>
       {% if ligand %}
       <div class="ligandSVG">
         <div>
@@ -306,7 +316,7 @@
   <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
       <b>
-        <h6>{{name}} </h6>
+        <h6>{{name}} as</h6>
       </b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
@@ -373,10 +383,12 @@
 
     }
     function centerrhofit() {
-      V.recenter({{ rhofitcenter }}, null, 25)
-    V.request_render();
+      var rpos = search("rhofit", V.model_bags)
+      var rfcenter = V.model_bags[rpos].model.atoms[0].xyz
+      V.recenter(rfcenter, null, 25)
+      V.request_render();
 
-      }
+    }
     function showligfit() {
       var lpos = search("ligfit", V.model_bags)
       V.model_bags[lpos].visible ^= true;
@@ -391,10 +403,12 @@
       }
     }
     function centerligfit() {
-      V.recenter({{ ligfitcenter }}, null, 25)
-    V.request_render();
+      var lpos = search("ligfit", V.model_bags)
+      var lfcenter = V.model_bags[lpos].model.atoms[0].xyz
+      V.recenter(lfcenter, null, 25)
+      V.request_render();
 
-      }
+    }
     function showprotein() {
       V.model_bags[-1].visible = true;
       V.redraw_all();

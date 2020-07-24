@@ -26,7 +26,6 @@ urlpatterns = [
     path('pandda_densityC/', density.pandda_consensus, name='pandda_densityC'),
     path('pandda_densityA/', density.pandda_analyse, name='pandda_densityA'),
 
-    path('pandda/', pandda.processing_form, name='pandda'),
     path('pandda_analyse/', pandda.analyse, name='pandda_analyse'),
     path('pandda_inspect/', pandda.inspect, name='pandda_inspect'),
     path('pandda_export/', pandda.giant, name='pandda_export'),

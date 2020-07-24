@@ -6,10 +6,7 @@ import shutil
 from collections import defaultdict
 from xml.etree import cElementTree as ET
 
-dataset, run = sys.argv[1].split("_")
 proposal, shift = sys.argv[2].split("/")
-protein = dataset.split("-")[0]
-
 biomax_path = "/data/visitors/biomax"
 
 
@@ -18,11 +15,11 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
 
     xdsappLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsapp/results*txt")
-    autoprocLogs = glob(f"{fmax_proc_dir}/{dataset}/*/autoproc/process.log")
+    autoprocLogs = glob(f"{fmax_proc_dir}/{dataset}/*/autoproc/summary.html")
     dialsLogs = glob(f"{fmax_proc_dir}/{dataset}/*/dials/LogFiles/*log")
     xdsxscaleLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsxscale/LogFiles/*XSCALE.log")
     fastdpLogs = glob(f"{fmax_proc_dir}/{dataset}/*/fastdp/*.LP")
-    EDNALogs = glob(f"{fmax_proc_dir}/{dataset}/*/edna/*.LP")
+    EDNALogs = sorted(glob(f"{fmax_proc_dir}/{dataset}/*/edna/*XSCALE.LP"), reverse=True)
     ppdprocLogs = glob(f"{res_dir}/{dataset}*/pipedream/process/process.log")
     ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/BUSTER_model.pdb")
     if ppdrefFiles:
@@ -72,7 +69,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         resultsFile.insert(0, header)
 
     for log in xdsappLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for line in logfile:
@@ -81,16 +78,16 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
                 isaDict["xdsapp"] = isa
 
     for log in autoprocLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
-            if "ISa" in line:
+            if "ISa (" in line:
                 isa = logfile[n + 1].split()[-1]
         isaDict["autoproc"] = isa
 
     for log in ppdprocLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -99,7 +96,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["pipedream"] = isa
 
     for log in dialsLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -108,7 +105,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["dials"] = isa
 
     for log in xdsxscaleLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -118,7 +115,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["xdsxscale"] = isa
 
     for log in fastdpLogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
@@ -127,13 +124,13 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         isaDict["fastdp"] = isa
 
     for log in EDNALogs:
-        isa = 0
+        isa = "unknown"
         with open(log, "r", encoding="utf-8") as readFile:
             logfile = readFile.readlines()
         for n, line in enumerate(logfile):
             if "ISa" in line:
-                if logfile[n + 3].split():
-                    isa = logfile[n + 3].split()[-2]
+                if logfile[n + 1].split():
+                    isa = logfile[n + 1].split()[-2]
                     if isa == "b":
                         isa = ""
         isaDict["edna"] = isa
@@ -409,7 +406,6 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         ligfit_dataset = "_".join(usracr.split("_")[:-1])
     else:
         ligfit_dataset = "_".join(usracr.split("_")[:-2])
-    print(usracr)
 
     return [
         usracr,
@@ -698,4 +694,14 @@ def etree_to_dict(t):
     return d
 
 
-_generate_results_file(dataset, run, proposal, shift, protein)
+if sys.argv[1] == "alldatasets":
+    res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
+    datasets = [path.basename(x) for x in glob(f"{res_dir}/*_*")]
+    for d_r in datasets:
+        dataset, run = d_r.split("_")
+        protein = dataset.split("-")[0]
+        _generate_results_file(dataset, run, proposal, shift, protein)
+else:
+    dataset, run = sys.argv[1].split("_")
+    protein = dataset.split("-")[0]
+    _generate_results_file(dataset, run, proposal, shift, protein)

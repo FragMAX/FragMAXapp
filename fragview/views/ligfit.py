@@ -84,7 +84,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
         ligPDB = f"{cif_out}.pdb"
         projCIF = project_fragment_cif(proj, fragID)
         projPDB = project_fragment_pdb(proj, fragID)
-        move_cif_cmd = f"cp {ligCIF} {projCIF}\ncp {ligPDB} {projPDB}"
+        move_cif_cmd = f"cp {ligCIF} {projCIF}\ncp {ligPDB} {projPDB}\n"
         rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
         ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
         mtz_input = pdb.replace(".pdb", ".mtz")

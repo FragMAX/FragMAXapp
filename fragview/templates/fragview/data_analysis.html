@@ -1250,6 +1250,13 @@
                                         <div class="col s12 required inline" id="processing_method">
                                             <div class="radio" id="dataproc_type">
                                                 <label>
+                                                    <input checked="checked" class="with-gap" id="bestdp_radio"
+                                                        name="proc_type" type="radio" value="frag">
+                                                    <span class="item-label" for="bestdp_radio">Best</span>
+                                                </label>
+                                            </div>
+                                            <div class="radio" id="dataproc_type">
+                                                <label>
                                                     <input class="with-gap" id="xdsapp_radio" name="proc_type"
                                                         type="radio" value="xdsapp">
                                                     <span class="item-label" for="xdsapp_radio">XDSAPP</span>
@@ -1292,9 +1299,9 @@
                                             </div>
                                             <div class="radio" id="dataproc_type">
                                                 <label>
-                                                    <input checked="checked" class="with-gap" id="bestdp_radio"
-                                                        name="proc_type" type="radio" value="bestdp">
-                                                    <span class="item-label" for="bestdp_radio">Best</span>
+                                                    <input class="with-gap" id="ppdproc_radio" name="proc_type"
+                                                        type="radio" value="pipedream">
+                                                    <span class="item-label" for="ppdproc_radio">Pipedream</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -1304,6 +1311,13 @@
                                     <th class=" top-options">Refinement</th>
                                     <td class=" top-options">
                                         <div class="col s12 required inline" id="refinement_method">
+                                            <div class="radio" id="dataref_type">
+                                                <label>
+                                                    <input checked="checked" class="with-gap" id="bestproc_radio"
+                                                        name="ref_type" type="radio" value="plex">
+                                                    <span class="item-label" for="bestproc_radio">Best</span>
+                                                </label>
+                                            </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
                                                     <input class="with-gap" id="dimple_radio" name="ref_type"
@@ -1327,9 +1341,9 @@
                                             </div>
                                             <div class="radio" id="dataref_type">
                                                 <label>
-                                                    <input checked="checked" class="with-gap" id="bestproc_radio"
-                                                        name="ref_type" type="radio" value="bestproc">
-                                                    <span class="item-label" for="bestproc_radio">Best</span>
+                                                    <input class="with-gap" id="ppdref_radio" name="ref_type"
+                                                        type="radio" value="refine">
+                                                    <span class="item-label" for="ppdref_radio">Pipedream</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -1389,6 +1403,13 @@
                             <col width="8%">
                             <col width="17%">
                             <tbody>
+                                <tr>
+                                    <th class=" top-options">Number of cores (max: 64)</th>
+                                    <td class=" top-options">
+                                        <input class="selectbox" id="pandda_nproc" value="32"
+                                            placeholder="default: 32"></input>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <th class=" top-options">Fill missing reflections with CAD</th>
                                     <td class=" top-options">
@@ -1483,7 +1504,7 @@
             </div>
         </div>
         <hr>
-        <div class="card-title">Giant PanDDA</div>
+        <div class="card-title">PanDDA Export (Giant scripts)</div>
         <div class="flexdiv_options  ">
             <div class="flex-left">
                 <div>
@@ -1493,7 +1514,7 @@
                             <col width="17%">
                             <tbody>
                                 <tr>
-                                    <th class=" top-options">Available inspects1</th>
+                                    <th class=" top-options">Available inspects</th>
                                     <td class=" top-options">
                                         <select class="selectbox" id="inspects" name="inspects">
                                             <option disabled selected value="yes"> -- select an option -- </option>
@@ -2282,11 +2303,18 @@
         var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
+        var cpus_pandda = document.getElementById("pandda_nproc").value;
+        if (cpus_pandda == "") {
+            cpus_pandda = 32
+        }
+        else if (cpus_pandda >= 64) { cpus_pandda = 64 }
+        else if (cpus_pandda <= 0) { cpus_pandda = 16 }
+
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
             ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +
             PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " +
-            pandda_high_res_lowe_limit + ";" + cifMethodPandda
+            pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda
 
         document.getElementsByName("panddaform")[0].value = PanDDAout
 
