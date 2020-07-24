@@ -7,15 +7,14 @@ from glob import glob
 import pyfastcopy  # noqa
 import shutil
 import xmltodict
-# import subprocess
-import itertools
 from pathlib import Path
 import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
 from fragview.models import Project
+from fragview.status import run_update_status
 from fragview.projects import proposal_dir, project_xml_files, project_process_protein_dir, project_fragmax_dir
-from fragview.projects import project_data_collections_file, project_update_status_script, project_script
+from fragview.projects import project_data_collections_file, project_script
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import shifts_xml_files, shifts_raw_master_h5_files, project_scripts_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS, UPDATE_RESULTS_SCRIPT
@@ -314,17 +313,4 @@ def _write_project_status(proj):
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
 
-    h5s = list(itertools.chain(
-        *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
-          for p in proj.shifts()]))
-    script = project_script(proj, f"update_status.sh")
-    with open(script, "w") as outfile:
-        outfile.write("#!/bin/bash\n")
-        outfile.write("#!/bin/bash\n")
-        outfile.write("module purge\n")
-        outfile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
-        for h5 in h5s:
-            dataset, run = (h5.split("/")[-1][:-10].split("_"))
-            outfile.write(
-                f"python3 {project_update_status_script(proj)} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
-    hpc.run_sbatch(script)
+    run_update_status(proj)
