@@ -1093,7 +1093,7 @@ def pandda_worker(proj, method, options, cifMethod):
 
 
 def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod):
-    if "pipedream" in pdb:
+    if "pipedream" in pdb or "buster" in pdb:
         mtz = path.join(path.dirname(pdb), "refine.mtz")
     else:
         mtz = path.join(path.dirname(pdb), "final.mtz")
