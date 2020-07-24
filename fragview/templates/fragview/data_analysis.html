@@ -2296,11 +2296,12 @@
         var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit").value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
+        var cpus_pandda = 32
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
             ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +
             PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " +
-            pandda_high_res_lowe_limit + ";" + cifMethodPandda
+            pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda
 
         document.getElementsByName("panddaform")[0].value = PanDDAout
 

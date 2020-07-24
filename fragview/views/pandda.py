@@ -32,17 +32,6 @@ def str2bool(v):
         return v
 
 
-def processing_form(request):
-    proj = current_project(request)
-
-    methods = [
-        x.split("/")[10]
-        for x in glob(f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda/analyses/*inspect_events*")
-    ]
-
-    return render(request, "fragview/pandda.html", {"methods": methods})
-
-
 def inspect(request):
     proj = current_project(request)
 
@@ -52,7 +41,7 @@ def inspect(request):
     proc_methods = [x.split("/")[-5] for x in glob(glob_pattern)]
 
     if not proc_methods:
-        localcmd = f"cd {proj.data_path()}/fragmax/results/pandda/xdsapp_fspipeline/pandda/; pandda.inspect"
+        localcmd = f"none"
         return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
 
     filters = []
@@ -692,7 +681,7 @@ def analyse(request):
                 encoding="utf-8",
             ) as inp:
                 pandda_html = inp.readlines()
-                localcmd = panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
+                localcmd = panda_results_path + "/" + method + "/pandda/; pandda.inspect"
 
             for n, line in enumerate(pandda_html):
                 if '<th class="text-nowrap" scope="row">' in line:
@@ -791,6 +780,7 @@ def submit(request):
             min_dataset,
             customPanDDA,
             cifMethod,
+            ncpus,
         ) = panddaCMD.split(";")
 
         method = proc + "_" + ref
@@ -818,7 +808,7 @@ def submit(request):
             "customPanDDA": customPanDDA,
             "reprocessing": False,
             "reprocessing_mode": "reload",
-            "nproc": 32,
+            "nproc": ncpus,
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -850,7 +840,8 @@ def _write_main_script(proj, method, methodshort, options):
 
     pandda_script = project_script(proj, PANDDA_WORKER)
     pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
-
+    giant_cluster = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"
+    pandda_cluster = f"{giant_cluster} {pandda_method_dir}/*/final.pdb pdb_label=foldername"
     fixsymlink1 = (
         "cd "
         + proj.data_path()
@@ -907,6 +898,7 @@ rm -rf "$WORK_DIR"
 cd {pandda_method_dir}
 module purge
 module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+{pandda_cluster}
 python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
 
 chmod -R 777 {proj.data_path()}/fragmax/results/pandda/
@@ -1101,7 +1093,10 @@ def pandda_worker(proj, method, options, cifMethod):
 
 
 def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod):
-    mtz = path.join(path.dirname(pdb), "final.mtz")
+    if "pipedream" in pdb:
+        mtz = path.join(path.dirname(pdb), "refine.mtz")
+    else:
+        mtz = path.join(path.dirname(pdb), "final.mtz")
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
