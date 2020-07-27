@@ -4,7 +4,7 @@ from fragview.sites import plugin
 
 
 class HPC(plugin.HPC):
-    def run_sbatch(self, sbatch_script, sbatch_options=None):
+    def run_batch(self, sbatch_script, sbatch_options=None):
         cmd = "sbatch"
 
         # add options to sbatch command, if specified
@@ -16,6 +16,9 @@ class HPC(plugin.HPC):
 
         # TODO: check exit code and bubble up error on exit code != 0
         _ssh_on_frontend(cmd)
+
+    def new_batch_file(self, script_name):
+        return BatchFile(script_name)
 
 
 # TODO: this is copy and paste code from fragview.hpc model,
@@ -31,3 +34,12 @@ def _ssh_on_frontend(command):
 
         stdout, stderr = proc.communicate(command.encode("utf-8"))
         return stdout, stderr, proc.returncode
+
+
+class BatchFile(plugin.BatchFile):
+    def load_python_env(self):
+        """
+        no need to add any new commands here, as python3 is always available
+        """
+        self.add_command("module purge")
+        self.add_command("module load GCC/7.3.0-2.30 OpenMPI/3.1.1 Python/3.7.0")

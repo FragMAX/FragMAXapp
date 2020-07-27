@@ -90,5 +90,29 @@ class BeamlineInfo:
 
 
 class HPC:
-    def run_sbatch(self, sbatch_script, sbatch_options=None):
+    def run_batch(self, sbatch_script, sbatch_options=None):
         raise NotImplementedError()
+
+    def new_batch_file(self, script_name):
+        """
+        create new batch file, returns instance of BatchFile class
+        """
+        raise NotImplementedError()
+
+
+class BatchFile:
+    HEADER = "#!/bin/bash"
+
+    def __init__(self, filename):
+        self._filename = filename
+        self._body = f"{self.HEADER}\n"
+
+    def save(self):
+        from fragview.views.utils import write_script
+        write_script(self._filename, self._body)
+
+    def load_python_env(self):
+        raise NotImplementedError()
+
+    def add_command(self, cmd):
+        self._body += f"{cmd}\n"

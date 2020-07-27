@@ -1,29 +1,32 @@
-from fragview.views.utils import write_script
 from fragview.projects import (
     project_script,
     project_scripts_dir,
     project_datasets,
     UPDATE_STATUS_SCRIPT,
 )
-from fragview import hpc
+from fragview.sites import SITE
 
 
 def run_update_status(proj):
-    body = f"""#!/bin/bash
-#!/bin/bash
+    hpc = SITE.get_hpc_runner()
 
-module purge
-module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0
+    #
+    # generate the wrapper batch script
+    #
+    script_file_path = project_script(proj, "update_status.sh")
+    batch = hpc.new_batch_file(script_file_path)
 
-cd {project_scripts_dir(proj)}
-
-"""
+    batch.load_python_env()
+    batch.add_command(f"cd {project_scripts_dir(proj)}")
 
     for dset in project_datasets(proj):
+        # for each dataset, run the update status script
         dataset, run = dset.rsplit("_")
-        body += f"python3 ./{UPDATE_STATUS_SCRIPT} {proj.data_path()} {dataset} {run}\n"
+        batch.add_command(f"python3 ./{UPDATE_STATUS_SCRIPT} {proj.data_path()} {dataset} {run}")
 
-    script = project_script(proj, "update_status.sh")
-    write_script(script, body)
+    batch.save()
 
-    hpc.run_sbatch(script)
+    #
+    # invoke the wrapper batch script
+    #
+    hpc.run_batch(script_file_path)

@@ -3,7 +3,7 @@ from fragview.sites import plugin
 
 
 class HPC(plugin.HPC):
-    def run_sbatch(self, sbatch_script, sbatch_options=None):
+    def run_batch(self, sbatch_script, sbatch_options=None):
         if sbatch_options is not None:
             # not sure how this should be handled, TODO investigate
             raise NotImplementedError("sbatch options support")
@@ -12,3 +12,14 @@ class HPC(plugin.HPC):
 
         print(f"running on HKL8 '{cmd}'")
         subprocess.Popen(cmd, shell=True)
+
+    def new_batch_file(self, script_name):
+        return BatchFile(script_name)
+
+
+class BatchFile(plugin.BatchFile):
+    def load_python_env(self):
+        """
+        no need to add any new commands here, as python3 is always available
+        """
+        pass

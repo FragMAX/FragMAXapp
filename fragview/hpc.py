@@ -68,4 +68,4 @@ def jobs_list(logged_in_user):
 
 
 def run_sbatch(sbatch_script, sbatch_options=None):
-    SITE.get_hpc_runner().run_sbatch(sbatch_script, sbatch_options)
+    SITE.get_hpc_runner().run_batch(sbatch_script, sbatch_options)
