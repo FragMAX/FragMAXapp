@@ -108,7 +108,7 @@ class BatchFile:
         self._body = f"{self.HEADER}\n"
 
     def save(self):
-        from fragview.views.utils import write_script
+        from fragview.fileio import write_script
         write_script(self._filename, self._body)
 
     def load_python_env(self):
