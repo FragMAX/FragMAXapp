@@ -40,7 +40,7 @@ def ugly(request):
 def log_viewer(request):
     logFile = request.GET["logFile"]
     downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
-
+    clusters_png = None
     if path.exists(logFile):
         if path.splitext(logFile)[-1] == ".json" and "pandda" in logFile:
             clusters = path.join(path.dirname(logFile), "clustered-datasets", "dendrograms")
