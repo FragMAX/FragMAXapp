@@ -646,7 +646,7 @@ def analyse(request):
                 "fragview/pandda_analyse.html",
                 {
                     "opencmd": localcmd,
-                    "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
+                    "pandda_res": f"{panda_results_path}/{newestmethod}",
                     "proc_methods": proc_methods,
                     "Report": pandda_html,
                 },
@@ -661,7 +661,7 @@ def analyse(request):
                     "fragview/pandda_analyse.html",
                     {
                         "opencmd": localcmd,
-                        "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
+                        "pandda_res": f"{panda_results_path}/{newestmethod}",
                         "proc_methods": proc_methods,
                         "Report": a.replace(
                             "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
@@ -704,14 +704,23 @@ def analyse(request):
                 "fragview/pandda_analyse.html",
                 {
                     "opencmd": localcmd,
-                    "pandda_res": os.path.dirname(os.path.dirname(localcmd)),
+                    "pandda_res": f"{panda_results_path}/{method}",
                     "proc_methods": proc_methods,
                     "Report": pandda_html,
                 },
             )
         else:
             running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, "fragview/pandda_notready.html", {"Report": "<br>".join(running)})
+            return render(
+                request,
+                "fragview/pandda_analyse.html",
+                {
+                    "opencmd": "notready",
+                    "pandda_res": f"{panda_results_path}/{method}",
+                    "proc_methods": proc_methods,
+                    "Report": "noreport",
+                },
+            )
 
 
 def fix_pandda_symlinks(proj):
@@ -812,22 +821,24 @@ def submit(request):
         }
 
         res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
-        res_pandda = os.path.join(res_dir, "pandda")
-        if not options["reprocessing"] and path.exists(res_pandda):
-            shutil.rmtree(res_pandda)
-
-        if options["reprocessing"] and path.exists(res_dir):
-            shutil.rmtree(res_dir)
 
         methodshort = proc[:2] + ref[:2]
         if methodshort == "bebe":
             methodshort = "best"
         _write_main_script(proj, method, methodshort, options)
 
-        t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
-        t1.daemon = True
-        t1.start()
-
+        if not options["reprocessZmap"] and path.exists(res_dir):
+            shutil.rmtree(res_dir)
+            t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
+            t1.daemon = True
+            t1.start()
+        elif options["reprocessZmap"]:
+            script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
+            hpc.run_sbatch(script)
+        else:
+            t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
+            t1.daemon = True
+            t1.start()
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
 
 
@@ -841,7 +852,12 @@ def _write_main_script(proj, method, methodshort, options):
     pandda_script = project_script(proj, PANDDA_WORKER)
     pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
     giant_cluster = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"
-    pandda_cluster = f"{giant_cluster} {pandda_method_dir}/*/final.pdb pdb_label=foldername"
+    if options["reprocessZmap"]:
+        pandda_cluster = ""
+        # reset_pandda_res_dir = f"mv {pandda_method_dir}/pandda {pandda_method_dir}/pandda_old"
+    else:
+        pandda_cluster = f"{giant_cluster} {pandda_method_dir}/*/final.pdb pdb_label=foldername"
+        # reset_pandda_res_dir = ""
     fixsymlink1 = (
         "cd "
         + proj.data_path()
@@ -883,6 +899,7 @@ python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 rm -rf "$WORK_DIR"
 """
     else:
+
         body = f"""#!/bin/bash
 #!/bin/bash
 #SBATCH -t 99:00:00
@@ -899,11 +916,13 @@ cd {pandda_method_dir}
 module purge
 module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
 {pandda_cluster}
+
 python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
 
 chmod -R 777 {proj.data_path()}/fragmax/results/pandda/
 {fixsymlink1}
 {fixsymlink2}"""
+
     utils.write_script(script, body)
 
 
@@ -916,9 +935,8 @@ def giant_score(proj, method):
     header += """#!/bin/bash\n"""
     header += """#SBATCH -t 00:05:00\n"""
     header += """#SBATCH -J GiantScore\n"""
-    header += """#SBATCH --nice=25\n"""
     header += """#SBATCH --cpus-per-task=1\n"""
-    header += """#SBATCH --mem=2500\n"""
+    header += """#SBATCH --mem=5000\n"""
     header += """sleep 15000\n"""
 
     script = project_script(proj, "giant_holder.sh")
@@ -931,7 +949,6 @@ def giant_score(proj, method):
     header += """#!/bin/bash\n"""
     header += """#SBATCH -t 02:00:00\n"""
     header += """#SBATCH -J """ + jname + """\n"""
-    header += """#SBATCH --nice=25\n"""
     header += """#SBATCH --cpus-per-task=2\n"""
     header += """#SBATCH --mem=5000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.out\n"""
@@ -951,7 +968,7 @@ def giant_score(proj, method):
     header += """#SBATCH -J """ + jname + """\n"""
     header += """#SBATCH --nice=25\n"""
     header += """#SBATCH --cpus-per-task=1\n"""
-    header += """#SBATCH --mem=2500\n"""
+    header += """#SBATCH --mem=5000\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_err.txt\n\n"""
     header += """module purge\n"""
@@ -1076,7 +1093,7 @@ def pandda_worker(proj, method, options, cifMethod):
             hklin = pdb.replace(".pdb", ".mtz")
             resHigh, freeRflag, fsigf_Flag = _read_mtz_file(proj, hklin)
             script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod)
-
+            time.sleep(0.1)
             hpc.run_sbatch(script)
             # os.remove(script)
 
@@ -1097,6 +1114,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         mtz = path.join(path.dirname(pdb), "refine.mtz")
     else:
         mtz = path.join(path.dirname(pdb), "final.mtz")
+
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
@@ -1112,7 +1130,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         frag_pdb = path.join(fragments_path, f"{frag}.pdb")
         smiles = lib.get_fragment(frag).smiles
         if cifMethod == "elbow":
-            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag}\n"
+            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag} --opt\n"
             clear_tmp_cmd = ""
         elif cifMethod == "acedrg":
             cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
@@ -1123,14 +1141,13 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
         if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
             copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
-
-    body = f"""#!/bin/bash
+    if proj.encrypted:
+        body = f"""#!/bin/bash
 #!/bin/bash
 #SBATCH -t 00:15:00
 #SBATCH -J PnD{rn}
-#SBATCH --nice=25
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=2500
+#SBATCH --mem=5000
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
 module purge
@@ -1162,10 +1179,55 @@ phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_
 mv final.mtz final_original.mtz
 mv final_map_coeffs.mtz final.mtz
 
+rm -rf $DEST_DIR
 mkdir -p $DEST_DIR
 {crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
 
 rm -rf $WORK_DIR
+rm $HOME/final.log*
+rm $HOME/slurm*.out
+
+"""
+    else:
+        print("not encrypted")
+        body = f"""#!/bin/bash
+#!/bin/bash
+#SBATCH -t 00:15:00
+#SBATCH -J PnD{rn}
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=5000
+#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
+#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
+module purge
+module load gopresto Phenix CCP4 BUSTER/20190607-3-PReSTO
+
+
+DEST_DIR="{output_dir}"
+WORK_DIR=$DEST_DIR
+rm -rf $DEST_DIR
+mkdir -p $DEST_DIR
+cd $DEST_DIR
+cp {pdb} $DEST_DIR/final.pdb
+cp {mtz} $DEST_DIR/final.mtz
+
+{copy_frags_cmd}
+
+module purge
+module load gopresto CCP4 Phenix
+
+echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
+    cad hklin1 $DEST_DIR/final.mtz hklout $DEST_DIR/final.mtz
+
+uniqueify -f {freeRflag} $DEST_DIR/final.mtz $DEST_DIR/final.mtz
+
+echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
+    freerflag hklin $DEST_DIR/final.mtz hklout $DEST_DIR/final_rfill.mtz
+
+phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
+mv $DEST_DIR/final.mtz $DEST_DIR/final_original.mtz
+mv $DEST_DIR/final_map_coeffs.mtz $DEST_DIR/final.mtz
+rm $HOME/final.log*
+rm $HOME/slurm*.out
 """
 
     script = project_script(proj, script)

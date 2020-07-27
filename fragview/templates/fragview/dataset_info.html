@@ -292,7 +292,7 @@
             {% endif %}
             {% if fastdpOK == "ready" %}
             <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1">Fastdp</button>
+                <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1">FastDP</button>
             </form>
             {% endif %}
             {% if ednaOK == "ready" %}
@@ -324,7 +324,7 @@
                         <td class="resultsHeader" style="height: 60px;"></td>
                         <td class="resultsHeader">autoPROC</td>
                         <td class="resultsHeader">EDNA_proc</td>
-                        <td class="resultsHeader">fastdp</td>
+                        <td class="resultsHeader">FastDP</td>
                         <td class="resultsHeader">XDSAPP</td>
                         <td class="resultsHeader">XIA2/DIALS</td>
                         <td class="resultsHeader">XIA2/XDS</td>
@@ -385,7 +385,7 @@
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">R_meas [%]</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">R_meas</td>
                         {% for inner, outter in rmeas_list %}
                         <td style="text-align:center">{{inner}} {{outter}}</td>
                         {% endfor %}
@@ -398,14 +398,15 @@
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson) [A^2]
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson)
+                            [A<sup>2</sup>]
                         </td>
                         {% for value in WilsonB_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [deg]
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [°]
                         </td>
                         {% for value in mosaicity_list %}
                         <td style="text-align:center">{{value}}</td>
@@ -434,8 +435,8 @@
                             <td class="resultsHeader">Data set</td>
                             <td class="resultsHeader">Space group</td>
                             <td class="resultsHeader">Res. [&Aring;]</td>
-                            <td class="resultsHeader">R<sub>work</sub> [%]</td>
-                            <td class="resultsHeader">R<sub>free</sub> [%]</td>
+                            <td class="resultsHeader">R<sub>work</sub> </td>
+                            <td class="resultsHeader">R<sub>free</sub> </td>
                             <td class="resultsHeader">RMS bonds [&Aring;]</td>
                             <td class="resultsHeader">RMS angles [&deg;]</td>
                             <td class="resultsHeader">a</td>

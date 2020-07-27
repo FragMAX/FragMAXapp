@@ -2,6 +2,8 @@ from os import path
 import queue
 import shutil
 import threading
+import time
+
 # import subprocess
 from fragview import hpc
 
@@ -49,6 +51,7 @@ def _worker(work_queue, dest_dir):
         while True:
             smiles, frags = work_queue.get_nowait()
             _run_elbow(smiles, frags, dest_dir)
+            time.sleep(0.1)
     except queue.Empty:
         # no more fragments to process
         pass

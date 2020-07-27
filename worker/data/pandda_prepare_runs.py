@@ -21,7 +21,14 @@ def str2bool(v):
 def dataset_exists(dataset_list):
     datasets = dataset_list.split(",")
 
-    existing_datasets = [dataset for dataset in datasets if os.path.exists(path + "/" + dataset)]
+    def mtz_e(dataset):
+        return os.path.exists(path + "/" + dataset + "/final.mtz")
+
+    def pdb_e(dataset):
+        return os.path.exists(path + "/" + dataset + "/final.pdb")
+
+    existing_datasets = [dataset for dataset in datasets if all([pdb_e(dataset), mtz_e(dataset)])]
+
     return ",".join(existing_datasets)
 
 
@@ -61,7 +68,7 @@ def ground_state_entries(options):
         if len(logs) > 0:
             lastlog = sorted(logs)[-1]
             print(lastlog)
-            with open(lastlog, "r", encoding="utf-8") as logfile:
+            with open(lastlog, "r") as logfile:
                 log = logfile.readlines()
             for line in log:
                 if "Writing PanDDA End-of-Analysis Summary":
@@ -70,10 +77,11 @@ def ground_state_entries(options):
                         events = [x for x in events][1:]
                     noZmap = [x[0] for x in events]
                     alldts = [x.split("/")[-1] for x in glob(path + "/" + protein + "*")]
-                    newGroundStates = ",".join(list(set(alldts) - set(noZmap)))
+                    newGroundStates = dataset_exists(",".join(list(set(alldts) - set(noZmap))))
             ground_state_parameter = "ground_state_datasets='" + newGroundStates + "'"
         else:
             ground_state_parameter = ""
+        shutil.move(path + "/pandda", path + "/pandda_old")
     else:
         ground_state_parameter = ""
     return ground_state_parameter
@@ -122,6 +130,7 @@ def pandda_run(method, options):
         + str(options["min_datasets"])
         + " cpus="
         + str(options["nproc"])
+        + " recalculate_statistical_maps=yes"
     )
 
     print(command)
