@@ -51,12 +51,31 @@
     max-width: 100% !important;
     width: calc(100% - 350px) !important;
   }
+
+  .dendrograms {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dendrograms img {
+    max-width: 100%;
+  }
 </style>
 {% if not downloadPath == "" %}
 Log file - <a href="{{downloadPath}}"> {{dataset}} </a>
 {% endif %}
 <div class="log">
-
+  {% if clusters_png %}
+  <div class="card dendrograms">
+    {% for key,value in clusters_png.items %}
+    <figure>
+      <img src="{{value}}">
+      <figcaption>{{key}}</figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% if filetype == "json" %}
 
   <div class="card">

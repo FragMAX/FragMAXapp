@@ -40,9 +40,15 @@ def ugly(request):
 def log_viewer(request):
     logFile = request.GET["logFile"]
     downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
-
+    clusters_png = None
     if path.exists(logFile):
-        if path.splitext(logFile)[-1] == ".json":
+        if path.splitext(logFile)[-1] == ".json" and "pandda" in logFile:
+            clusters = path.join(path.dirname(logFile), "clustered-datasets", "dendrograms")
+            clusters_png = {
+                path.splitext(path.basename(x))[0]: x.replace("/data/visitors", "/static")
+                for x in glob(f"{clusters}/*png")
+            }
+
             filetype = "json"
             with open(logFile, "r", encoding="utf-8") as r:
                 init_log = literal_eval(r.read())
@@ -58,11 +64,18 @@ def log_viewer(request):
         log = ""
         downloadPath = ""
         filetype = ""
+        clusters_png = None
 
     return render(
         request,
         "fragview/log_viewer.html",
-        {"log": log, "dataset": logFile, "downloadPath": downloadPath, "filetype": filetype},
+        {
+            "log": log,
+            "dataset": logFile,
+            "downloadPath": downloadPath,
+            "filetype": filetype,
+            "clusters_png": clusters_png,
+        },
     )
 
 
