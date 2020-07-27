@@ -1,8 +1,8 @@
 from fragview.views.utils import write_script
 from fragview.projects import (
     project_script,
-    project_raw_master_h5_files,
     project_scripts_dir,
+    project_datasets,
     UPDATE_STATUS_SCRIPT,
 )
 from fragview import hpc
@@ -19,8 +19,8 @@ cd {project_scripts_dir(proj)}
 
 """
 
-    for h5 in project_raw_master_h5_files(proj):
-        dataset, run = h5.split("/")[-1][:-10].split("_")
+    for dset in project_datasets(proj):
+        dataset, run = dset.rsplit("_")
         body += f"python3 ./{UPDATE_STATUS_SCRIPT} {proj.data_path()} {dataset} {run}\n"
 
     script = project_script(proj, "update_status.sh")
