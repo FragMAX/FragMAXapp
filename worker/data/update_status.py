@@ -1,14 +1,10 @@
+import argparse
 from glob import glob
 from os import path
 import csv
-import sys
-
-dataset, run = sys.argv[1].split("_")
-proposal, shift = sys.argv[2].split("/")
-protein = dataset.split("-")[0]
 
 
-def get_dataset_status(proposal, shift, protein, dataset, run):
+def get_dataset_status(project_dir, protein, dataset, run):
     print(dataset + "\n")
     dp_status = dict(
         autoproc="none",
@@ -18,19 +14,27 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         xdsapp="none",
         xdsxscale="none")
 
+    dataset_run = f"{dataset}_{run}"
+    dset_proc_dir = path.join(project_dir, "fragmax", "process", protein, dataset, dataset_run)
+    dset_results_dir = path.join(project_dir, "fragmax", "results", dataset_run)
+
     # Find XIA2/dials
-    dp_dials = [f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/dials"]
+    dp_dials = [path.join(dset_proc_dir, "dials")]
+
     # Find XIA2/xds
-    dp_xdsxscale = [
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/xdsxscale"]
+    dp_xdsxscale = [path.join(dset_proc_dir, "xdsxscale")]
+
     # Find autoPROC
-    dp_ap = [f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/autoproc"]
+    dp_ap = [path.join(dset_proc_dir, "autoproc")]
+
     # Find XDSAPP
-    dp_xdsapp = [f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/xdsapp"]
+    dp_xdsapp = [path.join(dset_proc_dir, "xdsapp")]
+
     # Find EDNA_proc
-    dp_edna = [f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/edna"]
+    dp_edna = [path.join(dset_proc_dir, "edna")]
+
     # Find fastdp
-    dp_fastdp = [f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/{dataset}/{dataset}_{run}/fastdp"]
+    dp_fastdp = [path.join(dset_proc_dir, "fastdp")]
 
     all_dp_logs = dp_dials + dp_xdsxscale + dp_ap + dp_xdsapp + dp_edna + dp_fastdp
     dp_state = [get_status_dp(x) for x in all_dp_logs]
@@ -41,8 +45,7 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
             dp_status[proc] = status
 
     # REFINEMENT
-    rf_folders = [x for x in glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/")
-                  if "pipedream" not in x]
+    rf_folders = [x for x in glob(f"{dset_results_dir}/*/*/") if "pipedream" not in x]
 
     rf_state = [get_status_ref(x) for x in rf_folders]
     rf_status = dict(
@@ -75,7 +78,8 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     rf_status_simple = {k[0].split("_")[-1]: k[1] for k in order_rf}
 
     # LIGAND FITTING
-    lg_folders = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/*/*/*fit/")
+    lg_folders = glob(f"{dset_results_dir}/*/*/*fit/")
+
     lg_state = [get_status_lig(x) for x in lg_folders]
     lg_status = dict(
         xdsapp_dimple_ligfit="none",
@@ -115,6 +119,7 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
         fastdp_buster_ligfit="none",
         fastdp_buster_rhofit="none"
     )
+
     for entry in lg_state:
         if entry is not None:
             proc, status = entry.split("/")
@@ -124,12 +129,9 @@ def get_dataset_status(proposal, shift, protein, dataset, run):
     order_lg = sorted(lg_status.items(), key=lambda pair: a_list.index(pair[1]), reverse=True)
     lg_status_simple = {k[0].split("_")[-1]: k[1] for k in order_lg}
 
-    # print(lg_status)
-    ppd_proc = glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/process*/summary.html")
-    ppd_ref = glob(
-        f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/BUSTER_model.pdb")
-    ppd_lig = glob(f"/data/visitors/biomax/{proposal}/{shift}/fragmax/results/{dataset}_{run}/pipedream/*/best.pdb")
+    ppd_proc = glob(f"{dset_results_dir}/pipedream/process*/summary.html")
+    ppd_ref = glob(f"{dset_results_dir}/pipedream/*/BUSTER_model.pdb")
+    ppd_lig = glob(f"{dset_results_dir}/pipedream/*/best.pdb")
 
     ppd_status = get_status_pipedream(ppd_proc, ppd_ref, ppd_lig)
     d4 = dict(dp_status, **rf_status_simple, **lg_status_simple, **ppd_status)
@@ -266,40 +268,59 @@ def get_status_lig(folder):
         return "_".join(folder.split("fragmax")[-1].split("/")[3:6]).lower() + "/none"
 
 
-def update_all_status_csv(proposal, shift, protein, statusDict, dataset, run):
-    allcsv = f"/data/visitors/biomax/{proposal}/{shift}/fragmax/process/{protein}/allstatus.csv"
+def update_all_status_csv(project_dir, protein, dataset, run, statusDict):
+    def _write_csv():
+        with open(allcsv, "w") as writeFile:
+            writer = csv.writer(writeFile)
+            writer.writerows(csvfile)
+
+    allcsv = path.join(project_dir, "fragmax", "process", protein, "allstatus.csv")
+
+    dataset_run = f"{dataset}_{run}"
 
     with open(allcsv, "r") as readFile:
         csvfile = list(csv.reader(readFile))
     csvfile = [x for x in csvfile if len(x) == 15]
+
     # Get index of the dataset to be updated
     dataset_names = [row[0] for row in csvfile if len(row) > 10]
 
     for row in csvfile:
         if len(row) > 10:
-            if row[0] == dataset + "_" + run:
+            if row[0] == dataset_run:
                 row_to_change = csvfile.index(row)
                 # Create the list with new values for process, refine, ligfit status
                 # and update the csv file
                 updated_value = [dataset + "_" + run] + list(statusDict.values())
                 csvfile[row_to_change] = updated_value
                 # write the new csv file with updated values
-                with open(allcsv, "w") as writeFile:
-                    writer = csv.writer(writeFile)
-                    writer.writerows(csvfile)
-    if f"{dataset}_{run}" not in dataset_names and \
-            path.exists(f"/data/visitors/biomax/{proposal}/{shift}/fragmax"
-                        f"/process/{protein}/{dataset}/{dataset}_{run}"):
+                _write_csv()
+
+    dset_dir = path.join(project_dir, "fragmax", "process", protein, dataset, dataset_run)
+    if f"{dataset}_{run}" not in dataset_names and path.exists(dset_dir):
         updated_value = [dataset + "_" + run] + list(statusDict.values())
         csvfile.append(updated_value)
         print(updated_value)
         # write the new csv file with updated values
-        with open(allcsv, "w") as writeFile:
-            writer = csv.writer(writeFile)
-            writer.writerows(csvfile)
+        _write_csv()
 
 
-# Copy data from beamline auto processing to fragmax folders
+def parse_args():
+    parser = argparse.ArgumentParser(description="update datasets status")
+    parser.add_argument("project_dir")
+    parser.add_argument("dataset")
+    parser.add_argument("run")
 
-statusDict = get_dataset_status(proposal, shift, protein, dataset, run)
-update_all_status_csv(proposal, shift, protein, statusDict, dataset, run)
+    args = parser.parse_args()
+    protein = args.dataset.split("-")[0]
+
+    return args.project_dir, protein, args.dataset, args.run
+
+
+def main():
+    project_dir, protein, dataset, run = parse_args()
+    status = get_dataset_status(project_dir, protein, dataset, run)
+    update_all_status_csv(project_dir, protein, dataset, run, status)
+
+
+main()
