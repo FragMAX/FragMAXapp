@@ -15,8 +15,8 @@ from random import randint
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
-from fragview.views import utils, crypt_shell
-from fragview.fileio import open_proj_file, read_text_lines, read_proj_file
+from fragview.views import crypt_shell
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
 from worker.scripts import read_mtz_flags_path
@@ -896,7 +896,7 @@ chmod -R 777 {proj.data_path()}/fragmax/results/pandda/
 {fixsymlink1}
 {fixsymlink2}"""
 
-    utils.write_script(script, body)
+    write_script(script, body)
 
 
 def giant_score(proj, method):
@@ -913,7 +913,7 @@ def giant_score(proj, method):
     header += """sleep 15000\n"""
 
     script = project_script(proj, "giant_holder.sh")
-    utils.write_script(script, header)
+    write_script(script, header)
     hpc.run_sbatch(script)
 
     rn = str(randint(10000, 99999))
@@ -932,7 +932,7 @@ def giant_score(proj, method):
     panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
 
     export_script = project_script(proj, "pandda-export.sh")
-    utils.write_script(export_script, header + panddaExport)
+    write_script(export_script, header + panddaExport)
     hpc.frontend_run(export_script)
 
     header = """#!/bin/bash\n"""
@@ -982,7 +982,7 @@ def giant_score(proj, method):
                 make_restraints = ""
                 quick_refine = ""
         script = project_script(proj, f"giant_pandda_{frag}.sh")
-        utils.write_script(script, f"{header}\n" f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
+        write_script(script, f"{header}\n" f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
 
         line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.05"
@@ -990,7 +990,7 @@ def giant_score(proj, method):
     pandda_score_script = project_script(proj, "pandda-score.sh")
     giant_worker_script = project_script(proj, "giant_worker.sh")
 
-    utils.write_script(
+    write_script(
         giant_worker_script, f"{line}\n\n" f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}"
     )
 
@@ -1022,7 +1022,7 @@ def giant_score(proj, method):
         f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
     )
 
-    utils.write_script(pandda_score_script, f"{header}{body}{scorecmd}")
+    write_script(pandda_score_script, f"{header}{body}{scorecmd}")
 
     hpc.frontend_run(giant_worker_script)
 
@@ -1204,7 +1204,7 @@ rm $HOME/slurm*.out
 """
 
     script = project_script(proj, script)
-    utils.write_script(script, body)
+    write_script(script, body)
 
     return script
 

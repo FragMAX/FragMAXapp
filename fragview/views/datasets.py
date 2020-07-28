@@ -3,16 +3,16 @@ import csv
 from os import path
 from glob import glob
 import pyfastcopy  # noqa
-import itertools
 
 from django.shortcuts import render
 
-from fragview.projects import project_all_status_file, project_process_protein_dir, project_script
+from fragview.projects import project_all_status_file, project_process_protein_dir
 from fragview.projects import current_project, project_results_file
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview.views.misc import perc2float
-from fragview import hpc, versions
+from fragview.status import run_update_status
+from fragview.sites import SITE
 
 
 def set_details(request):
@@ -189,17 +189,7 @@ def set_details(request):
     for n, line in enumerate(lines):
         if len(line) == 23:
             lines[n].append("")
-    # beamline parameters
-    BL_site = f"{versions.BL_site}"
-    BL_name = f"{versions.BL_name}"
-    BL_detector = f"{versions.BL_detector}"
-    BL_detector_type = f"{versions.BL_detector_type}"
-    BL_detector_pixel_size = f"{versions.BL_detector_pixel_size}"
-    BL_focusing_optics = f"{versions.BL_focusing_optics}"
-    BL_monochrom_type = f"{versions.BL_monochrom_type}"
-    BL_beam_shape = f"{versions.BL_beam_shape}"
-    BL_beam_divergence = f"{versions.BL_beam_divergence}"
-    BL_polarisation = f"{versions.BL_polarisation}"
+
     return render(request, "fragview/dataset_info.html", {
         "csvfile": lines,
         "shift": curp.split("/")[-1],
@@ -234,16 +224,8 @@ def set_details(request):
         "xdsappLogs": xdsappLogs,
         "xdsLogs": xdsLogs,
         "dialsLogs": dialsLogs,
-        "BL_site": BL_site,
-        "BL_name": BL_name,
-        "BL_detector": BL_detector,
-        "BL_detector_type": BL_detector_type,
-        "BL_detector_pixel_size": BL_detector_pixel_size,
-        "BL_focusing_optics": BL_focusing_optics,
-        "BL_monochrom_type": BL_monochrom_type,
-        "BL_beam_shape": BL_beam_shape,
-        "BL_beam_divergence": BL_beam_divergence,
-        "BL_polarisation": BL_polarisation,
+        "site": SITE,
+        "beamline": SITE.get_beamline_info(),
         "spg_list": spg_list,
         "unique_rflns_list": unique_rflns_list,
         "total_observations_list": total_observations_list,
@@ -272,7 +254,7 @@ def show_all(request):
     resyncStatus = str(request.GET.get("resyncstButton"))
 
     if "resyncStatus" in resyncStatus:
-        resync_status_project(proj)
+        run_update_status(proj)
 
     with open(project_data_collections_file(proj), "r") as readFile:
         reader = csv.reader(readFile)
@@ -504,7 +486,7 @@ def show_all(request):
                     lge += "</td>"
                     lgentry.append(lge)
                 except IndexError:
-                    resync_status_project(proj)
+                    run_update_status(proj)
                     raise
         else:
             for i in prf_list:
@@ -565,26 +547,6 @@ def proc_report(request):
         report = "<br>".join(report)
 
     return render(request, "fragview/procReport.html", {"reportHTML": report, "method": method})
-
-
-def resync_status_project(proj):
-    # Copy data from beamline auto processing to fragmax folders
-    h5s = list(itertools.chain(
-        *[glob(f"/data/visitors/biomax/{proj.proposal}/{p}/raw/{proj.protein}/{proj.protein}*/{proj.protein}*master.h5")
-          for p in proj.shifts()]))
-
-    script = project_script(proj, f"update_status.sh")
-    pyscript = project_script(proj, f"update_status.py")
-    with open(script, "w") as outfile:
-        outfile.write("#!/bin/bash\n")
-        outfile.write("#!/bin/bash\n")
-        outfile.write("module purge\n")
-        outfile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
-        for h5 in h5s:
-            dataset, run = (h5.split("/")[-1][:-10].split("_"))
-            outfile.write(
-                f"python3 {pyscript} {dataset}_{run} {proj.proposal}/{proj.shift}\n")
-    hpc.run_sbatch(script)
 
 
 def parse_aimless(pplog):

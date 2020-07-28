@@ -5,6 +5,7 @@ from django import test
 from django.conf import settings
 from fragview.models import User
 from fragview import auth
+from fragview.auth import ispyb
 
 ISPYB_ERR_MSG = \
     "JBAS011843: Failed instantiate InitialContextFactory com.sun.jndi.ldap.LdapCtxFactory " \
@@ -22,15 +23,15 @@ class TestExpectedErrMsgFunc(unittest.TestCase):
     test auth._expected_ispyb_err_msg()
     """
     def test_unexpected_message(self):
-        self.assertFalse(auth._expected_ispyb_err_msg("oranges and apples"))
+        self.assertFalse(ispyb._expected_ispyb_err_msg("oranges and apples"))
 
     def test_expected_message(self):
-        self.assertTrue(auth._expected_ispyb_err_msg(ISPYB_ERR_MSG))
+        self.assertTrue(ispyb._expected_ispyb_err_msg(ISPYB_ERR_MSG))
 
 
 class TestCheckIspybErrorMessageFunc(unittest.TestCase):
     """
-    test auth._check_ispyb_error_message()
+    test _check_ispyb_error_message()
     """
     @patch("logging.warning")
     def test_unexpected_message(self, log_wrn_mock):
@@ -39,7 +40,7 @@ class TestCheckIspybErrorMessageFunc(unittest.TestCase):
         response.reason = "OK"
         response.text = "orange"
 
-        auth._check_ispyb_error_message(response)
+        ispyb._check_ispyb_error_message(response)
         log_wrn_mock.assert_called_once_with(
             "unexpected response from ISPyB\n200 OK\norange")
 
@@ -48,7 +49,7 @@ class TestCheckIspybErrorMessageFunc(unittest.TestCase):
         response = Mock()
         response.text = ISPYB_ERR_MSG
 
-        auth._check_ispyb_error_message(response)
+        ispyb._check_ispyb_error_message(response)
         log_wrn_mock.assert_not_called()
 
 
@@ -65,7 +66,7 @@ class TestIspubAuthenticateFunc(unittest.TestCase):
         response.json.return_value = dict(token=TOKEN)
 
         with patch("requests.post", Mock(return_value=response)) as post:
-            token = auth._ispyb_authenticate(self.HOST, self.SITE, USER, PASS)
+            token = ispyb._ispyb_authenticate(self.HOST, self.SITE, USER, PASS)
             self.assertEqual(token, TOKEN)
 
             post.assert_called_once_with(
@@ -79,7 +80,7 @@ class TestIspubAuthenticateFunc(unittest.TestCase):
         response.json.side_effect = JSONDecodeError("", "", 0)
 
         with patch("requests.post", Mock(return_value=response)) as post:
-            token = auth._ispyb_authenticate(self.HOST, self.SITE, USER, PASS)
+            token = ispyb._ispyb_authenticate(self.HOST, self.SITE, USER, PASS)
             self.assertIsNone(token)
 
             post.assert_called_once_with(
@@ -90,7 +91,7 @@ class TestIspubAuthenticateFunc(unittest.TestCase):
 
 class TestGetMXProposalsFunc(unittest.TestCase):
     """
-    test auth._get_mx_proposals()
+    test _get_mx_proposals()
     """
     def test_mixed(self):
         props = [
@@ -122,7 +123,7 @@ class TestGetMXProposalsFunc(unittest.TestCase):
                                "New Possibilities for Control of Vector Borne Diseases"},
         ]
 
-        prop_nums = auth._get_mx_proposals(props)
+        prop_nums = ispyb._get_mx_proposals(props)
         self.assertListEqual(prop_nums, ["20170044", "20170049", "20170050"])
 
     def test_only_mx(self):
@@ -141,20 +142,20 @@ class TestGetMXProposalsFunc(unittest.TestCase):
              "Proposal_title": "Rubisco activase"},
         ]
 
-        prop_nums = auth._get_mx_proposals(props)
+        prop_nums = ispyb._get_mx_proposals(props)
         self.assertListEqual(prop_nums, ["20180008", "20170103"])
 
     def test_empty(self):
         """
         test the case when we get an empty list from ISPyB
         """
-        prop_nums = auth._get_mx_proposals([])
+        prop_nums = ispyb._get_mx_proposals([])
         self.assertListEqual(prop_nums, [])
 
 
 class TestIspybGetProposals(unittest.TestCase):
     """
-    test auth._ispyb_get_proposals()
+    test _ispyb_get_proposals()
     """
     def test_happy_path(self):
         """
@@ -169,7 +170,7 @@ class TestIspybGetProposals(unittest.TestCase):
         get_mock.return_value = resp_mock
 
         with patch("requests.get", get_mock):
-            props = auth._ispyb_get_proposals("host", "token")
+            props = ispyb._ispyb_get_proposals("host", "token")
 
         self.assertListEqual(props, ["20170103"])
         get_mock.assert_called_once_with("https://host/ispyb/ispyb-ws/rest/token/proposal/list")
@@ -186,7 +187,7 @@ class TestIspybGetProposals(unittest.TestCase):
 
             self.assertRaisesRegex(
                 Exception, "500 test",
-                lambda: auth._ispyb_get_proposals("host", "token"))
+                lambda: ispyb._ispyb_get_proposals("host", "token"))
 
     def test_json_decode_error(self):
         """
@@ -200,7 +201,7 @@ class TestIspybGetProposals(unittest.TestCase):
 
             self.assertRaisesRegex(
                 Exception, ".*invalid json reply",
-                lambda: auth._ispyb_get_proposals("host", "token"))
+                lambda: ispyb._ispyb_get_proposals("host", "token"))
 
 
 class TestISPyBBackendInvalidCreds(unittest.TestCase):
@@ -208,7 +209,7 @@ class TestISPyBBackendInvalidCreds(unittest.TestCase):
         backend = auth.ISPyBBackend()
 
         auth_mock = Mock(return_value=None)
-        with patch("fragview.auth._ispyb_authenticate", auth_mock):
+        with patch("fragview.auth.ispyb._ispyb_authenticate", auth_mock):
             user_obj = backend.authenticate(None, "usrn", "passd")
             self.assertIsNone(user_obj)
 
@@ -231,8 +232,8 @@ class TestISPyBBackendAuthenticate(test.TestCase):
     def _assert_proposals(self):
         self.assertListEqual(PROPOSALS, self.request_mock.session["proposals"])
 
-    @patch("fragview.auth._ispyb_authenticate")
-    @patch("fragview.auth._ispyb_get_proposals")
+    @patch("fragview.auth.ispyb._ispyb_authenticate")
+    @patch("fragview.auth.ispyb._ispyb_get_proposals")
     def test_first_time_valid(self, ispyb_get_props_mock, ispyb_auth_mock):
         # check that user does not exist in the database
         self.assertFalse(User.objects.filter(username=USER).exists())
@@ -255,8 +256,8 @@ class TestISPyBBackendAuthenticate(test.TestCase):
         # check sessions proposals list
         self._assert_proposals()
 
-    @patch("fragview.auth._ispyb_authenticate")
-    @patch("fragview.auth._ispyb_get_proposals")
+    @patch("fragview.auth.ispyb._ispyb_authenticate")
+    @patch("fragview.auth.ispyb._ispyb_get_proposals")
     def test_existing_user_login(self, ispyb_get_props_mock, ispyb_auth_mock):
         # add test user to the database
         User(username=USER).save()

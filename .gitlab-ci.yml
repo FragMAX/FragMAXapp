@@ -5,6 +5,7 @@ run_tests:
     - conda env create -f environment.yml
     - source activate FragMAX
     - conda install flake8
+    - cp deploy/local_site.py-maxiv local_site.py
   script:
     - ./manage.py test
     - flake8

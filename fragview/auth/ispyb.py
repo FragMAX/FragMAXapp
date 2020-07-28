@@ -13,12 +13,14 @@ Where:
   ISPYB_AUTH_SITE the site name to use in the authentication queries, e.g. 'MAXIV'
 """
 
+
 import logging
 import requests
 from json.decoder import JSONDecodeError
 from django.conf import settings
 from fragview.models import User
-from .proposals import set_proposals
+from fragview.proposals import set_proposals
+from fragview.auth.utils import AuthBackend
 
 
 def _expected_ispyb_err_msg(error_msg):
@@ -98,7 +100,7 @@ def _ispyb_get_proposals(auth_host, token):
     return _get_mx_proposals(props_data)
 
 
-class ISPyBBackend:
+class ISPyBBackend(AuthBackend):
     """
     Check the username and password against ISPyB system.
     On first successfully login, creates an entry for the account in the local
@@ -135,9 +137,3 @@ class ISPyBBackend:
         set_proposals(request, proposals)
 
         return self._get_user_obj(username)
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None

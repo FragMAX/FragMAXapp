@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from fragview.sites import SITE
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'fragview.context_processors.site',
                 'fragview.context_processors.projects',
                 'fragview.context_processors.active_menu',
             ],
@@ -110,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    "fragview.auth.ISPyBBackend"
+    SITE.AUTH_BACKEND
 ]
 
 OPEN_URLS = ["/crypt/"]
@@ -120,9 +122,6 @@ ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"
 ISPYB_AUTH_SITE = "MAXIV"
 
 AUTH_USER_MODEL = "fragview.User"
-
-# root path to where proposals data is stored
-PROPOSALS_DIR = "/data/visitors/biomax"
 
 # after login, when no 'next' url is known, goto the 'front' page
 LOGIN_REDIRECT_URL = "/"

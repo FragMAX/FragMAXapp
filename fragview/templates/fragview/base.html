@@ -255,11 +255,13 @@
             {% endif %}
             {% endifequal %}
 
+            {% if not disabled.soaking_plan %}
             <li>
                 <a href="/soaking_plan" class="collapsible-header sidenav-links" data-turbolinks="false">
                     Soaking Planner<i class="material-icons" style="font-size:22px;color:white">format_color_fill</i>
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="/datasets" class="collapsible-header sidenav-links" data-turbolinks="false">
                     Home<i class="material-icons" style="font-size:22px;color:white">home</i>
@@ -312,11 +314,13 @@
                 </a>
             </li>
 
+            {% if not disabled.download %}
             <li>
                 <a href="/download" class="collapsible-header sidenav-links" data-turbolinks="false">
                     Download<i class="material-icons" style="font-size:22px;color:white">cloud_download</i>
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="/download_options" class="collapsible-header sidenav-links" data-turbolinks="false">
                     PDB export tool<i class="material-icons" style="font-size:22px;color:white">cloud_upload</i>
@@ -333,7 +337,7 @@
                 </a>
             </li>
 
-            <img src="/static/userPics/bl_site.png" width="190px"
+            <img src="/static/logos/{{site_logo}}" width="190px"
                 style="padding-left:60px; position: absolute;bottom: 30px;">
 
             <div class="ps__scrollbar-x-rail" style="left: 0px; bottom: 0px;">

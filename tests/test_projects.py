@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from django import test
 from fragview import projects
 from fragview.models import User, Project, Library
@@ -17,7 +17,9 @@ class TestFuncs(test.TestCase):
         """
         expected = f"^{TEST_PROPS_DIR}.*{self.PROPOSAL}$"
 
-        with self.settings(PROPOSALS_DIR=TEST_PROPS_DIR):
+        with patch("fragview.projects.SITE") as site:
+            site.PROPOSALS_DIR = TEST_PROPS_DIR
+
             res = projects.proposal_dir(self.PROPOSAL)
             self.assertRegex(res, expected)
 
@@ -27,7 +29,9 @@ class TestFuncs(test.TestCase):
         """
         expected = f"^{TEST_PROPS_DIR}.*{self.PROPOSAL}.*{self.SHIFT}$"
 
-        with self.settings(PROPOSALS_DIR=TEST_PROPS_DIR):
+        with patch("fragview.projects.SITE") as site:
+            site.PROPOSALS_DIR = TEST_PROPS_DIR
+
             res = projects.shift_dir(self.PROPOSAL, self.SHIFT)
             self.assertRegex(res, expected)
 
@@ -37,7 +41,9 @@ class TestFuncs(test.TestCase):
         """
         expected = f"^{TEST_PROPS_DIR}.*{self.PROPOSAL}.*{self.SHIFT}.*{self.PROTEIN}$"
 
-        with self.settings(PROPOSALS_DIR=TEST_PROPS_DIR):
+        with patch("fragview.projects.SITE") as site:
+            site.PROPOSALS_DIR = TEST_PROPS_DIR
+
             res = projects.protein_dir(self.PROPOSAL, self.SHIFT, self.PROTEIN)
             self.assertRegex(res, expected)
 

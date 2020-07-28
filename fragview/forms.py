@@ -2,7 +2,9 @@ import re
 from os import path
 from django import forms
 from fragview import projects, fraglib, encryption
-from .models import Project, EncryptionKey
+from fragview.models import Project, EncryptionKey
+from fragview.sites import SITE
+from fragview.sites.plugin import ProjectLayout
 
 
 class _ProcJobForm(forms.Form):
@@ -154,13 +156,6 @@ class RefineForm(_ProcJobForm):
         return self._get_field("runAimless")
 
 
-def _is_8_digits(str, subject="shift"):
-    if re.match("^\\d{8}$", str) is None:
-        raise forms.ValidationError(f"invalid {subject} '{str}', should be 8 digits")
-
-    return str
-
-
 class ProjectForm(forms.Form):
     model = None
 
@@ -169,20 +164,20 @@ class ProjectForm(forms.Form):
     # but not when modifying existing projects
     library_name = forms.CharField(required=False)
     fragments_file = forms.FileField(required=False)
-    proposal = forms.CharField()
-    shift_list = forms.CharField()
+    root = forms.CharField()
+    subdirs = forms.CharField(required=False)
     # set required=False for this field, as it's not always submitted when unchecked
     encrypted = forms.BooleanField(required=False)
 
     def __init__(self, data, files, model=None):
+        self.proj_layout = SITE.get_project_layout()
         self.model = model
         if data is None and model is not None:
             data = dict(
                 protein=model.protein,
                 library_name=model.library.name,
-                proposal=model.proposal,
-                shift=model.shift,
-                shift_list=model.shift_list,
+                root=model.proposal,
+                subdirs=model.shift_list,
                 encrypted=model.encrypted)
 
         super().__init__(data, files)
@@ -206,6 +201,26 @@ class ProjectForm(forms.Form):
     def clean_protein(self):
         return self._check_alphanumeric("protein")
 
+    def clean_root(self):
+        root = self.cleaned_data["root"].strip()
+
+        try:
+            self.proj_layout.check_root(root)
+        except ProjectLayout.ValidationError as e:
+            raise forms.ValidationError(str(e))
+
+        return root
+
+    def clean_subdirs(self):
+        subdirs = self.cleaned_data["subdirs"].strip()
+
+        try:
+            self.proj_layout.check_subdirs(subdirs)
+        except ProjectLayout.ValidationError as e:
+            raise forms.ValidationError(str(e))
+
+        return subdirs
+
     def clean_library_name(self):
         if self.model:
             # at the moment, the library name can't be modified
@@ -213,17 +228,6 @@ class ProjectForm(forms.Form):
             return
 
         return self._check_alphanumeric("library_name")
-
-    def clean_proposal(self):
-        return _is_8_digits(self.cleaned_data["proposal"], "proposal")
-
-    def clean_shift_list(self):
-        shift_list = self.cleaned_data["shift_list"].strip()
-
-        for shift in shift_list.split(","):
-            _is_8_digits(shift)
-
-        return shift_list
 
     def _validate_library(self):
         # make sure fragments specification file was provided
@@ -242,26 +246,31 @@ class ProjectForm(forms.Form):
 
         return {}
 
-    def _validate_shift_list(self, proposal):
-        shift_list = self.cleaned_data["shift_list"].strip()
+    def _validate_root(self, root, protein):
+        if not path.isdir(projects.protein_dir(root, '', protein)):
+            return dict(root=f"proposal '{root}' have no data for protein '{protein}'")
 
-        protein = self.cleaned_data["protein"]
+        # root directory looks good
+        return {}
 
-        shifts = shift_list.split(",")
+    def _validate_subdirs(self, root, protein):
+        subdirs = self.cleaned_data["subdirs"].strip()
+
+        shifts = subdirs.split(",")
         for shift in shifts:
-            if not path.isdir(projects.shift_dir(proposal, shift)):
+            if not path.isdir(projects.shift_dir(root, shift)):
                 # bail on first incorrect shift ID
-                return dict(shift_list=f"shift '{shift}' not found")
+                return dict(subdirs=f"shift '{shift}' not found")
 
             # check that this shift dir have the protein directory
-            if not path.isdir(projects.protein_dir(proposal, shift, protein)):
-                return dict(shift_list=f"shift '{shift}' have no data for protein '{protein}'")
+            if not path.isdir(projects.protein_dir(root, shift, protein)):
+                return dict(subdirs=f"shift '{shift}' have no data for protein '{protein}'")
 
         if self.model is not None:
             # while updating existing project, prevent user from removing the 'main' shift
             main_shift = self.model.shift
             if main_shift not in shifts:
-                return dict(shift_list=f"can't remove main shift '{main_shift}'")
+                return dict(subdirs=f"can't remove main shift '{main_shift}'")
 
         # all shifts looks good, no errors
         return {}
@@ -280,16 +289,24 @@ class ProjectForm(forms.Form):
 
         errors = dict()
 
-        # check that proposal directory exists
-        proposal = self.cleaned_data["proposal"]
-        if not path.isdir(projects.proposal_dir(proposal)):
+        # check that root directory exists
+        root = self.cleaned_data["root"]
+        protein = self.cleaned_data["protein"]
+
+        if not path.isdir(projects.proposal_dir(root)):
             # if the proposal is wrong, we can't validate other fields
             # just tell the user that proposal is wrong
             raise forms.ValidationError(
-                dict(proposal=f"proposal '{proposal}' not found"))
+                dict(root=f"proposal '{root}' not found"))
 
-        shift_list_errors = self._validate_shift_list(proposal)
-        errors.update(shift_list_errors)
+        if self.proj_layout.subdirs() is None:
+            # for plain data layout, check that root folder have the protein
+            root_errors = self._validate_root(root, protein)
+            errors.update(root_errors)
+        else:
+            # for shifts data layout, check that all subdirs have proteins
+            subdirs_errors = self._validate_subdirs(root, protein)
+            errors.update(subdirs_errors)
 
         library_errors = self._validate_library()
         errors.update(library_errors)
@@ -302,8 +319,8 @@ class ProjectForm(forms.Form):
         assert self.model is not None
 
         self.model.protein = self.cleaned_data["protein"]
-        self.model.proposal = self.cleaned_data["proposal"]
-        self.model.shift_list = self.cleaned_data["shift_list"]
+        self.model.proposal = self.cleaned_data["root"]
+        self.model.shift_list = self.cleaned_data["subdirs"]
 
         self.model.save()
 
@@ -317,16 +334,16 @@ class ProjectForm(forms.Form):
         #
 
         encrypted = self.cleaned_data["encrypted"]
-        shifts = self.cleaned_data["shift_list"]
+        subdirs = self.cleaned_data["subdirs"]
         # pick first specified shift as 'main' shift
-        shift = shifts.split(",")[0]
+        shift = subdirs.split(",")[0]
 
         proj = Project(
             protein=self.cleaned_data["protein"],
             library=library,
-            proposal=self.cleaned_data["proposal"],
+            proposal=self.cleaned_data["root"],
             shift=shift,
-            shift_list=shifts,
+            shift_list=subdirs,
             encrypted=encrypted)
         proj.save()
 

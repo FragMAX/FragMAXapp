@@ -65,8 +65,8 @@ COPY fragmax fragmax/
 COPY worker worker/
 COPY static static/
 COPY manage.py deploy/migrate_db.sh ./
-RUN ln -s /data/visitors/biomax static/biomax
-RUN ln -s /mxn/groups/ispybstorage/pyarch static/pyarch
+# docker images are for now hard-coded for 'MAXIV' site
+COPY deploy/local_site.py-maxiv local_site.py
 # hack to serve css, js etc files from the 'material' package via nginx
 RUN ln -s /opt/conda/envs/FragMAX/lib/python3.6/site-packages/material/static/material static/material
 # the django database and site settings file are stored in a volume which is mounted at '/volume' at

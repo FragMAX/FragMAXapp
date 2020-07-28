@@ -1,6 +1,6 @@
 import unittest
 from django import test
-from django.conf import settings
+from fragview.sites import SITE
 from fragview.models import User, Project, Library
 
 
@@ -113,7 +113,7 @@ class TestProject(test.TestCase):
         #
 
         # should start with the configured 'proposals dir
-        self.assertTrue(dpath.startswith(settings.PROPOSALS_DIR))
+        self.assertTrue(dpath.startswith(SITE.PROPOSALS_DIR))
 
         # proposal and main shift should be parts in the data path
         self.assertIn(PROPOSAL, dpath)

@@ -1,6 +1,29 @@
 import re
+from fragview.sites import SITE
 from fragview.models import Project
 from .proposals import get_proposals
+
+
+def site(request):
+    """
+    Adds site specific parameters to template context.
+    """
+    disabled_features = {
+        feature: True for feature in SITE.DISABLED_FEATURES
+    }
+
+    ctx = {
+        # site logo image
+        "site_logo": SITE.LOGO,
+        # features disabled for this site
+        "disabled": disabled_features,
+    }
+
+    if not request.user.is_authenticated:
+        # user not logged in, add login view specific parameter
+        ctx["account_style"] = SITE.ACCOUNT_STYLE
+
+    return ctx
 
 
 def projects(request):
