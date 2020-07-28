@@ -8,10 +8,10 @@ import json
 import time
 import tempfile
 import subprocess
+from ast import literal_eval
 from os import path
 from glob import glob
 from random import randint
-from datetime import datetime
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc
@@ -596,134 +596,108 @@ def analyse(request):
         t1.daemon = True
         t1.start()
 
-    proc_methods = [x.split("/")[-2] for x in glob(panda_results_path + "/*/pandda")]
-    newest = datetime.strptime("2000-01-01-1234", "%Y-%m-%d-%H%M")
-    newestpath = ""
-    newestmethod = ""
-    for methods in proc_methods:
-        if len(glob(panda_results_path + "/" + methods + "/pandda/analyses-*")) > 0:
-            last = sorted(glob(panda_results_path + "/" + methods + "/pandda/analyses-*"))[-1]
-            last_path = last + "/html_summaries/"
-            if os.path.exists(last_path + "pandda_initial.html") or os.path.exists(last_path + "pandda_analsyse.html"):
-                cur_time = datetime.strptime(last.split("analyses-")[-1], "%Y-%m-%d-%H%M")
-                if cur_time > newest:
-                    newest = cur_time
-                    newestpath = last
-                    newestmethod = methods
+    pandda_runs = {
+        path.basename(x): sorted(glob(f"{x}/pandda/analyses-*"), reverse=True) for x in glob(f"{panda_results_path}/*")
+    }
 
+    pandda_dates = {path.basename(x): x for x in glob(f"{panda_results_path}/*/pandda/analyses-*")}
+
+    newestpath = pandda_dates[sorted(pandda_dates)[-1]]
+    newestmethod = path.basename(path.dirname(path.dirname(pandda_dates[sorted(pandda_dates)[-1]])))
+    available_methods = [path.basename(x) for x in glob(f"{panda_results_path}/*")]
     method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
-        if os.path.exists(newestpath + "/html_summaries/pandda_analyse.html"):
-            with open(newestpath + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
-                pandda_html = inp.readlines()
-                localcmd = panda_results_path + "/" + newestmethod + "/pandda/; pandda.inspect"
-
-            for n, line in enumerate(pandda_html):
-                if '<th class="text-nowrap" scope="row">' in line:
-                    dt = line.split('scope="row">')[-1].split("<")[0]
-                    pandda_html[n] = (
-                        f'<td class="sorting_1" style="text-align: center;" >'
-                        f'<form action="/pandda_densityA/" method="get" id="pandda_form" '
-                        f'target="_blank"><button class="btn" type="submit" '
-                        f'value="{newestmethod};{dt};1;1;stay" '
-                        f'name="structure" size="1">Open</button></form></td>' + line
-                    )
-            pandda_html = "".join(pandda_html)
-            pandda_html = pandda_html.replace(
-                '<th class="text-nowrap">Dataset</th>',
-                '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
-            )
-            pandda_html = pandda_html.replace(
-                'class="table table-bordered table-striped"',
-                'class="table table-bordered table-striped" data-page-length="50"',
-            )
-            pandda_html = pandda_html.replace(
-                "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
-            )
-            return render(
-                request,
-                "fragview/pandda_analyse.html",
-                {
-                    "opencmd": localcmd,
-                    "pandda_res": f"{panda_results_path}/{newestmethod}",
-                    "proc_methods": proc_methods,
-                    "Report": pandda_html,
-                },
-            )
-        elif os.path.exists(newestpath + "/html_summaries/pandda_initial.html"):
-            with open(newestpath + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
-                a = "".join(inp.readlines())
-                localcmd = "initial"
-
-                return render(
-                    request,
-                    "fragview/pandda_analyse.html",
-                    {
-                        "opencmd": localcmd,
-                        "pandda_res": f"{panda_results_path}/{newestmethod}",
-                        "proc_methods": proc_methods,
-                        "Report": a.replace(
-                            "PANDDA Processing Output", "PANDDA Processing Output for " + newestmethod
-                        ),
-                    },
-                )
-
-        else:
-            running = [x.split("/")[10] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(request, "fragview/pandda_notready.html", {"Report": "<br>".join(running)})
+        reports = list()
+        localcmd, pandda_html = pandda_to_fragmax_html(newestpath)
+        analyses_date = path.basename(newestpath).replace("analyses-", "")
+        method = newestmethod
+        reports.append([analyses_date, localcmd, pandda_html])
+        for pandda_analyses_path in pandda_runs[method]:
+            analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
+            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path)
+            if [analyses_date, localcmd, pandda_html] not in reports:
+                reports.append([analyses_date, localcmd, pandda_html])
 
     else:
-        if os.path.exists(panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html"):
-            with open(
-                panda_results_path + "/" + method + "/pandda/analyses/html_summaries/pandda_analyse.html",
-                "r",
-                encoding="utf-8",
-            ) as inp:
-                pandda_html = inp.readlines()
-                localcmd = panda_results_path + "/" + method + "/pandda/; pandda.inspect"
+        reports = list()
+        for pandda_analyses_path in pandda_runs[method]:
+            analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
+            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path)
+            reports.append([analyses_date, localcmd, pandda_html])
 
-            for n, line in enumerate(pandda_html):
-                if '<th class="text-nowrap" scope="row">' in line:
-                    dt = line.split('scope="row">')[-1].split("<")[0]
-                    pandda_html[n] = (
-                        f'<td class="sorting_1" style="text-align: center;" >'
-                        f'<form action="/pandda_densityA/" method="get" id="pandda_form" '
-                        f'target="_blank"><button class="btn" type="submit" '
-                        f'value="{method};{dt};1;1;stay" '
-                        f'name="structure" size="1">Open</button></form></td>' + line
-                    )
-            pandda_html = "".join(pandda_html)
-            pandda_html = pandda_html.replace(
-                '<th class="text-nowrap">Dataset</th>',
-                '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
-            )
+    selection_json = f"{panda_results_path}/{method}/selection.json"
+    clusters_png = None
+    if path.exists(selection_json):
+        clusters = path.join(path.dirname(selection_json), "clustered-datasets", "dendrograms")
+        clusters_png = {
+            path.splitext(path.basename(x))[0]: x.replace("/data/visitors", "/static")
+            for x in glob(f"{clusters}/*png")
+        }
+        with open(selection_json, "r", encoding="utf-8") as r:
+            init_log = literal_eval(r.read())
+        log = "<table>\n"
+        for k, v in sorted(init_log.items()):
+            log += f"<tr><td>{k}</td><td> {v}</td></tr>\n"
+        log += "</table>"
+    else:
+        log = ""
+        clusters_png = None
+
+    return render(
+        request,
+        "fragview/pandda_analyse.html",
+        {
+            "reports": reports,
+            "pandda_res": f"{panda_results_path}/{method}",
+            "proc_methods": available_methods,
+            "alternatives": {path.basename(x).replace("analyses-", ""): x for x in pandda_runs[method]},
+            "selection_table": log,
+            "clusters_png": clusters_png,
+        },
+    )
+
+
+def pandda_to_fragmax_html(pandda_path):
+    method = path.basename(path.dirname(path.dirname(pandda_path)))
+    if os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html"):
+        with open(pandda_path + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
+            pandda_html = inp.readlines()
+            localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+
+        for n, line in enumerate(pandda_html):
+            if '<th class="text-nowrap" scope="row">' in line:
+                dt = line.split('scope="row">')[-1].split("<")[0]
+                pandda_html[n] = (
+                    f'<td class="sorting_1" style="text-align: center;" >'
+                    f'<form action="/pandda_densityA/" method="get" '
+                    f'target="_blank"><button class="btn" type="submit" '
+                    f'value="{method};{dt};1;1;stay" '
+                    f'name="structure" size="1">Open</button></form></td>' + line
+                )
+        pandda_html = "".join(pandda_html)
+        pandda_html = pandda_html.replace(
+            '<th class="text-nowrap">Dataset</th>',
+            '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
+        )
+        pandda_html = pandda_html.replace(
+            'class="table table-bordered table-striped"',
+            'class="table table-bordered table-striped" data-page-length="50"',
+        )
+        pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
+    elif os.path.exists(pandda_path + "/html_summaries/pandda_initial.html"):
+        with open(pandda_path + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
+            pandda_html = "".join(inp.readlines())
             pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
-            return render(
-                request,
-                "fragview/pandda_analyse.html",
-                {
-                    "opencmd": localcmd,
-                    "pandda_res": f"{panda_results_path}/{method}",
-                    "proc_methods": proc_methods,
-                    "Report": pandda_html,
-                },
-            )
-        else:
-            running = [x.split("/")[9] for x in glob(panda_results_path + "/*/pandda/*running*")]
-            return render(
-                request,
-                "fragview/pandda_analyse.html",
-                {
-                    "opencmd": "notready",
-                    "pandda_res": f"{panda_results_path}/{method}",
-                    "proc_methods": proc_methods,
-                    "Report": "noreport",
-                },
-            )
+            localcmd = "initial"
+    else:
+        localcmd = "notready"
+        pandda_html = "noreport"
+    return localcmd, pandda_html
 
 
 def fix_pandda_symlinks(proj):
+    # OBSOLETE FUNCTION
     os.system("chmod -R 777 " + proj.data_path() + "/fragmax/results/pandda/")
 
     subprocess.call(
@@ -816,7 +790,7 @@ def submit(request):
             "dtsfilter": PanDDAfilter,
             "customPanDDA": customPanDDA,
             "reprocessing": False,
-            "reprocessing_mode": "reload",
+            "reprocessing_mode": "reprocess",
             "nproc": ncpus,
         }
 
@@ -828,7 +802,6 @@ def submit(request):
         _write_main_script(proj, method, methodshort, options)
 
         if not options["reprocessZmap"] and path.exists(res_dir):
-            shutil.rmtree(res_dir)
             t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
             t1.daemon = True
             t1.start()

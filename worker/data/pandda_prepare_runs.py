@@ -81,7 +81,6 @@ def ground_state_entries(options):
             ground_state_parameter = "ground_state_datasets='" + newGroundStates + "'"
         else:
             ground_state_parameter = ""
-        shutil.move(path + "/pandda", path + "/pandda_old")
     else:
         ground_state_parameter = ""
     return ground_state_parameter
@@ -131,6 +130,8 @@ def pandda_run(method, options):
         + " cpus="
         + str(options["nproc"])
         + " recalculate_statistical_maps=yes"
+        + " existing_datasets="
+        + options["reprocessing_mode"]
     )
 
     print(command)
