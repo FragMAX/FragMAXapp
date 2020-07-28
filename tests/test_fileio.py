@@ -7,7 +7,7 @@ from os import path
 import shutil
 from tempfile import TemporaryDirectory
 from fragview import encryption
-from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, write_script
+from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, write_script, read_csv_lines
 
 
 FILE_NAME = "some.log"
@@ -131,6 +131,24 @@ class PlaintextTest(_IOTester):
 
         # check that we get expected lines
         self.assertListEqual(list(lines), _expected_lines())
+
+
+class TestReadCSVLines(unittest.TestCase):
+    """
+    test read_csv_lines()
+    """
+    def test_func(self):
+        filename = path.join(path.dirname(__file__), "data", "test.csv")
+        lines = read_csv_lines(filename)
+
+        expected = [
+            ["line_no", "short", "long", "score"],
+            ["1", "foo1", "line 1", "1.0"],
+            ["2", "foo2", "line 2", "2.2"],
+            ["3", "foo3", "line 3", "3.3"]
+        ]
+
+        self.assertListEqual(lines, expected)
 
 
 @patch("builtins.print")

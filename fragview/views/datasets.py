@@ -11,6 +11,7 @@ from fragview.projects import current_project, project_results_file
 from fragview.projects import project_data_collections_file
 from fragview.xsdata import XSDataCollection
 from fragview.views.misc import perc2float
+from fragview.fileio import read_csv_lines
 from fragview.status import run_update_status
 from fragview.sites import SITE
 
@@ -256,29 +257,26 @@ def show_all(request):
     if "resyncStatus" in resyncStatus:
         run_update_status(proj)
 
-    with open(project_data_collections_file(proj), "r") as readFile:
-        reader = csv.reader(readFile)
-        lines = list(reader)
+    lines = read_csv_lines(project_data_collections_file(proj))
 
-        acr_list = [x[3] for x in lines[1:]]
-        smp_list = [x[1] for x in lines[1:]]
-        fragments_list = [_sample_2_fragment(sample) for sample in smp_list]
-        prf_list = [x[0] for x in lines[1:]]
-        res_list = [x[6] for x in lines[1:]]
-        img_list = [x[5] for x in lines[1:]]
-        path_list = [x[2] for x in lines[1:]]
-        snap_list = [x[7].split(",")[0].replace("/mxn/groups/ispybstorage/", "/static/") for x in lines[1:]]
-        snap2_list = [x.replace("1.snapshot.jpeg", "2.snapshot.jpeg") for x in snap_list]
-        run_list = [x[4] for x in lines[1:]]
+    acr_list = [x[3] for x in lines[1:]]
+    smp_list = [x[1] for x in lines[1:]]
+    fragments_list = [_sample_2_fragment(sample) for sample in smp_list]
+    prf_list = [x[0] for x in lines[1:]]
+    res_list = [x[6] for x in lines[1:]]
+    img_list = [x[5] for x in lines[1:]]
+    path_list = [x[2] for x in lines[1:]]
+    snap_list = [x[7].split(",")[0].replace("/mxn/groups/ispybstorage/", "/static/") for x in lines[1:]]
+    snap2_list = [x.replace("1.snapshot.jpeg", "2.snapshot.jpeg") for x in snap_list]
+    run_list = [x[4] for x in lines[1:]]
 
     dpentry = list()
     rfentry = list()
     lgentry = list()
 
     if os.path.exists(project_all_status_file(proj)):
-        with open(project_all_status_file(proj), "r") as csvFile:
-            reader = csv.reader(csvFile)
-            lines = list(reader)[1:]
+        lines = read_csv_lines(project_all_status_file(proj))[1:]
+
         for i, j in zip(prf_list, run_list):
             dictEntry = i + "_" + j
             status = [line for line in lines if line[0] == dictEntry]

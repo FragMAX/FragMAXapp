@@ -1,8 +1,8 @@
-import csv
 from os import path
 from django.http import HttpResponse
 from django.shortcuts import render
 from fragview.projects import current_project, project_results_file
+from fragview.fileio import read_csv_lines
 from worker import resync_results
 from worker import results
 
@@ -23,9 +23,7 @@ def show(request):
         return render(request,
                       "fragview/results_notready.html")
 
-    with open(results_file, "r") as readFile:
-        reader = csv.reader(readFile)
-        lines = list(reader)[1:]
+    lines = read_csv_lines(results_file)[1:]
 
     for n, line in enumerate(lines):
         if len(line) == 23:

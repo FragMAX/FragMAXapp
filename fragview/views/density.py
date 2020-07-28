@@ -1,6 +1,5 @@
 import pyfastcopy  # noqa
 import shutil
-import csv
 from os import path
 from glob import glob
 from ast import literal_eval
@@ -10,15 +9,16 @@ from django.shortcuts import render
 from fragview.projects import current_project, project_results_file, project_static_url, project_results_dir
 from fragview.projects import project_process_protein_dir
 from fragview.versions import base_static
+from fragview.fileio import read_csv_lines
 
 
 def show(request):
     proj = current_project(request)
 
     value = str(request.GET.get("structure"))
-    with open(project_results_file(proj), "r") as readFile:
-        reader = csv.reader(readFile)
-        lines = list(reader)[1:]
+
+    lines = read_csv_lines(project_results_file(proj))[1:]
+
     result_info = list(filter(lambda x: x[0] == value, lines))[0]
     if len(result_info) == 23:
         (
@@ -299,9 +299,7 @@ def show_pipedream(request):
 
     sample = str(request.GET.get("structure"))
 
-    with open(path.join(project_process_protein_dir(proj), "pipedream.csv"), "r") as readFile:
-        reader = csv.reader(readFile)
-        lines = list(reader)[1:]
+    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "pipedream.csv"))[1:]
 
     for n, line in enumerate(lines):
         if line[0] == sample:
@@ -727,11 +725,8 @@ def pandda_analyse(request):
         _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
         centroids = find_site_centroids(_sites)
 
-        with open(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"), "r") as csvFile:
-            reader = csv.reader(csvFile)
-            lines = list(reader)
+        lines = read_csv_lines(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"))[1:]
 
-        lines = lines[1:]
         prevstr = ""
         nextstr = ""
         for n, i in enumerate(lines):
@@ -1050,11 +1045,8 @@ def pandda_consensus(request):
     else:
         ligconfid = "low_conf_radio"
 
-    with open(path.join(project_process_protein_dir(proj), "panddainspects.csv"), "r") as csvFile:
-        reader = csv.reader(csvFile)
-        lines = list(reader)
+    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "panddainspects.csv"))[1:]
 
-    lines = lines[1:]
     for n, i in enumerate(lines):
         if panddaInput.split(";") == i[:-1]:
             if n == len(lines) - 1:
