@@ -29,7 +29,7 @@ class TestLogViewer(test.TestCase, ViewTesterMixin):
 
         self.assertEqual(self.log_path, ctx["dataset"])
         self.assertEqual("", ctx["log"])
-        self.assertEqual("", ctx["downloadPath"])
+        # self.assertEqual("", ctx["downloadPath"])
 
     @patch("os.path.exists")
     @patch("builtins.open")
