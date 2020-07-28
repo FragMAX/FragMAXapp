@@ -53,7 +53,9 @@ def log_viewer(request):
             filetype = "txt"
             with open(logFile, "r", encoding="utf-8") as r:
                 log = r.read()
-
+    else:
+        filetype = ""
+        log = ""
     return render(
         request,
         "fragview/log_viewer.html",
