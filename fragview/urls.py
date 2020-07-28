@@ -68,7 +68,6 @@ urlpatterns = [
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
     path('pipedream/', pipedream.processing_form, name='pipedream'),
-    path('pipedream_results/', pipedream.results, name='pipedream_results'),
     path('submit_pipedream/', pipedream.submit, name='submit_pipedream'),
 
     path('hpcstatus/', hpc.status, name='hpcstatus'),

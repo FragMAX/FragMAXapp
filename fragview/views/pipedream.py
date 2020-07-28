@@ -1,19 +1,14 @@
 import os
-import csv
 import shutil
 import natsort
-import xmltodict
 from os import path
-from glob import glob
-from operator import itemgetter
 from django.shortcuts import render
 from fragview import hpc
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
-from fragview.projects import project_static_url, project_model_path
+from fragview.projects import project_model_path
 from fragview.projects import project_script
 from fragview.projects import project_update_results_script_cmds, project_update_status_script_cmds
 
-from fragview.views.density import sym2spg
 from .utils import scrsplit
 
 
@@ -31,106 +26,6 @@ def processing_form(request):
     datasetList = zip(datasetPathList, datasetNameList)
 
     return render(request, "fragview/pipedream.html", {"data": datasetList})
-
-
-def results(request):
-    proj = current_project(request)
-    pipedream_csv = path.join(project_process_protein_dir(proj), "pipedream.csv")
-
-    resync = str(request.GET.get("resync"))
-    if "resyncresults" in resync:
-        get_pipedream_results(proj, pipedream_csv)
-
-    if not path.exists(pipedream_csv):
-        get_pipedream_results(proj, pipedream_csv)
-
-    if path.exists(pipedream_csv):
-        with open(pipedream_csv, "r") as readFile:
-            reader = csv.reader(readFile)
-            lines = list(reader)[1:]
-            lines = sorted(lines, key=itemgetter(0))
-
-        return render(request, "fragview/pipedream_results.html", {"lines": lines})
-    else:
-        return render(request, "fragview/pipedream_results.html")
-
-
-def get_pipedream_results(proj, pipedream_csv):
-    with open(pipedream_csv, "w") as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerow(
-            [
-                "sample",
-                "summaryFile",
-                "fragment",
-                "fragmentLibrary",
-                "symmetry",
-                "resolution",
-                "rwork",
-                "rfree",
-                "rhofitscore",
-                "a",
-                "b",
-                "c",
-                "alpha",
-                "beta",
-                "gamma",
-                "ligsvg",
-            ]
-        )
-
-        pipedreamXML = list()
-        xml_glob = f"{proj.data_path()}/fragmax/results/{proj.protein}*/pipedream/summary.xml"
-        pipedreamXML += glob(xml_glob)
-
-        for summary in pipedreamXML:
-            try:
-                with open(summary, "r") as fd:
-                    doc = xmltodict.parse(fd.read())
-
-                sample = doc["GPhL-pipedream"]["setup"]["runfrom"].split("/")[-1]
-                a = doc["GPhL-pipedream"]["refdata"]["cell"]["a"]
-                b = doc["GPhL-pipedream"]["refdata"]["cell"]["b"]
-                c = doc["GPhL-pipedream"]["refdata"]["cell"]["c"]
-                alpha = doc["GPhL-pipedream"]["refdata"]["cell"]["alpha"]
-                beta = doc["GPhL-pipedream"]["refdata"]["cell"]["beta"]
-                gamma = doc["GPhL-pipedream"]["refdata"]["cell"]["gamma"]
-                ligandID = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["@id"]
-                symm = doc["GPhL-pipedream"]["refdata"]["symm"]
-                symm = f'{symm} ({sym2spg(symm).replace(" ", "")})'
-                rhofitscore = doc["GPhL-pipedream"]["ligandfitting"]["ligand"]["rhofitsolution"][
-                    "correlationcoefficient"
-                ]
-                R = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["R"]
-                Rfree = doc["GPhL-pipedream"]["refinement"]["Cycle"][-1]["Rfree"]
-                resolution = doc["GPhL-pipedream"]["inputdata"]["table1"]["shellstats"][0]["reshigh"]
-                ligsvg = (
-                    f"{project_static_url(proj)}/fragmax/process/fragment/{proj.library}/{ligandID}/{ligandID}.svg"
-                )
-
-                writer.writerow(
-                    [
-                        sample,
-                        summary.replace(".xml", ".out"),
-                        ligandID,
-                        proj.library,
-                        symm,
-                        resolution,
-                        R,
-                        Rfree,
-                        rhofitscore,
-                        a,
-                        b,
-                        c,
-                        alpha,
-                        beta,
-                        gamma,
-                        ligsvg,
-                    ]
-                )
-
-            except Exception:
-                pass
 
 
 def submit(request):
