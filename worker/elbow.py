@@ -74,7 +74,7 @@ def _run_elbow(smiles, fragments, dest_dir):
         outfile.write("#!/bin/bash\n")
         outfile.write("#!/bin/bash\n")
         outfile.write("module purge\n")
-        outfile.write("module load Phenix\n")
+        outfile.write("module load gopresto Phenix\n")
         outfile.write(f"cd {dest_dir}\n")
         outfile.write(f"phenix.elbow --smiles='{smiles}' --output={first_frag}\n")
     hpc.run_sbatch(script)
