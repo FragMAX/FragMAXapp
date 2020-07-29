@@ -39,7 +39,7 @@ def ugly(request):
 
 def log_viewer(request):
     logFile = request.GET["logFile"]
-    downloadPath = f"/static/biomax{logFile[len(settings.PROPOSALS_DIR):]}"
+    downloadPath = f"/static/biomax{logFile[len(SITE.PROPOSALS_DIR):]}"
     if path.exists(logFile):
         if path.splitext(logFile)[-1] == ".json" and "pandda" in logFile:
             filetype = "json"
