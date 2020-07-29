@@ -35,4 +35,4 @@ def upload_dir(proj, src_dir, res_dir):
         # refuse to do any 'rm -rf' outside of project's fragmax directory
         raise Exception(f"{res_dir} outside of project directory")
 
-    return f"rsync -r {src_dir}/* {res_dir}\n"
+    return f"mkdir -p {res_dir}\nrsync -r {src_dir}/* {res_dir}\n"
