@@ -602,10 +602,14 @@ def analyse(request):
 
     pandda_dates = {path.basename(x): x for x in glob(f"{panda_results_path}/*/pandda/analyses-*")}
 
-    newestpath = pandda_dates[sorted(pandda_dates)[-1]]
-    newestmethod = path.basename(path.dirname(path.dirname(pandda_dates[sorted(pandda_dates)[-1]])))
-    available_methods = [path.basename(x) for x in glob(f"{panda_results_path}/*")]
-    method = request.GET.get("methods")
+    if not pandda_dates:
+        localcmd = f"none"
+        return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
+    else:
+        newestpath = pandda_dates[sorted(pandda_dates)[-1]]
+        newestmethod = path.basename(path.dirname(path.dirname(pandda_dates[sorted(pandda_dates)[-1]])))
+        available_methods = [path.basename(x) for x in glob(f"{panda_results_path}/*")]
+        method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
         reports = list()

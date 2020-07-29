@@ -35,10 +35,6 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     project_results_file = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}/results.csv"
 
     resultsFile = list()
-    with open(project_results_file, "r") as r:
-        rspam = csv.reader(r)
-        for row in rspam:
-            resultsFile.append(row)
     header = [
         "usracr",
         "pdbout",
@@ -65,7 +61,13 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         "ligblob",
         "modelscore",
     ]
-    if resultsFile[0] != header:
+    with open(project_results_file, "r") as r:
+        rspam = csv.reader(r)
+        for row in rspam:
+            resultsFile.append(row)
+    if not resultsFile:
+        resultsFile.insert(0, header)
+    elif resultsFile[0] != header:
         resultsFile.insert(0, header)
 
     for log in xdsappLogs:
