@@ -62,7 +62,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
 
     for num, pdb in enumerate(pdbList):
         fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
-        if lib.get_fragment(fragID) not None:
+        if lib.get_fragment(fragID).smiles:
             smiles = lib.get_fragment(fragID).smiles
         else:
             smiles = "none"
@@ -119,6 +119,6 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
             + "\n\n"
             + f"{clear_tmp_cmd}\n",
         )
-        if smiles not "none":
+        if smiles != "none":
             hpc.run_sbatch(script)
         # os.remove(script)
