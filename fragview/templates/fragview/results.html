@@ -104,7 +104,6 @@
     <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')"
       disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
     <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
-    <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
   </div>
 
   <div id="ISa" class="card tabcontent">
@@ -280,17 +279,23 @@
 </script>
 <script>
   function openMethod(evt, methodName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
+    if (document.getElementById(methodName).style.display == "block") {
+      document.getElementById(methodName).style.display = "none"
+      evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
     }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    else {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(methodName).style.display = "block";
+      evt.currentTarget.className += " active";
     }
-    document.getElementById(methodName).style.display = "block";
-    evt.currentTarget.className += " active";
   }
 
   function request_resync() {

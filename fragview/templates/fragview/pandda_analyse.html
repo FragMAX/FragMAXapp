@@ -41,22 +41,18 @@
     text-align: center !important;
   }
 
-    {
-    % comment %
-  }
+
 
   th {
     cursor: pointer;
   }
 
-    {
-    % endcomment %
-  }
 
   .container {
     max-width: 100% !important;
     margin: 0 50px 50px 150px !important;
-    width: calc(100% - 200px) !important;
+    width: 100% !important;
+    display: contents;
   }
 
   .col-md-8 {
@@ -95,41 +91,114 @@
     border: none;
     cursor: pointer;
   }
+
+  /* Style the tab */
+  .tab {
+    overflow: hidden;
+    margin-left: 300px;
+    max-width: 80%;
+    background-color: #f1f1f1;
+  }
+
+  /* Style the buttons inside the tab */
+  .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+  }
+
+
+  /* Create an active/current tablink class */
+  .tab button.active {
+    background-color: #fea901;
+  }
+
+  /* Style the tab content */
+  .tabcontent {
+    display: none;
+    margin-left: 300px;
+    max-width: 80%;
+    padding: 6px 12px;
+  }
+
+  .top-bar {
+    margin-left: 135px;
+  }
+
+  .dendrograms {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dendrograms img {
+    max-width: 100%;
+  }
 </style>
-<select class="selectbox input-sm" name="dropdownDataset" onchange="GetSelectedTextValue(this)">
-  <option disabled selected value> -- select an option -- </option>
-  {% for method in proc_methods %}
-  <option value='{{method}}'>{{method}}</option>
+<div class="top-bar">
+  <select class="selectbox input-sm" name="dropdownDataset" onchange="GetSelectedTextValue(this)">
+    <option disabled selected value> -- select an option -- </option>
+    {% for method in proc_methods %}
+    <option value='{{method}}'>{{method}}</option>
+    {% endfor %}
+  </select>
+  <form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" hidden>
+    <button class="btn-small selectbutton " id="change_report" type="submit" onsubmit="return select_pandda()"
+      value="panddaSelect" name="methods" size="1">Load</button>
+  </form>
+
+</div>
+<div class="card tab">
+  {% for analyses_date, analyses_path in alternatives.items %}
+  <button class="tablinks" onclick="openMethod(event, 'html-{{analyses_date}}')" id="{{analyses_date}}"
+    name="analysis-tabs">{{analyses_date}}</button>
   {% endfor %}
-</select>
-<form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1">
-  <button class="btn-small selectbutton " type="submit" onsubmit="return select_pandda()" value="panddaSelect"
-    name="methods" size="1">Load</button>
-</form>
-<form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1">
-  <button class="btn-small selectbutton " type="submit" value="FixSymlinks" name="fixsymlinks" size="1"
-    style="width: 130px !important;">Fix Symlinks</button>
-</form>
-<form class="selectbutton" action="/log_viewer/" method="get" id="logFileform" target="_blank"
-  style="height: 10px; width: 200px !important; margin-left: 75px;">
-  <button class="btn-small " type="submit" value="{{pandda_res}}/selection.json" name="logFile" size="1">Dataset
-    Selection</button>
-</form>
-
-{% if not Report == "noreport" %}
-{% if opencmd != "initial" %}
-<div class="alert alert-info" style="margin-left: 165px;width: calc(100% - 225px);">
-  <h4>Copy and paste this command line in your terminal to start inspection in coot:</h4>
-  <h5>module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO; cd {{opencmd}}</h5>
+  <button class="tablinks" onclick="openMethod(event, 'html-selected-datasets')">Selected
+    datasets</button>
 </div>
-{% endif %}
+{% for analyses_date, opencmd, Report in reports %}
+<div id="html-{{analyses_date}}" class="card tabcontent ">
 
-{{Report |safe}}
-{% else %}
-<div class="alert alert-info" style="margin-left: 165px;width: calc(100% - 225px);">
-  <h4>No results for this method</h4>
+  {% if not Report == "noreport" %}
+  {% if opencmd != "initial" %}
+  <div class="alert alert-info" style="margin-top: 6px;">
+    <h4>Copy and paste this command line in your terminal to start inspection in coot:</h4>
+    <h5>module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO; cd {{opencmd}}</h5>
+    <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
+      <button class="btn" type="submit" value="{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log" name="logFile"
+        size="1">Open analyses log</button>
+    </form>
+  </div>
+  {% endif %}
+  {{Report |safe}}
+  {% else %}
+  <div class="alert alert-info">
+    <h4>No results for this method</h4>
+  </div>
+  {% endif %}
+
 </div>
-{% endif %}
+{% endfor %}
+<div id="html-selected-datasets" class="card tabcontent ">
+  {% if clusters_png %}
+  <div class="card dendrograms">
+    {% for key,value in clusters_png.items %}
+    <figure>
+      <img src="{{value}}">
+      <figcaption>{{key}}</figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {{selection_table|safe}}
+
+</div>
+
 
 
 <script>
@@ -138,6 +207,29 @@
     var selectedText = dropdownDataset.options[dropdownDataset.selectedIndex].innerHTML;
     var selectedValue = dropdownDataset.value;
     document.getElementsByName("methods")[0].value = selectedValue;
+    document.getElementById("change_report").click();
   }
+</script>
+<script>
+  function openMethod(evt, methodName) {
+    if (document.getElementById(methodName).style.display == "block") {
+      document.getElementById(methodName).style.display = "none"
+      evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
+    }
+    else {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(methodName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+  }
+  document.getElementsByName("analysis-tabs")[0].click();
 </script>
 {% endblock %}

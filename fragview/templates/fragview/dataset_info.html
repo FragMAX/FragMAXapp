@@ -315,7 +315,6 @@
         <div class="card tab">
             <button class="tablinks" onclick="openMethod(event, 'dataProcess')">Data Processing</button>
             <button class="tablinks" onclick="openMethod(event, 'structRefinement')">Structure Refinement</button>
-            <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
         </div>
         <div id="dataProcess" class="card tabcontent ">
             <table class="optionstable" id="processingTable">
@@ -446,7 +445,7 @@
                             <td class="resultsHeader">&beta;</td>
                             <td class="resultsHeader">&gamma;</td>
                             <td class="resultsHeader">RhoFit</td>
-                            <td class="resultsHeader">LigFit</td>
+                            <td class="resultsHeader">LigandFit</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -769,7 +768,6 @@
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
         <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
         <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>-->
-                <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
 
 
             </div>
@@ -926,17 +924,23 @@
 
 <script>
     function openMethod(evt, methodName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
+        if (document.getElementById(methodName).style.display == "block") {
+            document.getElementById(methodName).style.display = "none"
+            evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
         }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        else {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(methodName).style.display = "block";
+            evt.currentTarget.className += " active";
         }
-        document.getElementById(methodName).style.display = "block";
-        evt.currentTarget.className += " active";
     }
 </script>
 
