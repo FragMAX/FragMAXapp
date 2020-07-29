@@ -115,10 +115,11 @@ def project_update_results_script(project):
 
 
 def project_update_status_script_cmds(project, sample, softwares):
+    dataset, run = sample.split("_")
     return (
         "module purge\n"
         + "module load gopresto GCCcore/8.3.0 Python/3.7.4\n"
-        + f"python3 {project_update_status_script(project)} {sample} {project.proposal}/{project.shift}\n"
+        + f"python3 {project_update_status_script(project)} {project.data_path()} {dataset} {run}\n"
         + "module purge\n"
         + f"module load gopresto {softwares}\n"
     )
