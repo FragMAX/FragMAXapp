@@ -61,6 +61,10 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         "ligblob",
         "modelscore",
     ]
+    if not path.exists(project_results_file):
+        with open(project_results_file, "w") as w:
+            writer = csv.writer(w)
+            writer.writerow(header)
     with open(project_results_file, "r") as r:
         rspam = csv.reader(r)
         for row in rspam:
