@@ -258,6 +258,66 @@
     }
 </style>
 
+<style>
+    * {
+        box-sizing: border-box
+    }
+
+    body {
+        font-family: "Lato", sans-serif;
+    }
+
+    /* Style the tab */
+    .tab-vertical {
+        float: inherit;
+
+        background-color: #f1f1f1;
+        width: 150px;
+
+        max-height: 100%;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab-vertical button {
+        display: block;
+        background-color: inherit;
+        color: black;
+        padding: 22px 16px;
+        width: 150px;
+
+        border: none;
+        outline: none;
+        text-align: left;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab-vertical button:hover {
+        background-color: #ddd;
+
+    }
+
+    /* Create an active/current "tab button" class */
+    .tab-vertical button.active {
+        background-color: #82be00;
+
+    }
+
+    /* Style the tab content */
+    .tabcontent-vertical {
+        padding: 0px 12px;
+        width: 100%;
+        border-left: none;
+        display: none;
+    }
+
+    .tab-div-log {
+        display: flex;
+        margin: 6px;
+    }
+</style>
 
 <body>
 
@@ -396,14 +456,14 @@
                         <td style="text-align:center">{{inner}} {{outter}}</td>
                         {% endfor %}
                     </tr>
-                    <tr>
+                    {% comment %} <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson)
                             [A<sup>2</sup>]
                         </td>
                         {% for value in WilsonB_list %}
                         <td style="text-align:center">{{value}}</td>
                         {% endfor %}
-                    </tr>
+                    </tr> {% endcomment %}
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [°]
                         </td>
@@ -744,30 +804,18 @@
 
         <div class=" card_options">
             <div class="card tab">
-                {% if ednaOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
-                {% endif %}
-                {% if fastdpOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-                {% endif %}
-                {% if dialsOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-                {% endif %}
-                {% if xdsOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
-                {% endif %}
-                {% if xdsappOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
-                {% endif %}
-                {% if autoprocOK == "ready" %}
                 <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
-                {% endif %}
-                <!--        <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
-        <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-        <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">FSPipeline</button>
-        <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
-        <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
-        <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>-->
+                <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+                <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+                <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
+                {% comment %} <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
+                <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
+                <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button> {% endcomment %}
 
 
             </div>
@@ -775,7 +823,7 @@
                 <div class="card-title logtab">EDNA_proc Logs</div>
                 {% if ednaOK == "ready" %}
                 {% for logName,logPath in ednaLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -785,7 +833,7 @@
                 <div class="card-title logtab">FastDP Logs</div>
                 {% if fastdpOK == "ready" %}
                 {% for logName,logPath in fastdpLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -795,7 +843,7 @@
                 <div class="card-title logtab">XIA2/Dials Logs</div>
                 {% if dialsOK == "ready" %}
                 {% for logName,logPath in dialsLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -815,7 +863,7 @@
                 <div class="card-title logtab">XDSAPP Logs</div>
                 {% if xdsappOK == "ready" %}
                 {% for logName,logPath in xdsappLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -825,49 +873,291 @@
                 <div class="card-title logtab">autoPROC Logs</div>
                 {% if autoprocOK == "ready" %}
                 {% for logName,logPath in autoprocLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
                 {% endif %}
             </div>
-            <!--    <div id="DIMPLE" class="card tabcontent">
-        <div class="card-title">DIMPLE Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>
-    <div id="BUSTER" class="card tabcontent">
-        <div class="card-title">BUSTER Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>
-    <div id="FSPipeline" class="card tabcontent">
-        <div class="card-title">FSpipeline Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>
-    <div id="RhoFit" class="card tabcontent">
-        <div class="card-title">RhoFit Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>
-    <div id="LigFit" class="card tabcontent">
-        <div class="card-title">LigandFit Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>
-    <div id="Pipedream" class="card tabcontent">
-        <div class="card-title">Pipedream Logs</div>
-        <p>file 1</p>
-        <p>file 2</p>
-    </div>-->
+            <div id="DIMPLE" class="card tabcontent">
+                <div class="card-title">DIMPLE Logs</div>
+                <div class="tab-div-log">
+                    <div class="tab-vertical">
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'autoproc-dimple-v')">autoPROC</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'enda-dimple-v')">EDNA_proc</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'fastdp-dimple-v')">FastDP</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2dials-dimple-v')">XIA2/Dials</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2xds-dimple-v')">XIA2/XDS</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xdsapp-dimple-v')">XDSAPP</button>
+                    </div>
+                    <div id="autoproc-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "autoproc" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div id="enda-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "edna" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="fastdp-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "fastdp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2dials-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "dials" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2xds-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "xdsxscale" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xdsapp-dimple-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in dimple_logs.items %}
+                        {% if proc_m == "xdsapp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div id="BUSTER" class="card tabcontent">
+                <div class="card-title">BUSTER Logs</div>
+                <div class="tab-div-log">
+                    <div class="tab-vertical">
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'autoproc-buster-v')">autoPROC</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'enda-buster-v')">EDNA_proc</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'fastdp-buster-v')">FastDP</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2dials-buster-v')">XIA2/Dials</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2xds-buster-v')">XIA2/XDS</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xdsapp-buster-v')">XDSAPP</button>
+                    </div>
+                    <div id="autoproc-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "autoproc" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div id="enda-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "edna" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="fastdp-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "fastdp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2dials-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "dials" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2xds-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "xdsxscale" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xdsapp-buster-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in buster_logs.items %}
+                        {% if proc_m == "xdsapp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div id="FSPipeline" class="card tabcontent">
+                <div class="card-title">fspipeline Logs</div>
+                <div class="tab-div-log">
+                    <div class="tab-vertical">
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'autoproc-fspipeline-v')">autoPROC</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'enda-fspipeline-v')">EDNA_proc</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'fastdp-fspipeline-v')">FastDP</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2dials-fspipeline-v')">XIA2/Dials</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xia2xds-fspipeline-v')">XIA2/XDS</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'xdsapp-fspipeline-v')">XDSAPP</button>
+                    </div>
+                    <div id="autoproc-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "autoproc" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div id="enda-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "edna" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="fastdp-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "fastdp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2dials-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "dials" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xia2xds-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "xdsxscale" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="xdsapp-fspipeline-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in fspipeline_logs.items %}
+                        {% if proc_m == "xdsapp" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% comment %} <div id="RhoFit" class="card tabcontent">
+                <div class="card-title">RhoFit Logs</div>
+                <p>file 1</p>
+                <p>file 2</p>
+            </div>
+            <div id="LigFit" class="card tabcontent">
+                <div class="card-title">LigandFit Logs</div>
+                <p>file 1</p>
+                <p>file 2</p>
+            </div>
+            <div id="Pipedream" class="card tabcontent">
+                <div class="card-title">Pipedream Logs</div>
+                <p>file 1</p>
+                <p>file 2</p>
+            </div> {% endcomment %}
 
         </div>
 
 </body>
 
 <script>
-
     // Get the modal
     var modal = document.getElementById('myModal');
 
@@ -918,7 +1208,6 @@
             .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
             .forEach(tr => table.appendChild(tr));
     })));
-
 </script>
 
 
@@ -927,8 +1216,7 @@
         if (document.getElementById(methodName).style.display == "block") {
             document.getElementById(methodName).style.display = "none"
             evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
-        }
-        else {
+        } else {
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
             for (i = 0; i < tabcontent.length; i++) {
@@ -944,5 +1232,24 @@
     }
 </script>
 
-
+<script>
+    function openMethodV(evt, methodName) {
+        if (document.getElementById(methodName).style.display == "block") {
+            document.getElementById(methodName).style.display = "none"
+            evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
+        } else {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent-vertical");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks-vertical");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(methodName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    }
+</script>
 {% endblock %}

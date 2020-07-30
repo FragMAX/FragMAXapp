@@ -19,11 +19,13 @@ def library_view(request):
     proj = current_project(request)
 
     lib = proj.library
-    fragments = [
-        path.basename(x).split("-")[-1].split("_")[0]
-        for x in list(project_raw_master_h5_files(proj))
-        if "Apo" not in x
-    ]
+    fragments = sorted(
+        [
+            path.basename(x).split("-")[-1].split("_")[0]
+            for x in list(project_raw_master_h5_files(proj))
+            if "Apo" not in x
+        ]
+    )
 
     project_fragments = dict()
     missing_fragments = dict()
