@@ -117,7 +117,7 @@
 
     <div class="input-field col s12" id="searchDiv">
         <i class="material-icons prefix">search</i>
-        <input type="text" id="searchSample" onkeyup="searchSampleName()" title="Type in a sample name">
+        <input type="text" id="searchSample" onkeyup="search_sample_name()" title="Type in a sample name">
         <label for="searchSample">Search for Sample names..</label>
     </div>
 
@@ -126,15 +126,15 @@
             <tr>
                 <th>Info/Process</th>
                 <th>Protein</th>
-                <th>Sample name</th>
-                <th>Run</th>
+                <th onclick="sort_alpha(this);">Sample name</th>
+                <th onclick="sort_alpha(this);">Run</th>
 
-                <th>Proc Status</th>
-                <th>Ref Status</th>
-                <th>Lig Status</th>
+                <th onclick="sort_score(this);">Proc Status</th>
+                <th onclick="sort_score(this);">Ref Status</th>
+                <th onclick="sort_score(this);">Lig Status</th>
 
-                <th>Resolution</sub> [&Aring;]</th>
-                <th>Frames</th>
+                <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
+                <th onclick="sort_alpha(this);">Frames</th>
                 <th>Crystal Picture</th>
                 <th>Ligand</th>
 
@@ -281,19 +281,81 @@
 
     </table>
     <script>
-      const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-      const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-          v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-          )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-      
-      // do the work...
-      document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-          const table = th.closest('table');
-          Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-              .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-              .forEach(tr => table.appendChild(tr) );
-      })));
-      function searchSampleName() {
+      /*
+       * sort table rows alphabetically by cell values in specified column
+       */
+      function sort_alpha(column) {
+          _sort(column, _get_alpha_comparer(column));
+      }
+
+      /*
+       * sort table rows according to 'success' score,
+       * i.e. count number of 'success' states in each cell
+       */
+      function sort_score(column) {
+          _sort(column, _get_score_comparer(column));
+      }
+
+      /*
+       * sort table, using the provided 'comparer' function
+       */
+      function _sort(th, comparer) {
+          const table = th.closest("table");
+
+          const sorted_rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)")).sort(comparer);
+          sorted_rows.forEach(tr => table.appendChild(tr));
+      }
+
+      /*
+       * calculate 'success' score for a table cell
+       */
+      function _cell_score(cell) {
+          let score = 0;
+
+          /*
+           * count number of 'font' elements with 'success' CSS class,
+           * i.e. number of green circles in the table cell
+           */
+          Array.from(cell.children).forEach((p) => {
+              if (p.children[0].className == "success") {
+                  score += 1;
+              }
+          });
+
+          return score;
+      }
+
+      function _get_score_comparer(th) {
+          const idx = th.cellIndex;
+          const descending = th.descending = !th.descending;
+
+          return function(left, right) {
+              const l_score = _cell_score(left.cells[idx]);
+              const r_score = _cell_score(right.cells[idx]);
+
+              if (descending) {
+                  return r_score - l_score;
+              }
+              return l_score - r_score;
+          }
+      }
+
+      function _get_alpha_comparer(th) {
+          const idx = th.cellIndex;
+          const ascending = th.ascending = !th.ascending;
+
+          return function(left, right) {
+              lstr = left.cells[idx].textContent.toString();
+              rstr = right.cells[idx].textContent.toString();
+
+              if (ascending) {
+                  return lstr.localeCompare(rstr);
+              }
+              return rstr.localeCompare(lstr);
+          }
+      }
+
+      function search_sample_name() {
               var input, filter, table, tr, td, i, txtValue;
               input = document.getElementById("searchSample");
               filter = input.value.toUpperCase();
