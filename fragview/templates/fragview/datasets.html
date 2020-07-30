@@ -1,5 +1,6 @@
-{% extends 'fragview/base.html' %} {% block title %}FragMAX - Home{% endblock %} {% block content %} {% load static %} {% comment %} Define dataset run number
-<- Edit CSV file and update views {% endcomment %} <style>
+{% extends 'fragview/base.html' %} {% block title %}FragMAX - Home{% endblock %} {% block content %} {% load static %}
+
+    <style>
 
     th { cursor: pointer; text-align: center; } td, th { border: 1px solid #f0f0f0; padding: 8px; text-align: center; } tr:nth-child(even) { background-color: #dddddd; height: 150px; } .container { margin: 0 50px 50px 300px !important; max-width: 100% !important;
     width: calc(100% - 350px) !important; } .crystalsnap { max-width: 100%; max-height: 180px; } .ligpng { height:144px; width:144px; } .color-legend { line-height: 0.8 !important; position: absolute; right: 80px; top: 20px; } img { cursor: pointer; }
@@ -71,6 +72,19 @@
                 width: 100%;
             }
         }
+
+        .success {
+            color: #82be00;
+        }
+
+        .failure {
+            color: #f44336;
+        }
+
+        .unknown {
+            color: #fdd835;
+        }
+
     </style>
     <div id="myModal" class="modal">
         <img class="modal-content" id="SnapshotModal">
@@ -86,15 +100,15 @@
         </div>
         <div class="color-legend">
             <p align="left">
-                <font size="6" color="#82be00">&#9679;</font>
+                <font size="6" class="success">&#9679;</font>
                 <font size="4"> Successful</font>
             </p>
             <p align="left">
-                <font size="6" color="#fdd835">&#9679;</font>
+                <font size="6" class="unknown">&#9679;</font>
                 <font size="4"> Not started</font>
             </p>
             <p align="left">
-                <font size="6" color="#f44336">&#9679;</font>
+                <font size="6" class="failure">&#9679;</font>
                 <font size="4"> Failed</font>
             </p>
         </div>
@@ -103,7 +117,7 @@
 
     <div class="input-field col s12" id="searchDiv">
         <i class="material-icons prefix">search</i>
-        <input type="text" id="searchSample" onkeyup="searchSampleName()" title="Type in a sample name">
+        <input type="text" id="searchSample" onkeyup="search_sample_name()" title="Type in a sample name">
         <label for="searchSample">Search for Sample names..</label>
     </div>
 
@@ -112,17 +126,15 @@
             <tr>
                 <th>Info/Process</th>
                 <th>Protein</th>
-                <th>Sample name</th>
-                <th>Run</th>
+                <th onclick="sort_alpha(this);">Sample name</th>
+                <th onclick="sort_alpha(this);">Run</th>
 
-                <th>Proc Status</th>
-                <th>Ref Status</th>
-                <th>Lig Status</th>
+                <th onclick="sort_score(this);">Proc Status</th>
+                <th onclick="sort_score(this);">Ref Status</th>
+                <th onclick="sort_score(this);">Lig Status</th>
 
-                <th>Resolution</sub> [&Aring;]</th>
-                <th>Frames</th>
-                {% comment %}
-                <th>Path</th> {% endcomment %}
+                <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
+                <th onclick="sort_alpha(this);">Frames</th>
                 <th>Crystal Picture</th>
                 <th>Ligand</th>
 
@@ -132,51 +144,132 @@
 
             <tr>
             </tr>
-            {% for img,prf,res,path,snap,snap2,acr,fragment,run,smp,dps,rfs,lgs in datasets %}
+
+            {% for dataset in datasets  %}
             <tr>
                 <td>
-
-                    <form action="/dataset_info/" method="get" id={{prf}}>
-                        <button class="btn" type="submit" value={{prf}};{{img}};{{run}} name="proteinPrefix" size="1">Info</button>
+                    <form action="/dataset_info/" method="get">
+                        <button class="btn" type="submit"
+                                value={{dataset.image_prefix}};{{dataset.num_images}};{{dataset.run}}
+                                name="proteinPrefix" size="1">Info</button>
                     </form>
-
-                </td>
-                <td>
-                    <p>{{ acr }}</p>
-                </td>
-                <td>
-                    <p>{{ smp }}</p>
-                </td>
-                <td>
-                    <p>{{ run }}</p>
-                </td>
-                {{dps| safe}} {{rfs| safe}} {{lgs | safe}}
-                <td>
-                    <p>{{ res }}</p>
-                </td>
-                <td>
-                    <p>{{ img }}</p>
-                </td>
-                {% comment %}
-                <td>
-                    <p>{{ path }}{{ acr }}_{{run}}_master.h5</p>
-                </td> {% endcomment %}
-
-
-                <td>
-                    {% if snap != "noSnapshots" %}
-                    <img class="crystalsnap" id="snap1-{{smp}}_{{run}}" src={{ snap }} onerror="if (this.src != '') this.src='';"> {% endif %} {% if snap2 != "noSnapshots" %}
-                    <img class="crystalsnap" id="snap2-{{smp}}_{{run}}" src={{ snap2 }} onerror="if (this.src != '') this.src='';"> {% endif %}
-
                 </td>
 
                 <td>
-                    {% if fragment %}
-                    <a href="/fragment/{{ fragment }}/image" target="_blank">
-                        <img class="ligpng" src="/fragment/{{ fragment }}/image">
-                    </a>
+                    <p>{{dataset.acronym}}</p>
+                </td>
+                <td>
+                    <p>{{dataset.sample_name}}</p>
+                </td>
+                <td>
+                    <p>{{dataset.run}}</p></td>
+                <td>
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.auto_proc}}">&#9679;</font>
+                        <font size="2">autoPROC</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.xia2_dials}}">&#9679;</font>
+                        <font size="2">XIA2/DIALS</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.edna_proc}}">&#9679;</font>
+                        <font size="2">EDNA_proc</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.fastdp}}">&#9679;</font>
+                        <font size="2">fastdp</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.xdsapp}}">&#9679;</font>
+                        <font size="2">XDSAPP</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.xia2_xds}}">&#9679;</font>
+                        <font size="2">XIA2/XDS</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.pipedream_proc}}">&#9679;</font>
+                        <font size="2">Pipedream</font>
+                    </p>
+                </td>
+
+                <td>
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.buster}}">&#9679;</font>
+                        <font size="2">BUSTER</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.dimple}}">&#9679;</font>
+                        <font size="2">DIMPLE</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.fspipeline}}">&#9679;</font>
+                        <font size="2">fspipeline</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.pipedream_refine}}">&#9679;</font>
+                        <font size="2">Pipedream</font>
+                    </p>
+                </td>
+
+                <td>
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
+                        <font size="2">LigandFit</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
+                        <font size="2">RhoFit</font>
+                    </p>
+
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
+                        <font size="2">Pipedream</font>
+                    </p>
+                </td>
+
+                <td>
+                    <p>{{dataset.resolution}}</p>
+                </td>
+                <td>
+                  <p>{{dataset.num_images}}</p>
+                </td>
+
+                <td>
+                    {% if dataset.snapshots.0 %}
+                        <img class="crystalsnap"
+                             id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
+                             src="{% static dataset.snapshots.0 %}"
+                             onerror="hide_image(this)"
+                             onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                     {% endif %}
 
+                    {% if dataset.snapshots.1 %}
+                        <img class="crystalsnap"
+                             id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
+                             src="{% static dataset.snapshots.1 %}"
+                             onerror="hide_image(this)"
+                             onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if dataset.is_apo is not True %}
+                        <a href="/fragment/{{dataset.sample_name}}/image" target="_blank">
+                            <img class="ligpng" src="/fragment/{{dataset.sample_name}}/image">
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -188,19 +281,90 @@
 
     </table>
     <script>
-      const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-      const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-          v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-          )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-      
-      // do the work...
-      document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-          const table = th.closest('table');
-          Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-              .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-              .forEach(tr => table.appendChild(tr) );
-      })));
-      function searchSampleName() {
+      /*
+       * sort table rows alphabetically by cell values in specified column
+       */
+      function sort_alpha(column) {
+          _sort(column, _get_alpha_comparer(column));
+      }
+
+      /*
+       * sort table rows according to 'success' score,
+       * i.e. count number of 'success' states in each cell
+       */
+      function sort_score(column) {
+          _sort(column, _get_score_comparer(column));
+      }
+
+      /*
+       * sort table, using the provided 'comparer' function
+       */
+      function _sort(th, comparer) {
+          const table = th.closest("table");
+
+          const sorted_rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)")).sort(comparer);
+          sorted_rows.forEach(tr => table.appendChild(tr));
+      }
+
+      /*
+       * calculate 'success' score for a table cell
+       */
+      function _cell_score(cell) {
+          let score = 0;
+
+          /*
+           * count number of 'font' elements with 'success' CSS class,
+           * i.e. number of green circles in the table cell
+           */
+          Array.from(cell.children).forEach((p) => {
+              if (p.children[0].className == "success") {
+                  score += 1;
+              }
+          });
+
+          return score;
+      }
+
+      function _get_score_comparer(th) {
+          const idx = th.cellIndex;
+          const descending = th.descending = !th.descending;
+
+          return function(left, right) {
+              const l_score = _cell_score(left.cells[idx]);
+              const r_score = _cell_score(right.cells[idx]);
+
+              if (descending) {
+                  return r_score - l_score;
+              }
+              return l_score - r_score;
+          }
+      }
+
+      function _get_alpha_comparer(th) {
+          const idx = th.cellIndex;
+          const ascending = th.ascending = !th.ascending;
+
+          return function(left, right) {
+              lstr = left.cells[idx].textContent.toString();
+              rstr = right.cells[idx].textContent.toString();
+
+              if (ascending) {
+                  return lstr.localeCompare(rstr);
+              }
+              return rstr.localeCompare(lstr);
+          }
+      }
+
+      function hide_image(img) {
+          /*
+           * handle cases where crystal snapshot image is missing,
+           * remove it's <img> tag, to avoid displaying 'broken image' icon
+           */
+          img.onerror = null;
+          img.remove();
+      }
+
+      function search_sample_name() {
               var input, filter, table, tr, td, i, txtValue;
               input = document.getElementById("searchSample");
               filter = input.value.toUpperCase();
@@ -220,32 +384,27 @@
               }
       
       var modal = document.getElementById("myModal");
-      
-      // Get the image and insert it inside the modal - use its "alt" text as a caption
-      
       var modalImg = document.getElementById("SnapshotModal");
       var modalImg2 = document.getElementById("SnapshotModal2");
       
-      
-      
-      {% for img,prf,res,path,snap,snap2,acr,fragment,run,smp,dps,rfs,lgs in datasets %}
-      
-      {% if snap != "noSnapshots" %}
-      var snap1{{smp}}{{run}} = document.getElementById("snap1-{{smp}}_{{run}}");
-      var snap2{{smp}}{{run}} = document.getElementById("snap2-{{smp}}_{{run}}");
-      
-      snap1{{smp}}{{run}}.onclick = function(){
-        modal.style.display = "flex";
-        modalImg.src = snap1{{smp}}{{run}}.src;
-        modalImg2.src = snap2{{smp}}{{run}}.src;
+      function show_snapshots(msg) {
+          function get_img_src(img_id) {
+              const img = document.getElementById(img_id);
+              if (img == null) {
+                  /* handle cases when we failed to load snapshot image */
+                  return null;
+              }
+
+              return img.src;
+          }
+
+          /* get the image and insert it inside the modal */
+          modal.style.display = "flex";
+
+          modalImg.src = get_img_src("snap0-"+msg);
+          modalImg2.src = get_img_src("snap1-"+msg);
       }
-      snap2{{smp}}{{run}}.onclick = function(){
-        modal.style.display = "flex";
-        modalImg.src = snap1{{smp}}{{run}}.src;
-        modalImg2.src = snap2{{smp}}{{run}}.src;
-      }
-      {% endif %}
-      {% endfor %}
+
       // Get the <span> element that closes the modal
       var span = document.getElementsByClassName("close")[0];
       
