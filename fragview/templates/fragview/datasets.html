@@ -250,16 +250,16 @@
                     {% if dataset.snapshots.0 %}
                         <img class="crystalsnap"
                              id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
-                             src={% static dataset.snapshots.0 %}
-                             onerror="if (this.src != '') this.src='';"
+                             src="{% static dataset.snapshots.0 %}"
+                             onerror="hide_image(this)"
                              onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                     {% endif %}
 
                     {% if dataset.snapshots.1 %}
                         <img class="crystalsnap"
                              id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
-                             src={% static dataset.snapshots.1 %}
-                             onerror="if (this.src != '') this.src='';"
+                             src="{% static dataset.snapshots.1 %}"
+                             onerror="hide_image(this)"
                              onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                     {% endif %}
                 </td>
@@ -355,6 +355,15 @@
           }
       }
 
+      function hide_image(img) {
+          /*
+           * handle cases where crystal snapshot image is missing,
+           * remove it's <img> tag, to avoid displaying 'broken image' icon
+           */
+          img.onerror = null;
+          img.remove();
+      }
+
       function search_sample_name() {
               var input, filter, table, tr, td, i, txtValue;
               input = document.getElementById("searchSample");
@@ -379,11 +388,21 @@
       var modalImg2 = document.getElementById("SnapshotModal2");
       
       function show_snapshots(msg) {
+          function get_img_src(img_id) {
+              const img = document.getElementById(img_id);
+              if (img == null) {
+                  /* handle cases when we failed to load snapshot image */
+                  return null;
+              }
+
+              return img.src;
+          }
+
           /* get the image and insert it inside the modal */
           modal.style.display = "flex";
 
-          modalImg.src = document.getElementById("snap0-"+msg).src;
-          modalImg2.src = document.getElementById("snap1-"+msg).src;
+          modalImg.src = get_img_src("snap0-"+msg);
+          modalImg2.src = get_img_src("snap1-"+msg);
       }
 
       // Get the <span> element that closes the modal
