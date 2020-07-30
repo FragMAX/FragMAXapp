@@ -5,9 +5,7 @@ from fragview.projects import current_project, project_process_protein_dir, proj
 
 
 def show(request, sample, run):
-    return render(request,
-                  "fragview/reciprocal_lattice.html",
-                  {"sample": sample, "run": run})
+    return render(request, "fragview/reciprocal_lattice.html", {"sample": sample, "run": run})
 
 
 def rlp(request, sample, run):
@@ -15,6 +13,9 @@ def rlp(request, sample, run):
 
     idx_path = path.join(f"{sample}", f"{sample}_{run}", "dials", "DEFAULT", "NATIVE", "SWEEP1", "index")
     dials_dir = path.join(project_process_protein_dir(proj), idx_path)
+    if not path.exists(dials_dir):
+        idx_path = path.join(f"{sample}", f"{sample}_{run}", "dials", "DEFAULT", "SAD", "SWEEP1", "index")
+        dials_dir = path.join(project_process_protein_dir(proj), idx_path)
 
     # create rlp.json, if needed
     get_rlp.delay(dials_dir).wait()
