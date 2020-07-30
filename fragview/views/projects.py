@@ -16,9 +16,7 @@ def show(request):
     """
     projects list page, aka 'manage projects' page
     """
-    return render(request,
-                  "fragview/projects.html",
-                  {"pending_projects": PendingProject.get_projects()})
+    return render(request, "fragview/projects.html", {"pending_projects": PendingProject.get_projects()})
 
 
 def _update_project(form):
@@ -59,7 +57,8 @@ def edit(request, id):
     return render(
         request,
         "fragview/project.html",
-        {"form": form, "project_id": proj.id, "proj_layout": SITE.get_project_layout()})
+        {"form": form, "project_id": proj.id, "proj_layout": SITE.get_project_layout()},
+    )
 
 
 def new(request):
@@ -68,16 +67,12 @@ def new(request):
     POST requests will try to create a new project
     """
     if request.method == "GET":
-        return render(request,
-                      "fragview/project.html",
-                      {"proj_layout": SITE.get_project_layout()})
+        return render(request, "fragview/project.html", {"proj_layout": SITE.get_project_layout()})
 
     form = ProjectForm(request.POST, request.FILES)
 
     if not form.is_valid():
-        return render(request,
-                      "fragview/project.html",
-                      {"form": form, "proj_layout": SITE.get_project_layout()})
+        return render(request, "fragview/project.html", {"form": form, "proj_layout": SITE.get_project_layout()})
 
     proj = form.save()
     proj.set_pending()
@@ -94,15 +89,15 @@ def update_library(request):
     # proj = current_project(request)
 
     if request.method == "GET":
-        return render(request, "fragview/pdbs.html")
+        return render(request, "fragview/library_view.html")
 
     form = NewLibraryForm(request.POST, request.FILES)
     if not form.is_valid():
-        return render(request, "fragview/pdbs.html", {"form": "form"})
+        return render(request, "fragview/library_view.html", {"form": "form"})
 
     # _prepare_fragments(proj)
 
-    return redirect("/pdbs/")
+    return render(request, "fragview/library_view.html", {"form": "form"})
 
 
 def set_current(request, id):
@@ -139,4 +134,5 @@ def project_summary(request):
             "totaldata": totaldata,
             "fraglib": proj.library.name,
             "experiment_date": SITE.get_project_experiment_date(proj),
-        })
+        },
+    )
