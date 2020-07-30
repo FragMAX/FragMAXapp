@@ -46,25 +46,24 @@ def set_details(request):
     solventConc = "N/A"
     soakTime = "N/A"
 
-    snapshots = [
-        spath.replace("/mxn/groups/ispybstorage/", "/static/")
-        for spath in xsdata.snapshots
-    ]
+    snapshots = [spath.replace("/mxn/groups/ispybstorage/", "/static/") for spath in xsdata.snapshots]
 
     half = int(float(images) / 200)
 
     # getreports
     scurp = curp.replace("/data/visitors/", "/static/")
 
-    dialsreport = \
+    dialsreport = (
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/dials/xia2.html"
+    )
 
-    xdsreport = \
+    xdsreport = (
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/xdsxscale/xia2.html"
+    )
 
-    autoprocreport = \
-        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + \
-        "/autoproc/summary.html"
+    autoprocreport = (
+        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/autoproc/summary.html"
+    )
 
     xdsappOK = "no"
     dialsOK = "no"
@@ -78,12 +77,7 @@ def set_details(request):
     xdsappLogs = ""
     xdsLogs = ""
     dialsLogs = ""
-    _tables = {"autoproc": {},
-               "edna": {},
-               "fastdp": {},
-               "xdsapp": {},
-               "dials": {},
-               "xdsxscale": {}}
+    _tables = {"autoproc": {}, "edna": {}, "fastdp": {}, "xdsapp": {}, "dials": {}, "xdsxscale": {}}
     # XDSAPP logs
     xdsapp_dir = path.join(dataset_dir, "xdsapp")
     xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
@@ -102,8 +96,9 @@ def set_details(request):
     if path.exists(path.join(xds_dir, "xia2.html")):
         xdsOK = "ready"
         xdsLogs = _logs(path.join(xds_dir, "LogFiles"))
-    _tables["xdsxscale"] = parse_aimless(path.join(dataset_dir, "xdsxscale", "LogFiles",
-                                                   "AUTOMATIC_DEFAULT_aimless.log"))
+    _tables["xdsxscale"] = parse_aimless(
+        path.join(dataset_dir, "xdsxscale", "LogFiles", "AUTOMATIC_DEFAULT_aimless.log")
+    )
     # autoPROC logs
     autoproc_dir = path.join(dataset_dir, "autoproc")
     if path.exists(path.join(autoproc_dir, "summary.html")):
@@ -126,19 +121,41 @@ def set_details(request):
         fastdpLogs = _logs(fastdp_dir)
     _tables["fastdp"] = parse_aimless(path.join(dataset_dir, "fastdp", f"ap_{prefix}_run{run}_noanom_aimless.log"))
 
+    # Logs for refinement methods
+    # Dimple
+    dimple_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/dimple")
+    _dimple_logs = dict()
+    for _file in dimple_res_dirs:
+        proc_m = path.basename(path.dirname(_file))
+        _dimple_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
+    # BUSTER
+    buster_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/buster")
+    _buster_logs = dict()
+    for _file in buster_res_dirs:
+        proc_m = path.basename(path.dirname(_file))
+        _buster_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
+    # fspipeline
+    fspipeline_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/fspipeline")
+    _fspipeline_logs = dict()
+    for _file in fspipeline_res_dirs:
+        fsp_logs = sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*log"))
+        proc_m = path.basename(path.dirname(_file))
+        _fspipeline_logs[proc_m] = {"/".join(x.split(f"{prefix}_{run}/")[-1].split("/")[2:]): x for x in fsp_logs}
+
     spg_list = [_tables[key]["spg"] for key in _tables.keys()]
     unique_rflns_list = [_tables[key]["unique_rflns"] for key in _tables.keys()]
     total_observations_list = [_tables[key]["total_observations"] for key in _tables.keys()]
 
     overall_res_list = [_tables[key]["low_res_avg"] + " - " + _tables[key]["high_res_avg"] for key in _tables.keys()]
-    outter_shell_res_list = ["(" + _tables[key]["low_res_out"] + " - " +
-                             _tables[key]["high_res_out"] + ")" for key in _tables.keys()]
+    outter_shell_res_list = [
+        "(" + _tables[key]["low_res_out"] + " - " + _tables[key]["high_res_out"] + ")" for key in _tables.keys()
+    ]
     resolution_list = zip(overall_res_list, outter_shell_res_list)
     for n, i in enumerate(overall_res_list):
         if i == " - ":
             overall_res_list[n] = ""
     for n, i in enumerate(outter_shell_res_list):
-        if i == '( - )':
+        if i == "( - )":
             outter_shell_res_list[n] = ""
     unit_cell_list_d = [", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()]
     unit_cell_list_a = [", ".join(_tables[key]["unit_cell"].split(",")[3:]) for key in _tables.keys()]
@@ -149,20 +166,20 @@ def set_details(request):
     isig_avg_list = [_tables[key]["isig_avg"] for key in _tables.keys()]
     isig_out_list = ["(" + _tables[key]["isig_out"] + ")" for key in _tables.keys()]
     for n, i in enumerate(isig_out_list):
-        if i == '()':
+        if i == "()":
             isig_out_list[n] = ""
     isgi_list = zip(isig_avg_list, isig_out_list)
     rmeas_avg_list = [_tables[key]["rmeas_avg"] for key in _tables.keys()]
     rmeas_out_list = ["(" + _tables[key]["rmeas_out"] + ")" for key in _tables.keys()]
     for n, i in enumerate(rmeas_out_list):
-        if i == '()':
+        if i == "()":
             rmeas_out_list[n] = ""
     rmeas_list = zip(rmeas_avg_list, rmeas_out_list)
 
     completeness_avg_list = [_tables[key]["completeness_avg"] for key in _tables.keys()]
     completeness_out_list = ["(" + _tables[key]["completeness_out"] + ")" for key in _tables.keys()]
     for n, i in enumerate(completeness_out_list):
-        if i == '()':
+        if i == "()":
             completeness_out_list[n] = ""
     completeness_list = zip(completeness_avg_list, completeness_out_list)
 
@@ -190,56 +207,62 @@ def set_details(request):
         if len(line) == 23:
             lines[n].append("")
 
-    return render(request, "fragview/dataset_info.html", {
-        "csvfile": lines,
-        "shift": curp.split("/")[-1],
-        "run": run,
-        'imgprf': prefix,
-        'imgs': images,
-        "ligand": ligpng,
-        "fragConc": fragConc,
-        "solventConc": solventConc,
-        "soakTime": soakTime,
-        "xsdata": xsdata,
-        "snapshots": snapshots,
-        "diffraction_half": half,
-        "energy": energy,
-        "totalExposure": totalExposure,
-        "edgeResolution": edgeResolution,
-        "xdsappreport": xdsappreport,
-        "dialsreport": dialsreport,
-        "xdsreport": xdsreport,
-        "autoprocreport": autoprocreport,
-        "ednareport": ednareport,
-        "fastdpreport": fastdpreport,
-        "xdsappOK": xdsappOK,
-        "dialsOK": dialsOK,
-        "xdsOK": xdsOK,
-        "autoprocOK": autoprocOK,
-        "ednaOK": ednaOK,
-        "fastdpOK": fastdpOK,
-        "fastdpLogs": fastdpLogs,
-        "ednaLogs": ednaLogs,
-        "autoprocLogs": autoprocLogs,
-        "xdsappLogs": xdsappLogs,
-        "xdsLogs": xdsLogs,
-        "dialsLogs": dialsLogs,
-        "site": SITE,
-        "beamline": SITE.get_beamline_info(),
-        "spg_list": spg_list,
-        "unique_rflns_list": unique_rflns_list,
-        "total_observations_list": total_observations_list,
-        "unit_cell_list": unit_cell_list,
-        "multiplicity_list": multiplicity_list,
-        "isgi_list": isgi_list,
-        "rmeas_list": rmeas_list,
-        "completeness_list": completeness_list,
-        "mosaicity_list": mosaicity_list,
-        "ISa_list": ISa_list,
-        "WilsonB_list": WilsonB_list,
-        "cc12_list": cc12_list,
-        "resolution_list": resolution_list
-    })
+    return render(
+        request,
+        "fragview/dataset_info.html",
+        {
+            "csvfile": lines,
+            "shift": curp.split("/")[-1],
+            "run": run,
+            "imgprf": prefix,
+            "imgs": images,
+            "ligand": ligpng,
+            "fragConc": fragConc,
+            "solventConc": solventConc,
+            "soakTime": soakTime,
+            "xsdata": xsdata,
+            "snapshots": snapshots,
+            "diffraction_half": half,
+            "energy": energy,
+            "totalExposure": totalExposure,
+            "edgeResolution": edgeResolution,
+            "xdsappreport": xdsappreport,
+            "dialsreport": dialsreport,
+            "xdsreport": xdsreport,
+            "autoprocreport": autoprocreport,
+            "ednareport": ednareport,
+            "fastdpreport": fastdpreport,
+            "xdsappOK": xdsappOK,
+            "dialsOK": dialsOK,
+            "xdsOK": xdsOK,
+            "autoprocOK": autoprocOK,
+            "ednaOK": ednaOK,
+            "fastdpOK": fastdpOK,
+            "fastdpLogs": fastdpLogs,
+            "ednaLogs": ednaLogs,
+            "autoprocLogs": autoprocLogs,
+            "xdsappLogs": xdsappLogs,
+            "xdsLogs": xdsLogs,
+            "dialsLogs": dialsLogs,
+            "site": SITE,
+            "beamline": SITE.get_beamline_info(),
+            "spg_list": spg_list,
+            "unique_rflns_list": unique_rflns_list,
+            "total_observations_list": total_observations_list,
+            "unit_cell_list": unit_cell_list,
+            "multiplicity_list": multiplicity_list,
+            "isgi_list": isgi_list,
+            "rmeas_list": rmeas_list,
+            "completeness_list": completeness_list,
+            "mosaicity_list": mosaicity_list,
+            "ISa_list": ISa_list,
+            "WilsonB_list": WilsonB_list,
+            "cc12_list": cc12_list,
+            "resolution_list": resolution_list,
+            "dimple_logs": _dimple_logs,
+            "fspipeline_logs": _fspipeline_logs,
+        },
+    )
 
 
 def show_all(request):
@@ -255,7 +278,7 @@ def show_all(request):
 
 def proc_report(request):
     method = ""
-    report = str(request.GET.get('dataHeader'))
+    report = str(request.GET.get("dataHeader"))
     if "fastdp" in report or "EDNA" in report:
         method = "log"
         with open(report.replace("/static/", "/data/visitors/"), "r") as readFile:
@@ -405,7 +428,8 @@ def parse_aimless(pplog):
             "ISa": ISa,
             "WilsonB": WilsonB,
             "cc12_avg": cc12_avg,
-            "cc12_out": cc12_out}
+            "cc12_out": cc12_out,
+        }
     else:
         stats = {
             "spg": "",
@@ -427,5 +451,6 @@ def parse_aimless(pplog):
             "ISa": "",
             "WilsonB": "",
             "cc12_avg": "",
-            "cc12_out": ""}
+            "cc12_out": "",
+        }
     return stats
