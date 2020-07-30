@@ -253,6 +253,7 @@ def run_autoproc(proj, nodes, filters, options):
             spg = ""
         if options["cellparam"] != "":
             cellpar = " ".join(options["cellparam"].split(","))
+            cellpar = cellpar.replace("(", "").replace(")", "")
             unit_cell = f"cell='{cellpar}'"
         else:
             unit_cell = ""
@@ -384,7 +385,7 @@ def run_xdsxscale(proj, nodes, filters, options):
             unit_cell = ""
         customxds = options["customxds"]
         if options["friedel_law"] == "true":
-            friedel = "-atom X"
+            friedel = "atom=X"
         else:
             friedel = ""
         script = (
@@ -498,13 +499,14 @@ def run_dials(proj, nodes, filters, options):
             spg = ""
         if options["cellparam"] != "":
             cellpar = ",".join(options["cellparam"].split(","))
+            cellpar = cellpar.replace("(", "").replace(")", "")
             unit_cell = f"unit_cell={cellpar}"
         else:
             unit_cell = ""
         customdials = options["customdials"]
 
         if options["friedel_law"] == "true":
-            friedel = "-atom X"
+            friedel = "atom=X"
         else:
             friedel = ""
         script = (

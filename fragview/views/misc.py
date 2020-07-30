@@ -7,6 +7,7 @@ from fragview.models import Fragment
 from fragview import hpc
 from fragview.projects import project_raw_master_h5_files
 from ast import literal_eval
+from time import sleep
 import csv
 import io
 
@@ -86,6 +87,7 @@ def library_view(request):
                 outfile.write(f"cd {proj.data_path()}/fragmax/fragments/\n")
                 outfile.write(f"phenix.elbow --smiles='{smiles}' --output={fragID}\n")
         hpc.run_sbatch(script)
+    sleep(5)
     return render(
         request,
         "fragview/library_view.html",

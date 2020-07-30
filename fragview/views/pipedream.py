@@ -353,7 +353,10 @@ def submit(request):
             if "apo" not in ppddata.lower():
                 ligand = _data.split("-")[-1].split("_")[0]
                 lib = proj.library
-                smiles = lib.get_fragment(ligand).smiles
+                if lib.get_fragment(ligand) is not None:
+                    smiles = lib.get_fragment(ligand).smiles
+                else:
+                    smiles = "C1=CC=CC=C1"
                 cif_out = f"{ppdprocessdir}/{ligand}"
                 cif_cmd = (
                     f"mkdir -p {ppdprocessdir}\n"
