@@ -887,11 +887,11 @@ def find_ligandfitting_log(res_dir):
     rhofitSearch = glob(f"{res_dir}/rhofit/results.txt")
     ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
     if rhofitSearch:
-        rhofitlog = rhofitSearch[0].replace("/data/visitors/", "")
+        rhofitlog = rhofitSearch[0]
     else:
         rhofitlog = ""
     if ligandfitSearch:
-        ligandfitlog = ligandfitSearch[0].replace("/data/visitors/", "")
+        ligandfitlog = ligandfitSearch[0]
     else:
         ligandfitlog = ""
     return rhofitlog, ligandfitlog
