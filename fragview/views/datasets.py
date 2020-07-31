@@ -64,7 +64,7 @@ def set_details(request):
     autoprocreport = (
         scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/autoproc/summary.html"
     )
-
+    pipedreamreport = curp + "/fragmax/results/" + prefix + "_" + run + "/pipedream/summary.out"
     xdsappOK = "no"
     dialsOK = "no"
     xdsOK = "no"
@@ -259,6 +259,7 @@ def set_details(request):
             "dialsreport": dialsreport,
             "xdsreport": xdsreport,
             "autoprocreport": autoprocreport,
+            "pipedreamreport": pipedreamreport,
             "ednareport": ednareport,
             "fastdpreport": fastdpreport,
             "xdsappOK": xdsappOK,

@@ -323,44 +323,8 @@
 
     <div>
         <h5 style="padding-left:310px;"> {{imgprf}}_{{run}} Dataset information </h5>
-        {{new_proc_run | safe}}
-        <div style="display:flex; padding-left:310px; ">
-            <h6>Open processing report</h6>
 
-            {% if dialsOK == "ready" %}
-            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader"
-                    size="1">DIALS</button>
-            </form>
-            {% endif %}
-            {% if xdsOK == "ready" %}
-            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader"
-                    size="1">XDS/XSCALE</button>
-            </form>
-            {% endif %}
-            {% if autoprocOK == "ready" %}
-            <form action="/procReport/" method="get" size="1" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader"
-                    size="1">autoPROC</button>
-            </form>
-            {% endif %}
-            {% if xdsappOK == "ready" %}
-            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{xdsappreport}}" name="logFile" size="1">XDSAPP</button>
-            </form>
-            {% endif %}
-            {% if fastdpOK == "ready" %}
-            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile" size="1">FastDP</button>
-            </form>
-            {% endif %}
-            {% if ednaOK == "ready" %}
-            <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
-                <button class="btn-small" type="submit" value="{{ednareport}}" name="logFile" size="1">EDNA</button>
-            </form>
-            {% endif %}
-        </div>
+
     </div>
 
 
@@ -381,13 +345,86 @@
                 <thead>
                     <tr>
                         <td class="resultsHeader" style="height: 60px;"></td>
-                        <td class="resultsHeader">autoPROC</td>
-                        <td class="resultsHeader">EDNA_proc</td>
-                        <td class="resultsHeader">FastDP</td>
-                        <td class="resultsHeader">XDSAPP</td>
-                        <td class="resultsHeader">XIA2/DIALS</td>
-                        <td class="resultsHeader">XIA2/XDS</td>
-                        <td class="resultsHeader">Pipedream</td>
+                        <td class="resultsHeader">
+
+                            {% if autoprocOK == "ready" %}
+                            <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
+                                <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader"
+                                    size="1">autoPROC</button>
+                            </form>
+                            {% else %}
+                            autoPROC
+                            {% endif %} </td>
+                        <td class="resultsHeader">
+
+                            {% if ednaOK == "ready" %}
+                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
+                                target="_blank">
+                                <button class="btn-small" type="submit" value="{{ednareport}}" name="logFile"
+                                    size="1">EDNA</button>
+                            </form>
+                            {% else %}
+                            EDNA
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
+
+                            {% if fastdpOK == "ready" %}
+                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
+                                target="_blank">
+                                <button class="btn-small" type="submit" value="{{fastdpreport}}" name="logFile"
+                                    size="1">FastDP</button>
+                            </form>
+                            {% else %}
+                            FastDP
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
+
+                            {% if xdsappOK == "ready" %}
+                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
+                                target="_blank">
+                                <button class="btn-small" type="submit" value="{{xdsappreport}}" name="logFile"
+                                    size="1">XDSAPP</button>
+                            </form>
+                            {% else %}
+                            XDSAPP
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
+
+                            {% if dialsOK == "ready" %}
+                            <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
+                                <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader"
+                                    size="1">XIA2/DIALS</button>
+                            </form>
+                            {% else %}
+                            XIA2/DIALS
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
+
+                            {% if xdsOK == "ready" %}
+                            <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
+                                <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader"
+                                    size="1">XIA2/XDS</button>
+                            </form>
+                            {% else %}
+                            XIA2/XDS
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
+                            {% if pipedreamOK == "ready" %}
+                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
+                                target="_blank">
+                                <button class="btn-small" type="submit" value="{{pipedreamreport}}" name="logFile"
+                                    size="1">Pipedream</button>
+                            </form>
+                            {% else %}
+                            Pipedream
+                            {% endif %}
+
+                        </td>
                     </tr>
                 </thead>
                 <tbody>
