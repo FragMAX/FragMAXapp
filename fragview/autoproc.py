@@ -13,21 +13,27 @@ def import_autoproc(proj, shifts):
     num_of_datasets = len(h5s)
 
     for set_num, h5 in zip(range(num_of_datasets), h5s):
-        dataset, run = (h5.split("/")[-1][:-10].split("_"))
+        dataset, run = h5.split("/")[-1][:-10].split("_")
 
         print(f"importing {dataset}-{run} ({set_num + 1}/{num_of_datasets}) results")
 
         shift_collection = h5.split("/")[5]
-        edna_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/"\
+        edna_path_src = (
+            f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}/"
             f"{dataset}/xds_{dataset}_{run}_1/EDNA_proc/results/"
+        )
         edna_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/edna/"
 
-        fastdp_path_src = f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"\
+        fastdp_path_src = (
+            f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"
             f"/{dataset}/xds_{dataset}_{run}_1/fastdp/results/"
+        )
         fastdp_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/fastdp/"
 
-        autoproc_path_src = glob(f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"
-                                 f"/{dataset}/xds_{dataset}_{run}_1/autoPROC/cn*/AutoPROCv1_0_anom/")
+        autoproc_path_src = glob(
+            f"/data/visitors/biomax/{proj.proposal}/{shift_collection}/process/{proj.protein}"
+            f"/{dataset}/xds_{dataset}_{run}_1/autoPROC/cn*/AutoPROCv1_0_anom/"
+        )
         autoproc_path_dst = f"{proj.data_path()}/fragmax/process/{proj.protein}/{dataset}/{dataset}_{run}/autoproc/"
 
         script = project_script(proj, f"import_edna_fastdp.sh")
@@ -68,5 +74,6 @@ def import_autoproc(proj, shifts):
                         outfile.write(f"rsync -r {autoproc_path_src} {autoproc_path_dst}\n")
                         outfile.write(f"cd {autoproc_path_dst}\n")
                         outfile.write(f"mv {autoproc_path_dst}HDF5_1/* {autoproc_path_dst}\n")
+                        outfile.write(f"cp {autoproc_path_dst}/*png {autoproc_path_dst}HDF5_1/\n")
 
                     hpc.run_sbatch(script)
