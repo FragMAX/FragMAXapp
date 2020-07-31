@@ -21,7 +21,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     fastdpLogs = glob(f"{fmax_proc_dir}/{dataset}/*/fastdp/*.LP")
     EDNALogs = sorted(glob(f"{fmax_proc_dir}/{dataset}/*/edna/*XSCALE.LP"), reverse=True)
     ppdprocLogs = glob(f"{res_dir}/{dataset}*/pipedream/process/process.log")
-    ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/BUSTER_model.pdb")
+    ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/refine.pdb")
     if ppdrefFiles:
         resultsList = (
             glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb")

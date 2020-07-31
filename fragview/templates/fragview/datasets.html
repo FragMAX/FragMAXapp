@@ -1,429 +1,470 @@
 {% extends 'fragview/base.html' %} {% block title %}FragMAX - Home{% endblock %} {% block content %} {% load static %}
 
-    <style>
+<style>
+    th {
+        cursor: pointer;
+        text-align: center;
+    }
 
-    th { cursor: pointer; text-align: center; } td, th { border: 1px solid #f0f0f0; padding: 8px; text-align: center; } tr:nth-child(even) { background-color: #dddddd; height: 150px; } .container { margin: 0 50px 50px 300px !important; max-width: 100% !important;
-    width: calc(100% - 350px) !important; } .crystalsnap { max-width: 100%; max-height: 180px; } .ligpng { height:144px; width:144px; } .color-legend { line-height: 0.8 !important; position: absolute; right: 80px; top: 20px; } img { cursor: pointer; }
+    td,
+    th {
+        border: 1px solid #f0f0f0;
+        padding: 8px;
+        text-align: center;
+    }
+
+    tr:nth-child(even) {
+        background-color: #dddddd;
+        height: 150px;
+    }
+
+    .container {
+        margin: 0 50px 50px 300px !important;
+        max-width: 100% !important;
+        width: calc(100% - 350px) !important;
+    }
+
+    .crystalsnap {
+        max-width: 100%;
+        max-height: 180px;
+    }
+
+    .ligpng {
+        height: 144px;
+        width: 144px;
+    }
+
+    .color-legend {
+        line-height: 0.8 !important;
+        position: absolute;
+        right: 80px;
+        top: 20px;
+    }
+
+    img {
+        cursor: pointer;
+    }
+
     /* The Modal (background) */
+</style>
 
+<style>
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        max-height: 100% !important;
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.3);
+        /* Black w/ opacity */
+        backdrop-filter: blur(6px);
+    }
 
-    </style>
+    /* Modal Content (image) */
 
-    <style>
-        .modal {
-            display: none;
-            /* Hidden by default */
-            position: fixed;
-            /* Stay in place */
-            z-index: 1;
-            /* Sit on top */
-            left: 0;
-            top: 0;
+    .modal-content {
+        margin: auto;
+        display: flex;
+        max-width: 50%;
+    }
+
+    /* Add Animation */
+
+    .modal-content {
+        -webkit-animation-name: zoom;
+        -webkit-animation-duration: 0.2s;
+        animation-name: zoom;
+        animation-duration: 0.2s;
+    }
+
+    @-webkit-keyframes zoom {
+        from {
+            -webkit-transform: scale(0)
+        }
+
+        to {
+            -webkit-transform: scale(1)
+        }
+    }
+
+    @keyframes zoom {
+        from {
+            transform: scale(0)
+        }
+
+        to {
+            transform: scale(1)
+        }
+    }
+
+    /* 100% Image Width on Smaller Screens */
+
+    @media only screen and (max-width: 700px) {
+        .modal-content {
             width: 100%;
-            /* Full width */
-            height: 100%;
-            /* Full height */
-            max-height: 100% !important;
-            overflow: auto;
-            /* Enable scroll if needed */
-            background-color: rgb(0, 0, 0);
-            /* Fallback color */
-            background-color: rgba(0, 0, 0, 0.3);
-            /* Black w/ opacity */
-            backdrop-filter: blur(6px);
         }
-        /* Modal Content (image) */
-        
-        .modal-content {
-            margin: auto;
-            display: flex;
-            max-width: 50%;
-        }
-        /* Add Animation */
-        
-        .modal-content {
-            -webkit-animation-name: zoom;
-            -webkit-animation-duration: 0.2s;
-            animation-name: zoom;
-            animation-duration: 0.2s;
-        }
-        
-        @-webkit-keyframes zoom {
-            from {
-                -webkit-transform: scale(0)
-            }
-            to {
-                -webkit-transform: scale(1)
-            }
-        }
-        
-        @keyframes zoom {
-            from {
-                transform: scale(0)
-            }
-            to {
-                transform: scale(1)
-            }
-        }
-        /* 100% Image Width on Smaller Screens */
-        
-        @media only screen and (max-width: 700px) {
-            .modal-content {
-                width: 100%;
-            }
-        }
+    }
 
-        .success {
-            color: #82be00;
-        }
+    .success {
+        color: #82be00;
+    }
 
-        .failure {
-            color: #f44336;
-        }
+    .failure {
+        color: #f44336;
+    }
 
-        .unknown {
-            color: #fdd835;
-        }
+    .unknown {
+        color: #fdd835;
+    }
+</style>
+<div id="myModal" class="modal">
+    <img class="modal-content" id="SnapshotModal">
+    <img class="modal-content" id="SnapshotModal2">
 
-    </style>
-    <div id="myModal" class="modal">
-        <img class="modal-content" id="SnapshotModal">
-        <img class="modal-content" id="SnapshotModal2">
-
+</div>
+<div>
+    <h4>Data Collection Overview</h4>
+    <div style="display:flex;">
+        <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
+            <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Update Project
+                Database</button>
+        </form>
     </div>
-    <div>
-        <h4>Data Collection Overview</h4>
-        <div style="display:flex;">
-            <form action="/datasets/" method="get" id="procButton" style="padding-left:20px; ">
-                <button class="btn" type="submit" value="resyncStatus" name="resyncstButton" size="1">Update Project Database</button>
-            </form>
-        </div>
-        <div class="color-legend">
-            <p align="left">
-                <font size="6" class="success">&#9679;</font>
-                <font size="4"> Successful</font>
-            </p>
-            <p align="left">
-                <font size="6" class="unknown">&#9679;</font>
-                <font size="4"> Not started</font>
-            </p>
-            <p align="left">
-                <font size="6" class="failure">&#9679;</font>
-                <font size="4"> Failed</font>
-            </p>
-        </div>
+    <div class="color-legend">
+        <p align="left">
+            <font size="6" class="success">&#9679;</font>
+            <font size="4"> Successful</font>
+        </p>
+        <p align="left">
+            <font size="6" class="unknown">&#9679;</font>
+            <font size="4"> Not started</font>
+        </p>
+        <p align="left">
+            <font size="6" class="failure">&#9679;</font>
+            <font size="4"> Failed</font>
+        </p>
     </div>
-    <p></p>
+</div>
+<p></p>
 
-    <div class="input-field col s12" id="searchDiv">
-        <i class="material-icons prefix">search</i>
-        <input type="text" id="searchSample" onkeyup="search_sample_name()" title="Type in a sample name">
-        <label for="searchSample">Search for Sample names..</label>
-    </div>
+<div class="input-field col s12" id="searchDiv">
+    <i class="material-icons prefix">search</i>
+    <input type="text" id="searchSample" onkeyup="search_sample_name()" title="Type in a sample name">
+    <label for="searchSample">Search for Sample names..</label>
+</div>
 
-    <table id="datasetTable">
-        <thead>
-            <tr>
-                <th>Info/Process</th>
-                <th>Protein</th>
-                <th onclick="sort_alpha(this);">Sample name</th>
-                <th onclick="sort_alpha(this);">Run</th>
+<table id="datasetTable">
+    <thead>
+        <tr>
+            <th>Info/Process</th>
+            <th>Protein</th>
+            <th onclick="sort_alpha(this);">Sample name</th>
+            <th onclick="sort_alpha(this);">Run</th>
 
-                <th onclick="sort_score(this);">Proc Status</th>
-                <th onclick="sort_score(this);">Ref Status</th>
-                <th onclick="sort_score(this);">Lig Status</th>
+            <th onclick="sort_score(this);">Proc Status</th>
+            <th onclick="sort_score(this);">Ref Status</th>
+            <th onclick="sort_score(this);">Lig Status</th>
 
-                <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
-                <th onclick="sort_alpha(this);">Frames</th>
-                <th>Crystal Picture</th>
-                <th>Ligand</th>
+            <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
+            <th onclick="sort_alpha(this);">Frames</th>
+            <th>Crystal Picture</th>
+            <th>Ligand</th>
 
-            </tr>
-        </thead>
-        <tbody>
+        </tr>
+    </thead>
+    <tbody>
 
-            <tr>
-            </tr>
+        <tr>
+        </tr>
 
-            {% for dataset in datasets  %}
-            <tr>
-                <td>
-                    <form action="/dataset_info/" method="get">
-                        <button class="btn" type="submit"
-                                value={{dataset.image_prefix}};{{dataset.num_images}};{{dataset.run}}
-                                name="proteinPrefix" size="1">Info</button>
-                    </form>
-                </td>
+        {% for dataset in datasets  %}
+        <tr>
+            <td>
+                <form action="/dataset_info/" method="get" target="_blank">
+                    <button class="btn" type="submit"
+                        value={{dataset.image_prefix}};{{dataset.num_images}};{{dataset.run}} name="proteinPrefix"
+                        size="1">Info</button>
+                </form>
+            </td>
 
-                <td>
-                    <p>{{dataset.acronym}}</p>
-                </td>
-                <td>
-                    <p>{{dataset.sample_name}}</p>
-                </td>
-                <td>
-                    <p>{{dataset.run}}</p></td>
-                <td>
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.auto_proc}}">&#9679;</font>
-                        <font size="2">autoPROC</font>
-                    </p>
+            <td>
+                <p>{{dataset.acronym}}</p>
+            </td>
+            <td>
+                <p>{{dataset.sample_name}}</p>
+            </td>
+            <td>
+                <p>{{dataset.run}}</p>
+            </td>
+            <td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.auto_proc}}">&#9679;</font>
+                    <font size="2">autoPROC</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.xia2_dials}}">&#9679;</font>
-                        <font size="2">XIA2/DIALS</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.xia2_dials}}">&#9679;</font>
+                    <font size="2">XIA2/DIALS</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.edna_proc}}">&#9679;</font>
-                        <font size="2">EDNA_proc</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.edna_proc}}">&#9679;</font>
+                    <font size="2">EDNA_proc</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.fastdp}}">&#9679;</font>
-                        <font size="2">fastdp</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.fastdp}}">&#9679;</font>
+                    <font size="2">fastdp</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.xdsapp}}">&#9679;</font>
-                        <font size="2">XDSAPP</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.xdsapp}}">&#9679;</font>
+                    <font size="2">XDSAPP</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.xia2_xds}}">&#9679;</font>
-                        <font size="2">XIA2/XDS</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.xia2_xds}}">&#9679;</font>
+                    <font size="2">XIA2/XDS</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.pipedream_proc}}">&#9679;</font>
-                        <font size="2">Pipedream</font>
-                    </p>
-                </td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.pipedream_proc}}">&#9679;</font>
+                    <font size="2">Pipedream</font>
+                </p>
+            </td>
 
-                <td>
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.buster}}">&#9679;</font>
-                        <font size="2">BUSTER</font>
-                    </p>
+            <td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.buster}}">&#9679;</font>
+                    <font size="2">BUSTER</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.dimple}}">&#9679;</font>
-                        <font size="2">DIMPLE</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.dimple}}">&#9679;</font>
+                    <font size="2">DIMPLE</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.fspipeline}}">&#9679;</font>
-                        <font size="2">fspipeline</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.fspipeline}}">&#9679;</font>
+                    <font size="2">fspipeline</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.pipedream_refine}}">&#9679;</font>
-                        <font size="2">Pipedream</font>
-                    </p>
-                </td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.pipedream_refine}}">&#9679;</font>
+                    <font size="2">Pipedream</font>
+                </p>
+            </td>
 
-                <td>
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
-                        <font size="2">LigandFit</font>
-                    </p>
+            <td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
+                    <font size="2">LigandFit</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
-                        <font size="2">RhoFit</font>
-                    </p>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
+                    <font size="2">RhoFit</font>
+                </p>
 
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
-                        <font size="2">Pipedream</font>
-                    </p>
-                </td>
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
+                    <font size="2">Pipedream</font>
+                </p>
+            </td>
 
-                <td>
-                    <p>{{dataset.resolution}}</p>
-                </td>
-                <td>
-                  <p>{{dataset.num_images}}</p>
-                </td>
+            <td>
+                <p>{{dataset.resolution}}</p>
+            </td>
+            <td>
+                <p>{{dataset.num_images}}</p>
+            </td>
 
-                <td>
-                    {% if dataset.snapshots.0 %}
-                        <img class="crystalsnap"
-                             id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
-                             src="{% static dataset.snapshots.0 %}"
-                             onerror="hide_image(this)"
-                             onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
-                    {% endif %}
+            <td>
+                {% if dataset.snapshots.0 %}
+                <img class="crystalsnap" id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
+                    src="{% static dataset.snapshots.0 %}" onerror="hide_image(this)"
+                    onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
+                {% endif %}
 
-                    {% if dataset.snapshots.1 %}
-                        <img class="crystalsnap"
-                             id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
-                             src="{% static dataset.snapshots.1 %}"
-                             onerror="hide_image(this)"
-                             onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
-                    {% endif %}
-                </td>
+                {% if dataset.snapshots.1 %}
+                <img class="crystalsnap" id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
+                    src="{% static dataset.snapshots.1 %}" onerror="hide_image(this)"
+                    onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
+                {% endif %}
+            </td>
 
-                <td>
-                    {% if dataset.is_apo is not True %}
-                        <a href="/fragment/{{dataset.sample_name}}/image" target="_blank">
-                            <img class="ligpng" src="/fragment/{{dataset.sample_name}}/image">
-                        </a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
+            <td>
+                {% if dataset.is_apo is not True %}
+                <a href="/fragment/{{dataset.sample_name}}/image" target="_blank">
+                    <img class="ligpng" src="/fragment/{{dataset.sample_name}}/image">
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
+</table>
 
-    </table>
-    <script>
-      /*
-       * sort table rows alphabetically by cell values in specified column
-       */
-      function sort_alpha(column) {
-          _sort(column, _get_alpha_comparer(column));
-      }
 
-      /*
-       * sort table rows according to 'success' score,
-       * i.e. count number of 'success' states in each cell
-       */
-      function sort_score(column) {
-          _sort(column, _get_score_comparer(column));
-      }
+</tbody>
 
-      /*
-       * sort table, using the provided 'comparer' function
-       */
-      function _sort(th, comparer) {
-          const table = th.closest("table");
+</table>
+<script>
+    /*
+     * sort table rows alphabetically by cell values in specified column
+     */
+    function sort_alpha(column) {
+        _sort(column, _get_alpha_comparer(column));
+    }
 
-          const sorted_rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)")).sort(comparer);
-          sorted_rows.forEach(tr => table.appendChild(tr));
-      }
+    /*
+     * sort table rows according to 'success' score,
+     * i.e. count number of 'success' states in each cell
+     */
+    function sort_score(column) {
+        _sort(column, _get_score_comparer(column));
+    }
 
-      /*
-       * calculate 'success' score for a table cell
-       */
-      function _cell_score(cell) {
-          let score = 0;
+    /*
+     * sort table, using the provided 'comparer' function
+     */
+    function _sort(th, comparer) {
+        const table = th.closest("table");
 
-          /*
-           * count number of 'font' elements with 'success' CSS class,
-           * i.e. number of green circles in the table cell
-           */
-          Array.from(cell.children).forEach((p) => {
-              if (p.children[0].className == "success") {
-                  score += 1;
-              }
-          });
+        const sorted_rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)")).sort(comparer);
+        sorted_rows.forEach(tr => table.appendChild(tr));
+    }
 
-          return score;
-      }
+    /*
+     * calculate 'success' score for a table cell
+     */
+    function _cell_score(cell) {
+        let score = 0;
 
-      function _get_score_comparer(th) {
-          const idx = th.cellIndex;
-          const descending = th.descending = !th.descending;
+        /*
+         * count number of 'font' elements with 'success' CSS class,
+         * i.e. number of green circles in the table cell
+         */
+        Array.from(cell.children).forEach((p) => {
+            if (p.children[0].className == "success") {
+                score += 1;
+            }
+        });
 
-          return function(left, right) {
-              const l_score = _cell_score(left.cells[idx]);
-              const r_score = _cell_score(right.cells[idx]);
+        return score;
+    }
 
-              if (descending) {
-                  return r_score - l_score;
-              }
-              return l_score - r_score;
-          }
-      }
+    function _get_score_comparer(th) {
+        const idx = th.cellIndex;
+        const descending = th.descending = !th.descending;
 
-      function _get_alpha_comparer(th) {
-          const idx = th.cellIndex;
-          const ascending = th.ascending = !th.ascending;
+        return function (left, right) {
+            const l_score = _cell_score(left.cells[idx]);
+            const r_score = _cell_score(right.cells[idx]);
 
-          return function(left, right) {
-              lstr = left.cells[idx].textContent.toString();
-              rstr = right.cells[idx].textContent.toString();
+            if (descending) {
+                return r_score - l_score;
+            }
+            return l_score - r_score;
+        }
+    }
 
-              if (ascending) {
-                  return lstr.localeCompare(rstr);
-              }
-              return rstr.localeCompare(lstr);
-          }
-      }
+    function _get_alpha_comparer(th) {
+        const idx = th.cellIndex;
+        const ascending = th.ascending = !th.ascending;
 
-      function hide_image(img) {
-          /*
-           * handle cases where crystal snapshot image is missing,
-           * remove it's <img> tag, to avoid displaying 'broken image' icon
-           */
-          img.onerror = null;
-          img.remove();
-      }
+        return function (left, right) {
+            lstr = left.cells[idx].textContent.toString();
+            rstr = right.cells[idx].textContent.toString();
 
-      function search_sample_name() {
-              var input, filter, table, tr, td, i, txtValue;
-              input = document.getElementById("searchSample");
-              filter = input.value.toUpperCase();
-              table = document.getElementById("datasetTable");
-              tr = table.getElementsByTagName("tr");
-              for (i = 0; i < tr.length; i++) {
-                  td = tr[i].getElementsByTagName("td")[2];
-                  if (td) {
-                  txtValue = td.textContent || td.innerText;
-                  if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                      tr[i].style.display = "";
-                  } else {
-                      tr[i].style.display = "none";
-                  }
-                  }
-              }
-              }
-      
-      var modal = document.getElementById("myModal");
-      var modalImg = document.getElementById("SnapshotModal");
-      var modalImg2 = document.getElementById("SnapshotModal2");
-      
-      function show_snapshots(msg) {
-          function get_img_src(img_id) {
-              const img = document.getElementById(img_id);
-              if (img == null) {
-                  /* handle cases when we failed to load snapshot image */
-                  return null;
-              }
+            if (ascending) {
+                return lstr.localeCompare(rstr);
+            }
+            return rstr.localeCompare(lstr);
+        }
+    }
 
-              return img.src;
-          }
+    function hide_image(img) {
+        /*
+         * handle cases where crystal snapshot image is missing,
+         * remove it's <img> tag, to avoid displaying 'broken image' icon
+         */
+        img.onerror = null;
+        img.remove();
+    }
 
-          /* get the image and insert it inside the modal */
-          modal.style.display = "flex";
+    function search_sample_name() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchSample");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("datasetTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
 
-          modalImg.src = get_img_src("snap0-"+msg);
-          modalImg2.src = get_img_src("snap1-"+msg);
-      }
+    var modal = document.getElementById("myModal");
+    var modalImg = document.getElementById("SnapshotModal");
+    var modalImg2 = document.getElementById("SnapshotModal2");
 
-      // Get the <span> element that closes the modal
-      var span = document.getElementsByClassName("close")[0];
-      
-      // When the user clicks on <span> (x), close the modal
-      
-          window.onclick = function (event) {
-                  if (event.target == modal) {
-                      modal.style.display = "none";
-                  }
-              }
-          $(document).ready(function(){
-              $(document).bind("keydown", function(e){
-                  e = e || window.event;
-                  var charCode = e.which || e.keyCode;
-                  if(charCode == 27) {
-                      modal.style.display = "none";
-                  };
-              });
-          });
-      </script>
+    function show_snapshots(msg) {
+        function get_img_src(img_id) {
+            const img = document.getElementById(img_id);
+            if (img == null) {
+                /* handle cases when we failed to load snapshot image */
+                return null;
+            }
 
-    {% endblock %}
+            return img.src;
+        }
+
+        /* get the image and insert it inside the modal */
+        modal.style.display = "flex";
+
+        modalImg.src = get_img_src("snap0-" + msg);
+        modalImg2.src = get_img_src("snap1-" + msg);
+    }
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    $(document).ready(function () {
+        $(document).bind("keydown", function (e) {
+            e = e || window.event;
+            var charCode = e.which || e.keyCode;
+            if (charCode == 27) {
+                modal.style.display = "none";
+            };
+        });
+    });
+</script>
+
+{% endblock %}

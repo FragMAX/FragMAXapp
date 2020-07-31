@@ -202,7 +202,6 @@
         </tr>
         <tr>
           {% if ligand %}
-
           <td colspan="2"><b>Download</b>
             <a href="{{pdb_path}}" download="{{name}}.pdb" style="padding-left: 10px;"> PDB</a> |
             <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a> |
@@ -329,8 +328,11 @@
   <div id="inset"></div>
 
   <script>
-
-    V = new UM.Viewer({ viewer: "viewer", hud: "hud", help: "help" });
+    V = new UM.Viewer({
+      viewer: "viewer",
+      hud: "hud",
+      help: "help"
+    });
     V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "protein"
     })
@@ -355,9 +357,12 @@
       var blob = blobs[index];
       movetoblob(blob)
     }
+
     function previousblob() {
       index = (index - 1) % numblobs;
-      if (index < 0) { index = numblobs - 1 }
+      if (index < 0) {
+        index = numblobs - 1
+      }
       var blob = blobs[index];
       movetoblob(blob)
     }
@@ -376,12 +381,12 @@
       document.getElementById("rhofit_radio").checked ^= true
       if (document.getElementById("showhiderhofit").value == "HIDE") {
         document.getElementById("showhiderhofit").value = "SHOW"
-      }
-      else {
+      } else {
         document.getElementById("showhiderhofit").value = "HIDE"
       }
 
     }
+
     function centerrhofit() {
       var rpos = search("rhofit", V.model_bags)
       var rfcenter = V.model_bags[rpos].model.atoms[0].xyz
@@ -389,6 +394,7 @@
       V.request_render();
 
     }
+
     function showligfit() {
       var lpos = search("ligfit", V.model_bags)
       V.model_bags[lpos].visible ^= true;
@@ -397,11 +403,11 @@
       document.getElementById("ligfit_radio").checked ^= true
       if (document.getElementById("showhideligandfit").value == "HIDE") {
         document.getElementById("showhideligandfit").value = "SHOW"
-      }
-      else {
+      } else {
         document.getElementById("showhideligandfit").value = "HIDE"
       }
     }
+
     function centerligfit() {
       var lpos = search("ligfit", V.model_bags)
       var lfcenter = V.model_bags[lpos].model.atoms[0].xyz
@@ -409,6 +415,7 @@
       V.request_render();
 
     }
+
     function showprotein() {
       V.model_bags[-1].visible = true;
       V.redraw_all();
@@ -435,6 +442,7 @@
         if (charCode == 39) nextblob();
       });
     });
+
     function search(nameKey, myArray) {
       for (var i = 0; i < myArray.length; i++) {
         if (myArray[i].label === nameKey) {
@@ -442,10 +450,6 @@
         }
       }
     }
-
-
-
-
   </script>
 </body>
 

@@ -62,7 +62,7 @@ def run_structure_solving(
     aimless,
 ):
     # Modules list for HPC env
-    softwares = "PReSTO autoPROC BUSTER"
+    softwares = "PReSTO autoPROC BUSTER Phenix/1.17.1-3660-Rosetta-3.10-5-PReSTO"
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]

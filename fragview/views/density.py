@@ -171,7 +171,8 @@ def show(request):
 
     # get xyz for ligands
     blist = blist.replace(" ", "")
-    center = blist[1: blist.index("]") + 1]
+
+    center = blist[1 : blist.index("]") + 1]  # noqa E203
 
     if rhofitbox == "none" or ligfitbox == "none":
         dualviewbox = "none"
@@ -299,18 +300,20 @@ def show_pipedream(request):
 
     sample = str(request.GET.get("structure"))
 
-    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "pipedream.csv"))[1:]
+    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "results.csv"))[1:]
 
     for n, line in enumerate(lines):
-        if line[0] == sample:
-            ligand = line[2]
+        if line[0] == f"{sample}":
             symmetry = line[4]
             resolution = line[5]
-            rwork = line[6]
-            rfree = line[7]
-            rhofitscore = line[8]
-            ligsvg = line[-1]
+            rwork = line[7]
+            rfree = line[8]
+            rhofitscore = line[20]
+            ligsvg = ""
             currentpos = n
+            center = line[22]
+            prefix = line[18]
+            ligand = prefix.split("-")[-1].split("_")[0]
             if currentpos == len(lines) - 1:
                 prevstr = lines[currentpos - 1][0]
                 nextstr = lines[0][0]
@@ -321,24 +324,19 @@ def show_pipedream(request):
             else:
                 prevstr = lines[currentpos - 1][0]
                 nextstr = lines[currentpos + 1][0]
-
     if "Apo" not in sample:
         process = "rhofit"
-        files = glob(f"{project_results_dir(proj)}/{sample}/pipedream/rhofit*/")
+        files = glob(f"{project_results_dir(proj)}/{prefix}/pipedream/rhofit*/")
         files.sort(key=lambda x: path.getmtime(x))
         if files:
             pdb = files[-1] + "refine.pdb"
             rhofit = files[-1] + "best.pdb"
 
-        with open(rhofit, "r") as inp:
-            for line in inp.readlines():
-                if line.startswith("HETATM"):
-                    center = "[" + ",".join(line[32:54].split()) + "]"
         cE = "true"
 
     else:
         process = "refine"
-        files = glob(f"{project_process_protein_dir(proj)}/*/{sample}/pipedream/refine*/")
+        files = glob(f"{project_results_dir(proj)}/{prefix}/pipedream/refine*/")
         files.sort(key=lambda x: path.getmtime(x))
         if files:
             pdb = files[-1] + "refine.pdb"
@@ -356,6 +354,7 @@ def show_pipedream(request):
             "mtz": pdb.replace("/data/visitors/", "/static/").replace(".pdb", ".mtz"),
             "sample": sample,
             "process": process,
+            "prefix": prefix,
             "rhofit": rhofit.replace("/data/visitors/", "/static/"),
             "center": center,
             "symmetry": symmetry,

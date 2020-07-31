@@ -215,7 +215,6 @@
     <div class=" card_options">
         <div class="card tab">
             <button class="tablinks" onclick="openDatasets(event, 'Datasets')">Select dataset</button>
-            <button class="tablinks" onclick="openDatasets(event, 'HideDatasets')">Hide</button>
         </div>
 
         <div class="card tabcontent" id="Datasets">
@@ -422,7 +421,7 @@
                                     <th class=" top-options">Space group</th>
                                     <td class=" top-options">
                                         <label>
-                                            <input class="refineform selectbox" name="refSpaceGroup"
+                                            <input class="refineform selectbox" name="refSpaceGroup" id="refSpaceGroup"
                                                 placeholder="P43212" />
                                         </label>
                                         <div class="checkbox" id="aimless">
@@ -567,7 +566,6 @@
         <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
         <button class="tablinks" onclick="openMethod(event, 'PanDDA')">PanDDA</button>
         <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
-        <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide</button>
 
 
     </div>
@@ -2026,31 +2024,41 @@
 
 <script>
     function openMethod(evt, methodName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
+        if (document.getElementById(methodName).style.display == "block") {
+            document.getElementById(methodName).style.display = "none"
+            evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
+        } else {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(methodName).style.display = "block";
+            evt.currentTarget.className += " active";
         }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(methodName).style.display = "block";
-        evt.currentTarget.className += " active";
     }
 
     function openDatasets(evt, DatasetsName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
+        if (document.getElementById(DatasetsName).style.display == "block") {
+            document.getElementById(DatasetsName).style.display = "none"
+            evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
+        } else {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(DatasetsName).style.display = "block";
+            evt.currentTarget.className += " active";
         }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(DatasetsName).style.display = "block";
-        evt.currentTarget.className += " active";
     }
 </script>
 
@@ -2201,7 +2209,8 @@
     $(".refineform").on("input", function (e) {
         if (document.getElementById("fspcheckboxinput").checked +
             document.getElementById("bustercheckboxinput").checked +
-            document.getElementById("dimplecheckboxinput").checked != 0) {
+            document.getElementById("dimplecheckboxinput").checked != 0 && document.getElementById(
+                "refSpaceGroup").value != "") {
             document.getElementById("submitrfProc").disabled = false;
         } else {
             document.getElementById("submitrfProc").disabled = true;
@@ -2260,12 +2269,14 @@
         // Return the array if it is non-empty, or null
         return checkboxesChecked.length > 0 ? checkboxesChecked : null;
     }
+
     function checkAll() {
         var chckboxes = document.getElementsByName("checkSel");
         for (var i = 0; i < chckboxes.length; i++) {
             chckboxes[i].checked = true;
         }
     }
+
     function checkNone() {
         var chckboxes = document.getElementsByName("checkSel");
         for (var i = 0; i < chckboxes.length; i++) {
@@ -2299,16 +2310,20 @@
         var min_datasets = document.getElementById("min_datasets").value
         var PanDDAcustom = document.getElementById("PanDDAcustom").value
         var pandda_max_rfree = "max_rfree=" + document.getElementById("pandda_max_rfree").value
-        var pandda_high_res_upper_limit = "high_res_upper_limit=" + document.getElementById("pandda_res_low_limit").value
-        var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit").value
+        var pandda_high_res_upper_limit = "high_res_upper_limit=" + document.getElementById("pandda_res_low_limit")
+            .value
+        var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit")
+            .value
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
         var cpus_pandda = document.getElementById("pandda_nproc").value;
         if (cpus_pandda == "") {
             cpus_pandda = 32
+        } else if (cpus_pandda >= 64) {
+            cpus_pandda = 64
+        } else if (cpus_pandda <= 0) {
+            cpus_pandda = 16
         }
-        else if (cpus_pandda >= 64) { cpus_pandda = 64 }
-        else if (cpus_pandda <= 0) { cpus_pandda = 16 }
 
         var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
@@ -2429,6 +2444,5 @@
         document.getElementsByName("ppdform")[0].value = pipedream_cmd
 
     }
-
 </script>
 {% endblock %}

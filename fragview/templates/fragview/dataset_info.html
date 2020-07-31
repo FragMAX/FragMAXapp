@@ -387,6 +387,7 @@
                         <td class="resultsHeader">XDSAPP</td>
                         <td class="resultsHeader">XIA2/DIALS</td>
                         <td class="resultsHeader">XIA2/XDS</td>
+                        <td class="resultsHeader">Pipedream</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -514,10 +515,23 @@
                         {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob, modelscore in csvfile %}
 
                         <tr>
+
                             <td style="text-align:center;padding-top: 10px;">
+                                {% if "pipedream" not in usracr %}
                                 <form action="/density/" method="get" target="_blank">
-                                    <button class="btn" type="submit" value="{{usracr}}" name="structure">Open</button>
+                                    <button class="btn" type="submit" value="{{usracr}}" name="structure"
+                                        style="height: 48px; margin-top: 15px;"><i class="material-icons"
+                                            style="font-size:28px;">3d_rotation</i></button>
                                 </form>
+                                {% else %}
+                                <form action="/pipedream_density/" method="get" target="_blank">
+                                    <button class="btn" type="submit" value="{{usracr}}" name="structure" size="1"
+                                        style="height: 48px">
+                                        <i class="material-icons" style="font-size:28px;">3d_rotation</i>
+                                    </button>
+                                </form>
+                                {% endif %}
+
                             </td>
                             <td>{{usracr}}</td>
                             <td style="text-align:center">{{spg}}</td>
@@ -810,12 +824,16 @@
                 <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
                 <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
                 <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+
+                <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
+
                 <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
                 <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
                 <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
+
                 {% comment %} <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
                 <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
-                <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button> {% endcomment %}
+                {% endcomment %}
 
 
             </div>
@@ -878,6 +896,67 @@
                 </form>
                 {% endfor %}
                 {% endif %}
+            </div>
+            <div id="Pipedream" class="card tabcontent">
+                <div class="card-title">Pipedream Logs</div>
+                <div class="tab-div-log">
+                    <div class="tab-vertical">
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'pipedream-pipedream-v')">Pipedream</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'autoproc-pipedream-v')">autoPROC</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'buster-pipedream-v')">BUSTER</button>
+                        <button class="tablinks-vertical"
+                            onclick="openMethodV(event, 'rhofit-pipedream-v')">RhoFit</button>
+                    </div>
+                    <div id="pipedream-pipedream-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in pipedream_logs.items %}
+                        {% if proc_m == "pipedream" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="autoproc-pipedream-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in pipedream_logs.items %}
+                        {% if proc_m == "autoproc" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div id="buster-pipedream-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in pipedream_logs.items %}
+                        {% if proc_m == "buster" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div id="rhofit-pipedream-v" class="tabcontent-vertical">
+                        {% for proc_m, logs in pipedream_logs.items %}
+                        {% if proc_m == "rhofit" %}
+                        {% for log, path in logs.items %}
+                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                            <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
+                        </form>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                </div>
             </div>
             <div id="DIMPLE" class="card tabcontent">
                 <div class="card-title">DIMPLE Logs</div>

@@ -17,7 +17,7 @@ from fragview.dsets import get_datasets
 
 def set_details(request):
     def _logs(logs_dir):
-        log_paths = [x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x]
+        log_paths = [x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x]
         return [(path.basename(p), p) for p in log_paths]
 
     proj = current_project(request)
@@ -71,13 +71,15 @@ def set_details(request):
     autoprocOK = "no"
     ednaOK = "no"
     fastdpOK = "no"
+    pipedreamOK = "no"
     fastdpLogs = ""
     ednaLogs = ""
     autoprocLogs = ""
     xdsappLogs = ""
     xdsLogs = ""
     dialsLogs = ""
-    _tables = {"autoproc": {}, "edna": {}, "fastdp": {}, "xdsapp": {}, "dials": {}, "xdsxscale": {}}
+    pipedreamLogs = ""
+    _tables = {"autoproc": {}, "edna": {}, "fastdp": {}, "xdsapp": {}, "dials": {}, "xdsxscale": {}, "pipedream": {}}
     # XDSAPP logs
     xdsapp_dir = path.join(dataset_dir, "xdsapp")
     xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
@@ -105,6 +107,13 @@ def set_details(request):
         autoprocOK = "ready"
         autoprocLogs = _logs(autoproc_dir)
     _tables["autoproc"] = parse_aimless(path.join(dataset_dir, "autoproc", "summary.html"))
+
+    # Pipedream logs
+    pipedream_dir = path.join(proj.data_path(), "fragmax", "results", f"{prefix}_{run}", "pipedream")
+    if path.exists(path.join(pipedream_dir, "process", "summary.html")):
+        pipedreamOK = "ready"
+        pipedreamLogs = _logs(pipedream_dir)
+    _tables["pipedream"] = parse_aimless(path.join(pipedream_dir, "process", "summary.html"))
 
     # EDNA logs
     edna_dir = path.join(dataset_dir, "edna")
@@ -141,7 +150,28 @@ def set_details(request):
         fsp_logs = sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*log"))
         proc_m = path.basename(path.dirname(_file))
         _fspipeline_logs[proc_m] = {"/".join(x.split(f"{prefix}_{run}/")[-1].split("/")[2:]): x for x in fsp_logs}
+    # Pipedream
+    pipedream_res_dirs = f"{proj.data_path()}/fragmax/results/{prefix}_{run}/pipedream"
+    _pipedream_logs = dict()
+    if path.exists(pipedream_res_dirs):
+        _pipedream_logs["pipedream"] = {
+            path.basename(x): x
+            for x in sorted(glob(f"{pipedream_res_dirs}/*log") + glob(f"{pipedream_res_dirs}/*out"))
+        }
+        _pipedream_logs["autoproc"] = {
+            "refine/" + path.basename(x): x
+            for x in sorted(glob(f"{pipedream_res_dirs}/refine/*log") + glob(f"{pipedream_res_dirs}/refine/*out"))
+        }
+        _pipedream_logs["buster"] = {
+            "process/" + path.basename(x): x
+            for x in sorted(glob(f"{pipedream_res_dirs}/process/*log") + glob(f"{pipedream_res_dirs}/process/*out"))
+        }
+        _pipedream_logs["rhofit"] = {
+            "rhofit/" + path.basename(x): x
+            for x in sorted(glob(f"{pipedream_res_dirs}/rhofit/*log") + glob(f"{pipedream_res_dirs}/rhofit/*out"))
+        }
 
+    # Information for the data processing table
     spg_list = [_tables[key]["spg"] for key in _tables.keys()]
     unique_rflns_list = [_tables[key]["unique_rflns"] for key in _tables.keys()]
     total_observations_list = [_tables[key]["total_observations"] for key in _tables.keys()]
@@ -206,7 +236,6 @@ def set_details(request):
     for n, line in enumerate(lines):
         if len(line) == 23:
             lines[n].append("")
-
     return render(
         request,
         "fragview/dataset_info.html",
@@ -236,11 +265,13 @@ def set_details(request):
             "dialsOK": dialsOK,
             "xdsOK": xdsOK,
             "autoprocOK": autoprocOK,
+            "pipedreamOK": pipedreamOK,
             "ednaOK": ednaOK,
             "fastdpOK": fastdpOK,
             "fastdpLogs": fastdpLogs,
             "ednaLogs": ednaLogs,
             "autoprocLogs": autoprocLogs,
+            "pipedreamLogs": pipedreamLogs,
             "xdsappLogs": xdsappLogs,
             "xdsLogs": xdsLogs,
             "dialsLogs": dialsLogs,
@@ -261,6 +292,7 @@ def set_details(request):
             "resolution_list": resolution_list,
             "dimple_logs": _dimple_logs,
             "fspipeline_logs": _fspipeline_logs,
+            "pipedream_logs": _pipedream_logs,
         },
     )
 
@@ -325,7 +357,7 @@ def parse_aimless(pplog):
                     cc12_out = line.split()[-1][1:-1]
                 if "ISa" in line:
                     ISa = line.split()[-1]
-        if "autoproc" in pplog:
+        if "autoproc" in pplog or "pipedream" in pplog:
             spg = "None"
             for n, line in enumerate(log):
                 if "Unit cell and space group:" in line:
