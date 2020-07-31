@@ -23,6 +23,8 @@ class Args:
 def _validate_auth_token(auth_token):
     try:
         tok = AccessToken.get_from_base64(auth_token)
+    except AccessToken.ParseError:
+        raise InvalidRequest("error parsing auth token")
     except AccessToken.DoesNotExist:
         raise InvalidRequest("invalid auth token")
 

@@ -1,4 +1,5 @@
 import base64
+import binascii
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from .projects import shift_dir, project_model_file
@@ -235,6 +236,9 @@ class EncryptionKey(models.Model):
 
 
 class AccessToken(models.Model):
+    class ParseError(Exception):
+        pass
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     token = models.BinaryField(max_length=encryption.TOKEN_SIZE)
     # TODO: add 'expiration time', e.g. time after which the token is no longer valid
@@ -248,7 +252,12 @@ class AccessToken(models.Model):
 
     @staticmethod
     def get_from_base64(b64_token):
-        tok = base64.b64decode(b64_token)
+        try:
+            tok = base64.b64decode(b64_token)
+        except (binascii.Error, ValueError):
+            # could not parse base64 string
+            raise AccessToken.ParseError()
+
         return AccessToken.objects.get(token=tok)
 
     def as_base64(self):
