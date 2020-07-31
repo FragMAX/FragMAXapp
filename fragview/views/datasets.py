@@ -9,7 +9,6 @@ from django.shortcuts import render
 from fragview.projects import project_process_protein_dir
 from fragview.projects import current_project, project_results_file
 from fragview.xsdata import XSDataCollection
-from fragview.views.misc import perc2float
 from fragview.status import run_update_status
 from fragview.sites import SITE
 from fragview.dsets import get_datasets
@@ -81,7 +80,7 @@ def set_details(request):
     xdsLogs = ""
     dialsLogs = ""
     pipedreamLogs = ""
-    _tables = {"autoproc": {}, "edna": {}, "fastdp": {}, "xdsapp": {}, "dials": {}, "xdsxscale": {}, "pipedream": {}}
+    _tables = {"pipedream": {}, "autoproc": {}, "edna": {}, "fastdp": {}, "xdsapp": {}, "dials": {}, "xdsxscale": {}}
     # XDSAPP logs
     xdsapp_dir = path.join(dataset_dir, "xdsapp")
     xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
@@ -364,6 +363,7 @@ def parse_aimless(pplog):
                     ISa = line.split()[-1]
         if "autoproc" in pplog or "pipedream" in pplog:
             spg = "None"
+            WilsonB = ""
             for n, line in enumerate(log):
                 if "Unit cell and space group:" in line:
                     spg = "".join(line.split()[11:]).replace("'", "")
@@ -372,18 +372,27 @@ def parse_aimless(pplog):
                     low_res_avg, low_res_out = line.split()[3], line.split()[5]
                 if "High resolution limit  " in line:
                     high_res_out, high_res_avg = line.split()[3], line.split()[5]
-                if "total   " in line:
-                    total_observations, unique_rflns = line.split()[1:3]
-                    multiplicity = str("{:.1f}".format(int(total_observations) / int(unique_rflns)))
-                    isig_avg = line.split()[8]
-                    isig_out = log[n - 1].split()[8]
-                    rmeas_avg = perc2float(line.split()[9])
-                    rmeas_out = perc2float(log[n - 1].split()[9])
-                    completeness_avg = line.split()[4].replace("%", "")
-                    completeness_out = log[n - 1].split()[4].replace("%", "")
-                    cc12_avg = line.split()[10]
-                    cc12_out = log[n - 1].split()[10]
-                    WilsonB = ""
+                if "Total number of observations  " in line:
+                    total_observations = line.split()[-3]
+                if "Total number unique  " in line:
+                    unique_rflns = line.split()[-3]
+                if "Multiplicity  " in line:
+                    multiplicity = line.split()[1]
+                if "Mean(I)/sd(I)" in line:
+                    isig_avg = line.split()[1]
+                    isig_out = line.split()[-1]
+                if "Completeness (ellipsoidal)" in line or "Completeness (spherical)" in line:
+                    completeness_avg = line.split()[2]
+                    completeness_out = line.split()[-1]
+                if "CC(1/2)  " in line:
+                    cc12_avg = line.split()[1]
+                    cc12_out = line.split()[-1]
+                if "Rmeas   (all I+ & I-)" in line:
+                    rmeas_avg = line.split()[-3]
+                    rmeas_out = line.split()[-1]
+                elif "Rmeas" in line:
+                    rmeas_avg = line.split()[-3]
+                    rmeas_out = line.split()[-1]
                 if "CRYSTAL MOSAICITY (DEGREES)" in line:
                     mosaicity = line.split()[-1]
                 if "ISa (" in line:
