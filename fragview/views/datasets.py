@@ -142,7 +142,10 @@ def set_details(request):
     _buster_logs = dict()
     for _file in buster_res_dirs:
         proc_m = path.basename(path.dirname(_file))
-        _buster_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
+        _buster_logs[proc_m] = {
+            x.split("/buster/")[-1]: x for x in sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*/*log"))
+        }
+
     # fspipeline
     fspipeline_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/fspipeline")
     _fspipeline_logs = dict()
@@ -293,6 +296,7 @@ def set_details(request):
             "resolution_list": resolution_list,
             "dimple_logs": _dimple_logs,
             "fspipeline_logs": _fspipeline_logs,
+            "buster_logs": _buster_logs,
             "pipedream_logs": _pipedream_logs,
         },
     )
