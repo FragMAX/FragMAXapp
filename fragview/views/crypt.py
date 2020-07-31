@@ -23,6 +23,8 @@ class Args:
 def _validate_auth_token(auth_token):
     try:
         tok = AccessToken.get_from_base64(auth_token)
+    except AccessToken.ParseError:
+        raise InvalidRequest("error parsing auth token")
     except AccessToken.DoesNotExist:
         raise InvalidRequest("invalid auth token")
 
@@ -42,7 +44,7 @@ def _validate_file_path(proj, filepath):
 
 def _get_request_args(request):
     if request.method != "POST":
-        raise InvalidRequest("only POST request supported")
+        raise InvalidRequest("only POST requests supported")
 
     post = request.POST
 
