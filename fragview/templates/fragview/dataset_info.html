@@ -119,6 +119,7 @@
     .optionstable {
         border-collapse: separate;
         border-spacing: 0;
+        table-layout: fixed;
     }
 
     .tableSoak {
@@ -346,6 +347,17 @@
                     <tr>
                         <td class="resultsHeader" style="height: 60px;"></td>
                         <td class="resultsHeader">
+                            {% if pipedreamOK == "ready" %}
+                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
+                                target="_blank">
+                                <button class="btn-small" type="submit" value="{{pipedreamreport}}" name="logFile"
+                                    size="1">Pipedream</button>
+                            </form>
+                            {% else %}
+                            Pipedream
+                            {% endif %}
+                        </td>
+                        <td class="resultsHeader">
 
                             {% if autoprocOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
@@ -356,7 +368,6 @@
                             autoPROC
                             {% endif %} </td>
                         <td class="resultsHeader">
-
                             {% if ednaOK == "ready" %}
                             <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
                                 target="_blank">
@@ -368,7 +379,6 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-
                             {% if fastdpOK == "ready" %}
                             <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
                                 target="_blank">
@@ -380,7 +390,6 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-
                             {% if xdsappOK == "ready" %}
                             <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
                                 target="_blank">
@@ -392,7 +401,6 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-
                             {% if dialsOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
                                 <button class="btn-small" type="submit" value="{{dialsreport}}" name="logFile"
@@ -403,7 +411,6 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-
                             {% if xdsOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
                                 <button class="btn-small" type="submit" value="{{xdsreport}}" name="logFile"
@@ -412,18 +419,6 @@
                             {% else %}
                             XIA2/XDS
                             {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if pipedreamOK == "ready" %}
-                            <form action="/log_viewer/" method="get" id="logFileform" style="margin-top: 10px;"
-                                target="_blank">
-                                <button class="btn-small" type="submit" value="{{pipedreamreport}}" name="logFile"
-                                    size="1">Pipedream</button>
-                            </form>
-                            {% else %}
-                            Pipedream
-                            {% endif %}
-
                         </td>
                     </tr>
                 </thead>
