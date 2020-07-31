@@ -29,7 +29,7 @@
         max-height: 180px;
     }
 
-    .ligpng {
+    .ligimg {
         height: 144px;
         width: 144px;
     }
@@ -291,16 +291,19 @@
                 <p>{{dataset.num_images}}</p>
             </td>
 
-            <td>
+            <td class="snapshot_cell">
+
                 {% if dataset.snapshots.0 %}
+                <input type="hidden" value="{% static dataset.snapshots.0 %}">
                 <img class="crystalsnap" id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
-                    src="{% static dataset.snapshots.0 %}" onerror="hide_image(this)"
+                    onerror="hide_image(this)"
                     onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                 {% endif %}
 
                 {% if dataset.snapshots.1 %}
+                <input type="hidden" value="{% static dataset.snapshots.1 %}">
                 <img class="crystalsnap" id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
-                    src="{% static dataset.snapshots.1 %}" onerror="hide_image(this)"
+                    onerror="hide_image(this)"
                     onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                 {% endif %}
             </td>
@@ -308,7 +311,7 @@
             <td>
                 {% if dataset.is_apo is not True %}
                 <a href="/fragment/{{dataset.sample_name}}/image" target="_blank">
-                    <img class="ligpng" src="/fragment/{{dataset.sample_name}}/image">
+                    <img class="ligimg">
                 </a>
                 {% endif %}
             </td>
@@ -456,6 +459,77 @@
             modal.style.display = "none";
         }
     }
+
+    function load_snapshot(entries, observer)
+    {
+        /*
+         * when crystal snapshots table cell becomes visible,
+         * load the crystal snapshot images
+         */
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+                const elms = target.children;
+
+                if (elms.length >= 4) {
+                    /* second snapshot available for this cell */
+                    elms[3].src = elms[2].value;
+                }
+
+                if (elms.length >= 2) {
+                    /* first snapshot available for this cell */
+                    elms[1].src = elms[0].value;
+                }
+
+                observer.unobserve(target);
+            }
+        });
+    }
+
+    function load_fragment(entries, observer)
+    {
+        /*
+         * when fragment table cell becomes visible,
+         * load the fragment image
+         */
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+
+                target.src = target.parentNode.attributes["href"].value;
+
+                observer.unobserve(target);
+            }
+        });
+    }
+
+    function watch_image_cells()
+    {
+        /*
+         * activate lazy loading of images
+         *
+         * set-up visibilty observer on crystal snapshot and fragment table cells,
+         * when they become visible, invoke the callback, that will start loading
+         * the images
+         */
+        function observe_nodes(callback, nodes_class) {
+            const options = {
+                rootMargin: '0px',
+                threshold: 0.2
+            };
+
+            let observer = new IntersectionObserver(callback, options);
+
+            document.querySelectorAll(nodes_class).forEach(node => {
+                observer.observe(node);
+            });
+
+        }
+
+        observe_nodes(load_snapshot, ".snapshot_cell");
+        observe_nodes(load_fragment, ".ligimg");
+   }
+
     $(document).ready(function () {
         $(document).bind("keydown", function (e) {
             e = e || window.event;
@@ -464,6 +538,8 @@
                 modal.style.display = "none";
             };
         });
+
+        watch_image_cells();
     });
 </script>
 
