@@ -26,12 +26,13 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
         resultsList = (
             glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb")
             + [ppdrefFiles[-1]]
-            + glob(f"{res_dir}**/*/buster/refine.pdb")
+            + glob(f"{res_dir}/{dataset}_{run}/*/*/refine.pdb")
         )
     else:
-        resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + glob(f"{res_dir}**/*/buster/refine.pdb")
+        resultsList = glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb") + glob(
+            f"{res_dir}/{dataset}_{run}/*/*/refine.pdb"
+        )
     isaDict = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": "", "pipedream": ""}
-
     project_results_file = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}/results.csv"
 
     resultsFile = list()
@@ -412,8 +413,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         ligfit_dataset = "_".join(usracr.split("_")[:-1])
     else:
         ligfit_dataset = "_".join(usracr.split("_")[:-2])
-
-    return [
+    row_to_write = [
         usracr,
         pdbout,
         dif_map,
@@ -439,6 +439,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         ligblob,
         modelscore,
     ]
+    return row_to_write
 
 
 def sym2spg(sym):
