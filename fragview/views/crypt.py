@@ -44,7 +44,7 @@ def _validate_file_path(proj, filepath):
 
 def _get_request_args(request):
     if request.method != "POST":
-        raise InvalidRequest("only POST request supported")
+        raise InvalidRequest("only POST requests supported")
 
     post = request.POST
 

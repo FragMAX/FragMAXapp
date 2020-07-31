@@ -40,11 +40,12 @@ class ViewTesterMixin:
         session["proposals"] = [self.PROP1, self.PROP2]
         session.save()
 
-    def setup_project(self):
+    def setup_project(self, encrypted=False):
         self.lib = Library(name="JBS")
         self.lib.save()
 
-        self.proj = Project(protein="PRT", library=self.lib, proposal=self.PROP1, shift="20190808")
+        self.proj = Project(protein="PRT", library=self.lib, proposal=self.PROP1,
+                            shift="20190808", encrypted=encrypted)
         self.proj.save()
 
     def assert_contains_template(self, response, template_name):
@@ -53,3 +54,7 @@ class ViewTesterMixin:
         """
         templ_names = [t.name for t in response.templates]
         self.assertIn(template_name, templ_names)
+
+    def assert_bad_request(self, response, error_msg):
+        self.assertEquals(response.status_code, 400)
+        self.assertRegex(response.content.decode(), error_msg)
