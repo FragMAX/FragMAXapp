@@ -349,7 +349,7 @@
 
                             {% if autoprocOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
-                                <button class="btn-small" type="submit" value="{{autoprocreport}}" name="dataHeader"
+                                <button class="btn-small" type="submit" value="{{autoprocreport}}" name="logFile"
                                     size="1">autoPROC</button>
                             </form>
                             {% else %}
@@ -395,7 +395,7 @@
 
                             {% if dialsOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
-                                <button class="btn-small" type="submit" value="{{dialsreport}}" name="dataHeader"
+                                <button class="btn-small" type="submit" value="{{dialsreport}}" name="logFile"
                                     size="1">XIA2/DIALS</button>
                             </form>
                             {% else %}
@@ -406,7 +406,7 @@
 
                             {% if xdsOK == "ready" %}
                             <form action="/procReport/" method="get" size="1" style="margin-top: 10px;" target="_blank">
-                                <button class="btn-small" type="submit" value="{{xdsreport}}" name="dataHeader"
+                                <button class="btn-small" type="submit" value="{{xdsreport}}" name="logFile"
                                     size="1">XIA2/XDS</button>
                             </form>
                             {% else %}
@@ -878,7 +878,8 @@
                 <div class="card-title logtab">EDNA_proc Logs</div>
                 {% if ednaOK == "ready" %}
                 {% for logName,logPath in ednaLogs %}
-                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -888,7 +889,8 @@
                 <div class="card-title logtab">FastDP Logs</div>
                 {% if fastdpOK == "ready" %}
                 {% for logName,logPath in fastdpLogs %}
-                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -898,7 +900,8 @@
                 <div class="card-title logtab">XIA2/Dials Logs</div>
                 {% if dialsOK == "ready" %}
                 {% for logName,logPath in dialsLogs %}
-                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -908,7 +911,8 @@
                 <div class="card-title logtab">XIA2/XDS_xscale Logs</div>
                 {% if xdsOK == "ready" %}
                 {% for logName,logPath in xdsLogs %}
-                <form action="/log_viewer/" method="get" id="logFileform" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -918,7 +922,8 @@
                 <div class="card-title logtab">XDSAPP Logs</div>
                 {% if xdsappOK == "ready" %}
                 {% for logName,logPath in xdsappLogs %}
-                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -928,7 +933,8 @@
                 <div class="card-title logtab">autoPROC Logs</div>
                 {% if autoprocOK == "ready" %}
                 {% for logName,logPath in autoprocLogs %}
-                <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                    method="get" style="padding-left:20px; " target="_blank">
                     <button class="link" type="submit" value="{{logPath}}" name="logFile" size="1">{{logName}}</button>
                 </form>
                 {% endfor %}
@@ -951,7 +957,8 @@
                         {% for proc_m, logs in pipedream_logs.items %}
                         {% if proc_m == "pipedream" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -962,7 +969,8 @@
                         {% for proc_m, logs in pipedream_logs.items %}
                         {% if proc_m == "autoproc" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -974,7 +982,8 @@
                         {% for proc_m, logs in pipedream_logs.items %}
                         {% if proc_m == "buster" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -985,7 +994,8 @@
                         {% for proc_m, logs in pipedream_logs.items %}
                         {% if proc_m == "rhofit" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1016,7 +1026,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "autoproc" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1028,7 +1039,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "edna" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1039,7 +1051,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1050,7 +1063,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "dials" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1061,7 +1075,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "xdsxscale" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1072,7 +1087,8 @@
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "xdsapp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1102,7 +1118,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "autoproc" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1114,7 +1131,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "edna" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1125,7 +1143,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1136,7 +1155,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "dials" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1147,7 +1167,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "xdsxscale" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1158,7 +1179,8 @@
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "xdsapp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1188,7 +1210,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "autoproc" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1200,7 +1223,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "edna" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1211,7 +1235,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1222,7 +1247,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "dials" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1233,7 +1259,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "xdsxscale" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}
@@ -1244,7 +1271,8 @@
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "xdsapp" %}
                         {% for log, path in logs.items %}
-                        <form action="/log_viewer/" method="get" style="padding-left:20px; " target="_blank">
+                        <form {% if "html" in path %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+                            method="get" style="padding-left:20px; " target="_blank">
                             <button class="link" type="submit" value="{{path}}" name="logFile" size="1">{{log}}</button>
                         </form>
                         {% endfor %}

@@ -217,13 +217,14 @@
         <tr style="border-bottom: 0;">
           <th>
             <p>Logs</p>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
+            <form {% if "html" in refineLog %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+              id="logFileform" method="get" style="padding-top:9px; height: 10px;" target="_blank">
               <button class="link" type="submit" value="{{refineLog}}" name="logFile" size="1">{{refineName}}</button>
             </form>
           </th>
           <td>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank"
-              style="padding-top:9px; height: 10px;">
+            <form {% if "html" in pipelineLog %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
+              id="logFileform" method="get" style="padding-top:9px; height: 10px;" target="_blank">
               <button class="link" type="submit" value="{{pipelineLog}}" name="logFile"
                 size="1">{{pipelineName}}</button>
             </form>
@@ -346,7 +347,7 @@
     V.load_pdb("{{rhofitpdb}}", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "rhofit"
     });
-    var blobs = {{ xyzlist }};
+    var blobs = {{xyzlist}};
 
 
     var index = 0;

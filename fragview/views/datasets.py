@@ -17,7 +17,9 @@ from fragview.dsets import get_datasets
 
 def set_details(request):
     def _logs(logs_dir):
-        log_paths = [x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x]
+        log_paths = [
+            x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x or "html" in x
+        ]
         return [(path.basename(p), p) for p in log_paths]
 
     proj = current_project(request)
@@ -314,15 +316,13 @@ def show_all(request):
 
 
 def proc_report(request):
-    method = ""
-    report = str(request.GET.get("dataHeader"))
-    if "fastdp" in report or "EDNA" in report:
-        method = "log"
-        with open(report.replace("/static/", "/data/visitors/"), "r") as readFile:
-            report = readFile.readlines()
-        report = "<br>".join(report)
 
-    return render(request, "fragview/procReport.html", {"reportHTML": report, "method": method})
+    report = str(request.GET.get("logFile"))
+
+    if "/data/visitors" in report:
+        report = report.replace("/data/visitors/", "/static/")
+    print(report)
+    return render(request, "fragview/procReport.html", {"reportHTML": report})
 
 
 def parse_aimless(pplog):

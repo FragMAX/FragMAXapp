@@ -186,7 +186,7 @@ def show(request):
         refineName = "Phenix.refine"
         pipelineName = "fspipeline"
     else:
-        refineName = "autoBUSTER"
+        refineName = "BUSTER"
         pipelineName = ""
 
     return render(
@@ -875,7 +875,7 @@ def find_refinement_log(res_dir):
             pipelineLog = path.join(path.dirname(path.dirname(logFile)), "fspipeline.log")
 
     if "buster" in res_dir:
-        logSearch = sorted(glob(f"{res_dir}/refine.log"))
+        logSearch = sorted(glob(f"{res_dir}/*BUSTER/Cycle*/*html"))
         if logSearch:
             logFile = logSearch[-1]
             pipelineLog = logSearch[-1]
