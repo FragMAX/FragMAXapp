@@ -126,7 +126,7 @@ def run_xdsapp(proj, nodes, filters, options):
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 99:55:00\n"""
+    header += """#SBATCH -t 168:00:00\n"""
     header += """#SBATCH -J XDSAPP\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
@@ -212,7 +212,7 @@ def run_autoproc(proj, nodes, filters, options):
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 99:55:00\n"""
+    header += """#SBATCH -t 168:00:00\n"""
     header += """#SBATCH -J autoPROC\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
@@ -337,7 +337,7 @@ def run_xdsxscale(proj, nodes, filters, options):
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 99:55:00\n"""
+    header += """#SBATCH -t 168:00:00\n"""
     header += """#SBATCH -J xdsxscale\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
@@ -456,7 +456,7 @@ def run_dials(proj, nodes, filters, options):
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 99:55:00\n"""
+    header += """#SBATCH -t 168:00:00\n"""
     header += """#SBATCH -J DIALS\n"""
     header += """#SBATCH --exclusive\n"""
     header += """#SBATCH -N1\n"""
