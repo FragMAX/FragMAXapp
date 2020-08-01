@@ -132,6 +132,7 @@
 
   .dendrograms {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
   }
@@ -188,7 +189,7 @@
   {% if clusters_png %}
   <div class="card dendrograms">
     {% for key,value in clusters_png.items %}
-    <figure>
+    <figure style="max-width: 50%;">
       <img src="{{value}}">
       <figcaption>{{key}}</figcaption>
     </figure>
