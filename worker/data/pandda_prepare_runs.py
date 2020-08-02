@@ -140,18 +140,23 @@ def pandda_run(method, options):
     logs = glob(path + "/pandda/logs/*.log")
     if len(logs) > 0:
         lastlog = sorted(logs)[-1]
+        with open(lastlog, "r") as readFile:
+            lastlog_file = readFile.read()
 
-        badDataset = find_bad_dataset(lastlog, options)
+        if "### .. FINISHED! PANDDA EXITED NORMALLY .. ###" not in lastlog_file:
+            badDataset = find_bad_dataset(lastlog, options)
 
-        for k, v in badDataset.items():
-            if all([v, options["initpass"]]):
-                if os.path.exists(v[0]):
-                    shutil.rmtree(v[0])
-                    if os.path.exists(
-                        path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k
-                    ):
-                        shutil.rmtree(path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k)
-                pandda_run(method, options)
+            for k, v in badDataset.items():
+                if all([v, options["initpass"]]):
+                    if os.path.exists(v[0]):
+                        shutil.rmtree(v[0])
+                        if os.path.exists(
+                            path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k
+                        ):
+                            shutil.rmtree(
+                                path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k
+                            )
+                    pandda_run(method, options)
 
 
 pandda_run(method, options)
