@@ -66,7 +66,7 @@ def decrypt(key, src_file):
     # encrypted files must be atleas 32 bytes
     # fist 16 bytes are nonce, last 16 bytes are MAC tag
     if src_size < 32:
-        raise CryptoErr("file to short")
+        raise CryptoErr("file too short")
 
     with open(src_file, "rb") as src:
         nonce = src.read(16)

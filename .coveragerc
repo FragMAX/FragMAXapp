@@ -5,3 +5,8 @@ omit =
   manage.py
   fragview/migrations/000*
   tests/*
+
+[report]
+exclude_lines =
+  # Don't complain if tests don't hit defensive assertion code:
+  assert False
