@@ -6,13 +6,11 @@
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-
   }
 
   th {
     text-align: center;
     height: 50px;
-
   }
 
   td,
@@ -23,8 +21,6 @@
 
   td {
     height: 100px;
-
-
   }
 
   tr:nth-child(even) {
@@ -48,7 +44,6 @@
   /* Style the tab */
   .tab {
     overflow: hidden;
-
     background-color: #f1f1f1;
   }
 
@@ -63,8 +58,6 @@
     transition: 0.3s;
     font-size: 17px;
   }
-
-
 
   /* Create an active/current tablink class */
   .tab button.active {
@@ -87,7 +80,33 @@
     height: 88px;
     width: 88px;
   }
+
+  .plot-holder {
+    background: #e2e2e2;
+  }
+
+  line {
+    stroke-width: 0.25px;
+    fill: none;
+  }
+
+  #tooltip {
+    background-color: #f1f7e5;
+    color: black;
+    font-size: 10px;
+    padding: 1px 1px;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+  }
+
+  .axis--x .tick line {
+    visibility: hidden;
+  }
 </style>
+
+
 <div>
   <h4>Results</h4>
 
@@ -97,6 +116,9 @@
 
 </div>
 <div class=" card_options">
+
+  <script src="/static/libs/d3.min.js" defer></script>
+
   <div class="card tab">
     <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
     <button class="tablinks" onclick="openMethod(event, 'Resolution')">Resolution</button>
@@ -108,14 +130,21 @@
 
   <div id="ISa" class="card tabcontent">
     <div class="card-title">ISa distribution</div>
-    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/ISas.png"
-      style="width: 100%;"></img>
+    <div class="plot-holder">
+      <script src="/static/js/isaplot.js" defer></script>
+      <div class="tshold-holder" style="margin-left: 40px;">
+        <label for="threshold_ISa">Threshold:</label>
+        <input type="number" value="0" id="tshold_isa" name="threshold_ISa" style="width:40px;margin-bottom: 0;"
+          maxlength="2" onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
+        <br><br>
+      </div>
+      <div id="isaplot"></div>
+    </div>
   </div>
   <div id="Resolution" class="card tabcontent">
     <div class="card-title">Resolution distribution</div>
     <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png"
       style="width: 100%;"></img>
-
   </div>
   <div id="Cell_Parameters" class="card tabcontent">
     <div class="card-title">Cell Parameters distribution</div>
@@ -125,8 +154,18 @@
   </div>
   <div id="rfactorstab" class="card tabcontent">
     <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
-    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfactors.png"
-      style="width: 100%;"></img>
+    <div class="plot-holder">
+      <script src="/static/js/rfactors.js" defer></script>
+      <div class="tshold-holder" style="margin-left: 40px;">
+        <label for="threshold_Rfactor">Threshold:</label>
+        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold_Rfactor"
+          style="width:45px;margin-bottom: 0;" maxlength="2" onchange="createRfactorThresholdLine(this.value)">
+        <br><br>
+      </div>
+      <div id="rfactor_legend"></div>
+      <div id="rfactors_plot"></div>
+    </div>
+
   </div>
   <div id="ccfactorstab" class="card tabcontent">
     <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
@@ -139,18 +178,16 @@
 
 <div class="input-field col s12" id="searchDiv">
   <i class="material-icons prefix">search</i>
-  <input type="text" id="searchDataset" onkeyup="searchDatasetName()" title="Type in a dataset name">
+  <input type="text" id="searchDataset" onkeyup="filterTable(new Array(this.value))"
+    title="Type in a dataset name">
   <label for="searchDataset">Search for Dataset..</label>
 </div>
 
-
-
-<table id="resultsTable">
+<table>
   <thead>
     <tr>
       <th>View Structure</th>
       <th>Data set</th>
-      <th hidden>Model Score</th>
       <th>Space group</th>
       <th>Res. [&Aring;]</th>
       <th>ISa</th>
@@ -169,16 +206,16 @@
       <th>Ligand</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody id="resultsTableBody">
     <tr>
     </tr>
-    {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob,modelscore in csvfile %}
+    {% for item in jsondata %}
 
-    <tr>
+    <tr class="resultsTableRow">
       <td>
-        {% if "pipedream" not in usracr %}
+        {% if item.pdbout %}
         <form action="/density/" method="get" target="_blank">
-          <button class="btn" type="submit" value="{{usracr}}" name="structure"
+          <button class="btn" type="submit" value="{{item.usracr}}" name="structure"
             style="height: 48px; margin-top: 15px;"><i class="material-icons"
               style="font-size:28px;">3d_rotation</i></button>
         </form>
@@ -190,27 +227,26 @@
         </form>
         {% endif %}
       </td>
-      <td>{{usracr}}</td>
-      <td id="score-{{usracr}}" hidden>{{modelscore}}</td>
-      <td>{{spg}}</td>
-      <td>{{resolution}}</td>
-      <td>{{isa}}</td>
-      <td>{{r_work}}</td>
-      <td>{{r_free}}</td>
-      <td>{{bonds}}</td>
-      <td>{{angles}}</td>
-      <td>{{a}}</td>
-      <td>{{b}}</td>
-      <td>{{c}}</td>
-      <td>{{alpha}}</td>
-      <td>{{beta}}</td>
-      <td>{{gamma}}</td>
-      <td>{{rhofitscore}}</td>
-      <td>{{ligfitscore}}</td>
+      <td class="score {{item.dataset}}">{{item.usracr}}</td>
+      <td>{{item.spg}}</td>
+      <td>{{item.resolution}}</td>
+      <td>{{item.ISa}}</td>
+      <td>{{item.r_work}}</td>
+      <td>{{item.r_free}}</td>
+      <td>{{item.bonds}}</td>
+      <td>{{item.angles}}</td>
+      <td>{{item.a}}</td>
+      <td>{{item.b}}</td>
+      <td>{{item.c}}</td>
+      <td>{{item.alpha}}</td>
+      <td>{{item.beta}}</td>
+      <td>{{item.gamma}}</td>
+      <td>{{item.rhofitscore}}</td>
+      <td>{{item.ligfitscore}}</td>
       <td>
-        {% if "Apo" not in dataset %}
-        <a href="/fragment/{{ dataset }}/image" target="_blank">
-          <img class="ligpng" src="/fragment/{{ dataset }}/image" height="40" width="86">
+        {% if "Apo" not in item.dataset %}
+        <a href="/fragment/{{ item.dataset }}/image" target="_blank">
+          <img class="ligpng" src="/fragment/{{ item.dataset }}/image" height="40" width="86">
         </a>
         {% endif %}
 
@@ -222,80 +258,92 @@
   </tbody>
 </table>
 
-
-</tbody>
-
-</table>
 <script>
-  const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+  
+  // listening for selection events on the plot and filter the table
+  document.addEventListener('dotsSelection', evt => filterTable(evt.detail));
+
+  const getCellValue = (tr, idx) => tr.children[idx].textContent;
 
   const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-  )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+  )(getCellValue(!asc ? a : b, idx), getCellValue(!asc ? b : a, idx));
 
-  // do the work...
-  document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
-    const table = th.closest('table');
-    Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
-      .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-      .forEach(tr => table.appendChild(tr));
-  })));
+  /* Attach sorting to click event of table headers */
+  document.querySelectorAll('th').forEach(tableHeader =>
+    tableHeader.addEventListener('click', () => sortTable(tableHeader)));
 
-  function searchDatasetName() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchDataset");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("resultsTable");
-    tr = table.getElementsByTagName("tr");
-    for (i = 0; i < tr.length; i++) {
-      td = tr[i].getElementsByTagName("td")[1];
-      if (td) {
-        txtValue = td.textContent || td.innerText;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-          tr[i].style.display = "";
-        } else {
-          tr[i].style.display = "none";
-        }
-      }
-    }
+
+  function sortTable(sortingHeader) {
+    const table = sortingHeader.closest('table');
+    const tbody = document.getElementById("resultsTableBody");
+    const rows = Array.from(tbody.querySelectorAll('.resultsTableRow'));
+    const headers = Array.from(table.querySelectorAll('th'));
+    rows.sort(comparer(headers.indexOf(sortingHeader), this.asc = !this.asc));
+    rows.forEach(tr => tbody.appendChild(tr));
   }
 
-  function searchPlotState(filter) {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchDataset");
-    table = document.getElementById("resultsTable");
-    tr = table.getElementsByTagName("tr");
-    for (i = 0; i < tr.length; i++) {
-      td = tr[i].getElementsByTagName("td")[2];
-      if (td) {
-        txtValue = td.textContent || td.innerText;
-        if (txtValue.indexOf(filter) > -1) {
-          tr[i].style.display = "";
-        } else {
-          tr[i].style.display = "none";
+  function filterTable(filterData) {
+    const tableBody = document.getElementById("resultsTableBody");
+    const trs = tableBody.querySelectorAll('tr');
+
+    switch (filterData.length) {
+
+      /* single dataset selected (searchDatabase or 1 dot selected from the plot) */
+      case 1:
+        const datasetName = filterData.toString().toUpperCase();
+        const tds = tableBody.querySelectorAll('.score');
+        for (let i = 0; i < tds.length; i++) {
+          const td = tds[i];
+          if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
+            td.parentElement.style.display = "";
+          }
+          else td.parentElement.style.display = "none";
         }
-      }
+        break;
+
+      /* no selection / zoom out / table refreshed */
+      case 0:
+      case document.datasetsTotal:
+        for (let i = 1; i < trs.length; i++) {
+          trs[i].style.display = "";
+        }
+        break;
+
+      /* selection of dots (zoom in) */
+      default:
+        // hide all rows
+        for (let i = 1; i < trs.length; i++) {
+          trs[i].style.display = "none";
+        }
+        // make visible only rows correspondent to the selected datasets
+        for (let i = 0; i < filterData.length; i++) {
+          const dataset = filterData[i];
+          const tds = tableBody.querySelectorAll('.' + dataset);
+          for (let i = 0; i < tds.length; i++) {
+            tds[i].parentElement.style.display = "";
+          }
+        }
+        break;
     }
+
   }
 </script>
 <script>
   function openMethod(evt, methodName) {
-    if (document.getElementById(methodName).style.display == "block") {
-      document.getElementById(methodName).style.display = "none"
-      evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
-    } else {
-      var i, tabcontent, tablinks;
-      tabcontent = document.getElementsByClassName("tabcontent");
-      for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-      }
-      tablinks = document.getElementsByClassName("tablinks");
-      for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-      }
-      document.getElementById(methodName).style.display = "block";
-      evt.currentTarget.className += " active";
+    // refresh table
+    filterTable("");
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
     }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(methodName).style.display = "block";
+    evt.currentTarget.className += " active";
   }
 
   function request_resync() {

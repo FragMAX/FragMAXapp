@@ -10,3 +10,4 @@ static/libs/._.DS_Store
 static/libs/._uglymol.js
 .vscode*
 .idea
+**/.vscode/

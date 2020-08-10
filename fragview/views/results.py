@@ -1,9 +1,9 @@
 import pandas
+import csv
 from os import path
 from django.http import HttpResponse
 from django.shortcuts import render
 from fragview.projects import current_project, project_results_file
-from fragview.fileio import read_csv_lines
 from worker import resync_results
 from worker import results
 
@@ -24,12 +24,11 @@ def show(request):
         return render(request,
                       "fragview/results_notready.html")
 
-    lines = read_csv_lines(results_file)[1:]
+    with open(results_file, "r") as readFile:
+        reader = csv.DictReader(readFile)
+        results_data = [row for row in reader]
 
-    for n, line in enumerate(lines):
-        if len(line) == 23:
-            lines[n].append("")
-    return render(request, "fragview/results.html", {"csvfile": lines})
+    return render(request, "fragview/results.html", {"results": results_data})
 
 
 def _start_resync_job(proj):
@@ -48,13 +47,41 @@ def isa(request):
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-
     data = pandas.read_csv(project_results_file(proj))
 
-    data["dataset"] = data["dataset"].map(lambda name: name[-9:])
-    isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean().round(2).to_frame(name="mean").reset_index()
-    isa_std_by_dataset = data.groupby("dataset")["ISa"].std().round(2).to_frame(name="std").reset_index()
+    # ignore data row when isa is unknown
+    data = data[data["ISa"]!="unknown"]
+    data["ISa"] = pandas.to_numeric(data["ISa"])
 
-    result = isa_mean_by_dataset.merge(isa_std_by_dataset)
+    # for each dataset name: group the data and calculate mean and standard error
+    isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean().to_frame(name="mean").reset_index()
+    isa_mean_by_dataset["mean"] = isa_mean_by_dataset["mean"].round(2)
+    std_err_by_dataset = data.groupby("dataset")["ISa"].std().round(2).to_frame(name="std").reset_index()
+
+    result = isa_mean_by_dataset.merge(std_err_by_dataset)
 
     return HttpResponse(result.to_json(), content_type="application/json")
+
+
+def rfactor(request):
+    """
+    return rfactors statistics for datasets in the results,
+    in Json format, suitable for drawing interactive plots
+    """
+    proj = current_project(request)
+    print(project_results_file(proj))
+    data = pandas.read_csv(project_results_file(proj))
+
+    data["r_work"] = pandas.to_numeric(data["r_work"])
+    data["r_free"] = pandas.to_numeric(data["r_free"])
+
+    rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean().round(2).to_frame(name='rwork').reset_index()
+    rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean().round(2).to_frame(name='rfree').reset_index()
+    std_rwork_by_dataset = data.groupby('dataset')['r_work'].std().round(2).to_frame(name='std_rw').reset_index()
+    std_rfree_by_dataset = data.groupby('dataset')['r_free'].std().round(2).to_frame(name='std_rf').reset_index()
+
+    result_rw = rwork_mean_by_dataset.merge(std_rwork_by_dataset)
+    result_rf = rfree_mean_by_dataset.merge(std_rfree_by_dataset)
+    final_result = result_rw.merge(result_rf)
+
+    return HttpResponse(final_result.to_json(), content_type="application/json")

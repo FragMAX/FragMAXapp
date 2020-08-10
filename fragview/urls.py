@@ -19,6 +19,7 @@ urlpatterns = [
     path('results/', results.show, name='results'),
     path('results/resync/', results.resync),
     path('results/isa', results.isa),
+    path('results/rfactor', results.rfactor),
 
     path('density/', density.show, name='density'),
     path('dual_density/', density.compare_poses, name='dual_density'),
