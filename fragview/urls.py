@@ -1,7 +1,7 @@
 from django.urls import path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, eldensity, fragment, crypt, result_pdbs
-from fragview.views import encryption, download
+from fragview.views import encryption, download, dataset_info
 
 
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     path('soaking_plan/', soaking.soaking_plan, name='soaking_plan'),
 
     path('datasets/', datasets.show_all, name='datasets'),
-    path('dataset_info/', datasets.set_details, name='dataset_info'),
+    path('dataset_info/<prefix>/<int:images>/<run>', dataset_info.show, name='dataset_info'),
 
     path('results/', results.show, name='results'),
     path('results/resync/', results.resync),
