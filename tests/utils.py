@@ -1,3 +1,4 @@
+from os import path
 import unittest
 from fragview import auth
 from django import test
@@ -58,3 +59,14 @@ class ViewTesterMixin:
     def assert_bad_request(self, response, error_msg):
         self.assertEquals(response.status_code, 400)
         self.assertRegex(response.content.decode(), error_msg)
+
+
+def data_file_path(file_name):
+    """
+    return absolute path specified file in tests 'data' directory
+    """
+    return path.join(path.dirname(__file__), "data", file_name)
+
+
+def xs_data_path(num):
+    return data_file_path(f"xs_data{num}.xml")

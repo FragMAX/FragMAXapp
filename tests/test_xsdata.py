@@ -1,20 +1,15 @@
 import unittest
-from os import path
 from fragview.xsdata import XSDataCollection
+from tests.utils import xs_data_path
 
-XML_FILENAME = "xs_data_result.xml"
 EXPECTED_SNAPSHOTS = ["/some/dir/Prtk-Vt-G2_1_1.snapshot.jpeg",
                       "/some/dir/Prtk-Vt-G2_1_2.snapshot.jpeg"]
-
-
-def _xml_path():
-    return path.join(path.dirname(__file__), "data", XML_FILENAME)
 
 
 class TestXSDataCollection(unittest.TestCase):
     def test_parser(self):
         # parse the XML file
-        xsdata = XSDataCollection(_xml_path())
+        xsdata = XSDataCollection(xs_data_path(0))
 
         # check that we get expected data
         self.assertListEqual(xsdata.snapshots, EXPECTED_SNAPSHOTS)
@@ -35,6 +30,8 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertAlmostEqual(xsdata.slitGapVertical, 5.000000e+01)
         self.assertAlmostEqual(xsdata.slitGapHorizontal, 5.000000e+01)
         self.assertEqual(xsdata.numberOfImages, 3600)
+        self.assertEqual(xsdata.dataCollectionNumber, 1)
+        self.assertEqual(xsdata.imagePrefix, "100037-SiBiL-x556")
         self.assertEqual(xsdata.imageDirectory, "/img/dir/")
         self.assertEqual(xsdata.beamShape, "ellipse")
         self.assertEqual(xsdata.startTime, "2020-04-01 09:55:25+02:00")

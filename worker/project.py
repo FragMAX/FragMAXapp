@@ -6,7 +6,6 @@ import stat
 from glob import glob
 import pyfastcopy  # noqa
 import shutil
-import xmltodict
 import celery
 from celery.utils.log import get_task_logger
 from worker import dist_lock, elbow
@@ -14,6 +13,7 @@ from worker.xsdata import copy_collection_metadata_files
 from fragview.sites import SITE
 from fragview.fileio import makedirs
 from fragview.models import Project
+from fragview.xsdata import XSDataCollection
 from fragview.status import run_update_status
 from fragview.autoproc import import_autoproc
 from fragview.projects import project_xml_files, project_process_protein_dir
@@ -21,7 +21,6 @@ from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
 from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, READ_MTZ_FLAGS, UPDATE_RESULTS_SCRIPT
 from fragview.projects import shifts_xml_files, project_scripts_dir
-
 
 logger = get_task_logger(__name__)
 
@@ -145,30 +144,19 @@ def _copy_scripts(proj):
     _copy_script_files(proj, script_files)
 
 
-def _parse_metafile(proj, metafile):
-    def _snapshots():
-        for i in range(1, 5):
-            snap = node[f"xtalSnapshotFullPath{i}"]
-            if snap != "None":
-                yield snap
+def _parse_metafile(metafile):
+    xsdata = XSDataCollection(metafile)
 
-    with open(metafile, "rb") as f:
-        doc = xmltodict.parse(f)
+    sample = xsdata.imagePrefix.split("-")[-1]
+    resolution = f"{xsdata.resolution:.2f}"
 
-    node = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
+    snapshots = xsdata.snapshots
+    snapshots = ",".join(snapshots) \
+        if len(snapshots) > 0 \
+        else "noSnapshots"  # TODO drop this, use empty string as 'no snapshots' value
 
-    img_num = node["numberOfImages"]
-    resolution = "%.2f" % float(node["resolution"])
-    run = node["dataCollectionNumber"]
-    dataset = node["imagePrefix"]
-    sample = dataset.split("-")[-1]
-    snaps = ",".join(_snapshots())
-    # TODO remove this if expression, change the code to use empty string works as 'no snapshots' value
-    if len(snaps) <= 0:
-        snaps = "noSnapshots"
-    col_path = node["imageDirectory"]
-
-    return dataset, sample, col_path, run, img_num, resolution, snaps
+    return xsdata.imagePrefix, sample, xsdata.imageDirectory, xsdata.dataCollectionNumber, \
+        xsdata.numberOfImages, resolution, snapshots
 
 
 def _write_data_collections_file(proj, meta_files):
@@ -182,7 +170,7 @@ def _write_data_collections_file(proj, meta_files):
             "numberOfImages", "resolution", "snapshot"])
 
         for mfile in meta_files:
-            dataset, sample, col_path, run, img_num, resolution, snaps = _parse_metafile(proj, mfile)
+            dataset, sample, col_path, run, img_num, resolution, snaps = _parse_metafile(mfile)
             writer.writerow([dataset, sample, col_path, proj.protein, run, img_num, resolution, snaps])
 
 

@@ -29,6 +29,10 @@ class XSDataCollection:
         return self._snapshots
 
     @property
+    def imagePrefix(self):
+        return self.node["imagePrefix"]
+
+    @property
     def imageDirectory(self):
         return self.node["imageDirectory"]
 
@@ -99,6 +103,10 @@ class XSDataCollection:
     @property
     def numberOfImages(self):
         return self._int_tag("numberOfImages")
+
+    @property
+    def dataCollectionNumber(self):
+        return self._int_tag("dataCollectionNumber")
 
     @property
     def beamShape(self):
