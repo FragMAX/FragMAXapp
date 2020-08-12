@@ -1,3 +1,4 @@
+import re
 import os
 import csv
 import natsort
@@ -1234,19 +1235,47 @@ def _read_mtz_file(proj, mtz_file):
 
     return resHigh, freeRflag, fsigf_Flag
 
+#
+# regexp object used when parsing
+# PDB files for R-work, R-Free and Resolution values
+#
+
+
+PDB_LINE_RE = re.compile(
+    r"^REMARK   3   "
+    r"((?P<r_work>R VALUE            \(WORKING SET\))|"
+    r"(?P<r_free>FREE R VALUE                     )|"
+    r"(?P<resolution>RESOLUTION RANGE HIGH \(ANGSTROMS\))) *: *(?P<val>.*)")
+
 
 def _get_pdb_data(proj, pdb_file):
     r_work = ""
     r_free = ""
     resolution = ""
 
+    lines_found = set()
+
     for line in read_text_lines(proj, pdb_file):
-        if "REMARK   3   R VALUE            (WORKING SET) :" in line:
-            r_work = line.split()[-1]
-        if "REMARK   3   FREE R VALUE                     :" in line:
-            r_free = line.split()[-1]
-        if "REMARK   3   RESOLUTION RANGE HIGH (ANGSTROMS) :" in line:
-            resolution = line.split()[-1]
+        match = PDB_LINE_RE.match(line)
+        if match is None:
+            continue
+
+        val = match["val"]
+
+        if match["r_work"]:
+            r_work = val
+            lines_found.add("r_work")
+        elif match["r_free"]:
+            r_free = val
+            lines_found.add("r_free")
+        else:
+            assert match["resolution"]  # must be 'resolution' group
+            resolution = val
+            lines_found.add("res")
+
+        if len(lines_found) == 3:
+            # all data found, skip the rest of the file
+            break
 
     return r_work, r_free, resolution
 
