@@ -346,7 +346,8 @@
 <script>
   function openMethod(evt, methodName) {
     // refresh table
-    filterTable(0);
+    const emptyFilter = "";
+    filterTable(emptyFilter);
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
