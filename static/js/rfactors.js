@@ -11,7 +11,7 @@
   const width = 660 - margin.left - margin.right;
   const height = 190;
 
-  const tooltip = d3.select('body').append('div').attr('id', 'tooltip');
+  const tooltip = d3.select('body').append('div').attr('class', 'tooltip');
   const legend = d3.select('#rfactor_legend').append('svg')
     .style('position', 'absolute')
     .style('right', '20px')
@@ -81,7 +81,8 @@
     const min_rf = Math.min(...rfValues);
 
     const yMax = Math.max(max_rw, max_rf) + 0.05;
-    const yMin = Math.min(min_rw, min_rf) - 0.05;
+    const rValuesMin = Math.min(min_rw, min_rf) - 0.05;
+    const yMin = rValuesMin > 0 ? rValuesMin : 0;
 
     const xMin = -2;
     const xMax = datasetIdxs.length - 1;
@@ -106,15 +107,14 @@
 
     const colors = [maxIVOrange, maxIVGreen];
 
-    // TODO: removed clipPath not working in this plot and conflicting with tooltip on FF
-    /*plot.append('defs')
+    plot.append('defs')
         .append('clipPath')
-        .attr('id', 'clip')
+        .attr('id', 'clipR')
         .append('rect')
         .attr('x', 10)
         .attr('y', 0)
         .attr('width', width-10)
-        .attr('height', height);*/
+        .attr('height', height);
 
     // add brushing area (selection)
     plot.append("g")
@@ -129,17 +129,16 @@
       .enter().append("g")
       .attr("class", "rFactorSeries")
       .style("fill", (d, i) => colors[i])
-      .selectAll(".point")
+      .selectAll(".rfact_dot")
       .data(d => d)
       .enter().append("circle")
-      // TODO: uncomment if clipPath gets fixed
-      // .attr('clip-path', 'url(#clip)')
-      .attr("class", "point")
+      .attr('clip-path', 'url(#clipR)')
+      .attr("class", "rfact_dot")
       .attr("r", sizeDefDot)
       .attr("cx", d => xScale(d.dataset))
       .attr("cy", d => yScale(d.rfactor))
       .attr("fill-opacity", 0.6)
-      .on('mouseover', function (d) {
+      .on('mouseover', function(d) {
         d3.select(this).attr("r", sizeZoomedDot);
         tooltip.transition()
           .duration(0)
@@ -196,6 +195,7 @@
       .data(d => d)
       .enter().append("line")
       .attr("class", "error")
+      .attr('clip-path', 'url(#clipR)')
       .attr('x1', d => xScale(d.dataset))
       .attr('x2', d => xScale(d.dataset))
       .attr('y1', d => yScale(d.rfactor + d.std))
@@ -225,26 +225,12 @@
     }
 
     function zoom() {
-      const selectedDatasets = new Set();
       const t = plot.transition().duration(0);
       plot.select(".axis--x").transition(t).call(xAxis);
       plot.select(".axis--y").transition(t).call(yAxis);
-      plot.selectAll(".point").transition(t)
+      plot.selectAll(".rfact_dot").transition(t)
           .attr("cy", d => yScale(d.rfactor))
-          .attr("cx", d => {
-            const circleX = d.dataset;
-            const circleY = d.rfactor;
-
-            // store selected datasets in a Set to filter the table
-            if (circleX >= xScale.domain()[0] &&
-                circleX <= xScale.domain()[1] &&
-                circleY <= yScale.domain()[1] &&
-                circleY >= yScale.domain()[0]) {
-                  selectedDatasets.add(datasetNames[circleX]);
-                }
-
-            return xScale(circleX);
-          });
+          .attr("cx", d => xScale(d.dataset));
 
       plot.selectAll("line.error").transition(t)
         .attr('x1', d => xScale(d.dataset))
@@ -253,29 +239,22 @@
         .attr('y2', d => yScale(d.rfactor - d.std));
 
       const threshold = document.getElementById('tshold_rfactor').value;
-      plot.selectAll('#threshold-line').transition(t)
+      plot.selectAll('#rf_threshold_line').transition(t)
         .attr('x1', 10)
         .attr('y1', yScale(threshold))
         .attr('x2', width)
         .attr('y2', yScale(threshold));
 
-      // dispatch event for changed value of selected datasets
-      const rPlot = document.getElementById('rfactors_plot');
-      const evt = new CustomEvent('dotsSelection', {
-          bubbles: true,
-          detail: [...selectedDatasets]
-      });
-      rPlot.dispatchEvent(evt);
     }
 
   });
 
   document.createRfactorThresholdLine = threshold => {
     // remove previous threshold line
-    plot.selectAll('#threshold-line').remove();
+    plot.selectAll('#rf_threshold_line').remove();
     // make new threshold line
     plot.append('line')
-      .attr('id', 'threshold-line')
+      .attr('id', 'rf_threshold_line')
       .style('stroke', maxIVGray)
       .style('stroke-width', '2.5px')
       .attr('x1', xScale(xScale.domain()[0]))

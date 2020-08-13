@@ -8,6 +8,6 @@ dump.rdb
 static/libs/._uglymol.js
 static/libs/._.DS_Store
 static/libs/._uglymol.js
-.vscode*
+.vscode
 .idea
-**/.vscode/
+

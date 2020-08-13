@@ -90,7 +90,7 @@
     fill: none;
   }
 
-  #tooltip {
+  .tooltip {
     background-color: #f1f7e5;
     color: black;
     font-size: 10px;
@@ -104,8 +104,13 @@
   .axis--x .tick line {
     visibility: hidden;
   }
-</style>
 
+  .tshold-holder {
+    display: inline-block;
+    margin-left: 28px;
+  }
+
+</style>
 
 <div>
   <h4>Results</h4>
@@ -116,8 +121,6 @@
 
 </div>
 <div class=" card_options">
-
-  <script src="/static/libs/d3.min.js" defer></script>
 
   <div class="card tab">
     <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
@@ -132,62 +135,73 @@
     <div class="card-title">ISa distribution</div>
     <div class="plot-holder">
       <script src="/static/js/isaplot.js" defer></script>
-      <div class="tshold-holder" style="margin-left: 40px;">
+      <div class="tshold-holder">
         <label for="threshold_ISa">Threshold:</label>
-        <input type="number" value="0" id="tshold_isa" name="threshold_ISa" style="width:40px;margin-bottom: 0;"
-          maxlength="2" onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
+        <input type="number" value="0" id="tshold_isa" style="width: 45px;margin-bottom: 0;" name="threshold_ISa" maxlength="2"
+          onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
         <br><br>
       </div>
       <div id="isaplot"></div>
     </div>
   </div>
+
   <div id="Resolution" class="card tabcontent">
     <div class="card-title">Resolution distribution</div>
-    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Resolutions.png"
-      style="width: 100%;"></img>
+    <div class="plot-holder">
+      <script src="/static/js/resolutionplot.js" defer></script>
+      <div class="tshold-holder">
+        <label for="threshold_resolution">Threshold:</label>
+        <input type="number" value="1.00" id="tshold_res" step=".01" name="threshold_resolution" maxlength="2"
+          onchange="createResolutionThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
+        <br><br>
+      </div>
+      <div id="resolutionplot"></div>
+    </div>
   </div>
+
   <div id="Cell_Parameters" class="card tabcontent">
     <div class="card-title">Cell Parameters distribution</div>
     <img
       src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png"
       style="width: 100%;"></img>
   </div>
+
   <div id="rfactorstab" class="card tabcontent">
     <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
     <div class="plot-holder">
       <script src="/static/js/rfactors.js" defer></script>
-      <div class="tshold-holder" style="margin-left: 40px;">
+      <div class="tshold-holder">
         <label for="threshold_Rfactor">Threshold:</label>
-        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold_Rfactor"
-          style="width:45px;margin-bottom: 0;" maxlength="2" onchange="createRfactorThresholdLine(this.value)">
+        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold_Rfactor" maxlength="2"
+          onchange="createRfactorThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
         <br><br>
       </div>
       <div id="rfactor_legend"></div>
       <div id="rfactors_plot"></div>
     </div>
-
   </div>
+
   <div id="ccfactorstab" class="card tabcontent">
     <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
     <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png"
       style="width: 100%;"></img>
   </div>
-  <div id="Hide">
-  </div>
-</div>
+  <div id="Hide"></div>
+
+<script src="/static/libs/d3.min.js"></script>
+</div> <!-- end card options -->
 
 <div class="input-field col s12" id="searchDiv">
   <i class="material-icons prefix">search</i>
-  <input type="text" id="searchDataset" onkeyup="filterTable(new Array(this.value))"
-    title="Type in a dataset name">
+  <input type="text" id="searchDataset" onkeyup="filterTable(this.value)" title="Type in a dataset name">
   <label for="searchDataset">Search for Dataset..</label>
 </div>
 
-<table>
+<table id="mytable">
   <thead>
     <tr>
       <th>View Structure</th>
-      <th>Data set</th>
+      <th id="th_dataset">Data set</th>
       <th>Space group</th>
       <th>Res. [&Aring;]</th>
       <th>ISa</th>
@@ -249,7 +263,6 @@
           <img class="ligpng" src="/fragment/{{ item.dataset }}/image" height="40" width="86">
         </a>
         {% endif %}
-
       </td>
 
     </tr>
@@ -259,21 +272,17 @@
 </table>
 
 <script>
-  
-  // listening for selection events on the plot and filter the table
-  document.addEventListener('dotsSelection', evt => filterTable(evt.detail));
-
   const getCellValue = (tr, idx) => tr.children[idx].textContent;
 
   const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-  )(getCellValue(!asc ? a : b, idx), getCellValue(!asc ? b : a, idx));
+  )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
   /* Attach sorting to click event of table headers */
   document.querySelectorAll('th').forEach(tableHeader =>
     tableHeader.addEventListener('click', () => sortTable(tableHeader)));
 
-
+  /* sort the table by column name */
   function sortTable(sortingHeader) {
     const table = sortingHeader.closest('table');
     const tbody = document.getElementById("resultsTableBody");
@@ -283,56 +292,21 @@
     rows.forEach(tr => tbody.appendChild(tr));
   }
 
-  function filterTable(filterData) {
+  function filterTable(filter) {
     const tableBody = document.getElementById("resultsTableBody");
-    const trs = tableBody.querySelectorAll('tr');
-
-    switch (filterData.length) {
-
-      /* single dataset selected (searchDatabase or 1 dot selected from the plot) */
-      case 1:
-        const datasetName = filterData.toString().toUpperCase();
-        const tds = tableBody.querySelectorAll('.score');
-        for (let i = 0; i < tds.length; i++) {
-          const td = tds[i];
-          if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
-            td.parentElement.style.display = "";
-          }
-          else td.parentElement.style.display = "none";
-        }
-        break;
-
-      /* no selection / zoom out / table refreshed */
-      case 0:
-      case document.datasetsTotal:
-        for (let i = 1; i < trs.length; i++) {
-          trs[i].style.display = "";
-        }
-        break;
-
-      /* selection of dots (zoom in) */
-      default:
-        // hide all rows
-        for (let i = 1; i < trs.length; i++) {
-          trs[i].style.display = "none";
-        }
-        // make visible only rows correspondent to the selected datasets
-        for (let i = 0; i < filterData.length; i++) {
-          const dataset = filterData[i];
-          const tds = tableBody.querySelectorAll('.' + dataset);
-          for (let i = 0; i < tds.length; i++) {
-            tds[i].parentElement.style.display = "";
-          }
-        }
-        break;
+    const datasetName = filter.toUpperCase();
+    const tds = tableBody.querySelectorAll('.score');
+    for (let i = 0; i < tds.length; i++) {
+      const td = tds[i];
+      if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
+        td.parentElement.style.display = "";
+      } else td.parentElement.style.display = "none";
     }
+  } 
 
-  }
 </script>
 <script>
   function openMethod(evt, methodName) {
-    // refresh table
-    filterTable("");
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
@@ -367,6 +341,9 @@
 
   $(document).ready(function () {
     $("#resync_button").click(request_resync);
+    // when page loads, sort table by dataset name
+    const datasetColumn = document.getElementById('th_dataset');
+    sortTable(datasetColumn);
   });
 </script>
 {% endblock %}

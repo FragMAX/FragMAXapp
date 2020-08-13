@@ -47,13 +47,14 @@ def isa(request):
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-    data = pandas.read_csv(project_results_file(proj))
+    file = project_results_file(proj)
 
+    data = pandas.read_csv(file)
     # ignore data row when isa is unknown
     data = data[data["ISa"]!="unknown"]
     data["ISa"] = pandas.to_numeric(data["ISa"])
-
-    # for each dataset name: group the data and calculate mean and standard error
+    
+    # group data by dataset name and calculate mean and standard error
     isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean().to_frame(name="mean").reset_index()
     isa_mean_by_dataset["mean"] = isa_mean_by_dataset["mean"].round(2)
     std_err_by_dataset = data.groupby("dataset")["ISa"].std().round(2).to_frame(name="std").reset_index()
@@ -63,14 +64,36 @@ def isa(request):
     return HttpResponse(result.to_json(), content_type="application/json")
 
 
+def resolution(request):
+    """
+    return resolution statistics for datasets in the results,
+    in Json format, suitable for drawing interactive plots
+    """
+    proj = current_project(request)
+    file = project_results_file(proj)
+
+    data = pandas.read_csv(file)
+    data["resolution"] = pandas.to_numeric(data["resolution"])
+    # group data by dataset name and calculate mean and standard error
+    resolution_mean_by_dataset = data.groupby("dataset")["resolution"].mean().to_frame(name="mean").reset_index()
+    resolution_mean_by_dataset["mean"] = resolution_mean_by_dataset["mean"].round(2)
+    resolution_std_err_by_dataset = data.groupby("dataset")["resolution"].std().round(2).to_frame(name="std").reset_index()
+
+    result = resolution_mean_by_dataset.merge(resolution_std_err_by_dataset)
+
+    return HttpResponse(result.to_json(), content_type="application/json")
+
+
+
 def rfactor(request):
     """
     return rfactors statistics for datasets in the results,
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-    print(project_results_file(proj))
-    data = pandas.read_csv(project_results_file(proj))
+    file = project_results_file(proj)
+    
+    data = pandas.read_csv(file)
 
     data["r_work"] = pandas.to_numeric(data["r_work"])
     data["r_free"] = pandas.to_numeric(data["r_free"])

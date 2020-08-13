@@ -15,7 +15,7 @@
     const tooltip = d3.select('body').append('div')
         .attr('class', 'tooltip');
 
-    const isaplot = d3.select('#isaplot')
+    const resolutionPlot = d3.select('#resolutionplot')
         .append('svg')
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 660 220")
@@ -32,7 +32,7 @@
     const yScale = d3.scaleLinear().range([height, 0]);
 
     //Read the data
-    d3.json("/results/isa").then((data, error) => {
+    d3.json("/results/resolution").then((data, error) => {
 
         if (error) throw error;
 
@@ -46,8 +46,8 @@
         const maxMean = Math.max(...meanValues);
         const minMean = Math.min(...meanValues);
 
-        const yMax = maxMean + 3;
-        const yMin = minMean - 3 >= 1 ? minMean - 3 : 0;
+        const yMax = maxMean + 0.05;
+        const yMin = minMean - 0.05 >= 0 ? minMean - 0.05 : 0;
 
         const xMin = -2;
         const xMax = datasetNums.length - 1;
@@ -60,7 +60,7 @@
         const xAxis = d3.axisBottom(xScale).tickFormat("");
         const yAxis = d3.axisLeft(yScale);
 
-        // create area for selection event 
+        // create area for selection event
         const brush = d3.brush()
             .extent([
                 [0, 0],
@@ -71,7 +71,7 @@
         let idleTimeout;
         const idleDelay = 350;
 
-        // create array to be used as data for d3 plot
+        // prepare data to be used as data for the plot
         const dataArray = datasetNums.map((d, idx) => {
             return {
                 dataset: d,
@@ -81,9 +81,9 @@
         });
 
         // create clipping area to prevent zoomed dots from displaying outside plot area
-        isaplot.append('defs')
+        resolutionPlot.append('defs')
             .append('clipPath')
-            .attr('id', 'isa_clip')
+            .attr('id', 'resClip')
             .append('rect')
             .attr('x', 10)
             .attr('y', 0)
@@ -91,20 +91,20 @@
             .attr('height', height);
 
         // add brushing (selection area)
-        isaplot.append("g")
-            .attr("id", "isa_brush")
+        resolutionPlot.append("g")
+            .attr("id", "res_brush")
             .call(brush);
 
         const zoomedDotSize = 4;
         const defDotSize = 3;
 
-        // add dots 
-        isaplot.selectAll(".isa_dot")
+        // add dots
+        resolutionPlot.selectAll(".res_dot")
             .data(dataArray)
             .enter()
             .append("circle")
-            .attr("class", "isa_dot")
-            .attr('clip-path', 'url(#isa_clip)')
+            .attr("class", "res_dot")
+            .attr('clip-path', 'url(#resClip)')
             .attr("cx", d => xScale(d.dataset))
             .attr("cy", d => yScale(d.mean))
             .attr("r", defDotSize)
@@ -114,7 +114,7 @@
                 tooltip.transition()
                     .duration(0)
                     .style('opacity', 1)
-                    .text(datasetNames[d.dataset] + '; isa: ' + d.mean)
+                    .text(datasetNames[d.dataset] + '; resolution: ' + d.mean)
                     .style('left', `${d3.event.pageX + 2}px`)
                     .style('top', `${d3.event.pageY - 18}px`);
             })
@@ -126,26 +126,26 @@
             });
 
         // add standard error lines
-        const err_isa_lines = isaplot.selectAll('line.isa_error').data(dataArray);
-        err_isa_lines.enter()
+        const err_res_lines = resolutionPlot.selectAll('line.res_error').data(dataArray);
+        err_res_lines.enter()
             .append('line')
             .style('stroke', maxIVGreen)
-            .attr('class', 'isa_error')
-            .attr('clip-path', 'url(#clip)')
-            .merge(err_isa_lines)
+            .attr('class', 'res_error')
+            .attr('clip-path', 'url(#resClip)')
+            .merge(err_res_lines)
             .attr('x1', d => xScale(d.dataset))
             .attr('x2', d => xScale(d.dataset))
             .attr('y1', d => yScale(d.mean + d.std))
             .attr('y2', d => yScale(d.mean - d.std));
 
         // draw x axis
-        isaplot.append("g")
+        resolutionPlot.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + (height) + ")")
             .call(xAxis);
 
         // x axis title
-        isaplot.append("text")
+        resolutionPlot.append("text")
             .attr("id", "xLabel")
             .attr("transform",
                 "translate(" + (width / 2) + " ," +
@@ -155,20 +155,20 @@
             .text("Dataset");
 
         // draw y axis
-        isaplot.append("g")
+        resolutionPlot.append("g")
             .attr("class", "axis axis--y")
             .attr("transform", "translate(10,0)")
             .call(yAxis);
 
         // y axis title
-        isaplot.append("text")
+        resolutionPlot.append("text")
             .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left + 5)
+            .attr("y", 0 - margin.left)
             .attr("x", 0 - (height / 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
             .style("font-size", "8px")
-            .text("ISa");
+            .text("resolution");
 
         // called when selected an area, or double click
         function brushended() {
@@ -184,7 +184,7 @@
                 xScale.domain([selection[0][0], selection[1][0]].map(xScale.invert, xScale));
                 yScale.domain([selection[1][1], selection[0][1]].map(yScale.invert, yScale));
                 // remove gray area after selection
-                isaplot.select("#isa_brush").call(brush.move, null);
+                resolutionPlot.select("#res_brush").call(brush.move, null);
             }
             zoom();
         }
@@ -194,21 +194,21 @@
         }
 
         function zoom() {
-            const t = isaplot.transition().duration(0);
-            isaplot.select(".axis--x").transition(t).call(xAxis);
-            isaplot.select(".axis--y").transition(t).call(yAxis);
-            isaplot.selectAll(".isa_dot").transition(t)
+            const t = resolutionPlot.transition().duration(0);
+            resolutionPlot.select(".axis--x").transition(t).call(xAxis);
+            resolutionPlot.select(".axis--y").transition(t).call(yAxis);
+            resolutionPlot.selectAll(".res_dot").transition(t)
                 .attr("cx", d => xScale(d.dataset))
                 .attr("cy", d => yScale(d.mean));
 
-            isaplot.selectAll("line.isa_error").transition(t)
+            resolutionPlot.selectAll("line.res_error").transition(t)
                 .attr('x1', d => xScale(d.dataset))
                 .attr('x2', d => xScale(d.dataset))
                 .attr('y1', d => getStdErrPos(d, 'y1'))
                 .attr('y2', d => getStdErrPos(d, 'y2'));
 
-            const threshold = document.getElementById('tshold_isa').value;
-            isaplot.selectAll('#isa_threshold_line').transition(t)
+            const threshold = document.getElementById('tshold_res').value;
+            resolutionPlot.selectAll('#res_threshold_line').transition(t)
                 .attr('x1', 10)
                 .attr('y1', yScale(threshold))
                 .attr('x2', width)
@@ -231,12 +231,12 @@
 
     });
 
-    document.createIsaThresholdLine = (threshold) => {
+    document.createResolutionThresholdLine = (threshold) => {
         // remove previous threshold line
-        isaplot.selectAll('#isa_threshold_line').remove();
+        resolutionPlot.selectAll('#res_threshold_line').remove();
         // make new threshold line
-        isaplot.append('line')
-            .attr('id', 'isa_threshold_line')
+        resolutionPlot.append('line')
+            .attr('id', 'res_threshold_line')
             .style('stroke', maxIVOrange_85)
             .style('stroke-width', '2.5px')
             .attr('x1', xScale(xScale.domain()[0]))
