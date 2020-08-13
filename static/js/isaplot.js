@@ -115,7 +115,7 @@
                     .style('left', `${d3.event.pageX + 2}px`)
                     .style('top', `${d3.event.pageY - 18}px`);
             })
-            .on('mouseout', function() {
+            .on('mouseout', function () {
                 d3.select(this).attr("r", defDotSize);
                 tooltip.transition()
                     .duration(0)
@@ -191,11 +191,23 @@
         }
 
         function zoom() {
+            const selectedDatasets = [];
             const t = isaplot.transition().duration(0);
             isaplot.select(".axis--x").transition(t).call(xAxis);
             isaplot.select(".axis--y").transition(t).call(yAxis);
             isaplot.selectAll(".isa_dot").transition(t)
-                .attr("cx", d => xScale(d.dataset))
+                .attr("cx", d => {
+                    const circleDatasetIdx = d.dataset;
+                    const circleMean = d.mean;
+                    // store selected dots in a variable to be used to display table of selected data
+                    if (circleDatasetIdx >= xScale.domain()[0] &&
+                        circleDatasetIdx <= xScale.domain()[1] &&
+                        circleMean <= yScale.domain()[1] &&
+                        circleMean >= yScale.domain()[0]) {
+                        selectedDatasets.push(datasetNames[circleDatasetIdx]);
+                    }
+                    return xScale(circleDatasetIdx);
+                })
                 .attr("cy", d => yScale(d.mean));
 
             isaplot.selectAll("line.isa_error").transition(t)
@@ -210,6 +222,17 @@
                 .attr('y1', yScale(threshold))
                 .attr('x2', width)
                 .attr('y2', yScale(threshold));
+
+            // pass selection data to event and dispatch it
+            const evt = new CustomEvent('dotsSelection', {
+                bubbles: true,
+                detail: {
+                    data: selectedDatasets,
+                    total: datasetNames.length
+                }
+            });
+            document.getElementById('isaplot').dispatchEvent(evt);
+
         } // end zoom
 
         // hide error lines of dots outside selection range

@@ -191,11 +191,23 @@
         }
 
         function zoom() {
+            const selectedDatasets = [];
             const t = resolutionPlot.transition().duration(0);
             resolutionPlot.select(".axis--x").transition(t).call(xAxis);
             resolutionPlot.select(".axis--y").transition(t).call(yAxis);
             resolutionPlot.selectAll(".res_dot").transition(t)
-                .attr("cx", d => xScale(d.dataset))
+                .attr("cx", d => {
+                    const circleDatasetIdx = d.dataset;
+                    const circleMean = d.mean;
+                    // store selected dots in a variable to be used to display table of selected data
+                    if (circleDatasetIdx >= xScale.domain()[0] &&
+                        circleDatasetIdx <= xScale.domain()[1] &&
+                        circleMean <= yScale.domain()[1] &&
+                        circleMean >= yScale.domain()[0]) {
+                            selectedDatasets.push(datasetNames[circleDatasetIdx]);
+                    }
+                    return xScale(circleDatasetIdx);
+                })
                 .attr("cy", d => yScale(d.mean));
 
             resolutionPlot.selectAll("line.res_error").transition(t)
@@ -210,6 +222,13 @@
                 .attr('y1', yScale(threshold))
                 .attr('x2', width)
                 .attr('y2', yScale(threshold));
+
+            // pass selection data to event and dispatch it
+            const evt = new CustomEvent('dotsSelection', {
+                bubbles: true,
+                detail: {data: selectedDatasets, total: datasetNames.length}
+            });
+            document.getElementById('resolutionplot').dispatchEvent(evt);
         } // end zoom
 
         // hide error lines of dots outside selection range

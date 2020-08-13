@@ -109,7 +109,6 @@
     display: inline-block;
     margin-left: 28px;
   }
-
 </style>
 
 <div>
@@ -137,8 +136,8 @@
       <script src="/static/js/isaplot.js" defer></script>
       <div class="tshold-holder">
         <label for="threshold_ISa">Threshold:</label>
-        <input type="number" value="0" id="tshold_isa" style="width: 45px;margin-bottom: 0;" name="threshold_ISa" maxlength="2"
-          onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
+        <input type="number" value="0" id="tshold_isa" style="width: 45px;margin-bottom: 0;" name="threshold_ISa"
+          maxlength="2" onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
         <br><br>
       </div>
       <div id="isaplot"></div>
@@ -188,16 +187,16 @@
   </div>
   <div id="Hide"></div>
 
-<script src="/static/libs/d3.min.js"></script>
+  <script src="/static/libs/d3.min.js"></script>
 </div> <!-- end card options -->
 
 <div class="input-field col s12" id="searchDiv">
   <i class="material-icons prefix">search</i>
-  <input type="text" id="searchDataset" onkeyup="filterTable(this.value)" title="Type in a dataset name">
+  <input type="text" id="searchDataset" onkeyup="filterTable(new Array(this.value))" title="Type in a dataset name">
   <label for="searchDataset">Search for Dataset..</label>
 </div>
 
-<table id="mytable">
+<table>
   <thead>
     <tr>
       <th>View Structure</th>
@@ -272,6 +271,10 @@
 </table>
 
 <script>
+  // listening for selection events on the plot and filter the table
+  document.addEventListener('dotsSelection',
+    evt => filterTable(evt.detail.data, evt.detail.total));
+
   const getCellValue = (tr, idx) => tr.children[idx].textContent;
 
   const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
@@ -282,7 +285,7 @@
   document.querySelectorAll('th').forEach(tableHeader =>
     tableHeader.addEventListener('click', () => sortTable(tableHeader)));
 
-  /* sort the table by column name */
+  /* sort the table by column */
   function sortTable(sortingHeader) {
     const table = sortingHeader.closest('table');
     const tbody = document.getElementById("resultsTableBody");
@@ -292,21 +295,58 @@
     rows.forEach(tr => tbody.appendChild(tr));
   }
 
-  function filterTable(filter) {
+  function filterTable(filter, total) {
     const tableBody = document.getElementById("resultsTableBody");
-    const datasetName = filter.toUpperCase();
-    const tds = tableBody.querySelectorAll('.score');
-    for (let i = 0; i < tds.length; i++) {
-      const td = tds[i];
-      if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
-        td.parentElement.style.display = "";
-      } else td.parentElement.style.display = "none";
-    }
-  } 
+    const trs = tableBody.querySelectorAll('.resultsTableRow');
 
+    switch (filter.length) {
+
+      /* single dataset filter (searchDatabase or 1 dot selection from the plot) */
+      case 1:
+        const datasetName = filter.toString().toUpperCase();
+        const tds = tableBody.querySelectorAll('.score');
+        for (let i = 0; i < tds.length; i++) {
+          const td = tds[i];
+          if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
+            td.parentElement.style.display = "";
+          } else td.parentElement.style.display = "none";
+        }
+        break;
+
+      /* empty selection in the plot */
+      case 0:
+      /* all the datasets in the plot are selected or zoom out */
+      case total:
+        // display all table rows
+        for (let i = 0; i < trs.length; i++) {
+          trs[i].style.display = "";
+        }
+        break;
+
+        /* selection of more than one dot (zoom in) */
+      default:
+        // hide all table rows first
+        for (let i = 0; i < trs.length; i++) {
+          trs[i].style.display = "none";
+        }
+        // make visible only rows correspondent to the selected datasets
+        for (let i = 0; i < filter.length; i++) {
+          const dataset = filter[i];
+          for (let i = 0; i < trs.length; i++) {
+            const tr = trs[i];
+            if (tr.children[1].textContent.indexOf(dataset) > -1) {
+              tr.style.display = "";
+            }
+          }
+        }
+        break;
+    }
+  } // end filter
 </script>
 <script>
   function openMethod(evt, methodName) {
+    // refresh table
+    filterTable(0);
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {

@@ -44,7 +44,7 @@
   //Read the data
   d3.json("/results/rfactor").then((data, error) => {
 
-    if(error) throw error;
+    if (error) throw error;
 
     const datasetNames = Object.values(data.dataset);
     document.datasetsTotal = datasetNames.length;
@@ -105,13 +105,13 @@
     const colors = [maxIVOrange, maxIVGreen];
 
     plot.append('defs')
-        .append('clipPath')
-        .attr('id', 'clipR')
-        .append('rect')
-        .attr('x', 10)
-        .attr('y', 0)
-        .attr('width', width-10)
-        .attr('height', height);
+      .append('clipPath')
+      .attr('id', 'clipR')
+      .append('rect')
+      .attr('x', 10)
+      .attr('y', 0)
+      .attr('width', width - 10)
+      .attr('height', height);
 
     // add brushing area (selection)
     plot.append("g")
@@ -144,7 +144,7 @@
           .style('left', `${d3.event.pageX + 2}px`)
           .style('top', `${d3.event.pageY - 18}px`);
       })
-      .on('mouseout', function() {
+      .on('mouseout', function () {
         d3.select(this).attr("r", sizeDefDot);
         tooltip.transition()
           .duration(0)
@@ -222,12 +222,26 @@
     }
 
     function zoom() {
+      const selectedDatasets = new Set();
       const t = plot.transition().duration(0);
       plot.select(".axis--x").transition(t).call(xAxis);
       plot.select(".axis--y").transition(t).call(yAxis);
       plot.selectAll(".rfact_dot").transition(t)
-          .attr("cy", d => yScale(d.rfactor))
-          .attr("cx", d => xScale(d.dataset));
+        .attr("cy", d => yScale(d.rfactor))
+        .attr("cx", d => {
+          const circleX = d.dataset;
+          const circleY = d.rfactor;
+
+          // store selected datasets in a Set to filter the table
+          if (circleX >= xScale.domain()[0] &&
+            circleX <= xScale.domain()[1] &&
+            circleY <= yScale.domain()[1] &&
+            circleY >= yScale.domain()[0]) {
+            selectedDatasets.add(datasetNames[circleX]);
+          }
+          return xScale(circleX)
+        });
+
 
       plot.selectAll("line.error").transition(t)
         .attr('x1', d => xScale(d.dataset))
@@ -241,6 +255,16 @@
         .attr('y1', yScale(threshold))
         .attr('x2', width)
         .attr('y2', yScale(threshold));
+
+      // dispatch event with selection data
+      const evt = new CustomEvent('dotsSelection', {
+        bubbles: true,
+        detail: {
+          data: [...selectedDatasets],
+          total: datasetNames.length
+        }
+      });
+      document.getElementById('rfactors_plot').dispatchEvent(evt);
 
     }
 
