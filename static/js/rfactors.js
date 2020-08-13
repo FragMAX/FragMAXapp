@@ -48,16 +48,13 @@
 
     const datasetNames = Object.values(data.dataset);
     document.datasetsTotal = datasetNames.length;
-    // create array of datasetnames indexes so we can use it as a numeric scale for x axis
-    const datasetIdxs = [];
-    Object.keys(data.dataset).forEach(key => datasetIdxs.push(+key));
 
     const keysRfactors = ["rwork", "rfree"];
     const valuesRfactors = keysRfactors.map(key => {
-      return datasetIdxs.map(datasetIdx => {
+      return datasetNames.map((d, idx) => {
         return {
-          dataset: datasetIdx,
-          rfactor: data[key][datasetIdx]
+          dataset: idx,
+          rfactor: data[key][idx]
         }
       })
     });
@@ -85,7 +82,7 @@
     const yMin = rValuesMin > 0 ? rValuesMin : 0;
 
     const xMin = -2;
-    const xMax = datasetIdxs.length - 1;
+    const xMax = datasetNames.length - 1;
 
     // set domain of axis scale
     xScale.domain([xMin, xMax]);

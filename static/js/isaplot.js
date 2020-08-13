@@ -37,9 +37,6 @@
         if (error) throw error;
 
         const datasetNames = Object.values(data.dataset);
-        // create array of datasetnames indexes to be used as numeric scale for x axis
-        const datasetNums = [];
-        Object.keys(data.dataset).forEach(key => datasetNums.push(+key));
 
         /* calculate max value of y axis */
         const meanValues = Object.values(data.mean);
@@ -50,7 +47,7 @@
         const yMin = minMean - 3 >= 1 ? minMean - 3 : 0;
 
         const xMin = -2;
-        const xMax = datasetNums.length - 1;
+        const xMax = datasetNames.length - 1;
 
         // set domain of axis scale
         xScale.domain([xMin, xMax]);
@@ -72,9 +69,9 @@
         const idleDelay = 350;
 
         // create array to be used as data for d3 plot
-        const dataArray = datasetNums.map((d, idx) => {
+        const dataArray = datasetNames.map((d, idx) => {
             return {
-                dataset: d,
+                dataset: idx,
                 mean: data.mean[idx],
                 std: data.std[idx]
             }
