@@ -13,10 +13,13 @@ def processing_form(request):
             for x in project_raw_master_h5_files(proj)
             if "ref-" not in x
         ],
-        key=lambda x: ("Apo" in x, x))
+        key=lambda x: ("Apo" in x, x),
+    )
     methods = [
         x.split("/")[10]
-        for x in glob(f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda/analyses/*inspect_events*")
+        for x in glob(
+            f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda/analyses/*inspect_events*"
+        )
     ]
     return render(
         request,
