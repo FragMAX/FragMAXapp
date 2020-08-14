@@ -1,6 +1,7 @@
 from os import path
 from datetime import datetime
 from fragview.sites import plugin
+from fragview.sites.plugin import Pipeline
 from fragview.sites.maxiv.project import ProjectLayout
 from fragview.sites.maxiv.diffractions import DiffractionImageMaker
 from fragview.sites.maxiv.beamline import BeamlineInfo
@@ -50,6 +51,25 @@ class SitePlugin(plugin.SitePlugin):
         from fragview.autoproc import import_autoproc
 
         import_autoproc(project, shifts)
+
+    def get_supported_pipelines(self):
+        return {
+            Pipeline.AUTO_PROC,
+            Pipeline.XIA2_DIALS,
+            Pipeline.EDNA_PROC,
+            Pipeline.FASTDP,
+            Pipeline.XDSAPP,
+            Pipeline.XIA2_XDS,
+            Pipeline.DIMPLE,
+            Pipeline.FSPIPELINE,
+            Pipeline.BUSTER,
+            Pipeline.RHO_FIT,
+            Pipeline.LIGAND_FIT,
+            Pipeline.PIPEDREAM_PROC,
+            Pipeline.PIPEDREAM_REFINE,
+            Pipeline.PIPEDREAM_LIGAND,
+            Pipeline.PANDDA,
+        }
 
 
 def _copy_xmls_from_raw(project):

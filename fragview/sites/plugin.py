@@ -37,6 +37,31 @@ class SitePlugin:
     def prepare_project_folders(self, project, shifts):
         raise NotImplementedError()
 
+    def get_supported_pipelines(self):
+        """
+        return symbolic names of supported by this site,
+        must be a set() of Pipeline class's fields
+        """
+        raise NotImplementedError()
+
+
+class Pipeline:
+    AUTO_PROC = "auto_proc"
+    XIA2_DIALS = "xia2_dials"
+    EDNA_PROC = "edna_proc"
+    FASTDP = "fastdp"
+    XDSAPP = "xdsapp"
+    XIA2_XDS = "xia2_xds"
+    DIMPLE = "dimple"
+    FSPIPELINE = "fspipeline"
+    BUSTER = "buster"
+    RHO_FIT = "rho_fit"
+    LIGAND_FIT = "ligand_fit"
+    PIPEDREAM_PROC = "pipedream_proc"
+    PIPEDREAM_REFINE = "pipedream_refine"
+    PIPEDREAM_LIGAND = "pipedream_ligand"
+    PANDDA = "pandda"
+
 
 class ProjectLayout:
     class ValidationError(Exception):

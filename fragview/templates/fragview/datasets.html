@@ -208,80 +208,109 @@
                 <p>{{dataset.run}}</p>
             </td>
             <td>
+                {% if "auto_proc" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.auto_proc}}">&#9679;</font>
                     <font size="2">autoPROC</font>
                 </p>
+                {% endif %}
 
+                {% if "xia2_dials" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.xia2_dials}}">&#9679;</font>
                     <font size="2">XIA2/DIALS</font>
                 </p>
+                {% endif %}
 
+                {% if "edna_proc" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.edna_proc}}">&#9679;</font>
                     <font size="2">EDNA_proc</font>
                 </p>
+                {% endif %}
 
+                {% if "fastdp" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.fastdp}}">&#9679;</font>
                     <font size="2">fastdp</font>
                 </p>
+                {% endif %}
 
+                {% if "xdsapp" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.xdsapp}}">&#9679;</font>
                     <font size="2">XDSAPP</font>
                 </p>
+                {% endif %}
 
+                {% if "xia2_xds" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.xia2_xds}}">&#9679;</font>
                     <font size="2">XIA2/XDS</font>
                 </p>
+                {% endif %}
 
+                {% if "pipedream_proc" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.pipedream_proc}}">&#9679;</font>
                     <font size="2">Pipedream</font>
                 </p>
+                {% endif %}
             </td>
 
             <td>
+                {% if "buster" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.buster}}">&#9679;</font>
                     <font size="2">BUSTER</font>
                 </p>
+                {% endif %}
 
+                {% if "dimple" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.dimple}}">&#9679;</font>
                     <font size="2">DIMPLE</font>
                 </p>
+                {% endif %}
 
+                {% if "fspipeline" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.fspipeline}}">&#9679;</font>
                     <font size="2">fspipeline</font>
                 </p>
+                {% endif %}
 
+                {% if "pipedream_refine" in pipelines %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.pipedream_refine}}">&#9679;</font>
                     <font size="2">Pipedream</font>
                 </p>
+                {% endif %}
             </td>
 
             <td>
                 {% if "Apo" not in dataset.image_prefix %}
-                <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
-                    <font size="2">LigandFit</font>
-                </p>
+                    {% if "ligand_fit" in pipelines %}
 
-                <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
-                    <font size="2">RhoFit</font>
-                </p>
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
+                        <font size="2">LigandFit</font>
+                    </p>
+                    {% endif %}
 
-                <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
-                    <font size="2">Pipedream</font>
-                </p>
+                    {% if "rho_fit" in pipelines %}
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
+                        <font size="2">RhoFit</font>
+                    </p>
+                    {% endif %}
+
+                    {% if "pipedream_ligand" in pipelines %}
+                    <p align="left" style="white-space: nowrap;">
+                        <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
+                        <font size="2">Pipedream</font>
+                    </p>
+                    {% endif %}
                 {% endif %}
             </td>
 

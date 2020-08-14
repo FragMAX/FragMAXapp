@@ -3,6 +3,7 @@ from glob import glob
 from datetime import datetime
 from fragview.fileio import makedirs
 from fragview.sites import plugin
+from fragview.sites.plugin import Pipeline
 from fragview.sites.hzb.project import ProjectLayout
 from fragview.sites.hzb.diffractions import DiffractionImageMaker
 from fragview.sites.hzb.beamline import BeamlineInfo
@@ -53,6 +54,17 @@ class SitePlugin(plugin.SitePlugin):
         for dataset in self.get_project_datasets(project):
             dataset_dir, _ = dataset.rsplit("_", 2)
             makedirs(path.join(root_dir, dataset_dir, dataset))
+
+    def get_supported_pipelines(self):
+        return {
+            Pipeline.XIA2_DIALS,
+            Pipeline.XDSAPP,
+            Pipeline.XIA2_XDS,
+            Pipeline.DIMPLE,
+            Pipeline.FSPIPELINE,
+            Pipeline.LIGAND_FIT,
+            Pipeline.PANDDA,
+        }
 
 
 def _get_experiment_timestamp(project):

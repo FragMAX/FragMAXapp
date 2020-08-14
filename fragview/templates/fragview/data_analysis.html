@@ -281,6 +281,7 @@
                                     <td class=" top-options">
                                         <br>
                                         <div>
+                                            {% if "pipedream_proc" in pipelines %}
                                             <div class="checkbox" id="pipedream">
                                                 <label>
                                                     <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
@@ -289,6 +290,8 @@
                                                     <span for="pipedreamcheckboxinputproc">Pipedream </span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "xia2_dials" in pipelines %}
                                             <div class="checkbox" id="dials">
                                                 <label>
                                                     <input class="processform filled-in dt-checkboxes"
@@ -296,6 +299,8 @@
                                                     <span for="dialscheckboxinput">XIA2/DIALS</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "xia2_xds" in pipelines %}
                                             <div class="checkbox" id="xdsxscale">
                                                 <label>
                                                     <input class="processform filled-in dt-checkboxes"
@@ -303,6 +308,8 @@
                                                     <span for="xdsxscalecheckboxinput">XIA2/XDS_XSCALE</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "xdsapp" in pipelines %}
                                             <div class="checkbox" id="xdsapp">
                                                 <label>
                                                     <input class="processform filled-in dt-checkboxes"
@@ -311,6 +318,8 @@
                                                     <span for="xdsappcheckboxinput">XDSAPP</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "auto_proc" in pipelines %}
                                             <div class="checkbox" id="autoproc">
                                                 <label>
                                                     <input class="processform filled-in dt-checkboxes"
@@ -318,6 +327,7 @@
                                                     <span for="autoproccheckboxinput">autoProc </span>
                                                 </label>
                                             </div>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -374,6 +384,7 @@
                                     <td class=" top-options">
                                         <br>
                                         <div>
+                                            {% if "pipedream_refine" in pipelines %}
                                             <div class="checkbox " id="pipedream">
                                                 <label>
                                                     <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
@@ -382,6 +393,8 @@
                                                     <span for="pipedreamcheckboxinputref">Pipedream</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "dimple" in pipelines %}
                                             <div class="checkbox" id="dials">
                                                 <label>
                                                     <input class="refineform filled-in dt-checkboxes"
@@ -389,6 +402,8 @@
                                                     <span for="dimplecheckboxinput">DIMPLE</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "buster" in pipelines %}
                                             <div class="checkbox" id="xdsxscale">
                                                 <label>
                                                     <input class="refineform filled-in dt-checkboxes"
@@ -396,6 +411,8 @@
                                                     <span for="bustercheckboxinput">BUSTER</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
+                                            {% if "fspipeline" in pipelines %}
                                             <div class="checkbox" id="autoproc">
                                                 <label>
                                                     <input class="refineform filled-in dt-checkboxes"
@@ -403,6 +420,7 @@
                                                     <span for="fspcheckboxinput">fspipeline</span>
                                                 </label>
                                             </div>
+                                            {% endif %}
                                         </div>
 
                                     </td>
@@ -472,6 +490,7 @@
                                         <form id="swSelectionForrefinement">
                                             <br>
                                             <div>
+                                                {% if "pipedream_ligand" in pipelines %}
                                                 <div class="checkbox " id="pipedream">
                                                     <label>
                                                         <input class="ligandform filled-in dt-checkboxes pipedreamcheck"
@@ -480,6 +499,8 @@
                                                         <span for="pipedreamcheckboxinputlig">Pipedream</span>
                                                     </label>
                                                 </div>
+                                                {% endif %}
+                                                {% if "rho_fit" in pipelines %}
                                                 <div class="checkbox" id="rhofit">
                                                     <label>
                                                         <input class="ligandform filled-in dt-checkboxes"
@@ -487,6 +508,8 @@
                                                         <span for="rhofitcheckboxinput">RhoFit</span>
                                                     </label>
                                                 </div>
+                                                {% endif %}
+                                                {% if "ligand_fit" in pipelines %}
                                                 <div class="checkbox" id="ligfit">
                                                     <label>
                                                         <input class="ligandform filled-in dt-checkboxes"
@@ -495,6 +518,8 @@
                                                         <span for="phenixligfitcheckboxinput">LigandFit</span>
                                                     </label>
                                                 </div>
+                                                {% endif %}
+                                                {% if "pandda" in pipelines %}
                                                 <div class="checkbox" id="pandda">
                                                     <label>
                                                         <input class="ligandform filled-in dt-checkboxes"
@@ -503,6 +528,7 @@
                                                         <span for="panddacheckboxinput">PanDDA</span>
                                                     </label>
                                                 </div>
+                                                {% endif %}
                                             </div>
 
 
@@ -2211,24 +2237,32 @@
         }
     });
 
-    $('.processform').on('input', function (e) {
-        if (document.getElementById("dialscheckboxinput").checked +
-            document.getElementById("xdsxscalecheckboxinput").checked +
-            document.getElementById("xdsappcheckboxinput").checked +
-            document.getElementById("autoproccheckboxinput").checked != 0) {
-            document.getElementById("submitdtProc").disabled = false;
-        } else {
-            document.getElementById("submitdtProc").disabled = true;
+    /**
+     * given checkbox IDs, return true if none of the checkboxes
+     * are currently checked, otherwise return false
+     */
+    function none_checked(...checkbox_ids) {
+        for (const id of checkbox_ids) {
+            const chbox = $(`#${id}`);
+            if (chbox.is(':checked')) {
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    $('.processform').on('input', function (e) {
+        disable_btn = none_checked("dialscheckboxinput", "xdsxscalecheckboxinput",
+                                   "xdsappcheckboxinput", "autoproccheckboxinput");
+
+        $("#submitdtProc").prop("disabled", disable_btn);
     });
 
     $('.ligandform').on('input', function (e) {
-        if (document.getElementById("rhofitcheckboxinput").checked +
-            document.getElementById("phenixligfitcheckboxinput").checked != 0) {
-            document.getElementById("submitligProc").disabled = false;
-        } else {
-            document.getElementById("submitligProc").disabled = true;
-        }
+        disable_btn = none_checked("rhofitcheckboxinput", "phenixligfitcheckboxinput");
+
+        $("#submitligProc").prop("disabled", disable_btn);
     });
 
     $(function () {

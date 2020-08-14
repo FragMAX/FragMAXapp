@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from fragview.models import PDB
 from fragview.projects import current_project, project_raw_master_h5_files
+from fragview.sites import SITE
 from glob import glob
 
 
@@ -27,5 +28,7 @@ def processing_form(request):
         {
             "datasets": datasets,
             "pdbs": PDB.project_pdbs(proj),
-            "methods": methods
-        })
+            "methods": methods,
+            "pipelines": SITE.get_supported_pipelines(),
+        },
+    )
