@@ -1,4 +1,9 @@
-!(d3 => {
+let rFactorsPlotLoaded = false;
+
+this.createRfactorsPlot = () => {
+  if (rFactorsPlotLoaded) {
+    return;
+  }
 
   // set the dimensions and margins of the graph
   const margin = {
@@ -10,19 +15,6 @@
 
   const width = 660 - margin.left - margin.right;
   const height = 190;
-
-  const tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-  const legend = d3.select('#rfactor_legend').append('svg')
-    .style('position', 'absolute')
-    .style('right', '20px')
-    .style('top', '32px')
-    .style('width', '70px')
-    .style('height', '36px')
-
-  legend.append("circle").attr("cx", 35).attr("cy", 20).attr("r", 2.5).style("fill", "green")
-  legend.append("circle").attr("cx", 35).attr("cy", 30).attr("r", 2.5).style("fill", "orange")
-  legend.append("text").attr("x", 40).attr("y", 20).text("Rfree").style("font-size", "10px").attr("alignment-baseline", "middle")
-  legend.append("text").attr("x", 40).attr("y", 30).text("Rwork").style("font-size", "10px").attr("alignment-baseline", "middle")
 
   const plot = d3.select('#rfactors_plot')
     .append('svg')
@@ -36,15 +28,8 @@
   const xScale = d3.scaleLinear().range([10, width - 10]);
   const yScale = d3.scaleLinear().range([height, 0]);
 
-  /* colors */
-  const maxIVOrange = "#fea901";
-  const maxIVGreen = "#82be00";
-  const maxIVGray = "#6e6e6e";
-
   //Read the data
-  d3.json("/results/rfactor").then((data, error) => {
-
-    if (error) throw error;
+  d3.json("/results/rfactor").then(data => {
 
     const datasetNames = Object.values(data.dataset);
     document.datasetsTotal = datasetNames.length;
@@ -92,6 +77,19 @@
     const xAxis = d3.axisBottom(xScale).tickFormat("");
     const yAxis = d3.axisLeft(yScale);
 
+    const tooltip = d3.select('body').append('div').attr('class', 'tooltip');
+    const legend = d3.select('#rfactor_legend').append('svg')
+      .style('position', 'absolute')
+      .style('right', '20px')
+      .style('top', '32px')
+      .style('width', '70px')
+      .style('height', '36px')
+
+    legend.append("circle").attr("cx", 35).attr("cy", 20).attr("r", 2.5).style("fill", "green")
+    legend.append("circle").attr("cx", 35).attr("cy", 30).attr("r", 2.5).style("fill", "orange")
+    legend.append("text").attr("x", 40).attr("y", 20).text("Rfree").style("font-size", "10px").attr("alignment-baseline", "middle")
+    legend.append("text").attr("x", 40).attr("y", 30).text("Rwork").style("font-size", "10px").attr("alignment-baseline", "middle");
+
     const brush = d3.brush()
       .extent([
         [0, 0],
@@ -102,6 +100,9 @@
     let idleTimeout;
     const idleDelay = 350;
 
+    /* colors for dots and error lines */
+    const maxIVOrange = "#fea901";
+    const maxIVGreen = "#82be00";
     const colors = [maxIVOrange, maxIVGreen];
 
     plot.append('defs')
@@ -144,7 +145,7 @@
           .style('left', `${d3.event.pageX + 2}px`)
           .style('top', `${d3.event.pageY - 18}px`);
       })
-      .on('mouseout', function () {
+      .on('mouseout', function() {
         d3.select(this).attr("r", sizeDefDot);
         tooltip.transition()
           .duration(0)
@@ -197,6 +198,8 @@
       .attr('x2', d => xScale(d.dataset))
       .attr('y1', d => yScale(d.rfactor + d.std))
       .attr('y2', d => yScale(d.rfactor - d.std));
+
+    rFactorsPlotLoaded = true;
 
     // called when selected an area, or double click
     function brushended() {
@@ -268,20 +271,22 @@
 
     }
 
-  });
+  }).catch(err => console.log(err)); // end loading data and building plot
 
   document.createRfactorThresholdLine = threshold => {
     // remove previous threshold line
     plot.selectAll('#rf_threshold_line').remove();
+    // threshold line color gray 60%
+    const maxIVGray60 = "#a8a8a8";
     // make new threshold line
     plot.append('line')
       .attr('id', 'rf_threshold_line')
-      .style('stroke', maxIVGray)
-      .style('stroke-width', '2.5px')
+      .style('stroke', maxIVGray60)
+      .style('stroke-width', '1.5px')
       .attr('x1', xScale(xScale.domain()[0]))
       .attr('y1', yScale(threshold))
       .attr('x2', width)
       .attr('y2', yScale(threshold));
   }
 
-})(d3);
+}

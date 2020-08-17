@@ -122,9 +122,9 @@
 <div class=" card_options">
 
   <div class="card tab">
-    <button class="tablinks" onclick="openMethod(event, 'ISa')">ISa</button>
-    <button class="tablinks" onclick="openMethod(event, 'Resolution')">Resolution</button>
-    <button class="tablinks" onclick="openMethod(event, 'rfactorstab')">R<sub>work/</sub>R<sub>free</sub></button>
+    <button class="tablinks" onclick="openMethod(event, 'ISa'); createIsaPlot()">ISa</button>
+    <button class="tablinks" onclick="openMethod(event, 'Resolution'); createResolutionPlot()">Resolution</button>
+    <button class="tablinks" onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
     <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')"
       disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
     <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
@@ -133,10 +133,10 @@
   <div id="ISa" class="card tabcontent">
     <div class="card-title">ISa distribution</div>
     <div class="plot-holder">
-      <script src="/static/js/isaplot.js" defer></script>
+      <script src="/static/js/isaplot.js"></script>
       <div class="tshold-holder">
-        <label for="threshold_ISa">Threshold:</label>
-        <input type="number" value="0" id="tshold_isa" style="width: 45px;margin-bottom: 0;" name="threshold_ISa"
+        <label for="tshold_isa">Threshold:</label>
+        <input type="number" value="0" id="tshold_isa" name="threshold" style="width: 45px;margin-bottom: 0;" name="threshold_ISa"
           maxlength="2" onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
         <br><br>
       </div>
@@ -147,10 +147,10 @@
   <div id="Resolution" class="card tabcontent">
     <div class="card-title">Resolution distribution</div>
     <div class="plot-holder">
-      <script src="/static/js/resolutionplot.js" defer></script>
+      <script src="/static/js/resolutionplot.js"></script>
       <div class="tshold-holder">
-        <label for="threshold_resolution">Threshold:</label>
-        <input type="number" value="1.00" id="tshold_res" step=".01" name="threshold_resolution" maxlength="2"
+        <label for="tshold_res">Threshold:</label>
+        <input type="number" value="1.00" id="tshold_res" step=".01" name="threshold" maxlength="2"
           onchange="createResolutionThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
         <br><br>
       </div>
@@ -168,10 +168,10 @@
   <div id="rfactorstab" class="card tabcontent">
     <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
     <div class="plot-holder">
-      <script src="/static/js/rfactors.js" defer></script>
+      <script src="/static/js/rfactors.js"></script>
       <div class="tshold-holder">
-        <label for="threshold_Rfactor">Threshold:</label>
-        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold_Rfactor" maxlength="2"
+        <label for="tshold_rfactor">Threshold:</label>
+        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold" maxlength="2"
           onchange="createRfactorThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
         <br><br>
       </div>
@@ -222,7 +222,7 @@
   <tbody id="resultsTableBody">
     <tr>
     </tr>
-    {% for item in jsondata %}
+    {% for item in results %}
 
     <tr class="resultsTableRow">
       <td>

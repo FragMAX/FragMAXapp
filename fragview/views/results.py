@@ -47,23 +47,27 @@ def isa(request):
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-    file = project_results_file(proj)
+    results_file = project_results_file(proj)
 
-    data = pandas.read_csv(file)
-    # ignore data row when isa is unknown
-    data = data[data["ISa"] != "unknown"]
-    data["ISa"] = pandas.to_numeric(data["ISa"])
+    data = pandas.read_csv(results_file)
 
-    # group data by dataset name and calculate mean and standard error
-    isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean()\
-        .to_frame(name="mean").reset_index()
-    isa_mean_by_dataset["mean"] = isa_mean_by_dataset["mean"].round(2)
-    std_err_by_dataset = data.groupby("dataset")["ISa"].std().round(2)\
-        .to_frame(name="std").reset_index()
+    if data.empty:
+        return HttpResponse('')
+    else:
+        # ignore data row when isa is unknown
+        data = data[data["ISa"] != "unknown"]
+        data["ISa"] = pandas.to_numeric(data["ISa"])
 
-    result = isa_mean_by_dataset.merge(std_err_by_dataset)
+        # group data by dataset name and calculate mean and standard error
+        isa_mean_by_dataset = data.groupby("dataset")["ISa"].mean()\
+            .to_frame(name="mean").reset_index()
+        isa_mean_by_dataset["mean"] = isa_mean_by_dataset["mean"].round(2)
+        std_err_by_dataset = data.groupby("dataset")["ISa"].std().round(2)\
+            .to_frame(name="std").reset_index()
 
-    return HttpResponse(result.to_json(), content_type="application/json")
+        result = isa_mean_by_dataset.merge(std_err_by_dataset)
+
+        return HttpResponse(result.to_json(), content_type="application/json")
 
 
 def resolution(request):
@@ -72,21 +76,24 @@ def resolution(request):
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-    file = project_results_file(proj)
+    results_file = project_results_file(proj)
 
-    data = pandas.read_csv(file)
-    data["resolution"] = pandas.to_numeric(data["resolution"])
+    data = pandas.read_csv(results_file)
 
-    # group data by dataset name and calculate mean and standard error
-    res_mean_by_dataset = data.groupby("dataset")["resolution"].mean()\
-        .to_frame(name="mean").reset_index()
-    res_mean_by_dataset["mean"] = res_mean_by_dataset["mean"].round(2)
-    res_std_err_by_dataset = data.groupby("dataset")["resolution"].std()\
-        .round(2).to_frame(name="std").reset_index()
+    if data.empty:
+        return HttpResponse('')
+    else:
+        data["resolution"] = pandas.to_numeric(data["resolution"])
+        # group data by dataset name and calculate mean and standard error
+        res_mean_by_dataset = data.groupby("dataset")["resolution"].mean()\
+            .to_frame(name="mean").reset_index()
+        res_mean_by_dataset["mean"] = res_mean_by_dataset["mean"].round(2)
+        res_std_err_by_dataset = data.groupby("dataset")["resolution"].std()\
+            .round(2).to_frame(name="std").reset_index()
 
-    result = res_mean_by_dataset.merge(res_std_err_by_dataset)
+        result = res_mean_by_dataset.merge(res_std_err_by_dataset)
 
-    return HttpResponse(result.to_json(), content_type="application/json")
+        return HttpResponse(result.to_json(), content_type="application/json")
 
 
 def rfactor(request):
@@ -95,23 +102,27 @@ def rfactor(request):
     in Json format, suitable for drawing interactive plots
     """
     proj = current_project(request)
-    file = project_results_file(proj)
+    results_file = project_results_file(proj)
 
-    data = pandas.read_csv(file)
-    data["r_work"] = pandas.to_numeric(data["r_work"])
-    data["r_free"] = pandas.to_numeric(data["r_free"])
+    data = pandas.read_csv(results_file)
 
-    rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean().round(2)\
-        .to_frame(name='rwork').reset_index()
-    rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean().round(2)\
-        .to_frame(name='rfree').reset_index()
-    std_rwork_by_dataset = data.groupby('dataset')['r_work'].std().round(2)\
-        .to_frame(name='std_rw').reset_index()
-    std_rfree_by_dataset = data.groupby('dataset')['r_free'].std().round(2)\
-        .to_frame(name='std_rf').reset_index()
+    if data.empty:
+        return HttpResponse('')
+    else:
+        data["r_work"] = pandas.to_numeric(data["r_work"])
+        data["r_free"] = pandas.to_numeric(data["r_free"])
 
-    result_rw = rwork_mean_by_dataset.merge(std_rwork_by_dataset)
-    result_rf = rfree_mean_by_dataset.merge(std_rfree_by_dataset)
-    result = result_rw.merge(result_rf)
+        rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean().round(2)\
+            .to_frame(name='rwork').reset_index()
+        rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean().round(2)\
+            .to_frame(name='rfree').reset_index()
+        std_rwork_by_dataset = data.groupby('dataset')['r_work'].std().round(2)\
+            .to_frame(name='std_rw').reset_index()
+        std_rfree_by_dataset = data.groupby('dataset')['r_free'].std().round(2)\
+            .to_frame(name='std_rf').reset_index()
 
-    return HttpResponse(result.to_json(), content_type="application/json")
+        result_rw = rwork_mean_by_dataset.merge(std_rwork_by_dataset)
+        result_rf = rfree_mean_by_dataset.merge(std_rfree_by_dataset)
+        result = result_rw.merge(result_rf)
+
+        return HttpResponse(result.to_json(), content_type="application/json")

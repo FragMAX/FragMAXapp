@@ -1,6 +1,12 @@
-!(d3 => {
+let isaPlotLoaded = false;
 
-    // set the dimensions and margins of the graph
+this.createIsaPlot = () => {
+
+    if (isaPlotLoaded) {
+        return;
+    }
+
+     // set the dimensions and margins of the graph
     const margin = {
         top: 4,
         right: 0,
@@ -11,31 +17,22 @@
     const width = 660 - margin.left - margin.right;
     const height = 190;
 
-    // create div element for the tooltip
-    const tooltip = d3.select('body').append('div')
-        .attr('class', 'tooltip');
-
     const isaplot = d3.select('#isaplot')
-        .append('svg')
-        .attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "0 0 660 220")
-        .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-
-    // colors
-    const maxIVGreen = "#82be00";
-    const maxIVOrange_85 = "#feb627";
-
-    // set scale (linear=numeric) and range for axis x and y
+            .append('svg')
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 660 220")
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+    
+    // set scale for axis x and y
     const xScale = d3.scaleLinear().range([10, width - 10]);
     const yScale = d3.scaleLinear().range([height, 0]);
 
     //Read the data
-    d3.json("/results/isa").then((data, error) => {
+    d3.json("/results/isa").then(data => {
 
-        if (error) throw error;
-
+        /* PROCESS RESULTS DATA */
         const datasetNames = Object.values(data.dataset);
 
         /* calculate max value of y axis */
@@ -49,7 +46,22 @@
         const xMin = -2;
         const xMax = datasetNames.length - 1;
 
-        // set domain of axis scale
+        // create array to be used as data for the chart
+        const dataArray = datasetNames.map((d, idx) => {
+            return {
+                dataset: idx,
+                mean: data.mean[idx],
+                std: data.std[idx]
+            }
+        });
+
+        /* Build the chart */
+
+        // create div element for the tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'tooltip');
+
+
         xScale.domain([xMin, xMax]);
         yScale.domain([yMin, yMax]);
 
@@ -68,15 +80,6 @@
         let idleTimeout;
         const idleDelay = 350;
 
-        // create array to be used as data for d3 plot
-        const dataArray = datasetNames.map((d, idx) => {
-            return {
-                dataset: idx,
-                mean: data.mean[idx],
-                std: data.std[idx]
-            }
-        });
-
         // create clipping area to prevent zoomed dots from displaying outside plot area
         isaplot.append('defs')
             .append('clipPath')
@@ -92,9 +95,12 @@
             .attr("id", "isa_brush")
             .call(brush);
 
+        // dot size
         const zoomedDotSize = 4;
         const defDotSize = 3;
-
+        // dot color
+        const maxIVGreen = "#82be00";
+        
         // add dots 
         isaplot.selectAll(".isa_dot")
             .data(dataArray)
@@ -115,7 +121,7 @@
                     .style('left', `${d3.event.pageX + 2}px`)
                     .style('top', `${d3.event.pageY - 18}px`);
             })
-            .on('mouseout', function () {
+            .on('mouseout', function() {
                 d3.select(this).attr("r", defDotSize);
                 tooltip.transition()
                     .duration(0)
@@ -166,6 +172,8 @@
             .style("text-anchor", "middle")
             .style("font-size", "8px")
             .text("ISa");
+
+        isaPlotLoaded = true;
 
         // called when selected an area, or double click
         function brushended() {
@@ -249,20 +257,23 @@
             }
         }
 
-    });
+    }).catch(err => console.log(err)); // end loading data and building plot
 
     document.createIsaThresholdLine = (threshold) => {
         // remove previous threshold line
         isaplot.selectAll('#isa_threshold_line').remove();
+        // threshold line color orange 85%
+        const maxIVOrange85 = "#feb627";
         // make new threshold line
         isaplot.append('line')
             .attr('id', 'isa_threshold_line')
-            .style('stroke', maxIVOrange_85)
-            .style('stroke-width', '2.5px')
+            .style('stroke', maxIVOrange85)
+            .style('stroke-width', '1.5px')
             .attr('x1', xScale(xScale.domain()[0]))
             .attr('y1', yScale(threshold))
             .attr('x2', width)
             .attr('y2', yScale(threshold));
     }
 
-})(d3);
+}
+
