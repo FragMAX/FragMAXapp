@@ -112,14 +112,14 @@ def rfactor(request):
         data["r_work"] = pandas.to_numeric(data["r_work"])
         data["r_free"] = pandas.to_numeric(data["r_free"])
 
-        rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean().round(2)\
-            .to_frame(name='rwork').reset_index()
-        rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean().round(2)\
-            .to_frame(name='rfree').reset_index()
-        std_rwork_by_dataset = data.groupby('dataset')['r_work'].std().round(2)\
-            .to_frame(name='std_rw').reset_index()
-        std_rfree_by_dataset = data.groupby('dataset')['r_free'].std().round(2)\
-            .to_frame(name='std_rf').reset_index()
+        rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean()\
+            .round(2).to_frame(name='rwork').reset_index()
+        rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean()\
+            .round(2).to_frame(name='rfree').reset_index()
+        std_rwork_by_dataset = data.groupby('dataset')['r_work'].std()\
+            .round(2).to_frame(name='std_rw').reset_index()
+        std_rfree_by_dataset = data.groupby('dataset')['r_free'].std()\
+            .round(2).to_frame(name='std_rf').reset_index()
 
         result_rw = rwork_mean_by_dataset.merge(std_rwork_by_dataset)
         result_rf = rfree_mean_by_dataset.merge(std_rfree_by_dataset)
