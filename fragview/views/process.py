@@ -1,14 +1,15 @@
 import os
 import time
-import xmltodict
 import threading
 from glob import glob
 from os import path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
+from fragview.projects import project_process_protein_dir
 from fragview import hpc, versions
 from fragview.forms import ProcessForm
+from fragview.xsdata import XSDataCollection
 from .utils import scrsplit, Filter
 
 
@@ -55,6 +56,20 @@ def datasets(request):
     return render(
         request, "fragview/dataproc_datasets.html", {"allproc": "Jobs submitted using " + str(nodes) + " per method"}
     )
+
+
+def _get_dataset_params(proj, xml_file):
+    xsdata = XSDataCollection(xml_file)
+
+    outdir = path.join(project_process_protein_dir(proj),
+                       xsdata.imagePrefix,
+                       f"{xsdata.imagePrefix}_{xsdata.dataCollectionNumber}")
+
+    h5master = path.join(xsdata.imageDirectory, xsdata.fileTemplate.replace("%06d", "master"))
+
+    sample = outdir.split("/")[-1]
+
+    return outdir, h5master, sample, xsdata.numberOfImages
 
 
 def run_xdsapp(proj, nodes, filters, options):
@@ -143,20 +158,8 @@ def run_xdsapp(proj, nodes, filters, options):
     xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
-        with open(xml) as fd:
-            doc = xmltodict.parse(fd.read())
-        dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(
-            proj.data_path(),
-            "fragmax",
-            "process",
-            proj.protein,
-            dtc["imagePrefix"],
-            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
-        )
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        nImg = dtc["numberOfImages"]
-        sample = outdir.split("/")[-1]
+        outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+
         if options["spacegroup"] != "":
             cellpar = " ".join(options["cellparam"].split(","))
             spacegroup = options["spacegroup"]
@@ -169,11 +172,12 @@ def run_xdsapp(proj, nodes, filters, options):
             friedel = "--fried=True"
         else:
             friedel = "--fried=False"
+
         script = (
             f"mkdir -p {outdir}/xdsapp\n"
             f"cd {outdir}/xdsapp\n"
             f"xdsapp --cmd --dir={outdir}/xdsapp -j 1 -c 64 -i {h5master} {spg} {customxdsapp} --delphi=10 "
-            f"{friedel} --range=1\\ {nImg}\n" + project_update_status_script_cmds(proj, sample, softwares)
+            f"{friedel} --range=1\\ {num_images}\n" + project_update_status_script_cmds(proj, sample, softwares)
         )
 
         scriptList.append(script)
@@ -230,21 +234,9 @@ def run_autoproc(proj, nodes, filters, options):
     xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
-        with open(xml) as fd:
-            doc = xmltodict.parse(fd.read())
-        dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(
-            proj.data_path(),
-            "fragmax",
-            "process",
-            proj.protein,
-            dtc["imagePrefix"],
-            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
-        )
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        nImg = dtc["numberOfImages"]
+        outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+
         os.makedirs(outdir, mode=0o760, exist_ok=True)
-        sample = outdir.split("/")[-1]
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
@@ -272,7 +264,7 @@ def run_autoproc(proj, nodes, filters, options):
             + f"""autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so """
             + f"""autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=1 """
             + f"""autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ """
-            + f"""{nImg} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {nImg} {customautoproc} """
+            + f"""{num_images} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {num_images} {customautoproc} """
             + f"""-d {outdir}/autoproc\n"""
             + project_update_status_script_cmds(proj, sample, softwares)
         )
@@ -352,26 +344,13 @@ def run_xdsxscale(proj, nodes, filters, options):
 
     scriptList = list()
 
-    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
     xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
-        with open(xml) as fd:
-            doc = xmltodict.parse(fd.read())
-        dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(
-            proj.data_path(),
-            "fragmax",
-            "process",
-            proj.protein,
-            dtc["imagePrefix"],
-            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
-        )
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        nImg = dtc["numberOfImages"]
+        outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
-        sample = outdir.split("/")[-1]
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
@@ -392,7 +371,7 @@ def run_xdsxscale(proj, nodes, filters, options):
             f"mkdir -p {outdir}/xdsxscale\n"
             f"cd {outdir}/xdsxscale \n"
             f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} "
-            f"nproc=64 {friedel} image={h5master}:1:{nImg}"
+            f"nproc=64 {friedel} image={h5master}:1:{num_images}"
             f" multiprocessing.mode=serial multiprocessing.njob=1 \n"
             + project_update_status_script_cmds(proj, sample, softwares)
         )
@@ -476,22 +455,11 @@ def run_dials(proj, nodes, filters, options):
     xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
 
     for xml in xml_files:
-        with open(xml) as fd:
-            doc = xmltodict.parse(fd.read())
-        dtc = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        outdir = path.join(
-            proj.data_path(),
-            "fragmax",
-            "process",
-            proj.protein,
-            dtc["imagePrefix"],
-            dtc["imagePrefix"] + "_" + dtc["dataCollectionNumber"],
-        )
-        h5master = dtc["imageDirectory"] + "/" + dtc["fileTemplate"].replace("%06d.h5", "") + "master.h5"
-        nImg = dtc["numberOfImages"]
+        outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+
         os.makedirs(outdir, mode=0o760, exist_ok=True)
         os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
-        sample = outdir.split("/")[-1]
+
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
             spg = f"space_group={spacegroup}"
@@ -513,7 +481,7 @@ def run_dials(proj, nodes, filters, options):
             f"mkdir -p {outdir}/dials\n"
             f"cd {outdir}/dials \n"
             f"xia2 goniometer.axes=0,1,0  pipeline=dials failover=true {spg} {unit_cell} {customdials} "
-            f"nproc=64 {friedel} image={h5master}:1:{nImg}"
+            f"nproc=64 {friedel} image={h5master}:1:{num_images}"
             f" multiprocessing.mode=serial multiprocessing.njob=1\n"
             + project_update_status_script_cmds(proj, sample, softwares)
         )

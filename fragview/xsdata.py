@@ -37,6 +37,10 @@ class XSDataCollection:
         return self.node["imageDirectory"]
 
     @property
+    def fileTemplate(self):
+        return self.node["fileTemplate"]
+
+    @property
     def axisStart(self):
         return self._float_tag("axisStart")
 

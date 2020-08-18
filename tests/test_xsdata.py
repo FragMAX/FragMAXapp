@@ -33,6 +33,7 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertEqual(xsdata.dataCollectionNumber, 1)
         self.assertEqual(xsdata.imagePrefix, "100037-SiBiL-x556")
         self.assertEqual(xsdata.imageDirectory, "/img/dir/")
+        self.assertEqual(xsdata.fileTemplate, "Prtk-Vt-G2_%06d.h5")
         self.assertEqual(xsdata.beamShape, "ellipse")
         self.assertEqual(xsdata.startTime, "2020-04-01 09:55:25+02:00")
         self.assertEqual(xsdata.endTime, "2020-04-01 09:56:44+02:00")
