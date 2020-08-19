@@ -127,7 +127,8 @@
     <button class="tablinks" onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
     <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')"
       disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
-    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters')">Cell Parameters</button>
+    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters'); createcellparamsPlot()">Cell Parameters</button>
+    <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
   </div>
 
   <div id="ISa" class="card tabcontent">
@@ -160,9 +161,17 @@
 
   <div id="Cell_Parameters" class="card tabcontent">
     <div class="card-title">Cell Parameters distribution</div>
-    <img
-      src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Cellparameters.png"
-      style="width: 100%;"></img>
+    <div class="plot-holder">
+      <script src="/static/js/cellparamsplot.js"></script>
+      <div class="tshold-holder">
+        <label for="tshold_params">Threshold:</label>
+        <input type="number" value="50" id="tshold_params" name="threshold" maxlength="3"
+          onchange="createCellParamsThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
+        <br><br>
+      </div>
+      <div id="cellparams_legend"></div>
+      <div id="cellparams_plot"></div>
+    </div>
   </div>
 
   <div id="rfactorstab" class="card tabcontent">
@@ -345,9 +354,15 @@
 </script>
 <script>
   function openMethod(evt, methodName) {
-    // refresh table
+    /* disable click on tab for 1 second after click */
+    const buttonClicked = evt.currentTarget;
+    buttonClicked.disabled = true;
+    setTimeout(() => buttonClicked.disabled = false, 1000);
+
+    /* refresh table */
     const emptyFilter = "";
     filterTable(emptyFilter);
+
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {

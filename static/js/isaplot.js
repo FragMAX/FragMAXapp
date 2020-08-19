@@ -5,7 +5,7 @@ this.createIsaPlot = () => {
     if (isaPlotLoaded) {
         return;
     }
-
+    
      // set the dimensions and margins of the graph
     const margin = {
         top: 4,
@@ -17,13 +17,7 @@ this.createIsaPlot = () => {
     const width = 660 - margin.left - margin.right;
     const height = 190;
 
-    const isaplot = d3.select('#isaplot')
-            .append('svg')
-            .attr("preserveAspectRatio", "xMinYMin meet")
-            .attr("viewBox", "0 0 660 220")
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
+    let isaplot;
     
     // set scale for axis x and y
     const xScale = d3.scaleLinear().range([10, width - 10]);
@@ -47,7 +41,7 @@ this.createIsaPlot = () => {
         const xMax = datasetNames.length - 1;
 
         // create array to be used as data for the chart
-        const dataArray = datasetNames.map((d, idx) => {
+        const chartData = datasetNames.map((d, idx) => {
             return {
                 dataset: idx,
                 mean: data.mean[idx],
@@ -56,6 +50,14 @@ this.createIsaPlot = () => {
         });
 
         /* Build the chart */
+
+        isaplot = d3.select('#isaplot')
+            .append('svg')
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 660 220")
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
 
         // create div element for the tooltip
         const tooltip = d3.select('body').append('div')
@@ -103,7 +105,7 @@ this.createIsaPlot = () => {
         
         // add dots 
         isaplot.selectAll(".isa_dot")
-            .data(dataArray)
+            .data(chartData)
             .enter()
             .append("circle")
             .attr("class", "isa_dot")
@@ -129,7 +131,7 @@ this.createIsaPlot = () => {
             });
 
         // add standard error lines
-        const err_isa_lines = isaplot.selectAll('line.isa_error').data(dataArray);
+        const err_isa_lines = isaplot.selectAll('line.isa_error').data(chartData);
         err_isa_lines.enter()
             .append('line')
             .style('stroke', maxIVGreen)

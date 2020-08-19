@@ -109,20 +109,47 @@ def rfactor(request):
     if data.empty:
         return HttpResponse('')
     else:
-        data["r_work"] = pandas.to_numeric(data["r_work"])
-        data["r_free"] = pandas.to_numeric(data["r_free"])
+        r_factors = ["r_work", "r_free"]
+        r_factors_values = []
+        for r_factor in r_factors:
+            data[r_factor] = pandas.to_numeric(data[r_factor])
+            mean_by_dataset = data.groupby('dataset')[r_factor].mean()\
+                .round(2).to_frame(name=r_factor).reset_index()
+            r_factors_values.append(mean_by_dataset)
+            std_err_by_dataset = data.groupby('dataset')[r_factor].std()\
+                .round(2).to_frame(name="std_"+r_factor).reset_index()
+            r_factors_values.append(std_err_by_dataset)
 
-        rwork_mean_by_dataset = data.groupby('dataset')['r_work'].mean()\
-            .round(2).to_frame(name='rwork').reset_index()
-        rfree_mean_by_dataset = data.groupby('dataset')['r_free'].mean()\
-            .round(2).to_frame(name='rfree').reset_index()
-        std_rwork_by_dataset = data.groupby('dataset')['r_work'].std()\
-            .round(2).to_frame(name='std_rw').reset_index()
-        std_rfree_by_dataset = data.groupby('dataset')['r_free'].std()\
-            .round(2).to_frame(name='std_rf').reset_index()
+        result = r_factors_values[0]
+        for i in range(len(r_factors_values)-1):
+            result = result.merge(r_factors_values[i+1])
 
-        result_rw = rwork_mean_by_dataset.merge(std_rwork_by_dataset)
-        result_rf = rfree_mean_by_dataset.merge(std_rfree_by_dataset)
-        result = result_rw.merge(result_rf)
+        return HttpResponse(result.to_json(), content_type="application/json")
+
+
+def cellparams(request):
+    """
+    return cell parameters statistics for datasets in the results,
+    in Json format, suitable for drawing interactive plots
+    """
+    proj = current_project(request)
+    results_file = project_results_file(proj)
+
+    data = pandas.read_csv(results_file)
+
+    if data.empty:
+        return HttpResponse('')
+    else:
+        params = ["a", "b", "c", "alpha", "beta", "gamma"]
+        params_mean_values = []
+        for param in params:
+            data[param] = pandas.to_numeric(data[param])
+            mean_by_dataset = data.groupby('dataset')[param].mean()\
+                .round(3).to_frame(name=param).reset_index()
+            params_mean_values.append(mean_by_dataset)
+
+        result = params_mean_values[0]
+        for i in range(len(params_mean_values)-1):
+            result = result.merge(params_mean_values[i+1])
 
         return HttpResponse(result.to_json(), content_type="application/json")

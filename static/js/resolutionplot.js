@@ -16,13 +16,7 @@ this.createResolutionPlot = () => {
     const width = 660 - margin.left - margin.right;
     const height = 190;
 
-    const resolutionPlot = d3.select('#resolutionplot')
-            .append('svg')
-            .attr("preserveAspectRatio", "xMinYMin meet")
-            .attr("viewBox", "0 0 660 220")
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
+    let resolutionPlot;
 
     // set scale for axis x and y
     const xScale = d3.scaleLinear().range([10, width - 10]);
@@ -47,7 +41,7 @@ this.createResolutionPlot = () => {
         const xMax = datasetNames.length - 1;
 
         // prepare data to be used as data for the plot
-        const dataArray = datasetNames.map((d, idx) => {
+        const chartData = datasetNames.map((d, idx) => {
             return {
                 dataset: idx,
                 mean: data.mean[idx],
@@ -56,6 +50,14 @@ this.createResolutionPlot = () => {
         });
 
         /* build the chart */
+
+        resolutionPlot = d3.select('#resolutionplot')
+                            .append('svg')
+                            .attr("preserveAspectRatio", "xMinYMin meet")
+                            .attr("viewBox", "0 0 660 220")
+                            .append("g")
+                            .attr("transform",
+                                "translate(" + margin.left + "," + margin.top + ")");
 
         // set domain of axis scales
         xScale.domain([xMin, xMax]);
@@ -103,7 +105,7 @@ this.createResolutionPlot = () => {
 
         // add dots
         resolutionPlot.selectAll(".res_dot")
-            .data(dataArray)
+            .data(chartData)
             .enter()
             .append("circle")
             .attr("class", "res_dot")
@@ -129,7 +131,7 @@ this.createResolutionPlot = () => {
             });
 
         // add standard error lines
-        const err_res_lines = resolutionPlot.selectAll('line.res_error').data(dataArray);
+        const err_res_lines = resolutionPlot.selectAll('line.res_error').data(chartData);
         err_res_lines.enter()
             .append('line')
             .style('stroke', maxIVGreen)
@@ -273,4 +275,5 @@ this.createResolutionPlot = () => {
             .attr('x2', width)
             .attr('y2', yScale(threshold));
     }
+
 }

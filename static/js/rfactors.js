@@ -16,13 +16,7 @@ this.createRfactorsPlot = () => {
   const width = 660 - margin.left - margin.right;
   const height = 190;
 
-  const plot = d3.select('#rfactors_plot')
-    .append('svg')
-    .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", "0 0 660 220")
-    .append("g")
-    .attr("transform",
-      "translate(" + margin.left + "," + margin.top + ")");
+  let plot;
 
   // set scale (linear=numeric) and range of plot axis
   const xScale = d3.scaleLinear().range([10, width - 10]);
@@ -31,10 +25,12 @@ this.createRfactorsPlot = () => {
   //Read the data
   d3.json("/results/rfactor").then(data => {
 
+    /* prepare the data for the chart */
+
     const datasetNames = Object.values(data.dataset);
     document.datasetsTotal = datasetNames.length;
 
-    const keysRfactors = ["rwork", "rfree"];
+    const keysRfactors = ["r_work", "r_free"];
     const valuesRfactors = keysRfactors.map(key => {
       return datasetNames.map((d, idx) => {
         return {
@@ -45,29 +41,42 @@ this.createRfactorsPlot = () => {
     });
 
     const rwork_values = valuesRfactors[0];
-    rwork_values.forEach((obj, idx) => obj.std = data.std_rw[idx])
+    rwork_values.forEach((obj, idx) => obj.std = data.std_r_work[idx])
     const rfree_values = valuesRfactors[1];
-    rfree_values.forEach((obj, idx) => obj.std = data.std_rf[idx])
+    rfree_values.forEach((obj, idx) => obj.std = data.std_r_free[idx])
 
     // create array of data to be used for the plot
-    const dataArray = [];
-    dataArray.push(rwork_values);
-    dataArray.push(rfree_values);
+    const chartData = [rwork_values, rfree_values];
 
     /* calculate max&min values of y axis */
-    const rwValues = Object.values(data.rwork);
-    const rfValues = Object.values(data.rfree);
-    const max_rw = Math.max(...rwValues);
-    const max_rf = Math.max(...rfValues);
-    const min_rw = Math.min(...rwValues);
-    const min_rf = Math.min(...rfValues);
+    const maxMeans = [];
+    const minMeans = [];
+    keysRfactors.forEach(key => {
+      maxMeans.push(Math.max(...Object.values(data[key])));
+      minMeans.push(Math.min(...Object.values(data[key])));
+    });
 
-    const yMax = Math.max(max_rw, max_rf) + 0.05;
-    const rValuesMin = Math.min(min_rw, min_rf) - 0.05;
+    const yMax = Math.max(...maxMeans) + 0.05;
+    const rValuesMin = Math.min(...minMeans) - 0.05;
     const yMin = rValuesMin > 0 ? rValuesMin : 0;
 
     const xMin = -2;
     const xMax = datasetNames.length - 1;
+
+    /**** Build the chart ****/
+
+    /* colors for dots and error lines */
+    const maxIVOrange = "#fea901";
+    const maxIVGreen = "#82be00";
+    const colors = [maxIVOrange, maxIVGreen];
+
+    plot = d3.select('#rfactors_plot')
+              .append('svg')
+              .attr("preserveAspectRatio", "xMinYMin meet")
+              .attr("viewBox", "0 0 660 220")
+              .append("g")
+              .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
 
     // set domain of axis scale
     xScale.domain([xMin, xMax]);
@@ -78,6 +87,7 @@ this.createRfactorsPlot = () => {
     const yAxis = d3.axisLeft(yScale);
 
     const tooltip = d3.select('body').append('div').attr('class', 'tooltip');
+
     const legend = d3.select('#rfactor_legend').append('svg')
       .style('position', 'absolute')
       .style('right', '20px')
@@ -85,8 +95,8 @@ this.createRfactorsPlot = () => {
       .style('width', '70px')
       .style('height', '36px')
 
-    legend.append("circle").attr("cx", 35).attr("cy", 20).attr("r", 2.5).style("fill", "green")
-    legend.append("circle").attr("cx", 35).attr("cy", 30).attr("r", 2.5).style("fill", "orange")
+    legend.append("circle").attr("cx", 35).attr("cy", 20).attr("r", 2.5).style("fill", maxIVGreen)
+    legend.append("circle").attr("cx", 35).attr("cy", 30).attr("r", 2.5).style("fill", maxIVOrange)
     legend.append("text").attr("x", 40).attr("y", 20).text("Rfree").style("font-size", "10px").attr("alignment-baseline", "middle")
     legend.append("text").attr("x", 40).attr("y", 30).text("Rwork").style("font-size", "10px").attr("alignment-baseline", "middle");
 
@@ -99,11 +109,6 @@ this.createRfactorsPlot = () => {
 
     let idleTimeout;
     const idleDelay = 350;
-
-    /* colors for dots and error lines */
-    const maxIVOrange = "#fea901";
-    const maxIVGreen = "#82be00";
-    const colors = [maxIVOrange, maxIVGreen];
 
     plot.append('defs')
       .append('clipPath')
@@ -123,7 +128,7 @@ this.createRfactorsPlot = () => {
     const sizeDefDot = 3;
 
     plot.selectAll(".rFactorSeries")
-      .data(dataArray)
+      .data(chartData)
       .enter().append("g")
       .attr("class", "rFactorSeries")
       .style("fill", (d, i) => colors[i])
@@ -135,13 +140,13 @@ this.createRfactorsPlot = () => {
       .attr("r", sizeDefDot)
       .attr("cx", d => xScale(d.dataset))
       .attr("cy", d => yScale(d.rfactor))
-      .attr("fill-opacity", 0.6)
       .on('mouseover', function(d) {
         d3.select(this).attr("r", sizeZoomedDot);
         tooltip.transition()
           .duration(0)
           .style('opacity', 1)
-          .text(datasetNames[d.dataset] + '; R: ' + d.rfactor)
+          .text(datasetNames[d.dataset] + '; Rfree: ' + data.r_free[d.dataset] +
+            '; Rwork: ' + data.r_work[d.dataset])
           .style('left', `${d3.event.pageX + 2}px`)
           .style('top', `${d3.event.pageY - 18}px`);
       })
@@ -185,7 +190,7 @@ this.createRfactorsPlot = () => {
 
     // add error lines for standard error data series (std_rwork and std_rfree)
     plot.selectAll(".stdErrSeries")
-      .data(dataArray)
+      .data(chartData)
       .enter().append("g")
       .attr("class", "stdErrSeries")
       .style("stroke", (d, i) => colors[i])
@@ -201,7 +206,7 @@ this.createRfactorsPlot = () => {
 
     rFactorsPlotLoaded = true;
 
-    // called when selected an area, or double click
+    // called when selected an area or zoom out
     function brushended() {
       const selectedArea = d3.event.selection;
 
@@ -276,12 +281,12 @@ this.createRfactorsPlot = () => {
   document.createRfactorThresholdLine = threshold => {
     // remove previous threshold line
     plot.selectAll('#rf_threshold_line').remove();
-    // threshold line color gray 60%
-    const maxIVGray60 = "#a8a8a8";
+    // threshold line color gray
+    const maxIVGray = "#6e6e6e";
     // make new threshold line
     plot.append('line')
       .attr('id', 'rf_threshold_line')
-      .style('stroke', maxIVGray60)
+      .style('stroke', maxIVGray)
       .style('stroke-width', '1.5px')
       .attr('x1', xScale(xScale.domain()[0]))
       .attr('y1', yScale(threshold))

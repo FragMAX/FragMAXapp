@@ -21,6 +21,7 @@ urlpatterns = [
     path('results/isa', results.isa),
     path('results/rfactor', results.rfactor),
     path('results/resolution', results.resolution),
+    path('results/cellparams', results.cellparams),
 
     path('density/', density.show, name='density'),
     path('dual_density/', density.compare_poses, name='dual_density'),
