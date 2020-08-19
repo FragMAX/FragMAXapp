@@ -117,12 +117,12 @@ def rfactor(request):
                 .round(2).to_frame(name=r_factor).reset_index()
             r_factors_values.append(mean_by_dataset)
             std_err_by_dataset = data.groupby('dataset')[r_factor].std()\
-                .round(2).to_frame(name="std_"+r_factor).reset_index()
+                .round(2).to_frame(name="std_" + r_factor).reset_index()
             r_factors_values.append(std_err_by_dataset)
 
         result = r_factors_values[0]
-        for i in range(len(r_factors_values)-1):
-            result = result.merge(r_factors_values[i+1])
+        for i in range(len(r_factors_values) - 1):
+            result = result.merge(r_factors_values[i + 1])
 
         return HttpResponse(result.to_json(), content_type="application/json")
 
@@ -149,7 +149,7 @@ def cellparams(request):
             params_mean_values.append(mean_by_dataset)
 
         result = params_mean_values[0]
-        for i in range(len(params_mean_values)-1):
-            result = result.merge(params_mean_values[i+1])
+        for i in range(len(params_mean_values) - 1):
+            result = result.merge(params_mean_values[i + 1])
 
         return HttpResponse(result.to_json(), content_type="application/json")
