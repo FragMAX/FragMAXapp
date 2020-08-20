@@ -125,8 +125,6 @@
     <button class="tablinks" onclick="openMethod(event, 'ISa'); createIsaPlot()">ISa</button>
     <button class="tablinks" onclick="openMethod(event, 'Resolution'); createResolutionPlot()">Resolution</button>
     <button class="tablinks" onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
-    <button class="tablinks" onclick="openMethod(event, 'ccfactorstab')"
-      disabled>CC<sub>free</sub>/CC<sub>free</sub></button>
     <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters'); createcellparamsPlot()">Cell Parameters</button>
     <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
   </div>
@@ -189,11 +187,6 @@
     </div>
   </div>
 
-  <div id="ccfactorstab" class="card tabcontent">
-    <div class="card-title">CC<sub>work</sub>/CC<sub>free</sub> distribution</div>
-    <img src="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/process/{{project.protein}}/Rfrees.png"
-      style="width: 100%;"></img>
-  </div>
   <div id="Hide"></div>
 
   <script src="/static/libs/d3.min.js"></script>
