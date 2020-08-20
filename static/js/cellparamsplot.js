@@ -131,7 +131,7 @@ this.createcellparamsPlot = () => {
 
         // add brushing area (selection)
         paramsPlot.append("g")
-            .attr("class", "brush")
+            .attr("class", "params_brush")
             .call(brush);
 
         const sizeZoomedDot = 4;
@@ -217,7 +217,7 @@ this.createcellparamsPlot = () => {
                 xScale.domain([selectedArea[0][0], selectedArea[1][0]].map(xScale.invert, xScale));
                 yScale.domain([selectedArea[1][1], selectedArea[0][1]].map(yScale.invert, yScale));
                 // remove gray area after selection
-                paramsPlot.select(".brush").call(brush.move, null);
+                paramsPlot.select(".params_brush").call(brush.move, null);
             }
 
             zoom();
