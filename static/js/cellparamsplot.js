@@ -84,9 +84,11 @@ this.createcellparamsPlot = () => {
         const tooltip = d3.select('body').append('div').attr('class', 'tooltip');
 
         const legend = d3.select('#cellparams_legend').append('svg')
+            .attr("viewBox", "0 0 38 65")
+            .attr("preserveAspectRatio", "xMinYMin meet")
             .style('position', 'absolute')
             .style('right', '16px')
-            .style('top', '16px')
+            .style('top', '46px')
             .style('width', '76px')
             .style('height', '90px')
 
@@ -95,8 +97,8 @@ this.createcellparamsPlot = () => {
             .data(keyscellParams)
             .enter()
             .append("circle")
-            .attr("cx", 35)
-            .attr("cy", (d, i) => 35 + i * 10) // 35 is where the first dot appears. 10 is the distance between dots
+            .attr("cx", 5)
+            .attr("cy", (d, i) => 5 + i * 10) // 35 is where the first dot appears. 10 is the distance between dots
             .attr("r", 2.5)
             .style("fill", (d, i) => colors[i])
 
@@ -105,10 +107,10 @@ this.createcellparamsPlot = () => {
             .data(keyscellParams)
             .enter()
             .append("text")
-            .attr("x", 40)
-            .attr("y", (d, i) => 35 + i * 10)
+            .attr("x", 10)
+            .attr("y", (d, i) => 5 + i * 10)
             .text(d => d)
-            .style("font-size", "10px").attr("alignment-baseline", "middle")
+            .style("font-size", "8px").attr("alignment-baseline", "middle")
 
         const brush = d3.brush()
             .extent([
