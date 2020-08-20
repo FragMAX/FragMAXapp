@@ -264,7 +264,7 @@ this.createcellparamsPlot = () => {
                     total: datasetNames.length
                 }
             });
-            document.getElementById('cellparamsplot').dispatchEvent(evt);
+            document.getElementById('cellparams_plot').dispatchEvent(evt);
 
         }
 
