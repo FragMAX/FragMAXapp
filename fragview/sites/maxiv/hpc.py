@@ -37,9 +37,50 @@ def _ssh_on_frontend(command):
 
 
 class BatchFile(plugin.BatchFile):
-    def load_python_env(self):
-        """
-        no need to add any new commands here, as python3 is always available
-        """
+    def _add_option(self, option_string):
+        self.add_line(f"#SBATCH {option_string}")
+
+    def load_modules(self, modules):
+        mods = " ".join(modules)
+        self.add_command(f"module load {mods}")
+
+    def purge_modules(self):
         self.add_command("module purge")
-        self.add_command("module load GCC/7.3.0-2.30 OpenMPI/3.1.1 Python/3.7.0")
+
+    def load_python_env(self):
+        self.purge_modules()
+        self.load_modules(["GCCcore/8.3.0", "Python/3.7.4"])
+
+    def set_options(self, time=None, job_name=None, exclusive=None, nodes=None,
+                    cpus_per_task=None, partition=None, memory=None,
+                    stdout=None, stderr=None):
+
+        def _slurm_size(size):
+            return f"{size.value}{size.unit}"
+
+        if time:
+            self._add_option(f"--time={time.as_hms_text()}")
+
+        if job_name:
+            self._add_option(f"--job-name={job_name}")
+
+        if exclusive:
+            self._add_option("--exclusive")
+
+        if nodes:
+            self._add_option(f"--nodes={nodes}")
+
+        if cpus_per_task:
+            self._add_option(f"--cpus-per-task={cpus_per_task}")
+
+        if partition:
+            self._add_option(f"--partition={partition}")
+
+        if memory:
+            self._add_option(f"--mem={_slurm_size(memory)}")
+
+        if stdout:
+            self._add_option(f"--output={stdout}")
+
+        if stderr:
+            self._add_option(f"--error={stderr}")

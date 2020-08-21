@@ -23,3 +23,16 @@ class BatchFile(plugin.BatchFile):
         no need to add any new commands here, as python3 is always available
         """
         pass
+
+    def set_options(self, **_):
+        """
+        for now, we ignore all options
+        """
+
+    def load_modules(self, *_):
+        """
+        """
+
+    def purge_modules(self):
+        """
+        """

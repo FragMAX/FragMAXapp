@@ -144,6 +144,56 @@ class HPC:
         raise NotImplementedError()
 
 
+class Duration:
+    """
+    represents a time duration
+    """
+    def __init__(self, hours: int = None, minutes: int = None, seconds: int = None):
+        def between_0_and_60(val):
+            return 60 > val >= 0
+
+        self.hours = 0
+        self.minutes = 0
+        self.seconds = 0
+
+        if hours:
+            assert hours > 0
+            self.hours = hours
+
+        if minutes:
+            assert between_0_and_60(minutes)
+            self.minutes = minutes
+
+        if seconds:
+            assert between_0_and_60(seconds)
+            self.seconds = seconds
+
+    def as_hms_text(self):
+        return f"{self.hours:02}:{self.minutes:02}:{self.seconds:02}"
+
+
+class DataSize:
+    def __init__(self, gigabyte: int = None, megabyte: int = None, kilobyte: int = None):
+        def set_res(val, unit):
+            if val is None:
+                return res
+
+            if res is not None:
+                raise ValueError("multiple size units not supported")
+
+            return val, unit
+
+        res = None
+        res = set_res(gigabyte, "G")
+        res = set_res(megabyte, "M")
+        res = set_res(kilobyte, "K")
+
+        if res is None:
+            raise ValueError("no size value specified")
+
+        self.value, self.unit = res
+
+
 class BatchFile:
     HEADER = "#!/bin/bash"
 
@@ -151,12 +201,52 @@ class BatchFile:
         self._filename = filename
         self._body = f"{self.HEADER}\n"
 
+    def set_options(self, time: Duration = None, job_name=None, exclusive=None, nodes=None,
+                    cpus_per_task=None, partition=None, memory: DataSize = None,
+                    stdout=None, stderr=None):
+        """
+        time - a limit on the total run time of the batch file
+        job_name - human readable name
+        exclusive - don't share compute node with this job
+        nodes - minimum of nodes be allocated to this job
+        cpus_per_task - expected number of CPU this task will use
+        partition - specific partition for the resource allocation
+        memory - memory required to run this job, in gigabytes
+        stdout - redirect stdout to specified file
+        stderr - redirect stderr to specified file
+        """
+        raise NotImplementedError()
+
     def save(self):
         from fragview.fileio import write_script
         write_script(self._filename, self._body)
 
     def load_python_env(self):
+        """
+        add commands to activate python environment
+        """
         raise NotImplementedError()
 
+    def load_modules(self, modules):
+        """
+        add command to load specified lmod modules
+
+        modules - a list of module names to load
+        """
+        raise NotImplementedError()
+
+    def purge_modules(self):
+        """
+        add command to purge (unload) lmod modules from the environment
+        """
+        raise NotImplementedError()
+
+    def add_line(self, line):
+        self._body += f"{line}\n"
+
     def add_command(self, cmd):
-        self._body += f"{cmd}\n"
+        self.add_line(cmd)
+
+    def add_commands(self, *cmds):
+        for cmd in cmds:
+            self.add_command(cmd)
