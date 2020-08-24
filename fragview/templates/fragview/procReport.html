@@ -1,29 +1,33 @@
-{% extends 'fragview/base.html' %}
-{% block title %}FragMAX - Report{% endblock %}
-
-
-{% block content %}
+{% extends 'fragview/base.html' %} {% block title %}FragMAX - Report{% endblock %} {% block content %}
 <style>
   body {
-    overflow: hidden
+    overflow: visible
   }
 
   .content {
     overflow: visible !important;
     margin-left: 250px !important;
+  }
 
+  .full-page {
+    width: 179%;
+    margin: 1%;
   }
 </style>
 
 <div>
 
-  <object type="text/html" data="{{reportHTML}}" style="width:179%; height:99%; margin:1%;">
+  <object id="html-content" type="text/html" data="{{reportHTML}}" class="full-page">
   </object>
+</div>
+<div>
 
-  <div>
+  <script>
+    var w = window.innerWidth;
 
-    <script>
+    document.getElementById("html-content").style.height = w + "px"
+    console.log(w)
+  </script>
+</div>
 
-
-    </script>
-    {% endblock %}
+{% endblock %}
