@@ -336,7 +336,7 @@ def parse_log_process(pplog):
     cc12_out = ""
 
     if path.exists(pplog):
-        with open(pplog) as r:
+        with open(pplog, "r", encoding="utf-8") as r:
             log = r.readlines()
         if "xdsapp" in pplog:
             for line in log:

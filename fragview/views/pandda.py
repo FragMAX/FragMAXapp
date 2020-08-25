@@ -711,42 +711,6 @@ def pandda_to_fragmax_html(pandda_path, pandda_runs):
     return localcmd, pandda_html
 
 
-def fix_pandda_symlinks(proj):
-    # OBSOLETE FUNCTION
-    os.system("chmod -R 777 " + proj.data_path() + "/fragmax/results/pandda/")
-
-    subprocess.call(
-        "cd "
-        + proj.data_path()
-        + "/fragmax/results/pandda/"
-        + proj.protein
-        + """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
-        shell=True,
-    )
-
-    subprocess.call(
-        "cd "
-        + proj.data_path()
-        + "/fragmax/results/pandda/"
-        + proj.protein
-        + """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;""",  # noqa
-        shell=True,
-    )
-
-    glob_pattern = (
-        f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/"
-        f"processed_datasets/*/modelled_structures/*pandda-model.pdb"
-    )
-    linksFolder = glob(glob_pattern)
-
-    for dst in linksFolder:
-        folder = "/".join(dst.split("/")[:-1]) + "/"
-        pdbs = os.listdir(folder)
-        src = folder + sorted([x for x in pdbs if "fitted" in x])[-1]
-        os.remove(dst)
-        shutil.copyfile(src, dst)
-
-
 def submit(request):
     proj = current_project(request)
 
