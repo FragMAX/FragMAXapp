@@ -7,7 +7,7 @@ this.createcellparamsPlot = () => {
 
     // set the dimensions and margins of the graph
     const margin = {
-        top: 4,
+        top: 12,
         right: 0,
         bottom: 0,
         left: 30
@@ -68,7 +68,7 @@ this.createcellparamsPlot = () => {
         paramsPlot = d3.select('#cellparams_plot')
             .append('svg')
             .attr("preserveAspectRatio", "xMinYMin meet")
-            .attr("viewBox", "0 0 660 220")
+            .attr("viewBox", "0 0 660 235")
             .append("g")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
@@ -279,12 +279,12 @@ this.createcellparamsPlot = () => {
         const maxIVGray = "#6e6e6e";
         // make new threshold line
         paramsPlot.append('line')
-          .attr('id', 'params_threshold_line')
-          .style('stroke', maxIVGray)
-          .style('stroke-width', '1.5px')
-          .attr('x1', xScale(xScale.domain()[0]))
-          .attr('y1', yScale(threshold))
-          .attr('x2', width)
-          .attr('y2', yScale(threshold));
-      }
+            .attr('id', 'params_threshold_line')
+            .style('stroke', maxIVGray)
+            .style('stroke-width', '1.5px')
+            .attr('x1', xScale(xScale.domain()[0]))
+            .attr('y1', yScale(threshold))
+            .attr('x2', width)
+            .attr('y2', yScale(threshold));
+    }
 }

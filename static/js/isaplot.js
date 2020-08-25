@@ -5,10 +5,10 @@ this.createIsaPlot = () => {
     if (isaPlotLoaded) {
         return;
     }
-    
-     // set the dimensions and margins of the graph
+
+    // set the dimensions and margins of the graph
     const margin = {
-        top: 4,
+        top: 12,
         right: 0,
         bottom: 0,
         left: 30
@@ -18,7 +18,7 @@ this.createIsaPlot = () => {
     const height = 190;
 
     let isaplot;
-    
+
     // set scale for axis x and y
     const xScale = d3.scaleLinear().range([10, width - 10]);
     const yScale = d3.scaleLinear().range([height, 0]);
@@ -54,7 +54,7 @@ this.createIsaPlot = () => {
         isaplot = d3.select('#isaplot')
             .append('svg')
             .attr("preserveAspectRatio", "xMinYMin meet")
-            .attr("viewBox", "0 0 660 220")
+            .attr("viewBox", "0 0 660 235")
             .append("g")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
@@ -102,7 +102,7 @@ this.createIsaPlot = () => {
         const defDotSize = 3;
         // dot color
         const maxIVGreen = "#82be00";
-        
+
         // add dots 
         isaplot.selectAll(".isa_dot")
             .data(chartData)
@@ -278,4 +278,3 @@ this.createIsaPlot = () => {
     }
 
 }
-

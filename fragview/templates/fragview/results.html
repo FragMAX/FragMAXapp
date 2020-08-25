@@ -124,19 +124,22 @@
   <div class="card tab">
     <button class="tablinks" onclick="openMethod(event, 'ISa'); createIsaPlot()">ISa</button>
     <button class="tablinks" onclick="openMethod(event, 'Resolution'); createResolutionPlot()">Resolution</button>
-    <button class="tablinks" onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
-    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters'); createcellparamsPlot()">Cell Parameters</button>
+    <button class="tablinks"
+      onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
+    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters'); createcellparamsPlot()">Cell
+      Parameters</button>
     <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
   </div>
 
   <div id="ISa" class="card tabcontent">
-    <div class="card-title">ISa distribution</div>
+    <div class="card-title" style="text-align: center;">ISa distribution</div>
     <div class="plot-holder">
       <script src="/static/js/isaplot.js"></script>
-      <div class="tshold-holder">
+      <div style="display: none" class="tshold-holder">
         <label for="tshold_isa">Threshold:</label>
-        <input type="number" value="0" id="tshold_isa" name="threshold" style="width: 45px;margin-bottom: 0;" name="threshold_ISa"
-          maxlength="2" onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
+        <input type="number" value="0" id="tshold_isa" name="threshold" style="width: 45px;margin-bottom: 0;"
+          name="threshold_ISa" maxlength="2"
+          onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
         <br><br>
       </div>
       <div id="isaplot"></div>
@@ -144,10 +147,10 @@
   </div>
 
   <div id="Resolution" class="card tabcontent">
-    <div class="card-title">Resolution distribution</div>
+    <div class="card-title" style="text-align: center;">Resolution distribution</div>
     <div class="plot-holder">
       <script src="/static/js/resolutionplot.js"></script>
-      <div class="tshold-holder">
+      <div style="display: none" class="tshold-holder">
         <label for="tshold_res">Threshold:</label>
         <input type="number" value="1.00" id="tshold_res" step=".01" name="threshold" maxlength="2"
           onchange="createResolutionThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
@@ -158,10 +161,10 @@
   </div>
 
   <div id="Cell_Parameters" class="card tabcontent">
-    <div class="card-title">Cell Parameters distribution</div>
+    <div class="card-title" style="text-align: center;">Cell Parameters distribution</div>
     <div class="plot-holder">
       <script src="/static/js/cellparamsplot.js"></script>
-      <div class="tshold-holder">
+      <div style="display: none" class="tshold-holder">
         <label for="tshold_params">Threshold:</label>
         <input type="number" value="50" id="tshold_params" name="threshold" maxlength="3"
           onchange="createCellParamsThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
@@ -173,11 +176,11 @@
   </div>
 
   <div id="rfactorstab" class="card tabcontent">
-    <div class="card-title">R<sub>work</sub>/R<sub>free</sub> distribution</div>
+    <div class="card-title" style="text-align: center;">R<sub>work</sub>/R<sub>free</sub> distribution</div>
     <div class="plot-holder">
       <script src="/static/js/rfactors.js"></script>
-      <div class="tshold-holder">
-        <label for="tshold_rfactor">Threshold:</label>
+      <div style="display: none" class="tshold-holder">
+        <label for="tshold_rfactor">Threshasdold:</label>
         <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold" maxlength="2"
           onchange="createRfactorThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
         <br><br>
@@ -315,9 +318,9 @@
         }
         break;
 
-      /* empty selection in the plot */
+        /* empty selection in the plot */
       case 0:
-      /* all the datasets in the plot are selected or zoom out */
+        /* all the datasets in the plot are selected or zoom out */
       case total:
         // display all table rows
         for (let i = 0; i < trs.length; i++) {
@@ -394,5 +397,21 @@
     const datasetColumn = document.getElementById('th_dataset');
     sortTable(datasetColumn);
   });
+
+  $(document).ready(function () {
+    $(document).bind("keydown", function (e) {
+      e = e || window.event;
+      var charCode = e.which || e.keyCode;
+      if (charCode == 90) toggle_zoom();
+    });
+  });
+
+  function toggle_zoom() {
+    if (document.body.style.zoom == "75%") {
+      document.body.style.zoom = "100%"
+    } else {
+      document.body.style.zoom = "75%"
+    }
+  }
 </script>
 {% endblock %}

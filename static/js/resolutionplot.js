@@ -7,7 +7,7 @@ this.createResolutionPlot = () => {
 
     // set the dimensions and margins of the graph
     const margin = {
-        top: 4,
+        top: 12,
         right: 0,
         bottom: 0,
         left: 30
@@ -52,12 +52,12 @@ this.createResolutionPlot = () => {
         /* build the chart */
 
         resolutionPlot = d3.select('#resolutionplot')
-                            .append('svg')
-                            .attr("preserveAspectRatio", "xMinYMin meet")
-                            .attr("viewBox", "0 0 660 220")
-                            .append("g")
-                            .attr("transform",
-                                "translate(" + margin.left + "," + margin.top + ")");
+            .append('svg')
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 660 235")
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
 
         // set domain of axis scales
         xScale.domain([xMin, xMax]);
@@ -66,7 +66,7 @@ this.createResolutionPlot = () => {
         // axis orientation and ticks (hided for axis-x)
         const xAxis = d3.axisBottom(xScale).tickFormat("");
         const yAxis = d3.axisLeft(yScale);
-        
+
         // create div element for the tooltip
         const tooltip = d3.select('body').append('div')
             .attr('class', 'tooltip');

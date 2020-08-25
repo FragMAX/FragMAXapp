@@ -193,7 +193,7 @@
         <tr>
             <td>
                 <button class="btn" size="1"
-                        onclick="window.open('/dataset_info/{{dataset.image_prefix}}/{{dataset.num_images}}/{{dataset.run}}', '_blank')">
+                    onclick="window.open('/dataset_info/{{dataset.image_prefix}}/{{dataset.num_images}}/{{dataset.run}}', '_blank')">
                     Info
                 </button>
             </td>
@@ -267,6 +267,7 @@
             </td>
 
             <td>
+                {% if "Apo" not in dataset.image_prefix %}
                 <p align="left" style="white-space: nowrap;">
                     <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
                     <font size="2">LigandFit</font>
@@ -281,6 +282,7 @@
                     <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
                     <font size="2">Pipedream</font>
                 </p>
+                {% endif %}
             </td>
 
             <td>
@@ -294,15 +296,13 @@
 
                 {% if dataset.snapshots.0 %}
                 <input type="hidden" value="{% static dataset.snapshots.0 %}">
-                <img class="crystalsnap" id="snap0-{{dataset.sample_name}}_{{dataset.run}}"
-                    onerror="hide_image(this)"
+                <img class="crystalsnap" id="snap0-{{dataset.sample_name}}_{{dataset.run}}" onerror="hide_image(this)"
                     onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                 {% endif %}
 
                 {% if dataset.snapshots.1 %}
                 <input type="hidden" value="{% static dataset.snapshots.1 %}">
-                <img class="crystalsnap" id="snap1-{{dataset.sample_name}}_{{dataset.run}}"
-                    onerror="hide_image(this)"
+                <img class="crystalsnap" id="snap1-{{dataset.sample_name}}_{{dataset.run}}" onerror="hide_image(this)"
                     onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
                 {% endif %}
             </td>
@@ -459,8 +459,7 @@
         }
     }
 
-    function load_snapshot(entries, observer)
-    {
+    function load_snapshot(entries, observer) {
         /*
          * when crystal snapshots table cell becomes visible,
          * load the crystal snapshot images
@@ -485,8 +484,7 @@
         });
     }
 
-    function load_fragment(entries, observer)
-    {
+    function load_fragment(entries, observer) {
         /*
          * when fragment table cell becomes visible,
          * load the fragment image
@@ -502,8 +500,7 @@
         });
     }
 
-    function watch_image_cells()
-    {
+    function watch_image_cells() {
         /*
          * activate lazy loading of images
          *
@@ -527,7 +524,7 @@
 
         observe_nodes(load_snapshot, ".snapshot_cell");
         observe_nodes(load_fragment, ".ligimg");
-   }
+    }
 
     $(document).ready(function () {
         $(document).bind("keydown", function (e) {
