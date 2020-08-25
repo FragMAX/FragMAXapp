@@ -14,9 +14,7 @@ from fragview.fileio import read_csv_lines
 def show(request, images, prefix, run):
     def _logs(logs_dir):
         log_paths = [
-            x
-            for x in glob(f"{logs_dir}/*")
-            if "txt" in x or "LP" in x or "log" in x or "out" in x or "html" in x
+            x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x or "html" in x
         ]
         return [(path.basename(p), p) for p in log_paths]
 
@@ -24,19 +22,10 @@ def show(request, images, prefix, run):
 
     images = str(images / 2)
 
-    dataset_dir = path.join(
-        project_process_protein_dir(proj), prefix, f"{prefix}_{run}"
-    )
+    dataset_dir = path.join(project_process_protein_dir(proj), prefix, f"{prefix}_{run}")
 
     curp = proj.data_path()
-    xmlfile = path.join(
-        proj.data_path(),
-        "fragmax",
-        "process",
-        proj.protein,
-        prefix,
-        prefix + "_" + run + ".xml",
-    )
+    xmlfile = path.join(proj.data_path(), "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml",)
     xsdata = XSDataCollection(xmlfile)
 
     energy = format(12.4 / xsdata.wavelength, ".2f")
@@ -51,10 +40,7 @@ def show(request, images, prefix, run):
     solventConc = "N/A"
     soakTime = "N/A"
 
-    snapshots = [
-        spath.replace("/mxn/groups/ispybstorage/", "/static/")
-        for spath in xsdata.snapshots
-    ]
+    snapshots = [spath.replace("/mxn/groups/ispybstorage/", "/static/") for spath in xsdata.snapshots]
 
     half = int(float(images) / 200)
 
@@ -62,46 +48,17 @@ def show(request, images, prefix, run):
     scurp = curp.replace("/data/visitors/", "/static/")
 
     dialsreport = (
-        scurp
-        + "/fragmax/process/"
-        + proj.protein
-        + "/"
-        + prefix
-        + "/"
-        + prefix
-        + "_"
-        + run
-        + "/dials/xia2.html"
+        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/dials/xia2.html"
     )
 
     xdsreport = (
-        scurp
-        + "/fragmax/process/"
-        + proj.protein
-        + "/"
-        + prefix
-        + "/"
-        + prefix
-        + "_"
-        + run
-        + "/xdsxscale/xia2.html"
+        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/xdsxscale/xia2.html"
     )
 
     autoprocreport = (
-        scurp
-        + "/fragmax/process/"
-        + proj.protein
-        + "/"
-        + prefix
-        + "/"
-        + prefix
-        + "_"
-        + run
-        + "/autoproc/summary.html"
+        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/autoproc/summary.html"
     )
-    pipedreamreport = (
-        curp + "/fragmax/results/" + prefix + "_" + run + "/pipedream/summary.out"
-    )
+    pipedreamreport = curp + "/fragmax/results/" + prefix + "_" + run + "/pipedream/summary.out"
     xdsappOK = "no"
     dialsOK = "no"
     xdsOK = "no"
@@ -132,47 +89,35 @@ def show(request, images, prefix, run):
     if path.exists(xdsappreport):
         xdsappOK = "ready"
         xdsappLogs = _logs(xdsapp_dir)
-    _tables["xdsapp"] = parse_aimless(
-        path.join(dataset_dir, "xdsapp", f"results_{prefix}_{run}_data.txt")
-    )
+    _tables["xdsapp"] = parse_log_process(path.join(dataset_dir, "xdsapp", f"results_{prefix}_{run}_data.txt"))
 
     # DIALS logs
     dials_dir = path.join(dataset_dir, "dials")
     if path.exists(path.join(dials_dir, "xia2.html")):
         dialsOK = "ready"
         dialsLogs = _logs(path.join(dials_dir, "LogFiles"))
-    _tables["dials"] = parse_aimless(
-        path.join(dataset_dir, "dials", "LogFiles", "AUTOMATIC_DEFAULT_aimless.log")
-    )
+    _tables["dials"] = parse_log_process(path.join(dataset_dir, "dials", "xia2.html"))
 
     # XIA2/XDS logs
     xds_dir = path.join(dataset_dir, "xdsxscale")
     if path.exists(path.join(xds_dir, "xia2.html")):
         xdsOK = "ready"
         xdsLogs = _logs(path.join(xds_dir, "LogFiles"))
-    _tables["xdsxscale"] = parse_aimless(
-        path.join(dataset_dir, "xdsxscale", "LogFiles", "AUTOMATIC_DEFAULT_aimless.log")
-    )
+    _tables["xdsxscale"] = parse_log_process(path.join(dataset_dir, "xdsxscale", "xia2.html"))
 
     # autoPROC logs
     autoproc_dir = path.join(dataset_dir, "autoproc")
     if path.exists(path.join(autoproc_dir, "summary.html")):
         autoprocOK = "ready"
         autoprocLogs = _logs(autoproc_dir)
-    _tables["autoproc"] = parse_aimless(
-        path.join(dataset_dir, "autoproc", "summary.html")
-    )
+    _tables["autoproc"] = parse_log_process(path.join(dataset_dir, "autoproc", "summary.html"))
 
     # Pipedream logs
-    pipedream_dir = path.join(
-        proj.data_path(), "fragmax", "results", f"{prefix}_{run}", "pipedream"
-    )
+    pipedream_dir = path.join(proj.data_path(), "fragmax", "results", f"{prefix}_{run}", "pipedream")
     if path.exists(path.join(pipedream_dir, "process", "summary.html")):
         pipedreamOK = "ready"
         pipedreamLogs = _logs(pipedream_dir)
-    _tables["pipedream"] = parse_aimless(
-        path.join(pipedream_dir, "process", "summary.html")
-    )
+    _tables["pipedream"] = parse_log_process(path.join(pipedream_dir, "process", "summary.html"))
 
     # EDNA logs
     edna_dir = path.join(dataset_dir, "edna")
@@ -180,9 +125,7 @@ def show(request, images, prefix, run):
     if path.exists(ednareport):
         ednaOK = "ready"
         ednaLogs = _logs(edna_dir)
-    _tables["edna"] = parse_aimless(
-        path.join(dataset_dir, "edna", f"ep_{prefix}_{run}_aimless_anom.log")
-    )
+    _tables["edna"] = parse_log_process(path.join(dataset_dir, "edna", f"ep_{prefix}_{run}_aimless_anom.log"))
 
     # Fast DP reports
     fastdp_dir = path.join(dataset_dir, "fastdp")
@@ -190,91 +133,60 @@ def show(request, images, prefix, run):
     if path.exists(fastdpreport):
         fastdpOK = "ready"
         fastdpLogs = _logs(fastdp_dir)
-    _tables["fastdp"] = parse_aimless(
-        path.join(dataset_dir, "fastdp", f"ap_{prefix}_run{run}_noanom_aimless.log")
-    )
+    _tables["fastdp"] = parse_log_process(path.join(dataset_dir, "fastdp", f"ap_{prefix}_run{run}_noanom_aimless.log"))
 
     # Logs for refinement methods
     # Dimple
-    dimple_res_dirs = glob(
-        f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/dimple"
-    )
+    dimple_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/dimple")
     _dimple_logs = dict()
     for _file in dimple_res_dirs:
         proc_m = path.basename(path.dirname(_file))
-        _dimple_logs[proc_m] = {
-            path.basename(x): x for x in sorted(glob(f"{_file}/*log"))
-        }
+        _dimple_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
     # BUSTER
-    buster_res_dirs = glob(
-        f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/buster"
-    )
+    buster_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/buster")
     _buster_logs = dict()
     for _file in buster_res_dirs:
         proc_m = path.basename(path.dirname(_file))
         _buster_logs[proc_m] = {
-            x.split("/buster/")[-1]: x
-            for x in sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*/*log"))
+            x.split("/buster/")[-1]: x for x in sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*/*log"))
         }
 
     # fspipeline
-    fspipeline_res_dirs = glob(
-        f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/fspipeline"
-    )
+    fspipeline_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/fspipeline")
     _fspipeline_logs = dict()
     for _file in fspipeline_res_dirs:
         fsp_logs = sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*log"))
         proc_m = path.basename(path.dirname(_file))
-        _fspipeline_logs[proc_m] = {
-            "/".join(x.split(f"{prefix}_{run}/")[-1].split("/")[2:]): x
-            for x in fsp_logs
-        }
+        _fspipeline_logs[proc_m] = {"/".join(x.split(f"{prefix}_{run}/")[-1].split("/")[2:]): x for x in fsp_logs}
     # Pipedream
     pipedream_res_dirs = f"{proj.data_path()}/fragmax/results/{prefix}_{run}/pipedream"
     _pipedream_logs = dict()
     if path.exists(pipedream_res_dirs):
         _pipedream_logs["pipedream"] = {
             path.basename(x): x
-            for x in sorted(
-                glob(f"{pipedream_res_dirs}/*log") + glob(f"{pipedream_res_dirs}/*out")
-            )
+            for x in sorted(glob(f"{pipedream_res_dirs}/*log") + glob(f"{pipedream_res_dirs}/*out"))
         }
         _pipedream_logs["autoproc"] = {
             "refine/" + path.basename(x): x
-            for x in sorted(
-                glob(f"{pipedream_res_dirs}/refine/*log")
-                + glob(f"{pipedream_res_dirs}/refine/*out")
-            )
+            for x in sorted(glob(f"{pipedream_res_dirs}/refine/*log") + glob(f"{pipedream_res_dirs}/refine/*out"))
         }
         _pipedream_logs["buster"] = {
             "process/" + path.basename(x): x
-            for x in sorted(
-                glob(f"{pipedream_res_dirs}/process/*log")
-                + glob(f"{pipedream_res_dirs}/process/*out")
-            )
+            for x in sorted(glob(f"{pipedream_res_dirs}/process/*log") + glob(f"{pipedream_res_dirs}/process/*out"))
         }
         _pipedream_logs["rhofit"] = {
             "rhofit/" + path.basename(x): x
-            for x in sorted(
-                glob(f"{pipedream_res_dirs}/rhofit/*log")
-                + glob(f"{pipedream_res_dirs}/rhofit/*out")
-            )
+            for x in sorted(glob(f"{pipedream_res_dirs}/rhofit/*log") + glob(f"{pipedream_res_dirs}/rhofit/*out"))
         }
 
     # Information for the data processing table
     spg_list = [_tables[key]["spg"] for key in _tables.keys()]
     unique_rflns_list = [_tables[key]["unique_rflns"] for key in _tables.keys()]
-    total_observations_list = [
-        _tables[key]["total_observations"] for key in _tables.keys()
-    ]
+    total_observations_list = [_tables[key]["total_observations"] for key in _tables.keys()]
 
-    overall_res_list = [
-        _tables[key]["low_res_avg"] + " - " + _tables[key]["high_res_avg"]
-        for key in _tables.keys()
-    ]
+    overall_res_list = [_tables[key]["low_res_avg"] + " - " + _tables[key]["high_res_avg"] for key in _tables.keys()]
     outter_shell_res_list = [
-        "(" + _tables[key]["low_res_out"] + " - " + _tables[key]["high_res_out"] + ")"
-        for key in _tables.keys()
+        "(" + _tables[key]["low_res_out"] + " - " + _tables[key]["high_res_out"] + ")" for key in _tables.keys()
     ]
     resolution_list = zip(overall_res_list, outter_shell_res_list)
     for n, i in enumerate(overall_res_list):
@@ -283,12 +195,8 @@ def show(request, images, prefix, run):
     for n, i in enumerate(outter_shell_res_list):
         if i == "( - )":
             outter_shell_res_list[n] = ""
-    unit_cell_list_d = [
-        ", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()
-    ]
-    unit_cell_list_a = [
-        ", ".join(_tables[key]["unit_cell"].split(",")[3:]) for key in _tables.keys()
-    ]
+    unit_cell_list_d = [", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()]
+    unit_cell_list_a = [", ".join(_tables[key]["unit_cell"].split(",")[3:]) for key in _tables.keys()]
     unit_cell_list = zip(unit_cell_list_d, unit_cell_list_a)
 
     multiplicity_list = [_tables[key]["multiplicity"] for key in _tables.keys()]
@@ -307,9 +215,7 @@ def show(request, images, prefix, run):
     rmeas_list = zip(rmeas_avg_list, rmeas_out_list)
 
     completeness_avg_list = [_tables[key]["completeness_avg"] for key in _tables.keys()]
-    completeness_out_list = [
-        "(" + _tables[key]["completeness_out"] + ")" for key in _tables.keys()
-    ]
+    completeness_out_list = ["(" + _tables[key]["completeness_out"] + ")" for key in _tables.keys()]
     for n, i in enumerate(completeness_out_list):
         if i == "()":
             completeness_out_list[n] = ""
@@ -407,7 +313,28 @@ def _load_results(proj, prefix, run):
     return [line for line in lines if prefix + "_" + run in line[0]]
 
 
-def parse_aimless(pplog):
+def parse_log_process(pplog):
+    spg = ""
+    unique_rflns = ""
+    total_observations = ""
+    low_res_avg = ""
+    low_res_out = ""
+    high_res_avg = ""
+    high_res_out = ""
+    unit_cell = ""
+    multiplicity = ""
+    isig_avg = ""
+    isig_out = ""
+    rmeas_avg = ""
+    rmeas_out = ""
+    completeness_avg = ""
+    completeness_out = ""
+    mosaicity = ""
+    ISa = ""
+    WilsonB = ""
+    cc12_avg = ""
+    cc12_out = ""
+
     if path.exists(pplog):
         with open(pplog) as r:
             log = r.readlines()
@@ -444,6 +371,41 @@ def parse_aimless(pplog):
                     cc12_out = line.split()[-1][1:-1]
                 if "ISa" in line:
                     ISa = line.split()[-1]
+        if "dials" in pplog or "xdsxscale" in pplog:
+            for line in log:
+                if "High resolution limit  " in line:
+                    high_res_avg = line.split()[-3]
+                    high_res_out = line.split()[-1]
+                if "Low resolution limit  " in line:
+                    low_res_avg = line.split()[-3]
+                    low_res_out = line.split()[-1]
+                if "Completeness  " in line:
+                    completeness_avg = line.split()[-3]
+                    completeness_out = line.split()[-1]
+                if "Multiplicity  " in line:
+                    multiplicity = line.split()[-3]
+                if "Rmeas(I+/-) " in line:
+                    rmeas_avg = line.split()[-3]
+                    rmeas_out = line.split()[-1]
+                if "Total unique" in line:
+                    unique_rflns = line.split()[-3]
+                if "Total observations" in line:
+                    total_observations = line.split()[-3]
+                if "CC half  " in line:
+                    cc12_avg = line.split()[-3]
+                    cc12_out = line.split()[-1]
+                if "Wilson B factor " in line:
+                    WilsonB = line.split()[-1]
+                if "Mosaic spread" in line:
+                    mosaicity = line.split()[-1]
+                if "I/sigma  " in line:
+                    isig_avg = line.split()[-3]
+                    isig_out = line.split()[-1]
+                if "Space group:  " in line:
+                    spg = "".join(line.split()[2:])
+                if "Unit cell: " in line:
+                    unit_cell = "".join(line.split()[2:])
+                ISa = ""
         if "autoproc" in pplog or "pipedream" in pplog:
             spg = "None"
             WilsonB = ""
@@ -464,10 +426,7 @@ def parse_aimless(pplog):
                 if "Mean(I)/sd(I)" in line:
                     isig_avg = line.split()[1]
                     isig_out = line.split()[-1]
-                if (
-                    "Completeness (ellipsoidal)" in line
-                    or "Completeness (spherical)" in line
-                ):
+                if "Completeness (ellipsoidal)" in line or "Completeness (spherical)" in line:
                     completeness_avg = line.split()[2]
                     completeness_out = line.split()[-1]
                 if "CC(1/2)  " in line:
@@ -483,29 +442,8 @@ def parse_aimless(pplog):
                     mosaicity = line.split()[-1]
                 if "ISa (" in line:
                     ISa = log[n + 1].split()[-1]
-            if spg == "None":
-                spg = ""
-                unique_rflns = ""
-                total_observations = ""
-                low_res_avg = ""
-                low_res_out = ""
-                high_res_avg = ""
-                high_res_out = ""
-                unit_cell = ""
-                multiplicity = ""
-                isig_avg = ""
-                isig_out = ""
-                rmeas_avg = ""
-                rmeas_out = ""
-                completeness_avg = ""
-                completeness_out = ""
-                mosaicity = ""
-                ISa = ""
-                WilsonB = ""
-                cc12_avg = ""
-                cc12_out = ""
 
-        else:
+        if "edna" in pplog or "fastdp" in pplog:
             for line in log:
                 if "Space group:" in line:
                     spg = "".join(line.split()[2:])

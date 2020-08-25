@@ -174,6 +174,7 @@
       <button class="btn" type="submit" value="{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log" name="logFile"
         size="1">Open analyses log</button>
     </form>
+
   </div>
   {% endif %}
   {{Report |safe}}
@@ -182,7 +183,10 @@
     <h4>No results for this method</h4>
   </div>
   {% endif %}
-
+  <form action="/pandda_analyse/" method="get" id="delete-analyses">
+    <button class="btn" type="submit" value="{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log"
+      name="delete-analyses" size="1">Delete analyses</button>
+  </form>
 </div>
 {% endfor %}
 <div id="html-selected-datasets" class="card tabcontent ">
@@ -203,7 +207,6 @@
 
 
 <script>
-
   function GetSelectedTextValue(dropdownDataset) {
     var selectedText = dropdownDataset.options[dropdownDataset.selectedIndex].innerHTML;
     var selectedValue = dropdownDataset.value;
@@ -216,8 +219,7 @@
     if (document.getElementById(methodName).style.display == "block") {
       document.getElementById(methodName).style.display = "none"
       evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
-    }
-    else {
+    } else {
       var i, tabcontent, tablinks;
       tabcontent = document.getElementsByClassName("tabcontent");
       for (i = 0; i < tabcontent.length; i++) {

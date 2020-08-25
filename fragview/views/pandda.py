@@ -591,11 +591,13 @@ def analyse(request):
     proj = current_project(request)
     panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
 
-    fixsl = request.GET.get("fixsymlinks")
-    if fixsl is not None and "FixSymlinks" in fixsl:
-        t1 = threading.Thread(target=fix_pandda_symlinks, args=(proj,))
-        t1.daemon = True
-        t1.start()
+    delete_analyses = request.GET.get("delete-analyses")
+    if delete_analyses is not None:
+        to_delete_dir = path.dirname(path.dirname(delete_analyses))
+        to_delete_analyses = path.splitext(path.basename(delete_analyses))[0].replace("pandda-", "analyses-")
+        selected_analyses = path.join(to_delete_dir, to_delete_analyses)
+        if path.exists(selected_analyses):
+            shutil.rmtree(selected_analyses)
 
     pandda_runs = {
         path.basename(x): sorted(glob(f"{x}/pandda/analyses-*"), reverse=True) for x in glob(f"{panda_results_path}/*")
@@ -614,13 +616,13 @@ def analyse(request):
 
     if method is None or "panddaSelect" in method:
         reports = list()
-        localcmd, pandda_html = pandda_to_fragmax_html(newestpath)
+        localcmd, pandda_html = pandda_to_fragmax_html(newestpath, pandda_runs[newestmethod])
         analyses_date = path.basename(newestpath).replace("analyses-", "")
         method = newestmethod
         reports.append([analyses_date, localcmd, pandda_html])
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path)
+            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path, pandda_runs[method])
             if [analyses_date, localcmd, pandda_html] not in reports:
                 reports.append([analyses_date, localcmd, pandda_html])
 
@@ -628,7 +630,7 @@ def analyse(request):
         reports = list()
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path)
+            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path, pandda_runs[method])
             reports.append([analyses_date, localcmd, pandda_html])
 
     selection_json = f"{panda_results_path}/{method}/selection.json"
@@ -663,9 +665,9 @@ def analyse(request):
     )
 
 
-def pandda_to_fragmax_html(pandda_path):
+def pandda_to_fragmax_html(pandda_path, pandda_runs):
     method = path.basename(path.dirname(path.dirname(pandda_path)))
-    if os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html"):
+    if os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html") and pandda_path == pandda_runs[0]:
         with open(pandda_path + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
             pandda_html = inp.readlines()
             localcmd = path.dirname(pandda_path) + "; pandda.inspect"
@@ -690,6 +692,14 @@ def pandda_to_fragmax_html(pandda_path):
             'class="table table-bordered table-striped" data-page-length="50"',
         )
         pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
+
+    elif os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html") and pandda_path != pandda_runs[0]:
+        with open(pandda_path + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
+            pandda_html = inp.readlines()
+            pandda_html = "".join(pandda_html)
+
+            localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+
     elif os.path.exists(pandda_path + "/html_summaries/pandda_initial.html"):
         with open(pandda_path + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
             pandda_html = "".join(inp.readlines())
@@ -1235,6 +1245,7 @@ def _read_mtz_file(proj, mtz_file):
 
     return resHigh, freeRflag, fsigf_Flag
 
+
 #
 # regexp object used when parsing
 # PDB files for R-work, R-Free and Resolution values
@@ -1245,7 +1256,8 @@ PDB_LINE_RE = re.compile(
     r"^REMARK   3   "
     r"((?P<r_work>R VALUE            \(WORKING SET\))|"
     r"(?P<r_free>FREE R VALUE                     )|"
-    r"(?P<resolution>RESOLUTION RANGE HIGH \(ANGSTROMS\))) *: *(?P<val>.*)")
+    r"(?P<resolution>RESOLUTION RANGE HIGH \(ANGSTROMS\))) *: *(?P<val>.*)"
+)
 
 
 def _get_pdb_data(proj, pdb_file):
