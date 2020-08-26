@@ -1,16 +1,16 @@
 import os
 import time
 import threading
-from glob import glob
 from os import path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview.projects import current_project, project_script, project_xml_files, project_update_status_script_cmds
+from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.projects import project_process_protein_dir
 from fragview import hpc, versions
+from fragview.filters import get_proc_datasets, get_xml_files
 from fragview.forms import ProcessForm
 from fragview.xsdata import XSDataCollection
-from .utils import scrsplit, Filter
+from fragview.views.utils import scrsplit
 
 
 def datasets(request):
@@ -123,21 +123,7 @@ def run_xdsapp(proj, nodes, filters, options):
 
     # Modules list for HPC env
     softwares = "CCP4 XDSAPP"
-    if "filters:" in filters:
-        filters = filters.split(":")[-1]
 
-    if filters == "ALL":
-        filters = ""
-
-    if filters == "NEW":
-        processedDatasets = [
-            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
-        ]
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -154,10 +140,7 @@ def run_xdsapp(proj, nodes, filters, options):
     header += f"""module load gopresto {softwares}\n\n"""
     scriptList = list()
 
-    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
-    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
-
-    for xml in xml_files:
+    for xml in get_xml_files(proj, get_proc_datasets(proj, filters)):
         outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
 
         if options["spacegroup"] != "":
@@ -199,20 +182,6 @@ def run_autoproc(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = "CCP4 autoPROC Durin"
 
-    if "filters:" in filters:
-        filters = filters.split(":")[-1]
-
-    if filters == "ALL":
-        filters = ""
-    if filters == "NEW":
-        processedDatasets = [
-            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
-        ]
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -230,10 +199,7 @@ def run_autoproc(proj, nodes, filters, options):
 
     scriptList = list()
 
-    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
-    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
-
-    for xml in xml_files:
+    for xml in get_xml_files(proj, get_proc_datasets(proj, filters)):
         outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
 
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -312,20 +278,7 @@ def run_xdsxscale(proj, nodes, filters, options):
 
     # Modules list for HPC env
     softwares = "PReSTO DIALS/2.1.1-1-PReSTO"
-    if "filters:" in filters:
-        filters = filters.split(":")[-1]
 
-    if filters == "ALL":
-        filters = ""
-    if filters == "NEW":
-        processedDatasets = [
-            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
-        ]
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -344,9 +297,7 @@ def run_xdsxscale(proj, nodes, filters, options):
 
     scriptList = list()
 
-    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
-
-    for xml in xml_files:
+    for xml in get_xml_files(proj, get_proc_datasets(proj, filters)):
         outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
 
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -418,20 +369,7 @@ def run_dials(proj, nodes, filters, options):
 
     # Modules list for HPC env
     softwares = f"PReSTO {versions.DIALS_MOD}"
-    if "filters:" in filters:
-        filters = filters.split(":")[-1]
 
-    if filters == "ALL":
-        filters = ""
-    if filters == "NEW":
-        processedDatasets = [
-            x.split("/")[-1] for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*"))
-        ]
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -451,10 +389,7 @@ def run_dials(proj, nodes, filters, options):
 
     scriptList = list()
 
-    # xml_files = sorted(x for x in project_xml_files(proj) if filters in x)
-    xml_files = sorted(Filter(project_xml_files(proj), filters.split(",")))
-
-    for xml in xml_files:
+    for xml in get_xml_files(proj, get_proc_datasets(proj, filters)):
         outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
 
         os.makedirs(outdir, mode=0o760, exist_ok=True)

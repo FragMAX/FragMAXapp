@@ -2,16 +2,18 @@ import os
 import time
 import pyfastcopy  # noqa
 import threading
+from os import path
 from glob import glob
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import hpc
 from fragview.views import crypt_shell
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
-from fragview.projects import project_update_results_script_cmds
+from fragview.projects import project_update_results_script_cmds, project_process_protein_dir
+from fragview.projects import project_results_dir
+from fragview.filters import get_refine_datasets
 from fragview.models import PDB
 from fragview.forms import RefineForm
-from .utils import Filter
 
 
 def datasets(request):
@@ -64,31 +66,12 @@ def run_structure_solving(
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
     argsfit = "none"
 
-    filters = filters.split(":")[-1]
-    if filters == "ALL":
-        filters = ""
-    if filters == "NEW":
-        refinedDatasets = (
-            glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/dimple")
-            + glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/fspipeline")
-            + glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/buster")
-        )
-        processedDatasets = set(["/".join(x.split("/")[:-2]) for x in refinedDatasets])
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-
     if useFSP:
         argsfit += "fspipeline"
     if useDIMPLE:
         argsfit += "dimple"
     if useBUSTER:
         argsfit += "buster"
-
-    datasetList = glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/*/*/")
-    datasetList = sorted(Filter(datasetList, filters.split(",")))
 
     proc2resOut = f"""#!/bin/bash
 #!/bin/bash
@@ -114,15 +97,16 @@ cd
 rm -rf $WORK_DIR
 """  # noqa E128
 
-    for dataset in datasetList:
-        sample = dataset.split("/")[-2]
-        script = project_script(proj, f"proc2res_{sample}.sh")
+    for dset in get_refine_datasets(proj, filters, useFSP, useDIMPLE, useBUSTER):
+        set_name, run = dset.rsplit("_", 2)
+
+        script = project_script(proj, f"proc2res_{dset}.sh")
         epoch = str(round(time.time()))
         slctd_sw = argsfit.replace("none", "")
 
         p2rOut = ""
-        p2rOut += """#SBATCH -o """ + proj.data_path() + f"/fragmax/logs/{sample}_{slctd_sw}_{epoch}_%j_out.txt\n"
-        p2rOut += """#SBATCH -e """ + proj.data_path() + f"/fragmax/logs/{sample}_{slctd_sw}_{epoch}_%j_err.txt\n"
+        p2rOut += """#SBATCH -o """ + proj.data_path() + f"/fragmax/logs/{dset}_{slctd_sw}_{epoch}_%j_out.txt\n"
+        p2rOut += """#SBATCH -e """ + proj.data_path() + f"/fragmax/logs/{dset}_{slctd_sw}_{epoch}_%j_err.txt\n"
 
         with open(script, "w") as outp:
             outp.write(proc2resOut)
@@ -130,34 +114,40 @@ rm -rf $WORK_DIR
             outp.write(crypt_shell.crypt_cmd(proj))
 
             edna = find_edna(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             fastdp = find_fastdp(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             xdsapp = find_xdsapp(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             xdsxscale = find_xdsxscale(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             dials = find_dials(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             autoproc = find_autoproc(
-                proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+                customrefdimple
             )
 
             for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
                 outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
 
-            outp.write(project_update_status_script_cmds(proj, sample, softwares))
-            outp.write(project_update_results_script_cmds(proj, sample, softwares))
+            outp.write(project_update_status_script_cmds(proj, dset, softwares))
+            outp.write(project_update_results_script_cmds(proj, dset, softwares))
             outp.write("\n\n")
 
         hpc.run_sbatch(script)
@@ -180,23 +170,24 @@ def _upload_result_cmd(proj, res_dir):
 
 
 def find_autoproc(
-    proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
-
     srcmtz = None
     aimless_c = ""
     out_cmd = ""
-    if glob(dataset + "autoproc/*mtz") != []:
+
+    glob_exp = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}", "autoproc", "*mtz")
+    if glob(glob_exp) != []:
         try:
-            srcmtz = [x for x in glob(dataset + "autoproc/*mtz") if "staraniso" in x][0]
+            srcmtz = [x for x in glob(glob_exp) if "staraniso" in x][0]
         except IndexError:
             try:
-                srcmtz = [x for x in glob(dataset + "autoproc/*mtz") if "aimless" in x][0]
+                srcmtz = [x for x in glob(glob_exp) if "aimless" in x][0]
             except IndexError:
-                srcmtz = [x for x in glob(dataset + "autoproc/*mtz")][0]
+                srcmtz = [x for x in glob(glob_exp)][0]
 
-    res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/autoproc/"
-    dstmtz = dataset.split("/")[-2] + "_autoproc_merged.mtz"
+    res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "autoproc")
+    dstmtz = f"{dataset}_{run}_autoproc_merged.mtz"
 
     if srcmtz:
         cmd = aimless_cmd(spacegroup, dstmtz)
@@ -216,16 +207,17 @@ def find_autoproc(
 
 
 def find_dials(
-    proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
     aimless_c = ""
     out_cmd = ""
 
-    srcmtz = dataset + "dials/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
-    res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/dials/"
-    dstmtz = dataset.split("/")[-2] + "_dials_merged.mtz"
+    srcmtz = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}",
+                       "dials", "DEFAULT", "scale", "AUTOMATIC_DEFAULT_scaled.mtz")
+    res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "dials")
+    dstmtz = f"{dataset}_{run}_dials_merged.mtz"
 
-    if os.path.exists(srcmtz):
+    if path.exists(srcmtz):
         cmd = aimless_cmd(spacegroup, dstmtz)
         copy = f"cp {srcmtz} {dstmtz}"
         if aimless:
@@ -243,14 +235,17 @@ def find_dials(
 
 
 def find_xdsxscale(
-    proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
     aimless_c = ""
     out_cmd = ""
-    res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/xdsxscale/"
-    srcmtz = dataset + "xdsxscale/DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"
-    dstmtz = dataset.split("/")[-2] + "_xdsxscale_merged.mtz"
-    if os.path.exists(srcmtz):
+    res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "xdsxscale")
+    srcmtz = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}",
+                       "xdsxscale", "DEFAULT", "scale", "AUTOMATIC_DEFAULT_scaled.mtz")
+
+    dstmtz = f"{dataset}_{run}_xdsxscale_merged.mtz"
+
+    if path.exists(srcmtz):
         cmd = aimless_cmd(spacegroup, dstmtz)
         copy = f"cp {srcmtz} {dstmtz}"
         if aimless:
@@ -268,19 +263,18 @@ def find_xdsxscale(
 
 
 def find_xdsapp(
-    proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
-
     srcmtz = False
     dstmtz = None
     aimless_c = ""
     out_cmd = ""
-    mtzoutList = glob(dataset + "xdsapp/*F.mtz")
+    mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}", "xdsapp", "*F.mtz"))
 
     if mtzoutList != []:
         srcmtz = mtzoutList[0]
-        res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/xdsapp/"
-        dstmtz = dataset.split("/")[-2] + "_xdsapp_merged.mtz"
+        res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "xdsapp")
+        dstmtz = f"{dataset}_{run}_xdsapp_merged.mtz"
 
     if srcmtz:
         cmd = aimless_cmd(spacegroup, dstmtz)
@@ -299,25 +293,20 @@ def find_xdsapp(
     return out_cmd
 
 
-def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple):
+def find_edna(
+        proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+):
     srcmtz = False
     dstmtz = None
     aimless_c = ""
 
     out_cmd = ""
-    mtzoutList = glob(
-        proj.data_path()
-        + "/fragmax/process/"
-        + proj.protein
-        + "/"
-        + dataset.split("/")[-3]
-        + "/*/edna/*_noanom_aimless.mtz"
-    )
+    mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, "*", "edna", "*_noanom_aimless.mtz"))
 
     if mtzoutList != []:
         srcmtz = mtzoutList[0]
-        res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/edna/"
-        dstmtz = dataset.split("/")[-2] + "_EDNA_merged.mtz"
+        res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "edna")
+        dstmtz = f"{dataset}_{run}_EDNA_merged.mtz"
 
     if srcmtz:
         cmd = aimless_cmd(spacegroup, dstmtz)
@@ -338,20 +327,18 @@ def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffsp
 
 
 def find_fastdp(
-    proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
     srcmtz = False
     dstmtz = None
     aimless_c = ""
     out_cmd = ""
-    mtzoutList = glob(
-        proj.data_path() + "/fragmax/process/" + proj.protein + "/" + dataset.split("/")[-3] + "/*/fastdp/*.mtz"
-    )
+    mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, "*", "fastdp", "*.mtz"))
 
     if mtzoutList != []:
         srcmtz = mtzoutList[0]
-        res_dir = dataset.split("process/")[0] + "results/" + dataset.split("/")[-2] + "/fastdp/"
-        dstmtz = dataset.split("/")[-2] + "_fastdp_merged.mtz"
+        res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "fastdp")
+        dstmtz = f"{dataset}_{run}_fastdp_merged.mtz"
 
     if srcmtz:
         cmd = aimless_cmd(spacegroup, dstmtz)

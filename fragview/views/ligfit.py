@@ -7,8 +7,7 @@ from fragview.forms import LigfitForm
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.projects import project_update_results_script_cmds, project_fragment_cif, project_fragment_pdb
 from fragview.fileio import write_script
-
-from glob import glob
+from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
 
 update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
 
@@ -34,21 +33,6 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     softwares = "autoPROC BUSTER/20190607-3-PReSTO Phenix CCP4"
     lib = proj.library
 
-    if filters == "ALL":
-        filters = ""
-    if filters == "NEW":
-        refinedDatasets = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/rhofit") + glob(
-            f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/ligfit"
-        )
-        processedDatasets = set(["/".join(x.split("/")[:-3]) for x in refinedDatasets])
-        allDatasets = [
-            x.split("/")[-2]
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/process/{proj.protein}/{proj.protein}*/*/"))
-        ]
-        filters = ",".join(list(set(allDatasets) - set(processedDatasets)))
-
-    pdbList = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb")
-    pdbList = [x for x in pdbList if "Apo" not in x and filters in x]
     header = ""
     header += "#!/bin/bash\n"
     header += "#!/bin/bash\n"
@@ -60,7 +44,8 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     header += "module purge\n"
     header += f"module load gopresto {softwares}\n"
 
-    for num, pdb in enumerate(pdbList):
+    datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
+    for num, pdb in enumerate(get_ligfit_pdbs(proj, datasets)):
         fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
         if lib.get_fragment(fragID) is not None:
             smiles = lib.get_fragment(fragID).smiles

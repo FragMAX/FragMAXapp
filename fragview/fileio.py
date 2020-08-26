@@ -69,3 +69,27 @@ def write_script(fname, contents):
     finally:
         # restore old umask
         os.umask(old_umask)
+
+
+def subdirs(root_dir, depth):
+    """
+    list subdirectories exactly at the specified depth
+    """
+    def _iterdirs(root_dir):
+        for chld in root_dir.iterdir():
+            if chld.is_dir():
+                yield chld
+
+    if not root_dir.is_dir():
+        return
+
+    if depth == 1:
+        for chld in _iterdirs(root_dir):
+            yield chld
+
+        return
+
+    sublevel = depth - 1
+    for chld in _iterdirs(root_dir):
+        for sub in subdirs(chld, sublevel):
+            yield sub
