@@ -14,10 +14,6 @@ from fragview.forms import RefineForm
 from .utils import Filter
 
 
-# DIMPLE_PHENIX_CMD = "cd dimple; phenix.mtz2map final.mtz\n"
-DIMPLE_PHENIX_CMD = ""
-
-
 def datasets(request):
     proj = current_project(request)
 
@@ -214,7 +210,7 @@ def find_autoproc(
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
-        out_cmd = f"{autoproc_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{autoproc_cmd}\n{refine_cmd}\n{upload_cmd}"
 
     return out_cmd
 
@@ -241,7 +237,7 @@ def find_dials(
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{dials_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{dials_cmd}\n{refine_cmd}\n{upload_cmd}"
 
     return out_cmd
 
@@ -266,7 +262,7 @@ def find_xdsxscale(
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{upload_cmd}"
 
     return out_cmd
 
@@ -299,7 +295,7 @@ def find_xdsapp(
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{xdsapp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{xdsapp_cmd}\n{refine_cmd}\n{upload_cmd}"
     return out_cmd
 
 
@@ -336,7 +332,7 @@ def find_edna(proj, dataset, aimless, spacegroup, argsfit, userPDB, customreffsp
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{edna_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{edna_cmd}\n{refine_cmd}\n{upload_cmd}"
 
     return out_cmd
 
@@ -369,7 +365,7 @@ def find_fastdp(
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{DIMPLE_PHENIX_CMD}\n{upload_cmd}"
+        out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{upload_cmd}"
 
     return out_cmd
 
