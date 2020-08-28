@@ -197,7 +197,7 @@ def find_autoproc(
 
         autoproc_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -224,7 +224,7 @@ def find_dials(
             aimless_c = f"{cmd}"
         dials_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -252,7 +252,7 @@ def find_xdsxscale(
             aimless_c = f"{cmd}"
         xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -284,7 +284,7 @@ def find_xdsapp(
 
         xdsapp_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -316,7 +316,7 @@ def find_edna(
         edna_cmd = copy + "\n" + aimless_c + "\n"
 
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -347,7 +347,7 @@ def find_fastdp(
             aimless_c = f"{cmd}"
         fastdp_cmd = copy + "\n" + aimless_c + "\n"
         refine_cmd = set_refine(
-            argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz
+            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
         )
 
         upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -357,7 +357,7 @@ def find_fastdp(
     return out_cmd
 
 
-def set_refine(argsfit, dataset, userPDB, customrefbuster, customreffspipe, customrefdimple, srcmtz, dstmtz):
+def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz):
     dimple_cmd = ""
     buster_cmd = ""
     fsp_cmd = ""
