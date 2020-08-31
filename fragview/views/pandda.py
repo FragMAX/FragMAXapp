@@ -743,6 +743,7 @@ def submit(request):
             customPanDDA,
             cifMethod,
             ncpus,
+            blacklist,
         ) = panddaCMD.split(";")
 
         method = proc + "_" + ref
@@ -759,6 +760,7 @@ def submit(request):
 
         options = {
             "method": method,
+            "blacklist": blacklist,
             "useApos": str2bool(use_apo),
             "useSelected": useSelected,
             "reprocessZmap": str2bool(reproZmaps),
@@ -889,7 +891,7 @@ def giant_score(proj, method):
     header += """#SBATCH -J GiantScore\n"""
     header += """#SBATCH --cpus-per-task=1\n"""
     header += """#SBATCH --mem=5000\n"""
-    header += """sleep 15000\n"""
+    header += """sleep 60\n"""
 
     script = project_script(proj, "giant_holder.sh")
     write_script(script, header)
@@ -902,9 +904,9 @@ def giant_score(proj, method):
     header += """#SBATCH -t 02:00:00\n"""
     header += """#SBATCH -J """ + jname + """\n"""
     header += """#SBATCH --cpus-per-task=2\n"""
-    header += """#SBATCH --mem=5000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.out\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j.err\n\n"""
+    header += """#SBATCH --mem=10000\n"""
+    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_out.txt\n"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_err.txt\n\n"""
     header += """module purge\n"""
     header += """module load gopresto CCP4 Phenix\n"""
 
@@ -944,24 +946,18 @@ def giant_score(proj, method):
         frag = ""
         if "Apo" not in _dir:
             try:
-                ens = glob(_dir + "/*ensemble*.pdb")[0]
-                make_restraints = "giant.make_restraints " + ens + " all=True resname=XXX"
-                inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
                 frag = _dir.split("/")[-1].split("-")[-1].split("_")[0]
-                quick_refine = (
-                    "giant.quick_refine "
-                    + ens
-                    + " "
-                    + inp_mtz
-                    + " "
-                    + frag
-                    + ".cif multi-state-restraints.refmac.params resname=XXX"
-                )
+                ens = glob(_dir + "/*ensemble*.pdb")[0]
+                resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag}.pdb | head -1`"""
+                make_restraints = f"giant.make_restraints {ens} all=True resname=$resN"
+                inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
+                params = "params=$(ls *.restraints-refmac.params)"
+                quick_refine = f"giant.quick_refine {ens} {inp_mtz} {frag}.cif $params resname=$resN"
             except Exception:
                 make_restraints = ""
                 quick_refine = ""
         script = project_script(proj, f"giant_pandda_{frag}.sh")
-        write_script(script, f"{header}\n" f"cd {_dir}\n{cpcmd3}\n{make_restraints}\n{quick_refine}")
+        write_script(script, f"{header}\ncd {_dir}\n{resn}\n{cpcmd3}\n{make_restraints}\n{params}\n{quick_refine}")
 
         line += "\nsbatch  --dependency=afterany:$jid1 " + script
         line += "\nsleep 0.05"
@@ -975,18 +971,22 @@ def giant_score(proj, method):
 
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 02:00:00\n"""
+    header += """#SBATCH -t 04:00:00\n"""
     header += """#SBATCH -J """ + jname + """\n"""
-    header += """#SBATCH --nice=25\n"""
-    header += """#SBATCH --cpus-per-task=2\n"""
-    header += """#SBATCH --mem=2000\n"""
+    header += """#SBATCH --exclusive\n"""
+    header += """#SBATCH -N1\n"""
+    header += """#SBATCH -p fujitsu\n"""
+    header += """#SBATCH --cpus-per-task=64\n"""
+    header += """#SBATCH --mem=310G\n"""
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\nn"""
+    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\n"""
     header += """module purge\n"""
-    header += """module load gopresto CCP4 Phenix\n\n"""
+    header += """module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO Phenix\n\n"""
 
     scores_dir = os.path.join(res_dir, "pandda-scores")
-    scoreModel = f'giant.score_model_multiple out_dir="{scores_dir}" {export_dir}/* res_names="XXX" cpu=24'
+    score_multi_bin = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.score_model_multiple"
+    # ccp4_src = "/mxn/groups/biomax/wmxsoft/ccp4-fragmax/ccp4-7.0/bin/ccp4.setup-sh"
+    scoreModel = f"{score_multi_bin} out_dir='{scores_dir}' {export_dir}/* res_names=$resN cpu=6"
 
     body = ""
     for _dir in _dirs:
@@ -996,12 +996,12 @@ def giant_score(proj, method):
         dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
         body += "\ncp -f " + src + " " + dst
+    frag = dataset.split("-")[-1].split("_")[0]
+    frag_loc = path.join(export_dir, dataset, frag)
+    resn = """\nresN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_loc}.pdb | head -1`"""
+    scorecmd = f"""\n{scoreModel}" """
 
-    scorecmd = (
-        f"\necho 'source $HOME/Apps/CCP4/ccp4-7.0/bin/ccp4.setup-sh;{scoreModel}' | ssh -F ~/.ssh/ w-guslim-cc-0"
-    )
-
-    write_script(pandda_score_script, f"{header}{body}{scorecmd}")
+    write_script(pandda_score_script, f"{header}{body}{resn}{scorecmd}")
 
     hpc.frontend_run(giant_worker_script)
 
@@ -1257,10 +1257,13 @@ def _get_pdb_data(proj, pdb_file):
 
 
 def get_best_alt_dataset(proj, dataset, options):
+
+    blacklist = options["blacklist"]
     if options["method"] == "frag_plex":
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
             f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
         )
+
     elif options["complete_results"]:
         proc, ref = options["method"].split("_")
         if proc == "pipedream":
@@ -1271,12 +1274,15 @@ def get_best_alt_dataset(proj, dataset, options):
             optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
                 f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
             )
+
     else:
         proc, ref = options["method"].split("_")
         if proc == "pipedream":
             optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb")
         else:
             optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
+
+    optionList = remove_blacklisted_options(optionList, blacklist)
     rwork_res = list()
 
     if not optionList:
@@ -1290,3 +1296,8 @@ def get_best_alt_dataset(proj, dataset, options):
         print("pdb, r_work, r_free, resolution")
         print(rwork_res[0])
         return rwork_res[0][0]
+
+
+def remove_blacklisted_options(optionList, blacklist):
+    optionList = [x for x in optionList if blacklist not in x]
+    return optionList
