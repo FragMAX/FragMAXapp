@@ -885,18 +885,6 @@ def giant_score(proj, method):
     pandda_dir = os.path.join(res_dir, "pandda")
     export_dir = os.path.join(res_dir, "pandda-export")
 
-    header = """#!/bin/bash\n"""
-    header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 00:05:00\n"""
-    header += """#SBATCH -J GiantScore\n"""
-    header += """#SBATCH --cpus-per-task=1\n"""
-    header += """#SBATCH --mem=5000\n"""
-    header += """sleep 60\n"""
-
-    script = project_script(proj, "giant_holder.sh")
-    write_script(script, header)
-    hpc.run_sbatch(script)
-
     rn = str(randint(10000, 99999))
     jname = "Gnt" + rn
     header = """#!/bin/bash\n"""
@@ -910,11 +898,18 @@ def giant_score(proj, method):
     header += """module purge\n"""
     header += """module load gopresto CCP4 Phenix\n"""
 
-    panddaExport = f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}'"
+    exports_list = glob(f"{pandda_dir}/processed_datasets/*/modelled_structures/fitted-v000*.pdb")
+    exports_list = [x.split("processed_datasets/")[-1].split("/")[0] for x in exports_list]
+
+    panddaExport = [
+        f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}' verbose=True select_datasets={d}"
+        for d in exports_list
+    ]
+    panddaExport = "\n".join(panddaExport)
 
     export_script = project_script(proj, "pandda-export.sh")
     write_script(export_script, header + panddaExport)
-    hpc.frontend_run(export_script)
+    # hpc.run_sbatch(export_script)
 
     header = """#!/bin/bash\n"""
     header += """#!/bin/bash\n"""
@@ -929,13 +924,11 @@ def giant_score(proj, method):
     header += """module load gopresto CCP4 Phenix\n"""
 
     _dirs = glob(f"{export_dir}/*")
-
     line = "#! /bin/bash"
     line += f"\njid1=$(sbatch {export_script})"
     line += "\njid1=`echo $jid1|cut -d ' ' -f4`"
 
-    for _dir in _dirs:
-        dataset = _dir.split("/")[-1]
+    for dataset in exports_list:
 
         src = os.path.join(res_dir, dataset, "final_original.mtz")
         dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
@@ -944,29 +937,32 @@ def giant_score(proj, method):
         make_restraints = ""
         quick_refine = ""
         frag = ""
-        if "Apo" not in _dir:
-            try:
-                frag = _dir.split("/")[-1].split("-")[-1].split("_")[0]
-                ens = glob(_dir + "/*ensemble*.pdb")[0]
-                resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag}.pdb | head -1`"""
-                make_restraints = f"giant.make_restraints {ens} all=True resname=$resN"
-                inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
-                params = "params=$(ls *.restraints-refmac.params)"
-                quick_refine = f"giant.quick_refine {ens} {inp_mtz} {frag}.cif $params resname=$resN"
-            except Exception:
-                make_restraints = ""
-                quick_refine = ""
-        script = project_script(proj, f"giant_pandda_{frag}.sh")
-        write_script(script, f"{header}\ncd {_dir}\n{resn}\n{cpcmd3}\n{make_restraints}\n{params}\n{quick_refine}")
+        _dir = path.join(export_dir, dataset)
+        frag = dataset.split("-")[-1].split("_")[0]
+        if "Apo" not in dataset:
+            frag = dataset.split("-")[-1].split("_")[0]
+            run = dataset.split("_")[-1]
 
-        line += "\nsbatch  --dependency=afterany:$jid1 " + script
-        line += "\nsleep 0.05"
+            ens = path.join(export_dir, dataset, f"{dataset}-ensemble-model.pdb")
+            print(ens)
+            resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag}.pdb | head -1`"""
+            make_restraints = f"giant.make_restraints {ens} all=True resname=$resN"
+            inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
+            params = "params=$(ls *.restraints-refmac.params)"
+            quick_refine = f"giant.quick_refine {ens} {inp_mtz} {frag}.cif $params resname=$resN"
+            script = project_script(proj, f"giant_pandda_{frag}_{run}.sh")
+            write_script(script, f"{header}\ncd {_dir}\n{resn}\n{cpcmd3}\n{make_restraints}\n{params}\n{quick_refine}")
+            line += "\nsbatch  --dependency=afterany:$jid1 " + script
+            line += "\nsleep 0.05"
+
+        else:
+            resn = ""
 
     pandda_score_script = project_script(proj, "pandda-score.sh")
     giant_worker_script = project_script(proj, "giant_worker.sh")
 
     write_script(
-        giant_worker_script, f"{line}\n\n" f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}"
+        giant_worker_script, f"{line}\n\n" f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}",
     )
 
     header = """#!/bin/bash\n"""
@@ -981,11 +977,10 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\n"""
     header += """module purge\n"""
-    header += """module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO Phenix\n\n"""
+    header += """module load gopresto CCP4\n\n"""
 
     scores_dir = os.path.join(res_dir, "pandda-scores")
     score_multi_bin = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.score_model_multiple"
-    # ccp4_src = "/mxn/groups/biomax/wmxsoft/ccp4-fragmax/ccp4-7.0/bin/ccp4.setup-sh"
     scoreModel = f"{score_multi_bin} out_dir='{scores_dir}' {export_dir}/* res_names=$resN cpu=6"
 
     body = ""
@@ -996,10 +991,13 @@ def giant_score(proj, method):
         dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
 
         body += "\ncp -f " + src + " " + dst
-    frag = dataset.split("-")[-1].split("_")[0]
-    frag_loc = path.join(export_dir, dataset, frag)
-    resn = """\nresN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_loc}.pdb | head -1`"""
-    scorecmd = f"""\n{scoreModel}" """
+        if "Apo" not in _dir:
+            frag = dataset.split("-")[-1].split("_")[0]
+            frag_loc = path.join(export_dir, dataset, frag)
+            resn = """\nresN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_loc}.pdb | head -1`"""
+        else:
+            resn = ""
+    scorecmd = f"""\n{scoreModel} """
 
     write_script(pandda_score_script, f"{header}{body}{resn}{scorecmd}")
 
