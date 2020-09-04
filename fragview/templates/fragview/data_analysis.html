@@ -2317,6 +2317,7 @@
         var PanDDAfilter = "" + getCheckedBoxes("checkSel");
         var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
         var cpus_pandda = document.getElementById("pandda_nproc").value;
+        var pandda_blacklist = ""
         if (cpus_pandda == "") {
             cpus_pandda = 32
         } else if (cpus_pandda >= 64) {
@@ -2329,7 +2330,7 @@
             use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
             ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +
             PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " +
-            pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda
+            pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda + ";" + pandda_blacklist
 
         document.getElementsByName("panddaform")[0].value = PanDDAout
 
