@@ -1,0 +1,10 @@
+[Unit]
+Description=FragMAX application
+After=network.target
+
+[Service]
+User=fragadm
+ExecStart=/frag/fragmax/fragmaxapp/runappd.py /fraghome/fragadm/.conda/envs/FragMAX
+
+[Install]
+WantedBy=multi-user.target
