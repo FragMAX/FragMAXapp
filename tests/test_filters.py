@@ -3,8 +3,18 @@ import tempfile
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from fragview.projects import project_all_status_file, project_data_collections_file
-from fragview.filters import get_proc_datasets, get_refine_datasets, get_ligfit_datasets
+from fragview.projects import (
+    project_results_dir,
+    project_all_status_file,
+    project_data_collections_file,
+    shift_dir,
+)
+from fragview.filters import (
+    get_proc_datasets,
+    get_refine_datasets,
+    get_ligfit_datasets,
+    get_xml_files,
+)
 from tests.utils import data_file_path
 
 
@@ -20,10 +30,6 @@ DATASETS = [
     "PrtK-JBS-D12a_1",
 ]
 
-DATACOLLECTION_CSV = """imagePrefix,SampleName,dataCollectionPath,Acronym,dataCollectionNumber,numberOfImages,resolution,snapshot
-PrtK-Apo14,Apo14,/data/visitors/biomax/20180479/20191022/raw/PrtK/PrtK-Apo14,PrtK,1,3600,1.24,"/mxn/groups/ispybstorage/pyarch/visitors/20180479/20191022/raw/PrtK/PrtK-Apo14/PrtK-Apo14_1_1.snapshot.jpeg,/mxn/groups/ispybstorage/pyarch/visitors/20180479/20191022/raw/PrtK/PrtK-Apo14/PrtK-Apo14_1_2.snapshot.jpeg"
-"""
-
 Site = Mock()
 Site.get_project_datasets.return_value = DATASETS
 
@@ -38,11 +44,11 @@ def _copy_csv_files(proj):
     )
 
 
-def _create_dirs(root):
+def _create_result_dirs(proj):
     #
     # create results dirs for some datasets
     #
-    res_dir = Path(root, "fragmax", "results")
+    res_dir = project_results_dir(proj)
 
     # dataset #0 (PrtK-Apo14_1)
     apo14_res_dir = Path(res_dir, DATASETS[0])
@@ -64,12 +70,17 @@ def _create_dirs(root):
 class _FiltersTester(TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        Site.PROPOSALS_DIR = self.temp_dir
 
-        self.proj = Mock()
-        self.proj.protein = PROTEIN
-        self.proj.data_path.return_value = self.temp_dir
+        with patch("fragview.projects.SITE", Site):
+            self.proj = Mock()
+            self.proj.protein = PROTEIN
+            self.proj.proposal = PROPOSAL
+            self.proj.shifts.return_value = SHIFTS
+            self.proj.data_path.return_value = shift_dir(PROPOSAL, SHIFTS[0])
 
-        _create_dirs(self.temp_dir)
+            _create_result_dirs(self.proj)
+
         _copy_csv_files(self.proj)
 
     def tearDown(self):
@@ -242,3 +253,15 @@ class TestGetLigfitDatasets(_FiltersTester):
         )
 
         self.assertListEqual(["PrtK-JBS-F3a_1", "PrtK-JBS-D10a_1"], list(dsets))
+
+
+@patch("fragview.projects.SITE", Site)
+class TestGetXmlFiles(_FiltersTester):
+    def test_func(self):
+        data_sets = ["PrtK-Apo14_1", "PrtK-Apo9_1", "PrtK-JBS-G8a_1"]
+        xml_files = get_xml_files(self.proj, data_sets)
+
+        xml_fnames = set([p.name for p in xml_files])
+        expected = set([f"{ds}.xml" for ds in data_sets])
+
+        self.assertSetEqual(xml_fnames, expected)
