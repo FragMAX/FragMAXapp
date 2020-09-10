@@ -158,8 +158,6 @@ def get_ligfit_datasets(proj, filter, use_ligand_fit, use_rho_fit):
 def get_ligfit_pdbs(proj, datasets):
     """
     get all 'final' PDBs for specified datasets
-
-    for filter syntax, see get_ligfit_datasets() documentation
     """
     results_dir = project_results_dir(proj)
 
@@ -195,10 +193,7 @@ def _get_dataset_xml_file(proj, data_set):
 
 def get_xml_files(proj, datasets):
     """
-    filter datasets according to specified filter and for all matching
-    datasets, return dataset's metadata XML
-
-    for filter syntax, see get_proc_datasets() documentation
+    get specified datasets metadata XML files
     """
 
     for dset in datasets:
