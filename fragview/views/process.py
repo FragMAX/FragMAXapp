@@ -13,6 +13,8 @@ from fragview.xsdata import XSDataCollection
 from fragview.views.utils import add_update_status_script_cmds
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
+from fragview.pipeline_commands import get_xia_dials_command, get_xia_xdsxscale_command
+from fragview.pipeline_commands import get_xdsapp_command, get_autoproc_command
 
 
 def datasets(request):
@@ -172,7 +174,7 @@ def run_xdsapp(proj, nodes, filters, options):
         batch.load_modules(softwares)
 
         for xml in bucket:
-            outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
@@ -193,8 +195,7 @@ def run_xdsapp(proj, nodes, filters, options):
             batch.add_commands(
                 f"mkdir -p {outdir}/xdsapp",
                 f"cd {outdir}/xdsapp",
-                f"xdsapp --cmd --dir={outdir}/xdsapp -j 1 -c 64 -i {h5master} {spg} {customxdsapp} --delphi=10 "
-                f"{friedel} --range=1\\ {num_images}\n")
+                get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images))
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
@@ -249,13 +250,7 @@ def run_autoproc(proj, nodes, filters, options):
                 f"rm -rf {outdir}/autoproc",
                 f"mkdir -p {outdir}",
                 f"cd {outdir}",
-                f"process -h5 {h5master} {friedel} {spg} {unit_cell} "
-                f"""autoPROC_Img2Xds_UseXdsPlugins_DectrisHdf5="durin-plugin" """
-                f"""autoPROC_XdsKeyword_LIB=\\$EBROOTDURIN/lib/durin-plugin.so """
-                f"""autoPROC_XdsKeyword_ROTATION_AXIS='0  -1 0' autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_JOBS=1 """
-                f"""autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ """
-                f"""{num_images} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {num_images} {customautoproc} """
-                f"-d {outdir}/autoproc"
+                get_autoproc_command(outdir, spg, unit_cell, customautoproc, friedel, h5master, num_images)
             )
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
@@ -311,7 +306,7 @@ def run_xds(proj, nodes, filters, options):
         batch.load_modules(softwares)
 
         for xml in bucket:
-            outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
@@ -336,10 +331,7 @@ def run_xds(proj, nodes, filters, options):
             batch.add_commands(
                 f"mkdir -p {outdir}/xdsxscale",
                 f"cd {outdir}/xdsxscale",
-                f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {spg} {unit_cell} {customxds} "
-                f"nproc=64 {friedel} image={h5master}:1:{num_images} "
-                f"multiprocessing.mode=serial multiprocessing.njob=1"
-            )
+                get_xia_xdsxscale_command(spg, unit_cell, customxds, friedel, image_file, num_images))
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
@@ -394,7 +386,7 @@ def run_dials(proj, nodes, filters, options):
         batch.load_modules(softwares)
 
         for xml in bucket:
-            outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
@@ -420,9 +412,7 @@ def run_dials(proj, nodes, filters, options):
             batch.add_commands(
                 f"mkdir -p {outdir}/dials",
                 f"cd {outdir}/dials",
-                f"xia2 goniometer.axes=0,1,0 pipeline=dials failover=true {spg} {unit_cell} {customdials} "
-                f"nproc=64 {friedel} image={h5master}:1:{num_images} "
-                f"multiprocessing.mode=serial multiprocessing.njob=1")
+                get_xia_dials_command(spg, unit_cell, customdials, friedel, image_file, num_images))
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
 

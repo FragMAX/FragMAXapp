@@ -4,6 +4,7 @@ from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.maxiv.project import ProjectLayout
 from fragview.sites.maxiv.diffractions import DiffractionImageMaker
+from fragview.sites.maxiv.pipelines import PipelineCommands
 from fragview.sites.maxiv.beamline import BeamlineInfo
 from fragview.sites.maxiv.hpc import HPC
 
@@ -73,6 +74,9 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_supported_ligand_tools(self):
         return LigandTool.GRADE, {LigandTool.GRADE, LigandTool.ACEDRG, LigandTool.ELBOW}
+
+    def get_pipeline_commands(self):
+        return PipelineCommands()
 
 
 def _copy_xmls_from_raw(project):

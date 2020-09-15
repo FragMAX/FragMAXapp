@@ -6,6 +6,7 @@ from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.hzb.project import ProjectLayout
 from fragview.sites.hzb.diffractions import DiffractionImageMaker
+from fragview.sites.hzb.pipelines import PipelineCommands
 from fragview.sites.hzb.beamline import BeamlineInfo
 from fragview.sites.hzb.hpc import HPC
 
@@ -68,6 +69,9 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_supported_ligand_tools(self):
         return LigandTool.ACEDRG, {LigandTool.ACEDRG, LigandTool.ELBOW}
+
+    def get_pipeline_commands(self):
+        return PipelineCommands()
 
 
 def _get_experiment_timestamp(project):

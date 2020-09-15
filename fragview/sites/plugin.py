@@ -133,6 +133,21 @@ class BeamlineInfo:
     polarisation = None
 
 
+class PipelineCommands:
+    def get_xia_dials_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+        raise NotImplementedError()
+
+    def get_xia_xdsxscale_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+        raise NotImplementedError()
+
+    def get_xdsapp_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+        raise NotImplementedError()
+
+    def get_autoproc_command(self, output_dir, space_group, unit_cell, custom_parameters, friedel, image_file,
+                             num_images):
+        raise NotImplementedError()
+
+
 class HPC:
     def run_batch(self, sbatch_script, sbatch_options=None):
         raise NotImplementedError()
