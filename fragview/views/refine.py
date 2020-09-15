@@ -6,14 +6,16 @@ from os import path
 from glob import glob
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview import hpc, versions
+from fragview import versions
 from fragview.views import crypt_shell
-from fragview.projects import current_project, project_script, project_update_status_script_cmds
-from fragview.projects import project_update_results_script_cmds, project_process_protein_dir
-from fragview.projects import project_results_dir
+from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
+from fragview.projects import current_project, project_script, project_process_protein_dir
+from fragview.projects import project_results_dir, project_log_path
 from fragview.filters import get_refine_datasets
 from fragview.models import PDB
 from fragview.forms import RefineForm
+from fragview.sites import SITE
+from fragview.sites.plugin import Duration, DataSize
 
 
 def datasets(request):
@@ -60,7 +62,7 @@ def run_structure_solving(
     aimless,
 ):
     # Modules list for HPC env
-    softwares = f"{versions.BUSTER_MOD} {versions.PHENIX_MOD}"
+    softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
@@ -73,85 +75,73 @@ def run_structure_solving(
     if useBUSTER:
         argsfit += "buster"
 
-    proc2resOut = f"""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 12:00:00
-#SBATCH -J Refine_FragMAX
-#SBATCH -N1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=5000
-"""  # noqa E128
-
-    prepare_cmd = f"""WORK_DIR=$(mktemp -d)
-cd $WORK_DIR
-
-{crypt_shell.fetch_file(proj, userPDB, "model.pdb")}
-
-module purge
-module load gopresto {softwares}
-"""  # noqa E128
-
-    cleanup_cmd = """
-# clean-up
-cd
-rm -rf $WORK_DIR
-"""  # noqa E128
+    hpc = SITE.get_hpc_runner()
 
     for dset in get_refine_datasets(proj, filters, useFSP, useDIMPLE, useBUSTER):
         set_name, run = dset.rsplit("_", 2)
 
-        script = project_script(proj, f"proc2res_{dset}.sh")
         epoch = str(round(time.time()))
         slctd_sw = argsfit.replace("none", "")
 
-        p2rOut = ""
-        p2rOut += """#SBATCH -o """ + proj.data_path() + f"/fragmax/logs/{dset}_{slctd_sw}_{epoch}_%j_out.txt\n"
-        p2rOut += """#SBATCH -e """ + proj.data_path() + f"/fragmax/logs/{dset}_{slctd_sw}_{epoch}_%j_err.txt\n"
+        script_file_path = project_script(proj, f"proc2res_{dset}.sh")
+        batch = hpc.new_batch_file(script_file_path)
+        batch.set_options(time=Duration(hours=12), job_name="Refine_FragMAX", nodes=1, cpus_per_task=2,
+                          mem_per_cpu=DataSize(kilobyte=5),
+                          stdout=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
+                          stderr=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt"))
 
-        with open(script, "w") as outp:
-            outp.write(proc2resOut)
-            outp.write(p2rOut)
-            outp.write(crypt_shell.crypt_cmd(proj))
+        batch.add_commands(crypt_shell.crypt_cmd(proj))
 
-            edna = find_edna(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
+        edna = find_edna(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        fastdp = find_fastdp(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        xdsapp = find_xdsapp(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        xdsxscale = find_xdsxscale(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        dials = find_dials(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        autoproc = find_autoproc(
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
+            customrefdimple
+        )
+
+        for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
+            batch.add_commands(
+                "WORK_DIR=$(mktemp -d)",
+                "cd $WORK_DIR",
+                crypt_shell.fetch_file(proj, userPDB, "model.pdb"))
+
+            batch.purge_modules()
+            batch.load_modules(softwares)
+
+            batch.add_commands(
+                part_cmd,
+                "cd",
+                "rm -rf $WORK_DIR"
             )
 
-            fastdp = find_fastdp(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
-            )
+        add_update_status_script_cmds(proj, dset, batch, softwares)
+        add_update_results_script_cmds(proj, dset, batch, softwares)
 
-            xdsapp = find_xdsapp(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
-            )
-
-            xdsxscale = find_xdsxscale(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
-            )
-
-            dials = find_dials(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
-            )
-
-            autoproc = find_autoproc(
-                proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-                customrefdimple
-            )
-
-            for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
-                outp.write(f"{prepare_cmd}{part_cmd}{cleanup_cmd}")
-
-            outp.write(project_update_status_script_cmds(proj, dset, softwares))
-            outp.write(project_update_results_script_cmds(proj, dset, softwares))
-            outp.write("\n\n")
-
-        hpc.run_sbatch(script)
-        # os.remove(script)
+        batch.save()
+        hpc.run_batch(script_file_path)
 
 
 def aimless_cmd(spacegroup, dstmtz):
@@ -395,8 +385,8 @@ def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimp
             + dstmtz
             + " "
             + customrefbuster
-            + " -TLS -nthreads 2 "
-            + "StopOnGellySanityCheckError=no -d "
+            + " -TLS -nthreads 2 -d "
+            + "StopOnGellySanityCheckError=no "
             + outdir
             + "buster \n"
         )

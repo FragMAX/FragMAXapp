@@ -52,7 +52,7 @@ class BatchFile(plugin.BatchFile):
         self.load_modules(["GCCcore/8.3.0", "Python/3.7.4"])
 
     def set_options(self, time=None, job_name=None, exclusive=None, nodes=None,
-                    cpus_per_task=None, partition=None, memory=None,
+                    cpus_per_task=None, mem_per_cpu=None, partition=None, memory=None,
                     stdout=None, stderr=None):
 
         def _slurm_size(size):
@@ -72,6 +72,9 @@ class BatchFile(plugin.BatchFile):
 
         if cpus_per_task:
             self._add_option(f"--cpus-per-task={cpus_per_task}")
+
+        if mem_per_cpu:
+            self._add_option(f"--mem-per-cpu={_slurm_size(mem_per_cpu)}")
 
         if partition:
             self._add_option(f"--partition={partition}")

@@ -216,8 +216,8 @@ class BatchFile:
         self._filename = filename
         self._body = f"{self.HEADER}\n"
 
-    def set_options(self, time: Duration = None, job_name=None, exclusive=None, nodes=None,
-                    cpus_per_task=None, partition=None, memory: DataSize = None,
+    def set_options(self, time: Duration = None, job_name=None, exclusive=None, nodes=None, partition=None,
+                    cpus_per_task=None, mem_per_cpu: DataSize = None, memory: DataSize = None,
                     stdout=None, stderr=None):
         """
         time - a limit on the total run time of the batch file
@@ -225,6 +225,7 @@ class BatchFile:
         exclusive - don't share compute node with this job
         nodes - minimum of nodes be allocated to this job
         cpus_per_task - expected number of CPU this task will use
+        mem_per_cpu - minimum memory required per allocated CPU
         partition - specific partition for the resource allocation
         memory - memory required to run this job, in gigabytes
         stdout - redirect stdout to specified file
