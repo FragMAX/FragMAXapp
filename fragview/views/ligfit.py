@@ -2,14 +2,14 @@ import threading
 import os
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview import hpc, versions
+from fragview import versions
 from fragview.forms import LigfitForm
-from fragview.projects import current_project, project_script, project_update_status_script_cmds
-from fragview.projects import project_update_results_script_cmds, project_fragment_cif, project_fragment_pdb
-from fragview.fileio import write_script
+from fragview.projects import current_project, project_script, project_log_path
+from fragview.projects import project_fragment_cif, project_fragment_pdb
 from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
-
-update_script = "/data/staff/biomax/webapp/static/scripts/update_status.py"
+from fragview.sites import SITE
+from fragview.sites.plugin import Duration
+from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
 
 
 def datasets(request):
@@ -30,19 +30,10 @@ def datasets(request):
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
-    softwares = f"{versions.BUSTER_MOD} {versions.PHENIX_MOD}"
+    softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
     lib = proj.library
 
-    header = ""
-    header += "#!/bin/bash\n"
-    header += "#!/bin/bash\n"
-    header += "#SBATCH -t 01:00:00\n"
-    header += "#SBATCH -J autoLigfit\n"
-    header += "#SBATCH --cpus-per-task=1\n"
-    header += f"#SBATCH -o /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_out.txt\n"
-    header += f"#SBATCH -e /data/visitors/biomax/{proj.proposal}/{proj.shift}/fragmax/logs/auto_ligfit_%j_err.txt\n"
-    header += "module purge\n"
-    header += f"module load gopresto {softwares}\n"
+    hpc = SITE.get_hpc_runner()
 
     datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
     for num, (sample, pdb) in enumerate(get_ligfit_pdbs(proj, datasets)):
@@ -89,20 +80,31 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
             ligfit_cmd += f"cd {ligfit_outdir} \n"
             ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} fill=True clean_up=True \n"
 
-        script = project_script(proj, f"autoligand_{sample}_{num}.sh")
-        write_script(
-            script,
-            f"{header}"
-            + f"{cif_cmd}"
-            + f"{move_cif_cmd}"
-            + f"{rhofit_cmd}"
-            + f"{ligfit_cmd}\n"
-            + project_update_status_script_cmds(proj, sample, softwares)
-            + "\n"
-            + project_update_results_script_cmds(proj, sample, softwares)
-            + "\n\n"
-            + f"{clear_tmp_cmd}\n",
+        script_file_path = project_script(proj, f"autoligand_{sample}_{num}.sh")
+        batch = hpc.new_batch_file(script_file_path)
+
+        batch.set_options(time=Duration(hours=1), job_name="autoLigfit", cpus_per_task=1,
+                          stdout=project_log_path(proj, "auto_ligfit_%j_out.txt"),
+                          stderr=project_log_path(proj, "auto_ligfit_%j_err.txt"))
+
+        batch.purge_modules()
+        batch.load_modules(softwares)
+
+        batch.add_commands(
+            cif_cmd,
+            move_cif_cmd,
+            rhofit_cmd,
+            ligfit_cmd,
         )
+
+        add_update_status_script_cmds(proj, sample, batch, softwares)
+        add_update_results_script_cmds(proj, sample, batch, softwares)
+
+        batch.add_commands(
+            clear_tmp_cmd
+        )
+
+        batch.save()
+
         if smiles != "none":
-            hpc.run_sbatch(script)
-        # os.remove(script)
+            hpc.run_batch(script_file_path)
