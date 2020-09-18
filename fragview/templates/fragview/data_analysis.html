@@ -444,9 +444,9 @@
                                         </label>
                                         <div class="checkbox" id="aimless">
                                             <label>
-                                                <input class="filled-in dt-checkboxes" id="aimlesscheckboxinput"
+                                                <input class="refineform filled-in dt-checkboxes" id="run_aimless"
                                                     name="runAimless" type="checkbox" value="aimless">
-                                                <span for="aimlesscheckboxinput">Run aimless </span>
+                                                <span for="run_aimless">Run aimless</span>
                                             </label>
                                         </div>
                                     </td>
@@ -2225,18 +2225,6 @@
     }
 
 
-
-    $(".refineform").on("input", function (e) {
-        if (document.getElementById("fspcheckboxinput").checked +
-            document.getElementById("bustercheckboxinput").checked +
-            document.getElementById("dimplecheckboxinput").checked != 0 && document.getElementById(
-                "refSpaceGroup").value != "") {
-            document.getElementById("submitrfProc").disabled = false;
-        } else {
-            document.getElementById("submitrfProc").disabled = true;
-        }
-    });
-
     /**
      * given checkbox IDs, return true if none of the checkboxes
      * are currently checked, otherwise return false
@@ -2257,6 +2245,18 @@
                                    "xdsappcheckboxinput", "autoproccheckboxinput");
 
         $("#submitdtProc").prop("disabled", disable_btn);
+    });
+
+    $('.refineform').on('input', function (e) {
+        let no_tools = none_checked("fspcheckboxinput", "bustercheckboxinput", "dimplecheckboxinput");
+        let space_group_ok = true;
+
+        if ($("#run_aimless").is(':checked')) {
+            space_group_ok = ($("#refSpaceGroup").val() !== "");
+        }
+
+        let disable_btn = no_tools || !space_group_ok;
+        $("#submitrfProc").prop("disabled", disable_btn);
     });
 
     $('.ligandform').on('input', function (e) {

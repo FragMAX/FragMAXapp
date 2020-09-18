@@ -155,6 +155,12 @@ class RefineForm(_ProcJobForm):
     def run_aimless(self):
         return self._get_field("runAimless")
 
+    def clean(self):
+        if self.run_aimless and self.ref_space_group == "":
+            # if 'run aimless' enabled the space group must be specified
+            raise forms.ValidationError(
+                dict(refSpaceGroup="space group required when aimless is enabled"))
+
 
 class ProjectForm(forms.Form):
     model = None
