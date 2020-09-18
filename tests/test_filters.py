@@ -13,6 +13,7 @@ from fragview.filters import (
     get_proc_datasets,
     get_refine_datasets,
     get_ligfit_datasets,
+    get_ligfit_pdbs,
     get_xml_files,
 )
 from tests.utils import data_file_path
@@ -62,9 +63,38 @@ def _create_result_dirs(proj):
     f3a_res_dir = Path(res_dir, DATASETS[3])
     f3a_res_dir.mkdir(parents=True)
 
-    # dataset #5 (PrtK-JBS-F3a_1)
+    # dataset #5 (PrtK-JBS-D12a_1)
     d12a_res_dir = Path(res_dir, DATASETS[5])
     d12a_res_dir.mkdir(parents=True)
+
+
+def _create_pdbs(proj):
+    #
+    # create some (dummy) final.pdb files inside result dirs
+    # for a couple of datasets
+    #
+
+    def _touch(file_path):
+        file_path.parent.mkdir(parents=True)
+        file_path.touch()
+
+    res_dir = project_results_dir(proj)
+
+    # dataset #0 (PrtK-Apo14_1)
+    apo14_res_dir = Path(res_dir, DATASETS[0])
+    _touch(Path(apo14_res_dir, "fastdp", "buster", "final.pdb"))
+    _touch(Path(apo14_res_dir, "fastdp", "dimple", "final.pdb"))
+    _touch(Path(apo14_res_dir, "xdsapp", "dimple", "final.pdb"))
+
+    # dataset #3 (PrtK-JBS-F3a_1)
+    f3a_res_dir = Path(res_dir, DATASETS[3])
+    _touch(Path(f3a_res_dir, "autoproc", "buster", "final.pdb"))
+    _touch(Path(f3a_res_dir, "dials", "dimple", "final.pdb"))
+
+    # create one folder named 'final.pdb', to check that we only find
+    # PDB _files_ when listing final PDBs for ligfit tools
+    d12a_res_dir = Path(res_dir, DATASETS[5])
+    Path(d12a_res_dir, "dials", "dimple", "final.pdb").mkdir(parents=True)
 
 
 class _FiltersTester(TestCase):
@@ -82,6 +112,7 @@ class _FiltersTester(TestCase):
             _create_result_dirs(self.proj)
 
         _copy_csv_files(self.proj)
+        _create_pdbs(self.proj)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -255,8 +286,49 @@ class TestGetLigfitDatasets(_FiltersTester):
         self.assertListEqual(["PrtK-JBS-F3a_1", "PrtK-JBS-D10a_1"], list(dsets))
 
 
+class TestGetLigfitPdbs(_FiltersTester):
+    """
+    test get_ligfit_pdbs() function
+    """
+
+    def test_func(self):
+        data_sets = [
+            "PrtK-Apo14_1",
+            "PrtK-JBS-F3a_1",
+            "PrtK-JBS-G8a_1",
+            "PrtK-JBS-D12a_1",
+        ]
+
+        #
+        # get the PDBs
+        #
+        pdbs = get_ligfit_pdbs(self.proj, data_sets)
+
+        # convert the returned absolute PDB paths to paths
+        # relative to project's results dir,
+        # to make it easier to compare to expected set of paths
+        res_dir = project_results_dir(self.proj)
+        relative_pdb = set([str(Path(pdb).relative_to(res_dir)) for pdb in pdbs])
+
+        # check that we got exactly expected PDBs
+        self.assertSetEqual(
+            relative_pdb,
+            {
+                "PrtK-Apo14_1/fastdp/buster/final.pdb",
+                "PrtK-Apo14_1/fastdp/dimple/final.pdb",
+                "PrtK-Apo14_1/xdsapp/dimple/final.pdb",
+                "PrtK-JBS-F3a_1/autoproc/buster/final.pdb",
+                "PrtK-JBS-F3a_1/dials/dimple/final.pdb",
+            },
+        )
+
+
 @patch("fragview.projects.SITE", Site)
 class TestGetXmlFiles(_FiltersTester):
+    """
+    test get_xml_files() function
+    """
+
     def test_func(self):
         data_sets = ["PrtK-Apo14_1", "PrtK-Apo9_1", "PrtK-JBS-G8a_1"]
         xml_files = get_xml_files(self.proj, data_sets)
