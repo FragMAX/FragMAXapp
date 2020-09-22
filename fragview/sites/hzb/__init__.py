@@ -1,6 +1,7 @@
 from os import path, walk
-from glob import glob
+from pathlib import Path
 from datetime import datetime
+from fragview.fileio import subdirs
 from fragview.fileio import makedirs
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
@@ -9,6 +10,9 @@ from fragview.sites.hzb.diffractions import DiffractionImageMaker
 from fragview.sites.hzb.pipelines import PipelineCommands
 from fragview.sites.hzb.beamline import BeamlineInfo
 from fragview.sites.hzb.hpc import HPC
+
+# filename suffix for a dataset's master image file
+MASTER_IMG_SUFFIX = "_0001.cbf"
 
 
 class SitePlugin(plugin.SitePlugin):
@@ -57,7 +61,7 @@ class SitePlugin(plugin.SitePlugin):
             makedirs(path.join(root_dir, dataset_dir, dataset))
 
     def dataset_master_image(self, dataset):
-        return f"{dataset}_0001.cbf"
+        return f"{dataset}{MASTER_IMG_SUFFIX}"
 
     def get_supported_pipelines(self):
         return {
@@ -98,35 +102,23 @@ def _get_experiment_timestamp(project):
 
 
 def _get_datasets(project):
-    """
-    list the data sets by looking at existing *.cbf files in
-    subdirectories under the 'raw' folder
-    """
-
-    def _run_exists(set_dir, set_name, run):
-        for n in range(1, 10):
-            file_name = f"{set_name}_{run}_{n:04}.cbf"
-            if path.isfile(path.join(set_dir, file_name)):
-                return True
-
-        return False
-
-    def _sets(set_dir):
-        """
-        list all runs of a particular dataset by probing
-        the *.cbf file names
-        """
-        run = 1
-        set_name = path.basename(set_dir)
-        while _run_exists(set_dir, set_name, run):
-            yield f"{set_name}_{run}"
-            run += 1
+    def _file_to_dataset_name(file):
+        # to get dataset name, chop off the
+        # _0001.cbf suffix
+        return file.name[: -len(MASTER_IMG_SUFFIX)]
 
     from fragview.projects import project_raw_protein_dir
 
-    raw = project_raw_protein_dir(project)
+    #
+    # for each subdirectory in 'raw' directory,
+    # look for dataset master image files, i.e. files
+    # with names like <protein>..._0001.cbf,
+    # derive dataset name from master image file name
+    #
 
-    for dir_name in glob(f"{raw}/*"):
-        # list all datasets for each folder under 'raw'
-        for set_name in _sets(dir_name):
-            yield set_name
+    raw = Path(project_raw_protein_dir(project))
+    glob_exp = f"{project.protein}*{MASTER_IMG_SUFFIX}"
+
+    for dset_dir in subdirs(raw, 1):
+        for img_file in dset_dir.glob(glob_exp):
+            yield _file_to_dataset_name(img_file)
