@@ -1,5 +1,6 @@
 import glob
 from os import path
+from pathlib import Path
 from fragview.sites import SITE
 from .proposals import get_proposals
 
@@ -24,6 +25,16 @@ def proposal_dir(proposal_number):
 
 def shift_dir(proposal_number, shift):
     return path.join(proposal_dir(proposal_number), shift)
+
+
+def dataset_xml_file(project, data_set):
+    set_name, _ = data_set.rsplit("_", 2)
+
+    return Path(project_process_protein_dir(project), set_name, f"{data_set}.xml")
+
+
+def dataset_master_image(dataset):
+    return SITE.dataset_master_image(dataset)
 
 
 def protein_dir(proposal_number, shift, protein):

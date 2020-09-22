@@ -53,6 +53,9 @@ class SitePlugin(plugin.SitePlugin):
 
         import_autoproc(project, shifts)
 
+    def dataset_master_image(self, dataset):
+        return f"{dataset}_master.h5"
+
     def get_supported_pipelines(self):
         return {
             Pipeline.AUTO_PROC,

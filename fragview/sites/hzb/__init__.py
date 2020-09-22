@@ -56,6 +56,9 @@ class SitePlugin(plugin.SitePlugin):
             dataset_dir, _ = dataset.rsplit("_", 2)
             makedirs(path.join(root_dir, dataset_dir, dataset))
 
+    def dataset_master_image(self, dataset):
+        return f"{dataset}_0001.cbf"
+
     def get_supported_pipelines(self):
         return {
             Pipeline.XIA2_DIALS,

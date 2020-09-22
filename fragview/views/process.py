@@ -4,10 +4,10 @@ import threading
 from os import path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview.projects import current_project, project_script
-from fragview.projects import project_process_protein_dir, project_log_path
+from fragview.projects import current_project, project_script, dataset_xml_file
+from fragview.projects import project_process_protein_dir, project_log_path, dataset_master_image
 from fragview import versions
-from fragview.filters import get_proc_datasets, get_xml_files
+from fragview.filters import get_proc_datasets
 from fragview.forms import ProcessForm
 from fragview.xsdata import XSDataCollection
 from fragview.views.utils import add_update_status_script_cmds
@@ -91,18 +91,18 @@ def _as_buckets(elms, num_buckets):
         start = end
 
 
-def _get_dataset_params(proj, xml_file):
-    xsdata = XSDataCollection(xml_file)
+def _get_dataset_params(proj, dset):
+    xsdata = XSDataCollection(dataset_xml_file(proj, dset))
 
     outdir = path.join(project_process_protein_dir(proj),
                        xsdata.imagePrefix,
                        f"{xsdata.imagePrefix}_{xsdata.dataCollectionNumber}")
 
-    h5master = path.join(xsdata.imageDirectory, xsdata.fileTemplate.replace("%06d", "master"))
+    master_image = path.join(xsdata.imageDirectory, dataset_master_image(dset))
 
     sample = outdir.split("/")[-1]
 
-    return outdir, h5master, sample, xsdata.numberOfImages
+    return outdir, master_image, sample, xsdata.numberOfImages
 
 
 def run_xdsapp(proj, nodes, filters, options):
@@ -160,8 +160,8 @@ def run_xdsapp(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    xml_files = list(get_xml_files(proj, get_proc_datasets(proj, filters)))
-    for num, bucket in enumerate(_as_buckets(xml_files, nodes)):
+    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
+    for num, bucket in enumerate(buckets):
         script_file_path = project_script(proj, f"xdsapp_fragmax_part{num}.sh")
         batch = hpc.new_batch_file(script_file_path)
 
@@ -173,8 +173,8 @@ def run_xdsapp(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for xml in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
+        for dset in bucket:
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
@@ -210,8 +210,8 @@ def run_autoproc(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    xml_files = list(get_xml_files(proj, get_proc_datasets(proj, filters)))
-    for num, bucket in enumerate(_as_buckets(xml_files, nodes)):
+    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
+    for num, bucket in enumerate(buckets):
         script_file_path = project_script(proj, f"autoproc_fragmax_part{num}.sh")
         batch = hpc.new_batch_file(script_file_path)
 
@@ -223,8 +223,8 @@ def run_autoproc(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for xml in bucket:
-            outdir, h5master, sample, num_images = _get_dataset_params(proj, xml)
+        for dset in bucket:
+            outdir, h5master, sample, num_images = _get_dataset_params(proj, dset)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
 
@@ -292,8 +292,8 @@ def run_xds(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    xml_files = list(get_xml_files(proj, get_proc_datasets(proj, filters)))
-    for num, bucket in enumerate(_as_buckets(xml_files, nodes)):
+    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
+    for num, bucket in enumerate(buckets):
         script_file_path = project_script(proj, f"xdsxscale_fragmax_part{num}.sh")
         batch = hpc.new_batch_file(script_file_path)
 
@@ -305,8 +305,8 @@ def run_xds(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for xml in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
+        for dset in bucket:
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
@@ -372,8 +372,8 @@ def run_dials(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    xml_files = list(get_xml_files(proj, get_proc_datasets(proj, filters)))
-    for num, bucket in enumerate(_as_buckets(xml_files, nodes)):
+    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
+    for num, bucket in enumerate(buckets):
         script_file_path = project_script(proj, f"dials_fragmax_part{num}.sh")
         batch = hpc.new_batch_file(script_file_path)
 
@@ -385,8 +385,8 @@ def run_dials(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for xml in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, xml)
+        for dset in bucket:
+            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
             os.makedirs(outdir, mode=0o760, exist_ok=True)
             os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)

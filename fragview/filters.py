@@ -2,7 +2,6 @@ from pathlib import Path
 from fragview.projects import (
     project_results_dir,
     project_datasets,
-    project_process_protein_dir,
 )
 from fragview.fileio import subdirs
 from fragview.dsets import get_datasets
@@ -173,17 +172,3 @@ def get_ligfit_pdbs(proj, datasets):
             pdb_path = Path(sdir, "final.pdb")
             if pdb_path.is_file():
                 yield dset, str(pdb_path)
-
-
-def get_xml_files(proj, datasets):
-    """
-    get specified datasets metadata XML files
-    """
-
-    def _dataset_xml_path(data_set):
-        set_name, _ = data_set.rsplit("_", 2)
-
-        return Path(project_process_protein_dir(proj), set_name, f"{data_set}.xml")
-
-    for dset in datasets:
-        yield _dataset_xml_path(dset)

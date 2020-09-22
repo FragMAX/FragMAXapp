@@ -14,7 +14,6 @@ from fragview.filters import (
     get_refine_datasets,
     get_ligfit_datasets,
     get_ligfit_pdbs,
-    get_xml_files,
 )
 from tests.utils import data_file_path
 
@@ -325,19 +324,3 @@ class TestGetLigfitPdbs(_FiltersTester):
                 ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/dials/dimple/final.pdb"),
             },
         )
-
-
-@patch("fragview.projects.SITE", Site)
-class TestGetXmlFiles(_FiltersTester):
-    """
-    test get_xml_files() function
-    """
-
-    def test_func(self):
-        data_sets = ["PrtK-Apo14_1", "PrtK-Apo9_1", "PrtK-JBS-G8a_1"]
-        xml_files = get_xml_files(self.proj, data_sets)
-
-        xml_fnames = set([p.name for p in xml_files])
-        expected = set([f"{ds}.xml" for ds in data_sets])
-
-        self.assertSetEqual(xml_fnames, expected)

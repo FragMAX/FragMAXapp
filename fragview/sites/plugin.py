@@ -37,6 +37,12 @@ class SitePlugin:
     def prepare_project_folders(self, project, shifts):
         raise NotImplementedError()
 
+    def dataset_master_image(self, dataset):
+        """
+        return the file name of the master image for specified dataset
+        """
+        raise NotImplementedError()
+
     def get_supported_pipelines(self):
         """
         return set of pipelines supported by this site,
