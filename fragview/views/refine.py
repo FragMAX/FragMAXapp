@@ -123,6 +123,10 @@ def run_structure_solving(
         )
 
         for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
+            if part_cmd is None:
+                # skip the tools, where no result was found
+                continue
+
             batch.add_commands(
                 "WORK_DIR=$(mktemp -d)",
                 "cd $WORK_DIR",
@@ -164,7 +168,6 @@ def find_autoproc(
 ):
     srcmtz = None
     aimless_c = ""
-    out_cmd = ""
 
     glob_exp = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}", "autoproc", "*mtz")
     if glob(glob_exp) != []:
@@ -179,77 +182,76 @@ def find_autoproc(
     res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "autoproc")
     dstmtz = f"{dataset}_{run}_autoproc_merged.mtz"
 
-    if srcmtz:
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
+    if not srcmtz:
+        # no autoproc results found
+        return None
 
-        autoproc_cmd = copy + "\n" + aimless_c + "\n"
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
-        out_cmd = f"{autoproc_cmd}\n{refine_cmd}\n{upload_cmd}"
+    autoproc_cmd = copy + "\n" + aimless_c + "\n"
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
 
-    return out_cmd
+    upload_cmd = _upload_result_cmd(proj, res_dir)
+    return f"{autoproc_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def find_dials(
     proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
     aimless_c = ""
-    out_cmd = ""
 
     srcmtz = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}",
                        "dials", "DEFAULT", "scale", "AUTOMATIC_DEFAULT_scaled.mtz")
     res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "dials")
     dstmtz = f"{dataset}_{run}_dials_merged.mtz"
 
-    if path.exists(srcmtz):
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
-        dials_cmd = copy + "\n" + aimless_c + "\n"
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    if not path.exists(srcmtz):
+        return None
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
+    dials_cmd = copy + "\n" + aimless_c + "\n"
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
+    upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{dials_cmd}\n{refine_cmd}\n{upload_cmd}"
-
-    return out_cmd
+    return f"{dials_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def find_xdsxscale(
     proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
 ):
     aimless_c = ""
-    out_cmd = ""
     res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "xdsxscale")
     srcmtz = path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}",
                        "xdsxscale", "DEFAULT", "scale", "AUTOMATIC_DEFAULT_scaled.mtz")
 
     dstmtz = f"{dataset}_{run}_xdsxscale_merged.mtz"
 
-    if path.exists(srcmtz):
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
-        xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    if not path.exists(srcmtz):
+        # no xds results found
+        return None
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
+    xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
 
-        out_cmd = f"{xdsxscale_cmd}\n{refine_cmd}\n{upload_cmd}"
+    upload_cmd = _upload_result_cmd(proj, res_dir)
 
-    return out_cmd
+    return f"{xdsxscale_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def find_xdsapp(
@@ -258,7 +260,7 @@ def find_xdsapp(
     srcmtz = False
     dstmtz = None
     aimless_c = ""
-    out_cmd = ""
+
     mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, f"{dataset}_{run}", "xdsapp", "*F.mtz"))
 
     if mtzoutList != []:
@@ -266,21 +268,23 @@ def find_xdsapp(
         res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "xdsapp")
         dstmtz = f"{dataset}_{run}_xdsapp_merged.mtz"
 
-    if srcmtz:
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
+    if not srcmtz:
+        # no xdsapp results found
+        return None
 
-        xdsapp_cmd = copy + "\n" + aimless_c + "\n"
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+    xdsapp_cmd = copy + "\n" + aimless_c + "\n"
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
 
-        out_cmd = f"{xdsapp_cmd}\n{refine_cmd}\n{upload_cmd}"
-    return out_cmd
+    upload_cmd = _upload_result_cmd(proj, res_dir)
+
+    return f"{xdsapp_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def find_edna(
@@ -290,7 +294,6 @@ def find_edna(
     dstmtz = None
     aimless_c = ""
 
-    out_cmd = ""
     mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, "*", "edna", "*_noanom_aimless.mtz"))
 
     if mtzoutList != []:
@@ -298,22 +301,23 @@ def find_edna(
         res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "edna")
         dstmtz = f"{dataset}_{run}_EDNA_merged.mtz"
 
-    if srcmtz:
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
-        edna_cmd = copy + "\n" + aimless_c + "\n"
+    if not srcmtz:
+        # no edna results found
+        return None
 
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
+    edna_cmd = copy + "\n" + aimless_c + "\n"
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
 
-        out_cmd = f"{edna_cmd}\n{refine_cmd}\n{upload_cmd}"
+    upload_cmd = _upload_result_cmd(proj, res_dir)
 
-    return out_cmd
+    return f"{edna_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def find_fastdp(
@@ -322,7 +326,6 @@ def find_fastdp(
     srcmtz = False
     dstmtz = None
     aimless_c = ""
-    out_cmd = ""
     mtzoutList = glob(path.join(project_process_protein_dir(proj), dataset, "*", "fastdp", "*.mtz"))
 
     if mtzoutList != []:
@@ -330,21 +333,21 @@ def find_fastdp(
         res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "fastdp")
         dstmtz = f"{dataset}_{run}_fastdp_merged.mtz"
 
-    if srcmtz:
-        cmd = aimless_cmd(spacegroup, dstmtz)
-        copy = f"cp {srcmtz} {dstmtz}"
-        if aimless:
-            aimless_c = f"{cmd}"
-        fastdp_cmd = copy + "\n" + aimless_c + "\n"
-        refine_cmd = set_refine(
-            argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
-        )
+    if not srcmtz:
+        # no fastdp results found
+        return None
 
-        upload_cmd = _upload_result_cmd(proj, res_dir)
+    cmd = aimless_cmd(spacegroup, dstmtz)
+    copy = f"cp {srcmtz} {dstmtz}"
+    if aimless:
+        aimless_c = f"{cmd}"
+    fastdp_cmd = copy + "\n" + aimless_c + "\n"
+    refine_cmd = set_refine(
+        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+    )
+    upload_cmd = _upload_result_cmd(proj, res_dir)
 
-        out_cmd = f"{fastdp_cmd}\n{refine_cmd}\n{upload_cmd}"
-
-    return out_cmd
+    return f"{fastdp_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
 def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz):
