@@ -1,4 +1,3 @@
-import os
 import time
 import pyfastcopy  # noqa
 import threading
@@ -12,6 +11,7 @@ from fragview.views.utils import add_update_status_script_cmds, add_update_resul
 from fragview.projects import current_project, project_script, project_process_protein_dir
 from fragview.projects import project_results_dir, project_log_path
 from fragview.filters import get_refine_datasets
+from fragview.pipeline_commands import get_dimple_command, get_fspipeline_command, get_buster_command
 from fragview.models import PDB
 from fragview.forms import RefineForm
 from fragview.sites import SITE
@@ -354,47 +354,14 @@ def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimp
     dimple_cmd = ""
     buster_cmd = ""
     fsp_cmd = ""
-    srcmtz = dstmtz
-
-    fsp = (
-        """python /mxn/groups/biomax/wmxsoft/fspipeline/fspipeline.py --sa=false --refine="""
-        + userPDB
-        + """ --exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 """
-        + customreffspipe
-    )
 
     if "dimple" in argsfit:
-        dimple_cmd += f"dimple {dstmtz} model.pdb dimple {customrefdimple}"
+        dimple_cmd = get_dimple_command(dstmtz, customrefdimple)
 
     if "buster" in argsfit:
-        dstmtz = dstmtz.replace("merged", "truncate")
-        outdir = "/".join(dstmtz.split("/")[:-1])
-        if os.path.exists(outdir + "/buster"):
-            buster_cmd += "rm -rf " + outdir + "/buster\n"
-        buster_cmd += (
-            'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin '
-            + srcmtz
-            + " hklout "
-            + dstmtz
-            + " | tee "
-            + outdir
-            + "truncate.log\n"
-        )
-
-        buster_cmd += (
-            "refine -L -p "
-            + userPDB
-            + " -m "
-            + dstmtz
-            + " "
-            + customrefbuster
-            + " -TLS -nthreads 2 -d "
-            + "StopOnGellySanityCheckError=no "
-            + outdir
-            + "buster \n"
-        )
+        buster_cmd = get_buster_command(dstmtz, userPDB, customrefbuster)
 
     if "fspipeline" in argsfit:
-        fsp_cmd += fsp + "\n"
+        fsp_cmd = get_fspipeline_command(userPDB, customreffspipe)
 
     return dimple_cmd + "\n" + buster_cmd + "\n" + fsp_cmd

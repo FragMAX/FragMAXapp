@@ -50,3 +50,24 @@ class PipelineCommands(plugin.PipelineCommands):
             "autoPROC_XdsKeyword_MAXIMUM_NUMBER_OF_PROCESSORS=64 autoPROC_XdsKeyword_DATA_RANGE=1\\ "
             f"{num_images} autoPROC_XdsKeyword_SPOT_RANGE=1\\ {num_images} {custom_parameters} -d {output_dir}/autoproc"
         )
+
+    def get_dimple_command(self, dstmtz, custom_parameters):
+        return f"dimple {dstmtz} model.pdb dimple {custom_parameters}"
+
+    def get_fspipeline_command(self, pdb, custom_parameters):
+        return (
+            f"python /mxn/groups/biomax/wmxsoft/fspipeline/fspipeline.py --sa=false --refine={pdb} "
+            f'--exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=2 {custom_parameters}'
+        )
+
+    def get_buster_command(self, dstmtz, pdb, custom_parameters):
+        srcmtz = dstmtz
+        dstmtz = dstmtz.replace("merged", "truncate")
+        outdir = "/".join(dstmtz.split("/")[:-1])
+
+        return (
+            f'echo "truncate yes \\labout F=FP SIGF=SIGFP" | truncate hklin {srcmtz} hklout {dstmtz} '
+            f"| tee {outdir} truncate.log\n"
+            f"refine -L -p {pdb} -m {dstmtz} {custom_parameters} -TLS -nthreads 2 "
+            f"StopOnGellySanityCheckError=no -d {outdir} buster\n"
+        )

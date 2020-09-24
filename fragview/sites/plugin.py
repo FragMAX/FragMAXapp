@@ -153,6 +153,15 @@ class PipelineCommands:
                              num_images):
         raise NotImplementedError()
 
+    def get_dimple_command(self, dstmtz, custom_parameters):
+        raise NotImplementedError()
+
+    def get_fspipeline_command(self, pdb, custom_parameters):
+        raise NotImplementedError()
+
+    def get_buster_command(self, dstmtz, pdb, custom_parameters):
+        raise NotImplementedError()
+
 
 class HPC:
     def run_batch(self, sbatch_script, sbatch_options=None):
