@@ -944,8 +944,8 @@ def giant_score(proj, method):
             run = dataset.split("_")[-1]
 
             ens = path.join(export_dir, dataset, f"{dataset}-ensemble-model.pdb")
-            print(ens)
-            resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag}.pdb | head -1`"""
+            frag_path = path.join(export_dir, dataset, f"{frag}.pdb")
+            resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_path} | head -1`"""
             make_restraints = f"giant.make_restraints {ens} all=True resname=$resN"
             inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
             params = "params=$(ls *.restraints-refmac.params)"
