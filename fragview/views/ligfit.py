@@ -45,7 +45,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     header += f"module load gopresto {softwares}\n"
 
     datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
-    for num, pdb in enumerate(get_ligfit_pdbs(proj, datasets)):
+    for num, (sample, pdb) in enumerate(get_ligfit_pdbs(proj, datasets)):
         fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
         if lib.get_fragment(fragID) is not None:
             smiles = lib.get_fragment(fragID).smiles
@@ -76,7 +76,6 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
         rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
         ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
         mtz_input = pdb.replace(".pdb", ".mtz")
-        sample = pdb.split("/")[8]
 
         if useRhoFit:
             if os.path.exists(rhofit_outdir):

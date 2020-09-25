@@ -162,6 +162,8 @@ def get_ligfit_datasets(proj, filter, use_ligand_fit, use_rho_fit):
 def get_ligfit_pdbs(proj, datasets):
     """
     get all 'final' PDBs for specified datasets
+
+    returns list of (<data set>, <pdb path>) tuples
     """
     results_dir = project_results_dir(proj)
 
@@ -170,7 +172,7 @@ def get_ligfit_pdbs(proj, datasets):
         for sdir in subdirs(dset_res_dir, 2):
             pdb_path = Path(sdir, "final.pdb")
             if pdb_path.is_file():
-                yield str(pdb_path)
+                yield dset, str(pdb_path)
 
 
 def get_xml_files(proj, datasets):
