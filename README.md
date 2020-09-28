@@ -1,5 +1,5 @@
-# FragMAX_WebApp
-FragMAX webapp for data processing and visualisation
+# FragMAXapp
+FragMAXapp for data processing and visualisation
 
 Web application to plan fragment screening experiments, process data, visualize results and compare structures.
 
@@ -9,6 +9,7 @@ Uses CCP4, XDS, Phenix packages for data processing and analysis
 ## Application map
 
 - Plan soaking for Crystal Shifter
+- All in one solution: Pipedream
 - Data processing using: XIA2/DIALS, XIA2/XDS.XSCALE, XDSAPP, autoPROC
 - Structure Solving/Refinement: Dimple, BUSTER, FSpipeline
 - Ligand fitting: RhoFit, Phenix LigFit
