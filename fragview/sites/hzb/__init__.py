@@ -3,7 +3,7 @@ from glob import glob
 from datetime import datetime
 from fragview.fileio import makedirs
 from fragview.sites import plugin
-from fragview.sites.plugin import Pipeline
+from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.hzb.project import ProjectLayout
 from fragview.sites.hzb.diffractions import DiffractionImageMaker
 from fragview.sites.hzb.beamline import BeamlineInfo
@@ -65,6 +65,9 @@ class SitePlugin(plugin.SitePlugin):
             Pipeline.LIGAND_FIT,
             Pipeline.PANDDA,
         }
+
+    def get_supported_ligand_tools(self):
+        return LigandTool.ACEDRG, {LigandTool.ACEDRG, LigandTool.ELBOW}
 
 
 def _get_experiment_timestamp(project):

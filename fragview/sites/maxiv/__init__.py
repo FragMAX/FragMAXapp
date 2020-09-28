@@ -1,7 +1,7 @@
 from os import path
 from datetime import datetime
 from fragview.sites import plugin
-from fragview.sites.plugin import Pipeline
+from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.maxiv.project import ProjectLayout
 from fragview.sites.maxiv.diffractions import DiffractionImageMaker
 from fragview.sites.maxiv.beamline import BeamlineInfo
@@ -70,6 +70,9 @@ class SitePlugin(plugin.SitePlugin):
             Pipeline.PIPEDREAM_LIGAND,
             Pipeline.PANDDA,
         }
+
+    def get_supported_ligand_tools(self):
+        return LigandTool.GRADE, {LigandTool.GRADE, LigandTool.ACEDRG, LigandTool.ELBOW}
 
 
 def _copy_xmls_from_raw(project):

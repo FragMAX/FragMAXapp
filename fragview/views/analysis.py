@@ -18,6 +18,8 @@ def processing_form(request):
         )
     ]
 
+    default_ligand_tool, ligand_tools = SITE.get_supported_ligand_tools()
+
     return render(
         request,
         "fragview/data_analysis.html",
@@ -26,5 +28,7 @@ def processing_form(request):
             "pdbs": PDB.project_pdbs(proj),
             "methods": methods,
             "pipelines": SITE.get_supported_pipelines(),
+            "default_ligand_tool": default_ligand_tool,
+            "ligand_tools": ligand_tools,
         },
     )

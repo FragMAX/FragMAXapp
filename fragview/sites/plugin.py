@@ -39,9 +39,19 @@ class SitePlugin:
 
     def get_supported_pipelines(self):
         """
-        return symbolic names of supported by this site,
+        return set of pipelines supported by this site,
         must be a set() of Pipeline class's fields
         """
+        raise NotImplementedError()
+
+    def get_supported_ligand_tools(self):
+        """
+        return set of ligand tools supported by this site,
+        must be a set() of LigandTool class's fields
+        """
+        raise NotImplementedError()
+
+    def get_pipeline_commands(self):
         raise NotImplementedError()
 
 
@@ -61,6 +71,15 @@ class Pipeline:
     PIPEDREAM_REFINE = "pipedream_refine"
     PIPEDREAM_LIGAND = "pipedream_ligand"
     PANDDA = "pandda"
+
+
+class LigandTool:
+    """
+    tools that can convert ligand SMILES into PDB/CIF files
+    """
+    GRADE = "grade"
+    ACEDRG = "acedrg"
+    ELBOW = "elbow"
 
 
 class ProjectLayout:

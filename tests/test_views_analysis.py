@@ -3,9 +3,11 @@ from django.test import TestCase
 from django.urls import reverse
 from tests.utils import ViewTesterMixin
 from fragview.models import PDB
-from fragview.sites.plugin import Pipeline
+from fragview.sites.plugin import Pipeline, LigandTool
 
-PIPELINES = [Pipeline.BUSTER, Pipeline.XIA2_XDS]
+PIPELINES = {Pipeline.BUSTER, Pipeline.XIA2_XDS}
+DEF_LIGAND_TOOL = LigandTool.ACEDRG
+LIGAND_TOOLS = {LigandTool.ACEDRG, LigandTool.ELBOW}
 
 
 class MockSitePlugin:
@@ -13,6 +15,9 @@ class MockSitePlugin:
 
     def get_supported_pipelines(self):
         return PIPELINES
+
+    def get_supported_ligand_tools(self):
+        return DEF_LIGAND_TOOL, LIGAND_TOOLS
 
     def get_project_datasets(self, project):
         return ["Foo-Lib-A0_1", "hCAII-Apo25_1", "Foo-Lib-B0_2"]
@@ -51,3 +56,5 @@ class TestProcessingForm(TestCase, ViewTesterMixin):
         self.assertEqual(list(ctx["pdbs"]), [self.pdb])
         self.assertEqual(ctx["methods"], [])
         self.assertEqual(ctx["pipelines"], PIPELINES)
+        self.assertEqual(ctx["default_ligand_tool"], DEF_LIGAND_TOOL)
+        self.assertEqual(ctx["ligand_tools"], LIGAND_TOOLS)

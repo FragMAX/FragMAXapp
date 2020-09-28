@@ -531,27 +531,32 @@
                                                 {% endif %}
                                             </div>
 
-
-
-
                                             <div class="radio" id="cif_gen_method"
                                                 style="padding-top: 20px; max-width: 250px; display: inline-flex; margin-left: -150px;">
+                                                {% if "grade" in ligand_tools %}
                                                 <label>
-                                                    <input checked class="with-gap" id="grade" name="library_method"
-                                                        type="radio" value="grade">
+                                                    <input class="with-gap" id="grade" name="library_method"
+                                                        type="radio" value="grade"
+                                                        {% if default_ligand_tool == "grade" %}checked{% endif %}>
                                                     <span class="item-label" for="grade">GRADE</span>
                                                 </label>
+                                                {% endif %}
+                                                {% if "acedrg" in ligand_tools %}
                                                 <label>
                                                     <input class="with-gap" id="acedrug" name="library_method"
-                                                        type="radio" value="acedrg">
+                                                        type="radio" value="acedrg"
+                                                        {% if default_ligand_tool == "acedrg" %}checked{% endif %}>
                                                     <span class="item-label" for="acedrug">AceDRG</span>
                                                 </label>
+                                                {% endif %}
+                                                {% if "elbow" in ligand_tools %}
                                                 <label>
                                                     <input class="with-gap" id="elbow" name="library_method"
-                                                        type="radio" value="elbow">
+                                                        type="radio" value="elbow"
+                                                        {% if default_ligand_tool == "elbow" %}checked{% endif %}>
                                                     <span class="item-label" for="elbow">eLBOW</span>
                                                 </label>
-
+                                                {% endif %}
                                             </div>
                                         </form>
                                 </tr>
