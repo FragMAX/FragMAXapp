@@ -1,0 +1,24 @@
+language: python
+python:
+  - "3.6"
+
+install:
+  # install miniconda
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+
+  # create FragMAX conda environment
+  - conda env create --quiet --file environment.yml
+  - conda activate FragMAX
+  - conda install flake8
+  - conda info --all
+
+  # for now, tests assume we are deployed at MAXIV
+  - cp deploy/local_site.py-maxiv local_site.py
+
+script:
+  - ./manage.py test
+  - flake8
