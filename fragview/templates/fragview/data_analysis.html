@@ -2105,13 +2105,20 @@
 
     $(document).ready(function () {
         $("#panddacheckboxinput").click(function () {
-            if ($(this).is(":checked")) {
-                openDatasets(event, 'PanDDA')
-            } else {
-                openDatasets(event, 'Hide')
+            /*
+             * when 'PanDDA' checkbox is checked,
+             * make sure that 'PanDDA' tab is opened
+             * when it's unchecked, hide the tab
+             */
+            let checked = $(this).is(":checked");
+            let visible = $("#PanDDA").is(":visible");
+
+            if (checked != visible) {
+              openMethod(event, 'PanDDA');
             }
         });
     });
+
     $(document).ready(function () {
         $("#checkALLdatasets").click(function () {
             if ($(this).is(":checked")) {
