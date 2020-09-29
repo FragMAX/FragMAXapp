@@ -1,10 +1,12 @@
-from django import test
 import base64
+from unittest.mock import Mock
+from django import test
 from django.shortcuts import reverse
 from fragview.models import Project, Library, EncryptionKey
 from tests.utils import ViewTesterMixin
 
 DUMMY_KEY = b"DeadBeefCafeBabe"
+BASE64_KEY = "RGVhZEJlZWZDYWZlQmFiZQ=="
 ENCRYPTION_DISABLED = "encrypted mode disabled for current project"
 
 
@@ -25,6 +27,14 @@ def _setup_proj(encrypted=True, key=None):
         EncryptionKey(project=proj, key=key).save()
 
     return proj
+
+
+def _upload_file(name, data):
+    ufile = Mock()
+    ufile.name = name
+    ufile.read.return_value = data
+
+    return ufile
 
 
 class TestDownloadKey(test.TestCase, ViewTesterMixin):
@@ -75,6 +85,57 @@ class TestDownloadKey(test.TestCase, ViewTesterMixin):
 
         # we should get our key, base64 encoded
         self.assertEquals(base64.b64decode(resp.content), DUMMY_KEY)
+
+
+class TestUploadKey(test.TestCase, ViewTesterMixin):
+    """
+    test upload_key() view
+    """
+
+    URL = "/encryption/key/upload/"
+
+    def setUp(self):
+        self.setup_client()
+        self.upload_file = _upload_file("FooKey", BASE64_KEY)
+
+    def test_not_encrypted(self):
+        """
+        test the case where upload key for project with encryption disabled
+        """
+        _setup_proj(encrypted=False)
+
+        resp = self.client.post(
+            self.URL, dict(method="upload_file", key=self.upload_file)
+        )
+        # check that we got error message
+        self.assert_bad_request(resp, ENCRYPTION_DISABLED)
+
+    def test_no_key_provided(self):
+        """
+        test making request without providing encryption key file
+        """
+        _setup_proj(encrypted=True)
+
+        resp = self.client.post(self.URL)
+        # check that we got error message
+        self.assert_bad_request(resp, "no encryption key file provided")
+
+    def test_key_uploaded(self):
+        """
+        test happy path for uploading encryption key
+        """
+        proj = _setup_proj(encrypted=True)
+
+        resp = self.client.post(
+            self.URL, dict(method="upload_file", key=self.upload_file)
+        )
+
+        # check that key was save to database
+        enc_key = Project.get(proj.id).encryption_key
+        self.assertEquals(enc_key.key, DUMMY_KEY)
+
+        # check that we were redirected to correct view
+        self.assertRedirects(resp, reverse("encryption"))
 
 
 class TestForgetKey(test.TestCase, ViewTesterMixin):
