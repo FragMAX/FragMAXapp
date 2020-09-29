@@ -5,6 +5,7 @@ from fragview.models import Project, Library, EncryptionKey
 from tests.utils import ViewTesterMixin
 
 DUMMY_KEY = b"DeadBeefCafeBabe"
+ENCRYPTION_DISABLED = "encrypted mode disabled for current project"
 
 
 def _setup_proj(encrypted=True, key=None):
@@ -42,8 +43,7 @@ class TestDownloadKey(test.TestCase, ViewTesterMixin):
         resp = self.client.get("/encryption/key/")
 
         # check that we got error response
-        self.assertEqual(400, resp.status_code)
-        self.assertEquals(b"encrypted mode disabled for current project", resp.content)
+        self.assert_bad_request(resp, ENCRYPTION_DISABLED)
 
     def test_key_unknown(self):
         """
@@ -93,8 +93,7 @@ class TestForgetKey(test.TestCase, ViewTesterMixin):
 
         resp = self.client.get("/encryption/key/forget/")
 
-        self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, b"encrypted mode disabled for current project")
+        self.assert_bad_request(resp, ENCRYPTION_DISABLED)
 
     def test_no_key(self):
         """
@@ -116,3 +115,46 @@ class TestForgetKey(test.TestCase, ViewTesterMixin):
         self.assertFalse(Project.get(proj.id).has_encryption_key())
         # check that we were redirected to correct view
         self.assertRedirects(resp, reverse("encryption"))
+
+
+class TestShow(test.TestCase, ViewTesterMixin):
+    """
+    test show() view
+    """
+
+    URL = reverse("encryption")
+
+    def setUp(self):
+        self.setup_client()
+
+    def test_not_encrypted(self):
+        """
+        test the case where we load view for project with encryption disabled
+        """
+        _setup_proj(encrypted=False)
+
+        resp = self.client.get(self.URL)
+        # check that we got error message
+        self.assert_bad_request(resp, ENCRYPTION_DISABLED)
+
+    def test_no_key(self):
+        """
+        test case when project don't have a key
+        """
+        _setup_proj(encrypted=True)
+
+        resp = self.client.get(self.URL)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assert_contains_template(resp, "fragview/upload_enc_key.html")
+
+    def test_has_key(self):
+        """
+        test case when project have a key
+        """
+        _setup_proj(encrypted=True, key=DUMMY_KEY)
+
+        resp = self.client.get(self.URL)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assert_contains_template(resp, "fragview/encryption.html")
