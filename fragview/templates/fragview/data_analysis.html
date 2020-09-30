@@ -637,29 +637,6 @@
                         </select>
                     </td>
                 </tr>
-                <tr hidden>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class=" top-options"><input class="selectbox" name="customdataproc-dials"
@@ -687,29 +664,6 @@
                             <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
-                    </td>
-                </tr>
-                <tr hidden>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff"
-                            placeholder="default: None"></input>
                     </td>
                 </tr>
                 <tr class="custompar">
@@ -741,29 +695,6 @@
                         </select>
                     </td>
                 </tr>
-                <tr hidden>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class=" top-options"><input class="selectbox" name="customdataproc-autoproc"
@@ -792,29 +723,6 @@
                             <option selected value="true">True</option>
                             <option value="false">False</option>
                         </select>
-                    </td>
-                </tr>
-                <tr hidden>
-                    <th class=" top-options">Data range</th>
-                    <td class=" top-options"><input class="selectbox" name="datarange" placeholder="1-1800"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="rescutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">CC1/2 cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="cccutoff"
-                            placeholder="default: None"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">I/σ(I) cutoff</th>
-                    <td class=" top-options"><input class="selectbox" name="isigmacutoff"
-                            placeholder="default: None"></input>
                     </td>
                 </tr>
                 <tr class="custompar">
@@ -2212,10 +2120,6 @@
 
         /* Data proc options */
         var friedel = document.getElementsByName("friedel")[0].value
-        var datarange = ";;datarange:" + document.getElementsByName("datarange")[0].value
-        var rescutoff = ";;rescutoff:" + document.getElementsByName("rescutoff")[0].value
-        var cccutoff = ";;cccutoff:" + document.getElementsByName("cccutoff")[0].value
-        var isigicutoff = ";;isigicutoff:" + document.getElementsByName("isigmacutoff")[0].value
         var customxds = document.getElementsByName("customdataproc-xds")[0].value
         var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
         var customdials = document.getElementsByName("customdataproc-dials")[0].value
