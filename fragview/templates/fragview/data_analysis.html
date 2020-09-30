@@ -586,23 +586,44 @@
 
 <div class=" card_options">
     <div class="card tab">
+        {% if "xia2_dials" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
-        <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XIA2/XDS_XSCALE</button>
+        {% endif %}
+        {% if "xia2_xds" in pipelines %}
+        <button class="tablinks" onclick="openMethod(event, 'XDS')">XIA2/XDS</button>
+        {% endif %}
+        {% if "xdsapp" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
+        {% endif %}
+        {% if "auto_proc" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+        {% endif %}
+        {% if "dimple" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+        {% endif %}
+        {% if "buster" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+        {% endif %}
+        {% if "fspipeline" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'fspipeline')">fspipeline</button>
+        {% endif %}
+        {% if "rho_fit" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
+        {% endif %}
+        {% if "ligand_fit" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
+        {% endif %}
+        {% if "pandda" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'PanDDA')">PanDDA</button>
+        {% endif %}
+        {% if "pipedream_proc" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
-
-
+        {% endif %}
     </div>
 
+    {% if "xia2_dials" in pipelines %}
     <div class="card tabcontent" id="DIALS">
-        <div class="card-title">XIA2/Dials Options</div>
+        <div class="card-title">XIA2/DIALS Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -650,8 +671,11 @@
             </tbody>
         </table>
     </div>
-    <div class="card tabcontent" id="XDS_XSCALE">
-        <div class="card-title">XIA2/XDS-XSCALE Options</div>
+    {% endif %}
+
+    {% if "xia2_xds" in pipelines %}
+    <div class="card tabcontent" id="XDS">
+        <div class="card-title">XIA2/XDS Options</div>
         <table class="optionstable flex-left">
             <col width="8%">
             <col width="17%">
@@ -699,6 +723,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "auto_proc" in pipelines %}
     <div class="card tabcontent" id="autoPROC">
         <div class="card-title">autoPROC Options</div>
         <table class="optionstable flex-left">
@@ -749,6 +776,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "xdsapp" in pipelines %}
     <div class="card tabcontent" id="XDSAPP">
         <div class="card-title">XDSAPP Options</div>
         <table class="optionstable flex-left">
@@ -799,6 +829,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "dimple" in pipelines %}
     <div class="card tabcontent" id="DIMPLE">
         <div class="card-title">DIMPLE Options</div>
         <table class="optionstable flex-left">
@@ -920,6 +953,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "buster" in pipelines %}
     <div class="card tabcontent" id="BUSTER">
         <div class="card-title">BUSTER Options</div>
         <table class="optionstable flex-left">
@@ -998,6 +1034,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "fspipeline" in pipelines %}
     <div class="card tabcontent" id="fspipeline">
         <div class="card-title">fspipeline Options</div>
         <table class="optionstable flex-left">
@@ -1182,6 +1221,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "rho_fit" in pipelines %}
     <div class="card tabcontent" id="RhoFit">
         <div class="card-title">RhoFit Options</div>
         <table class="optionstable flex-left">
@@ -1222,6 +1264,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "ligand_fit" in pipelines %}
     <div class="card tabcontent" id="LigFit">
         <div class="card-title">LigandFit Options</div>
         <table class="optionstable flex-left">
@@ -1262,6 +1307,9 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
+
+    {% if "pandda" in pipelines %}
     <div class="card tabcontent" id="PanDDA">
         <div class="card-title">PanDDA Options</div>
         <div class="flexdiv_options  ">
@@ -1687,6 +1735,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if "pipedream_proc" in pipelines %}
     <div class="card tabcontent" id="Pipedream">
         <div class="card-title">Pipedream Options</div>
 
@@ -2043,7 +2094,7 @@
             </form>
         </div>
     </div>
-
+    {% endif %}
 </div>
 
 <script src="https://welcome.totheinter.net/autocolumn/autocolumn.js"></script>
