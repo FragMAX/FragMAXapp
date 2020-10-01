@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
-from fragview.models import Project
 from fragview import tokens
+from fragview.management.commands.utils import get_project
 
 
 class Command(BaseCommand):
@@ -10,11 +10,7 @@ class Command(BaseCommand):
         parser.add_argument("project_id", type=int)
 
     def handle(self, *args, **options):
-        proj_id = options["project_id"]
-        try:
-            proj = Project.get(proj_id)
-        except Project.DoesNotExist:
-            raise CommandError(f"no project with id {proj_id} exist")
+        proj = get_project(options["project_id"])
 
         if not proj.encrypted:
             raise CommandError("encryption for project disabled, can't generate tokens")
