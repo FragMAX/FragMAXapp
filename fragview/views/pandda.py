@@ -846,7 +846,7 @@ cd $WORK_DIR
 
 {crypt_shell.fetch_dir(proj, data_dir, ".")}
 
-module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL/2.1.0-2-PReSTO
 python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 
 {crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
@@ -868,7 +868,7 @@ rm -rf "$WORK_DIR"
 
 cd {pandda_method_dir}
 module purge
-module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL
+module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL/2.1.0-2-PReSTO
 {pandda_cluster}
 
 python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
