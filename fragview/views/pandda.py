@@ -833,7 +833,7 @@ def _write_main_script(proj, method, methodshort, options):
 #SBATCH -J PDD{methodshort}
 #SBATCH --exclusive
 #SBATCH -N1
-#SBATCH -p fujitsu
+#SBATCH -p all
 #SBATCH --cpus-per-task=64
 #SBATCH --mem=310G
 #SBATCH -o {log_prefix}out.txt
