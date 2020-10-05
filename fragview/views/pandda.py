@@ -1076,19 +1076,23 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         frag = dataset.split("-")[-1].split("_")[0]
         frag_cif = path.join(fragments_path, f"{frag}.cif")
         frag_pdb = path.join(fragments_path, f"{frag}.pdb")
-        smiles = lib.get_fragment(frag).smiles
-        if cifMethod == "elbow":
-            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag} --opt\n"
-            clear_tmp_cmd = ""
-        elif cifMethod == "acedrg":
-            cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
-            clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
-        elif cifMethod == "grade":
-            cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
-            clear_tmp_cmd = ""
-        copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
-        if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
-            copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
+
+        frag_obj = lib.get_fragment(frag)
+        if frag_obj is not None:
+            smiles = lib.get_fragment(frag).smiles
+            if cifMethod == "elbow":
+                cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag} --opt\n"
+                clear_tmp_cmd = ""
+            elif cifMethod == "acedrg":
+                cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
+                clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
+            elif cifMethod == "grade":
+                cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
+                clear_tmp_cmd = ""
+            copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
+            if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
+                copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
+
     if proj.encrypted:
         body = f"""#!/bin/bash
 #!/bin/bash
