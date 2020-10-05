@@ -162,6 +162,20 @@ class RefineForm(_ProcJobForm):
                 dict(refSpaceGroup="space group required when aimless is enabled"))
 
 
+class KillJobForm(forms.Form):
+    job_ids = forms.CharField(required=False)
+
+    def clean_job_ids(self):
+        ids = self.cleaned_data["job_ids"].split(",")
+        if len(ids) < 1:
+            raise forms.ValidationError("no job IDs specified")
+
+        return ids
+
+    def get_job_ids(self):
+        return self.cleaned_data["job_ids"]
+
+
 class ProjectForm(forms.Form):
     model = None
 

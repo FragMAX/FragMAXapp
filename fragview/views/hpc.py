@@ -2,12 +2,11 @@ from glob import glob
 import subprocess
 from datetime import datetime
 from time import sleep
-
 from os import path
-
-from django.shortcuts import render
-
+from django.shortcuts import render, redirect, reverse
+from django.http import HttpResponseBadRequest
 from fragview.projects import current_project, project_shift_dirs
+from fragview.forms import KillJobForm
 from fragview import hpc
 
 
@@ -48,23 +47,21 @@ def status(request):
     return render(request, "fragview/hpcstatus.html", {"hpcList": hpcList, "proposal": proj.proposal})
 
 
-def kill_job(request):
-    jobid_k = str(request.GET.get("jobid_kill"))
-    jobid_kl = str(request.GET.get("jobid_klist"))
+def kill(request):
+    form = KillJobForm(request.POST)
 
-    if jobid_k != "None":
-        subprocess.Popen(
-            ["ssh", "-t", "clu0-fe-1", "scancel", jobid_k], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-    else:
-        jobid_lst = jobid_kl.split(",")
-        subprocess.Popen(
-            ["ssh", "-t", "clu0-fe-1", "scancel"] + jobid_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"{form.errors}")
 
-    sleep(1)
+    _kill_hpc_jobs(form.get_job_ids())
 
-    return status(request)
+    return redirect(reverse("hpcstatus"))
+
+
+def _kill_hpc_jobs(job_ids):
+    cmd = ["ssh", "-t", "clu0-fe-1", "scancel"] + job_ids
+    subprocess.run(cmd)
+    sleep(2.4)
 
 
 def jobhistory(request):

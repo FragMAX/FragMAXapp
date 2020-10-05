@@ -106,8 +106,9 @@
           <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
           <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
           <td>
-            <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
-              <button class="btn-small" type="submit" value="{{jobid}}" name="jobid_kill" size="1">Kill</button>
+            <form action="/hpc/kill/" method="post">
+              {% csrf_token %}
+              <button class="btn-small" type="submit" value="{{jobid}}" name="job_ids" size="1">Kill</button>
             </form>
           </td>
           <td>
@@ -123,9 +124,11 @@
       </tbody>
     </table>
     <div style="display: flow-root;margin-top: 20px;">
-      <form action="/hpcstatus_jobkilled/" method="get" id="kill_job_{{jobid}}">
-        <button id="killselectbtn" name="jobid_klist" class="btn btn-right" type="submit" value="" size="1">Kill
-          Selected</button>
+      <form action="/hpc/kill/" method="post" id="kill_selected">
+        {% csrf_token %}
+        <button class="btn btn-right" name="job_ids" id="kill_selected_btn" type="submit" size="1">
+          Kill Selected
+        </button>
       </form>
 
     </div>
@@ -133,20 +136,19 @@
 </div>
 
 <script>
-  $("input[name*='jobselect']").click(function () {
-    if ($(this).is(':checked')) {
-      addtolist(this.value);
-    }
-    else {
-      removefromlist(this.value)
-    }
-  });
+  function kill_selected()
+  {
+    let job_ids = [];
 
-  function addtolist(jobid) {
-    document.getElementById("killselectbtn").value += "," + jobid
-  }
-  function removefromlist(jobid) {
-    document.getElementById("killselectbtn").value = document.getElementById("killselectbtn").value.replace("," + jobid, "")
+    /* create list of all selected jobs to kill */
+    $(".job-chbx").each(function() {
+      const chbox = $(this);
+      if (chbox.prop("checked")) {
+        job_ids.push(chbox.val());
+      }
+    });
+
+    $("#kill_selected_btn").val(job_ids);
   }
 
   function select_all_changed()
@@ -165,6 +167,8 @@
 
   $(document).ready(function () {
     $("#select_all").change(select_all_changed);
+    $("#kill_selected").submit(kill_selected);
+
   });
 </script>
 {% endblock %}

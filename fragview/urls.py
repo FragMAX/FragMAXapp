@@ -74,8 +74,8 @@ urlpatterns = [
     path('pipedream/', pipedream.processing_form, name='pipedream'),
     path('submit_pipedream/', pipedream.submit, name='submit_pipedream'),
 
+    path('hpc/kill/', hpc.kill),
     path('hpcstatus/', hpc.status, name='hpcstatus'),
-    path('hpcstatus_jobkilled/', hpc.kill_job, name='hpcstatus_jobkilled'),
     path('jobhistory/', hpc.jobhistory, name='jobhistory'),
 
     path('dataproc_datasets/', process.datasets, name='dataproc_datasets'),
