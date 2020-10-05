@@ -10,6 +10,8 @@ from django.db.utils import IntegrityError
 from fragview.fileio import open_proj_file
 from fragview.models import PDB
 from fragview.projects import current_project
+from fragview import hpc
+
 
 #
 # PDB files uploaded by the user must match this regexp,
@@ -81,19 +83,52 @@ def _assemble_chunks(upload_file):
 def _save_pdb(proj, pdb_id, filename, pdb_data):
     name = path.splitext(filename)[0]
     nohet_filename = f"{name}_noHETATM.pdb"
+    nohet_filename = f"{name}_noANISOU.pdb"
+    nohet_filename = f"{name}_noANISOU_noHETATM.pdb"
+    txc_filename = f"{name}_txc.pdb"
 
     orig_pdb = _add_pdb_entry(proj, filename, pdb_id)
     nohet_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
+    noanisou_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
+    nohetnoanisou_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
 
     # write original pdb file 'as-is' to models folder
     with open_proj_file(proj, orig_pdb.file_path()) as dest:
         dest.write(pdb_data)
 
     # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
+    with open_proj_file(proj, nohetnoanisou_pdb.file_path()) as dest:
+        for line in pdb_data.splitlines(keepends=True):
+            if not line.startswith(b"HETATM") or not line.startswith(b"ANISOU"):
+                dest.write(line)
+
     with open_proj_file(proj, nohet_pdb.file_path()) as dest:
         for line in pdb_data.splitlines(keepends=True):
             if not line.startswith(b"HETATM"):
                 dest.write(line)
+
+    with open_proj_file(proj, noanisou_pdb.file_path()) as dest:
+        for line in pdb_data.splitlines(keepends=True):
+            if not line.startswith(b"ANISOU"):
+                dest.write(line)
+
+    if pdb_chains(pdb_data.splitlines(keepends=True)) > 1:
+        txc_pdb = _add_pdb_entry(proj, txc_filename, pdb_id)
+        script_dir = path.join(proj.data_path(), "fragmax", "scripts")
+        script = path.join(script_dir, f"phenix_ensembler.sh")
+        models_path = f"{proj.data_path()}/fragmax/models"
+        input_pdb_name = f"{models_path}/{name}"
+        with open(script, "w") as outfile:
+            outfile.write("#!/bin/bash\n")
+            outfile.write("#!/bin/bash\n")
+            outfile.write("module purge\n")
+            outfile.write("module load gopresto Phenix\n")
+            outfile.write(f"cd {models_path}\n")
+            outfile.write(
+                f"phenix.ensembler {input_pdb_name} trim=TRUE output.location='{proj.data_path()}/fragmax/models/'\n"
+            )
+            outfile.write(f"mv {models_path}/ensemble_merged.pdb {txc_pdb.file_path()}\n")
+        hpc.run_sbatch(script)
 
 
 #
@@ -163,3 +198,21 @@ def edit(request, id):
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})
+
+
+def pdb_chains(pdb_lines):
+    chains = {}
+    for pdb_line in pdb_lines:
+        line = pdb_line.rstrip("\n")
+        if line[0:4] == "ATOM":
+            chain = line[21:22]
+            if chain not in chains:
+                chains[chain] = {}
+                chains[chain]["min"] = int(line[22:26])
+                chains[chain]["max"] = int(line[22:26])
+            else:
+                if int(line[22:26]) < chains[chain]["min"]:
+                    chains[chain]["min"] = int(line[22:26])
+                if int(line[22:26]) > chains[chain]["max"]:
+                    chains[chain]["max"] = int(line[22:26])
+    return len(chains)
