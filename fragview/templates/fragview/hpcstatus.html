@@ -75,15 +75,19 @@
           <th>PARTITION</th>
           <th>NAME</th>
           <th>USER</th>
-          <th>ST </th>
+          <th>ST</th>
           <th>TIME</th>
           <th>NODES</th>
           <th>NODE</th>
-
           <th>Output file</th>
           <th>Error file</th>
           <th>Kill Job</th>
-          <th></th>
+          <th>
+            <label style="padding-top: 10px; padding-left: 20px">
+              <input class="filled-in dt-checkboxes" id="select_all" type="checkbox">
+              <span/>
+            </label>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -108,7 +112,7 @@
           </td>
           <td>
             <label style="padding-top: 10px; padding-left: 20px">
-              <input class="filled-in dt-checkboxes" id="selecttokill" name="jobselect" type="checkbox"
+              <input class="filled-in dt-checkboxes job-chbx" id="selecttokill" name="jobselect" type="checkbox"
                 value="{{jobid}}">
               <span for="checkALLdatasets"> </span>
             </label>
@@ -144,5 +148,23 @@
   function removefromlist(jobid) {
     document.getElementById("killselectbtn").value = document.getElementById("killselectbtn").value.replace("," + jobid, "")
   }
+
+  function select_all_changed()
+  {
+    /*
+     * when 'select all' checkbox is checked,
+     * check all other checkboxes, if it's unchecked
+     * uncheck them
+     */
+    const checked = $(this).prop("checked");
+
+    $(".job-chbx").each(function() {
+      $(this).prop("checked", checked);
+    });
+  }
+
+  $(document).ready(function () {
+    $("#select_all").change(select_all_changed);
+  });
 </script>
 {% endblock %}
