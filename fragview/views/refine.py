@@ -396,6 +396,7 @@ def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimp
             + " "
             + customrefbuster
             + " -TLS -nthreads 2 -d "
+            + "StopOnGellySanityCheckError=no "
             + outdir
             + "buster \n"
         )
