@@ -1257,8 +1257,6 @@ def _get_pdb_data(proj, pdb_file):
 
 
 def get_best_alt_dataset(proj, dataset, options):
-
-    blacklist = options["blacklist"]
     if options["method"] == "frag_plex":
         optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
             f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
@@ -1282,7 +1280,9 @@ def get_best_alt_dataset(proj, dataset, options):
         else:
             optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
 
-    optionList = remove_blacklisted_options(optionList, blacklist)
+    # remove_blacklisted_options() does not work properlyt
+    # optionList = remove_blacklisted_options(optionList, options["blacklist"])
+
     rwork_res = list()
 
     if not optionList:
