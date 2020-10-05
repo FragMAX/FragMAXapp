@@ -834,8 +834,8 @@ def _write_main_script(proj, method, methodshort, options):
 #SBATCH --exclusive
 #SBATCH -N1
 #SBATCH -p all
-#SBATCH --cpus-per-task=64
-#SBATCH --mem=310G
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=220
 #SBATCH -o {log_prefix}out.txt
 #SBATCH -e {log_prefix}err.txt
 
