@@ -1012,9 +1012,7 @@ def pandda_worker(proj, method, options, cifMethod):
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
         fragDict[_dir.split("/")[-1]] = _dir
 
-    if "best" in method:
-        print("FragMAXapp will select best datasets")
-
+    if "frag_plex" in method:
         selectedDict = {
             x.split("/")[-4]: x
             for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
