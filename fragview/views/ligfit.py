@@ -2,7 +2,7 @@ import threading
 import os
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview import hpc
+from fragview import hpc, versions
 from fragview.forms import LigfitForm
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.projects import project_update_results_script_cmds, project_fragment_cif, project_fragment_pdb
@@ -30,7 +30,7 @@ def datasets(request):
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
-    softwares = "autoPROC BUSTER/20190607-3-PReSTO Phenix CCP4"
+    softwares = f"{versions.AUTOPROC_MOD} {versions.BUSTER_MOD} {versions.PHENIX_MOD} {versions.CCP4_MOD}"
     lib = proj.library
 
     header = ""
