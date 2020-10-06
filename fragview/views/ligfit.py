@@ -30,7 +30,7 @@ def datasets(request):
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
-    softwares = f"{versions.AUTOPROC_MOD} {versions.BUSTER_MOD} {versions.PHENIX_MOD} {versions.CCP4_MOD}"
+    softwares = f"{versions.BUSTER_MOD} {versions.PHENIX_MOD}"
     lib = proj.library
 
     header = ""
