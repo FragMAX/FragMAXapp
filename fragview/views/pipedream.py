@@ -3,7 +3,7 @@ import shutil
 import natsort
 from os import path
 from django.shortcuts import render
-from fragview import hpc
+from fragview import hpc, versions
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
 from fragview.projects import project_model_path
 from fragview.projects import project_script
@@ -206,7 +206,7 @@ def submit(request):
                 """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_""" + ligand + """_%j_err.txt\n"""
             )
             singlePipedreamOut += """module purge\n"""
-            singlePipedreamOut += """module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n\n"""
+            singlePipedreamOut += f"""module load gopresto {versions.AUTOPROC_MOD} {versions.BUSTER_MOD}\n\n"""
             _data_path = [x for x in project_raw_master_h5_files(proj) if _data in x][0]
             chdir = f"mkdir -p {path.dirname(ppdoutdir)}; cd {path.dirname(ppdoutdir)}\n\n"
             ppd = (
@@ -339,9 +339,9 @@ def submit(request):
         header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_out.txt\n"""
         header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pipedream_allDatasets_%j_err.txt\n"""
         header += """module purge\n"""
-        header += """module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n\n"""
+        header += f"""module load gopresto {versions.AUTOPROC_MOD} {versions.BUSTER_MOD}\n\n"""
         scriptList = list()
-        softwares = "autoPROC BUSTER"
+        softwares = f"{versions.AUTOPROC_MOD} {versions.BUSTER_MOD}"
         for ppddata, ppdout in zip(ppddatasetList, ppdoutdirList):
             chdir = f"mkdir -p {path.dirname(ppdout)};\ncd {path.dirname(ppdout)}\n"
             _data = path.basename(ppddata).replace("_master.h5", "")
@@ -388,7 +388,7 @@ def submit(request):
 
             allPipedreamOut = f"{chdir}"
             allPipedreamOut += "module purge\n"
-            allPipedreamOut += "module load gopresto autoPROC BUSTER/20190607-3-PReSTO\n"
+            allPipedreamOut += f"module load gopresto {versions.AUTOPROC_MOD} {versions.BUSTER_MOD}\n"
             allPipedreamOut += f"{cif_cmd}\n"
             allPipedreamOut += f"{rmdir}\n"
             allPipedreamOut += "module purge\n"
