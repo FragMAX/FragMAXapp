@@ -122,7 +122,7 @@ def run_xdsapp(proj, nodes, filters, options):
     # do resolution test
 
     # Modules list for HPC env
-    softwares = "CCP4 XDSAPP"
+    softwares = f"{versions.CCP4_MOD} {versions.XDSAPP_MOD}"
 
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -180,7 +180,7 @@ def run_xdsapp(proj, nodes, filters, options):
 
 def run_autoproc(proj, nodes, filters, options):
     # Modules list for HPC env
-    softwares = "CCP4 autoPROC Durin"
+    softwares = f"{versions.CCP4_MOD} {versions.autoPROC_MOD} {versions.DURIN_MOD}"
 
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -277,7 +277,7 @@ def run_xdsxscale(proj, nodes, filters, options):
     # Set the cell constants.
 
     # Modules list for HPC env
-    softwares = "PReSTO DIALS/2.1.1-1-PReSTO"
+    softwares = f"{versions.XDS_MOD} {versions.DIALS_MOD}"
 
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""
@@ -368,7 +368,7 @@ def run_dials(proj, nodes, filters, options):
     # Set the cell constants.
 
     # Modules list for HPC env
-    softwares = f"PReSTO {versions.DIALS_MOD}"
+    softwares = f"{versions.DIALS_MOD}"
 
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""

@@ -83,19 +83,18 @@ def _assemble_chunks(upload_file):
 def _save_pdb(proj, pdb_id, filename, pdb_data):
     name = path.splitext(filename)[0]
     nohet_filename = f"{name}_noHETATM.pdb"
-    nohet_filename = f"{name}_noANISOU.pdb"
-    nohet_filename = f"{name}_noANISOU_noHETATM.pdb"
+    noanisou_filename = f"{name}_noANISOU.pdb"
+    nohetanisou_filename = f"{name}_noANISOU_noHETATM.pdb"
     txc_filename = f"{name}_txc.pdb"
 
     orig_pdb = _add_pdb_entry(proj, filename, pdb_id)
     nohet_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
-    noanisou_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
-    nohetnoanisou_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
+    noanisou_pdb = _add_pdb_entry(proj, noanisou_filename, pdb_id)
+    nohetnoanisou_pdb = _add_pdb_entry(proj, nohetanisou_filename, pdb_id)
 
     # write original pdb file 'as-is' to models folder
     with open_proj_file(proj, orig_pdb.file_path()) as dest:
         dest.write(pdb_data)
-
     # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
     with open_proj_file(proj, nohetnoanisou_pdb.file_path()) as dest:
         for line in pdb_data.splitlines(keepends=True):
@@ -111,22 +110,22 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
         for line in pdb_data.splitlines(keepends=True):
             if not line.startswith(b"ANISOU"):
                 dest.write(line)
-
-    if pdb_chains(pdb_data.splitlines(keepends=True)) > 1:
+    n_chains = pdb_chains(pdb_data.splitlines(keepends=True))
+    print(n_chains)
+    if n_chains > 1:
         txc_pdb = _add_pdb_entry(proj, txc_filename, pdb_id)
         script_dir = path.join(proj.data_path(), "fragmax", "scripts")
         script = path.join(script_dir, f"phenix_ensembler.sh")
         models_path = f"{proj.data_path()}/fragmax/models"
         input_pdb_name = f"{models_path}/{name}"
+        ensmblr = "phenix.ensembler"
         with open(script, "w") as outfile:
             outfile.write("#!/bin/bash\n")
             outfile.write("#!/bin/bash\n")
             outfile.write("module purge\n")
             outfile.write("module load gopresto Phenix\n")
             outfile.write(f"cd {models_path}\n")
-            outfile.write(
-                f"phenix.ensembler {input_pdb_name} trim=TRUE output.location='{proj.data_path()}/fragmax/models/'\n"
-            )
+            outfile.write(f"{ensmblr} {input_pdb_name}.pdb trim=TRUE output.location='{models_path}'\n")
             outfile.write(f"mv {models_path}/ensemble_merged.pdb {txc_pdb.file_path()}\n")
         hpc.run_sbatch(script)
 
@@ -203,7 +202,7 @@ def edit(request, id):
 def pdb_chains(pdb_lines):
     chains = {}
     for pdb_line in pdb_lines:
-        line = pdb_line.rstrip("\n")
+        line = pdb_line.decode("UTF-8").rstrip("\n")
         if line[0:4] == "ATOM":
             chain = line[21:22]
             if chain not in chains:

@@ -6,7 +6,7 @@ from os import path
 from glob import glob
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
-from fragview import hpc
+from fragview import hpc, versions
 from fragview.views import crypt_shell
 from fragview.projects import current_project, project_script, project_update_status_script_cmds
 from fragview.projects import project_update_results_script_cmds, project_process_protein_dir
@@ -60,7 +60,7 @@ def run_structure_solving(
     aimless,
 ):
     # Modules list for HPC env
-    softwares = "PReSTO autoPROC BUSTER Phenix/1.17.1-3660-Rosetta-3.10-5-PReSTO"
+    softwares = f"{versions.BUSTER_MOD} {versions.PHENIX_MOD}"
     customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
     customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
     customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
@@ -395,8 +395,8 @@ def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimp
             + dstmtz
             + " "
             + customrefbuster
-            + " -TLS -nthreads 2 -d "
-            + "StopOnGellySanityCheckError=no "
+            + " -TLS -nthreads 2 "
+            + "StopOnGellySanityCheckError=no -d "
             + outdir
             + "buster \n"
         )

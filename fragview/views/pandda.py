@@ -15,7 +15,7 @@ from glob import glob
 from random import randint
 from collections import Counter
 from django.shortcuts import render
-from fragview import hpc
+from fragview import hpc, versions
 from fragview.views import crypt_shell
 from fragview.fileio import open_proj_file, read_text_lines, read_proj_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
@@ -835,7 +835,7 @@ def _write_main_script(proj, method, methodshort, options):
 #SBATCH -N1
 #SBATCH -p all
 #SBATCH --cpus-per-task=48
-#SBATCH --mem=220
+#SBATCH --mem=210000
 #SBATCH -o {log_prefix}out.txt
 #SBATCH -e {log_prefix}err.txt
 
@@ -846,7 +846,7 @@ cd $WORK_DIR
 
 {crypt_shell.fetch_dir(proj, data_dir, ".")}
 
-module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL/2.1.0-2-PReSTO
+module load gopresto {versions.CCP4_MOD} {versions.PYMOL_MOD}
 python {pandda_script} $WORK_DIR {proj.protein} "{options}"
 
 {crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
@@ -868,7 +868,7 @@ rm -rf "$WORK_DIR"
 
 cd {pandda_method_dir}
 module purge
-module load gopresto CCP4/7.0.077-SHELX-ARP-8.0-0a-PReSTO PyMOL/2.1.0-2-PReSTO
+module load gopresto {versions.CCP4_MOD} {versions.PYMOL_MOD}
 {pandda_cluster}
 
 python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
@@ -896,7 +896,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_err.txt\n\n"""
     header += """module purge\n"""
-    header += """module load gopresto CCP4 Phenix\n"""
+    header += f"""module load gopresto {versions.CCP4_MOD} {versions.PHENIX_MOD}\n"""
 
     exports_list = glob(f"{pandda_dir}/processed_datasets/*/modelled_structures/fitted-v000*.pdb")
     exports_list = [x.split("processed_datasets/")[-1].split("/")[0] for x in exports_list]
@@ -921,7 +921,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_err.txt\n\n"""
     header += """module purge\n"""
-    header += """module load gopresto CCP4 Phenix\n"""
+    header += f"""module load gopresto {versions.CCP4_MOD} {versions.PHENIX_MOD}\n"""
 
     _dirs = glob(f"{export_dir}/*")
     line = "#! /bin/bash"
@@ -977,7 +977,7 @@ def giant_score(proj, method):
     header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
     header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\n"""
     header += """module purge\n"""
-    header += """module load gopresto CCP4\n\n"""
+    header += f"""module load gopresto {versions.CCP4_MOD}\n\n"""
 
     scores_dir = os.path.join(res_dir, "pandda-scores")
     score_multi_bin = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.score_model_multiple"
@@ -1103,7 +1103,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
 module purge
-module load gopresto Phenix CCP4 BUSTER/20190607-3-PReSTO
+module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD} {versions.BUSTER_MOD}
 
 {crypt_shell.crypt_cmd(proj)}
 
@@ -1117,7 +1117,7 @@ cd $WORK_DIR
 {copy_frags_cmd}
 
 module purge
-module load gopresto CCP4 Phenix
+module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
 
 echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
     cad hklin1 final.mtz hklout final.mtz
@@ -1151,7 +1151,7 @@ rm $HOME/slurm*.out
 #SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
 #SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
 module purge
-module load gopresto Phenix CCP4 BUSTER/20190607-3-PReSTO
+module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD} {versions.BUSTER_MOD}
 
 
 DEST_DIR="{output_dir}"
@@ -1165,7 +1165,7 @@ cp {mtz} $DEST_DIR/final.mtz
 {copy_frags_cmd}
 
 module purge
-module load gopresto CCP4 Phenix
+module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
 
 echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
     cad hklin1 $DEST_DIR/final.mtz hklout $DEST_DIR/final.mtz
