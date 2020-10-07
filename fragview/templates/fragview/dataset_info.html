@@ -857,16 +857,15 @@
             <div class="card tab">
                 <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
                 <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-                <button class="tablinks" onclick="openMethod(event, 'DIALS')">DIALS</button>
-                <button class="tablinks" onclick="openMethod(event, 'XDS_XSCALE')">XDS/XSCALE</button>
+                <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
+                <button class="tablinks" onclick="openMethod(event, 'XDS')">XIA2/XDS</button>
                 <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
                 <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
-
+                <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+                <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+                <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
                 <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
 
-                <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-                <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
-                <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
 
                 {% comment %} <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
                 <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
@@ -897,7 +896,7 @@
                 {% endif %}
             </div>
             <div id="DIALS" class="card tabcontent ">
-                <div class="card-title logtab">XIA2/Dials Logs</div>
+                <div class="card-title logtab">XIA2/DIALS Logs</div>
                 {% if dialsOK == "ready" %}
                 {% for logName,logPath in dialsLogs %}
                 <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
@@ -907,8 +906,8 @@
                 {% endfor %}
                 {% endif %}
             </div>
-            <div id="XDS_XSCALE" class="card tabcontent ">
-                <div class="card-title logtab">XIA2/XDS_xscale Logs</div>
+            <div id="XDS" class="card tabcontent">
+                <div class="card-title logtab">XIA2/XDS Logs</div>
                 {% if xdsOK == "ready" %}
                 {% for logName,logPath in xdsLogs %}
                 <form {% if "html" in logPath %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
