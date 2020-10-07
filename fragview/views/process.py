@@ -180,7 +180,7 @@ def run_xdsapp(proj, nodes, filters, options):
 
 def run_autoproc(proj, nodes, filters, options):
     # Modules list for HPC env
-    softwares = f"{versions.CCP4_MOD} {versions.autoPROC_MOD} {versions.DURIN_MOD}"
+    softwares = f"{versions.CCP4_MOD} {versions.AUTOPROC_MOD} {versions.DURIN_MOD}"
 
     epoch = str(round(time.time()))
     header = """#!/bin/bash\n"""

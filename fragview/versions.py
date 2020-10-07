@@ -2,7 +2,6 @@
 # module versions used on HPC
 #
 
-# DIALS module version
 DIALS_MOD = "DIALS/2.2.5-2-PReSTO"
 AUTOPROC_MOD = "autoPROC/20200520-3-PReSTO"
 BUSTER_MOD = "BUSTER/20190607-3-PReSTO"
