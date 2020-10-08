@@ -268,11 +268,28 @@ def get_status_lig(folder):
         return "_".join(folder.split("fragmax")[-1].split("/")[3:6]).lower() + "/none"
 
 
-def update_all_status_csv(project_dir, protein, dataset, run, statusDict):
+def update_all_status_csv(project_dir, protein, dataset, run, status):
     def _write_csv():
         with open(allcsv, "w") as writeFile:
             writer = csv.writer(writeFile)
             writer.writerows(csvfile)
+
+    status_vals = [
+        status["autoproc"],
+        status["dials"],
+        status["edna"],
+        status["fastdp"],
+        status["xdsapp"],
+        status["xdsxscale"],
+        status["dimple"],
+        status["fspipeline"],
+        status["buster"],
+        status["rhofit"],
+        status["ligfit"],
+        status["pipedreamproc"],
+        status["pipedreamref"],
+        status["pipedreamlig"],
+    ]
 
     allcsv = path.join(project_dir, "fragmax", "process", protein, "allstatus.csv")
 
@@ -291,14 +308,14 @@ def update_all_status_csv(project_dir, protein, dataset, run, statusDict):
                 row_to_change = csvfile.index(row)
                 # Create the list with new values for process, refine, ligfit status
                 # and update the csv file
-                updated_value = [dataset + "_" + run] + list(statusDict.values())
+                updated_value = [dataset + "_" + run] + status_vals
                 csvfile[row_to_change] = updated_value
                 # write the new csv file with updated values
                 _write_csv()
 
     dset_dir = path.join(project_dir, "fragmax", "process", protein, dataset, dataset_run)
     if f"{dataset}_{run}" not in dataset_names and path.exists(dset_dir):
-        updated_value = [dataset + "_" + run] + list(statusDict.values())
+        updated_value = [dataset + "_" + run] + status_vals
         csvfile.append(updated_value)
         print(updated_value)
         # write the new csv file with updated values
