@@ -166,8 +166,6 @@ def show(request):
     rhofit = rhofit.replace("/data/visitors/", "/static/")
 
     fitres_dir = path.join(proj.data_path(), "fragmax", "results", ligfit_dataset, processM, refineM)
-    pdb_path = path.join(fitres_dir, "final.pdb").replace("/data/visitors/", "/static/")
-    mtz_path = path.join(fitres_dir, "final.mtz").replace("/data/visitors/", "/static/")
 
     # get xyz for ligands
     blist = blist.replace(" ", "")
@@ -195,8 +193,6 @@ def show(request):
         {
             "name": usracr,
             "pdb": pdbout,
-            "pdb_path": pdb_path,
-            "mtz_path": mtz_path,
             "xyzlist": blist,
             "center": center,
             "ligand": ligand,

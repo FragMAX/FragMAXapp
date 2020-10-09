@@ -203,15 +203,18 @@
         <tr>
           {% if ligand %}
           <td colspan="2"><b>Download</b>
-            <a href="{{pdb_path}}" download="{{name}}.pdb" style="padding-left: 10px;"> PDB</a> |
-            <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a> |
+            <a href="/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}" download="{{name}}.pdb" style="padding-left: 10px;">PDB</a> |
+            <a href="/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz" download="{{name}}.mtz">MTZ</a> |
             <a href="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/fragments/{{ligand}}.cif"
-              download="{{ligand}}.cif"> CIF</a></td>
+              download="{{ligand}}.cif"> CIF</a>
+          </td>
+
           {% else %}
 
           <th>Download</th>
-          <td><a href="{{pdb_path}}" download="{{name}}.pdb"> PDB</a> |
-            <a href="{{mtz_path}}" download="{{name}}.mtz"> MTZ</a> </td>
+          <td><a href="/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}" download="{{name}}.pdb">PDB</a> |
+            <a href="/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz" download="{{name}}.mtz">MTZ</a>
+          </td>
           {% endif %}
         </tr>
         <tr style="border-bottom: 0;">
@@ -334,7 +337,7 @@
       hud: "hud",
       help: "help"
     });
-    V.load_pdb("/pdbs/final/{{ ligfit_dataset }}/{{ process }}/{{ refine }}", null, function () {
+    V.load_pdb("/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "protein"
     })
     GemmiMtz().then(function (Module) {
