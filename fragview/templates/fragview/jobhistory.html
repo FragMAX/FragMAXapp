@@ -81,14 +81,10 @@
           <td>{{cDate|date:"Y-m-d H:i:s"}}</td>
 
           <td>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank">
-              <button class="link" type="submit" value="{{out}}" name="logFile" size="1">output File</button>
-            </form>
+            <a href="/logs/show/{{out}}" target="_blank">Output File</a>
           </td>
           <td>
-            <form action="/log_viewer/" method="get" id="logFileform2" target="_blank">
-              <button class="link" type="submit" value="{{err}}" name="logFile" size="1">error File</button>
-            </form>
+            <a href="/logs/show/{{err}}" target="_blank">Error File</a>
         </tr>
         {% endfor %}
       </tbody>

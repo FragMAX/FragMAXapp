@@ -3,9 +3,10 @@ import subprocess
 from datetime import datetime
 from time import sleep
 from os import path
+from pathlib import Path
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponseBadRequest
-from fragview.projects import current_project, project_shift_dirs
+from fragview.projects import current_project, project_shift_dirs, project_logs_dir
 from fragview.forms import KillJobForm
 from fragview import hpc
 
@@ -70,7 +71,8 @@ def jobhistory(request):
     # Dataset_software_epochTime_jobID_err.txt
     logHistory = list()
 
-    log_dir = f"{proj.data_path()}/fragmax/logs"
+    log_dir = project_logs_dir(proj)
+    relative_log_dir = Path(log_dir).relative_to(proj.data_path())
 
     for f in glob(f"{log_dir}/*out.txt"):
         if "_" in f:
@@ -83,8 +85,8 @@ def jobhistory(request):
 
             jobID = f.split("_")[-2]
             logName = f.split("/")[-1].split(f"_{jobID}")[0]
-            errFile = f"{log_dir}/{logName}_{jobID}_err.txt"
-            outFile = f"{log_dir}/{logName}_{jobID}_out.txt"
+            errFile = Path(relative_log_dir, f"{logName}_{jobID}_err.txt")
+            outFile = Path(relative_log_dir, f"{logName}_{jobID}_out.txt")
 
             logHistory.append([logName, jobID, datetime.fromtimestamp(epoch), errFile, outFile])
 

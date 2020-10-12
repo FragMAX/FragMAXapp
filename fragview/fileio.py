@@ -2,6 +2,7 @@ import os
 import csv
 import stat
 from .encryption import EncryptedFile, decrypt
+from fragview.projects import project_logs_dir, project_process_dir
 
 
 def open_proj_file(proj, file_path):
@@ -22,12 +23,31 @@ def read_proj_file(proj, file_path):
 
     return contents of the file
     """
-    if proj.encrypted:
+    def _is_encrypted():
+        if not proj.encrypted:
+            return False
+
+        # make string path, to support cases when
+        # file_path is specified as pathlib.Path
+        str_path = str(file_path)
+
+        # HPC logs and 'data processing' file are not encrypted
+        if str_path.startswith(project_logs_dir(proj)) or \
+           str_path.startswith(project_process_dir(proj)):
+            return False
+
+        return True
+
+    if _is_encrypted():
         return decrypt(proj.encryptionkey.key, file_path)
 
     # no encryption, read as normal
     with open(file_path, "rb") as f:
         return f.read()
+
+
+def read_proj_text_file(proj, file_path):
+    return read_proj_file(proj, file_path).decode("utf-8")
 
 
 def read_text_lines(proj, file_path):

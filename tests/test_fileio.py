@@ -35,6 +35,7 @@ class _IOTester(unittest.TestCase):
     def setUp(self):
         self.proj = Mock()
         self.proj.encrypted = self.ENCRYPTED
+        self.proj.data_path.return_value = "/"
 
         if self.ENCRYPTED:
             self.key = encryption.generate_key()

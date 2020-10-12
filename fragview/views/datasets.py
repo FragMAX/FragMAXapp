@@ -19,13 +19,3 @@ def show_all(request):
         "fragview/datasets.html",
         {"pipelines": SITE.get_supported_pipelines(), "datasets": get_datasets(proj)},
     )
-
-
-def proc_report(request):
-
-    report = str(request.GET.get("logFile"))
-
-    if "/data/visitors" in report:
-        report = report.replace("/data/visitors/", "/static/")
-
-    return render(request, "fragview/procReport.html", {"reportHTML": report})

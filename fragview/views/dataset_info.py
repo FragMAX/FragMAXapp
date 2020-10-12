@@ -1,9 +1,11 @@
 from glob import glob
 from os import path
+from pathlib import Path
 from django.shortcuts import render
 from fragview.projects import (
     current_project,
     project_process_protein_dir,
+    project_results_dir,
     project_results_file,
 )
 from fragview.xsdata import XSDataCollection
@@ -14,9 +16,9 @@ from fragview.fileio import read_csv_lines
 def show(request, images, prefix, run):
     def _logs(logs_dir):
         log_paths = [
-            x for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x or "html" in x
+            Path(x) for x in glob(f"{logs_dir}/*") if "txt" in x or "LP" in x or "log" in x or "out" in x or "html" in x
         ]
-        return [(path.basename(p), p) for p in log_paths]
+        return [(p.name, p.relative_to(curp)) for p in log_paths]
 
     proj = current_project(request)
 
@@ -25,6 +27,7 @@ def show(request, images, prefix, run):
     dataset_dir = path.join(project_process_protein_dir(proj), prefix, f"{prefix}_{run}")
 
     curp = proj.data_path()
+
     xmlfile = path.join(proj.data_path(), "fragmax", "process", proj.protein, prefix, prefix + "_" + run + ".xml",)
     xsdata = XSDataCollection(xmlfile)
 
@@ -44,21 +47,18 @@ def show(request, images, prefix, run):
 
     half = int(float(images) / 200)
 
-    # getreports
-    scurp = curp.replace("/data/visitors/", "/static/")
+    dialsreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
+                       "dials", "xia2.html").relative_to(curp)
 
-    dialsreport = (
-        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/dials/xia2.html"
-    )
+    xdsreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
+                     "xdsxscale", "xia2.html").relative_to(curp)
 
-    xdsreport = (
-        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/xdsxscale/xia2.html"
-    )
+    autoprocreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
+                          "autoproc", "summary.html").relative_to(curp)
 
-    autoprocreport = (
-        scurp + "/fragmax/process/" + proj.protein + "/" + prefix + "/" + prefix + "_" + run + "/autoproc/summary.html"
-    )
-    pipedreamreport = curp + "/fragmax/results/" + prefix + "_" + run + "/pipedream/summary.out"
+    pipedreamreport = Path(project_results_dir(proj), f"{prefix}_{run}",
+                           "pipedream", "summary.out").relative_to(curp)
+
     xdsappOK = "no"
     dialsOK = "no"
     xdsOK = "no"
@@ -135,13 +135,17 @@ def show(request, images, prefix, run):
         fastdpLogs = _logs(fastdp_dir)
     _tables["fastdp"] = parse_log_process(path.join(dataset_dir, "fastdp", f"ap_{prefix}_run{run}_noanom_aimless.log"))
 
+    #
     # Logs for refinement methods
-    # Dimple
+    #
+
+    # DIMPLE
     dimple_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/dimple")
     _dimple_logs = dict()
     for _file in dimple_res_dirs:
         proc_m = path.basename(path.dirname(_file))
         _dimple_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
+
     # BUSTER
     buster_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/buster")
     _buster_logs = dict()

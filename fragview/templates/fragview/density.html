@@ -220,16 +220,19 @@
         <tr style="border-bottom: 0;">
           <th>
             <p>Logs</p>
-            <form {% if "html" in refineLog %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
-              id="logFileform" method="get" style="padding-top:9px; height: 10px;" target="_blank">
-              <button class="link" type="submit" value="{{refineLog}}" name="logFile" size="1">{{refineName}}</button>
+            <form action="/logs/show/{{refineLog}}"
+              method="get" style="padding-top:9px; height: 10px;" target="_blank">
+              <button class="link" type="submit" size="1">
+                {{refineName}}
+              </button>
             </form>
           </th>
           <td style="vertical-align: bottom !important;">
-            <form {% if "html" in pipelineLog %} action="/procReport/" {% else %} action="/log_viewer/" {% endif %}
-              id="logFileform" method="get" style="padding-top:9px; height: 10px;" target="_blank">
-              <button class="link" type="submit" value="{{pipelineLog}}" name="logFile"
-                size="1">{{pipelineName}}</button>
+            <form action="/logs/show/{{pipelineLog}}"
+              method="get" style="padding-top:9px; height: 10px;" target="_blank">
+              <button class="link" type="submit" size="1">
+                {{pipelineName}}
+              </button>
             </form>
           </td>
         </tr>
@@ -243,8 +246,8 @@
     <div style="display:{{ligbox}};">
       <div style="padding-left:30px !important; display:{{rhofitbox}}">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank" >
-            <h6> RhoFit - <button class="link" type="submit" value="{{rhofitlog}}" name="logFile" size="1">Log</button>
+          <form action="/logs/show/{{rhofitlog}}" method="get" target="_blank">
+            <h6> RhoFit - <button class="link" type="submit" size="1">Log</button>
             </h6>
           </form>
         </div>
@@ -262,9 +265,9 @@
 
       <div style="padding-left:30px !important; display:{{ligfitbox}};">
         <div>
-          <form action="/log_viewer/" method="get" id="logFileform" target="_blank" >
-            <h6> LigandFit - <button class="link" type="submit" value="{{ligandfitlog}}" name="logFile"
-                size="1">Log</button></h6>
+          <form action="/logs/show/{{ligandfitlog}}" method="get" target="_blank">
+            <h6> LigandFit - <button class="link" type="submit" size="1">Log</button>
+            </h6>
           </form>
         </div>
         <input id="showhideligandfit" class="btn navbt" type="button" value="HIDE" onclick="showligfit();"></input>

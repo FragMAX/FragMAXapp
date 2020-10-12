@@ -2,6 +2,7 @@ import pyfastcopy  # noqa
 import shutil
 from os import path
 from glob import glob
+from pathlib import Path
 from ast import literal_eval
 
 from django.shortcuts import render
@@ -74,11 +75,12 @@ def show(request):
             modelscore,
         ) = result_info
 
+    proj_dir = proj.data_path()
     res_dir = path.join(project_results_dir(proj), "_".join(usracr.split("_")[:-2]), *pipeline.split("_"))
     mtzfd = path.join(res_dir, "final.mtz")
 
-    refineLog, pipelineLog = find_refinement_log(res_dir)
-    rhofitlog, ligandfitlog = find_ligandfitting_log(res_dir)
+    refineLog, pipelineLog = find_refinement_log(proj_dir, res_dir)
+    rhofitlog, ligandfitlog = find_ligandfitting_log(proj_dir, res_dir)
 
     if path.exists(path.join(res_dir, "final.pdb")):
         if not path.exists(mtzfd):
@@ -164,8 +166,6 @@ def show(request):
     pdbout = pdbout.replace("/data/visitors/", "/static/")
     ligfit = ligfit.replace("/data/visitors/", "/static/")
     rhofit = rhofit.replace("/data/visitors/", "/static/")
-
-    fitres_dir = path.join(proj.data_path(), "fragmax", "results", ligfit_dataset, processM, refineM)
 
     # get xyz for ligands
     blist = blist.replace(" ", "")
@@ -854,7 +854,7 @@ def pandda_consensus(request):
     )
 
 
-def find_refinement_log(res_dir):
+def find_refinement_log(proj_dir, res_dir):
     logFile = "refinelog"
     pipelineLog = "pipelinelong"
 
@@ -876,20 +876,22 @@ def find_refinement_log(res_dir):
             logFile = logSearch[-1]
             pipelineLog = logSearch[-1]
 
-    return logFile, pipelineLog
+    return Path(logFile).relative_to(proj_dir), Path(pipelineLog).relative_to(proj_dir)
 
 
-def find_ligandfitting_log(res_dir):
+def find_ligandfitting_log(proj_dir, res_dir):
     rhofitSearch = glob(f"{res_dir}/rhofit/results.txt")
-    ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
     if rhofitSearch:
-        rhofitlog = rhofitSearch[0]
+        rhofitlog = Path(rhofitSearch[0]).relative_to(proj_dir)
     else:
         rhofitlog = ""
+
+    ligandfitSearch = glob(f"{res_dir}/ligfit/LigandFit_run*/ligand_*.log")
     if ligandfitSearch:
-        ligandfitlog = ligandfitSearch[0]
+        ligandfitlog = Path(ligandfitSearch[0]).relative_to(proj_dir)
     else:
         ligandfitlog = ""
+
     return rhofitlog, ligandfitlog
 
 
