@@ -20,6 +20,80 @@ def show(request, images, prefix, run):
         ]
         return [(p.name, p.relative_to(curp)) for p in log_paths]
 
+    def _pipedream_logs():
+        pipedream_dir = path.join(project_results_dir(proj), f"{prefix}_{run}", "pipedream")
+        vals = parse_log_process(path.join(pipedream_dir, "process", "summary.html"))
+
+        if not path.exists(path.join(pipedream_dir, "process", "summary.html")):
+            return None, [], vals
+
+        pipedreamreport = Path(pipedream_dir, "summary.out").relative_to(curp)
+
+        return pipedreamreport, _logs(pipedream_dir), vals
+
+    def _autoproc_logs():
+        autoproc_dir = path.join(dataset_dir, "autoproc")
+        vals = parse_log_process(path.join(autoproc_dir, "summary.html"))
+
+        if not path.exists(path.join(autoproc_dir, "summary.html")):
+            return None, [], vals
+
+        autoprocreport = Path(autoproc_dir, "summary.html").relative_to(curp)
+
+        return autoprocreport, _logs(autoproc_dir), vals
+
+    def _edna_logs():
+        edna_dir = path.join(dataset_dir, "edna")
+        vals = parse_log_process(path.join(edna_dir, f"ep_{prefix}_{run}_aimless_anom.log"))
+
+        ednareport = Path(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
+        if not ednareport.is_file():
+            return None, [], vals
+
+        return ednareport.relative_to(curp), _logs(edna_dir), vals
+
+    def _fastdp_logs():
+        fastdp_dir = path.join(dataset_dir, "fastdp")
+        vals = parse_log_process(path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_aimless.log"))
+
+        fastdpreport = Path(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
+        if not fastdpreport.is_file():
+            return None, [], vals
+
+        return fastdpreport.relative_to(curp), _logs(fastdp_dir), vals
+
+    def _xdsapp_logs():
+        xdsapp_dir = path.join(dataset_dir, "xdsapp")
+        vals = parse_log_process(path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt"))
+
+        xdsappreport = Path(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
+        if not xdsappreport.is_file():
+            return None, [], vals
+
+        return xdsappreport.relative_to(curp), _logs(xdsapp_dir), vals
+
+    def _dials_logs():
+        dials_dir = path.join(dataset_dir, "dials")
+        vals = parse_log_process(path.join(dials_dir, "xia2.html"))
+
+        if not path.exists(path.join(dials_dir, "xia2.html")):
+            return None, [], vals
+
+        dialsreport = Path(dials_dir, "xia2.html").relative_to(curp)
+
+        return dialsreport, _logs(path.join(dials_dir, "LogFiles")), vals
+
+    def _xds_logs():
+        xds_dir = path.join(dataset_dir, "xdsxscale")
+        vals = parse_log_process(path.join(xds_dir, "xia2.html"))
+
+        if not path.exists(path.join(xds_dir, "xia2.html")):
+            return None, [], vals
+
+        xdsreport = Path(xds_dir, "xia2.html").relative_to(curp)
+
+        return xdsreport, _logs(path.join(xds_dir, "LogFiles")), vals
+
     proj = current_project(request)
 
     images = str(images / 2)
@@ -47,32 +121,6 @@ def show(request, images, prefix, run):
 
     half = int(float(images) / 200)
 
-    dialsreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
-                       "dials", "xia2.html").relative_to(curp)
-
-    xdsreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
-                     "xdsxscale", "xia2.html").relative_to(curp)
-
-    autoprocreport = Path(project_process_protein_dir(proj), prefix, f"{prefix}_{run}",
-                          "autoproc", "summary.html").relative_to(curp)
-
-    pipedreamreport = Path(project_results_dir(proj), f"{prefix}_{run}",
-                           "pipedream", "summary.out").relative_to(curp)
-
-    xdsappOK = "no"
-    dialsOK = "no"
-    xdsOK = "no"
-    autoprocOK = "no"
-    ednaOK = "no"
-    fastdpOK = "no"
-    pipedreamOK = "no"
-    fastdpLogs = ""
-    ednaLogs = ""
-    autoprocLogs = ""
-    xdsappLogs = ""
-    xdsLogs = ""
-    dialsLogs = ""
-    pipedreamLogs = ""
     _tables = {
         "pipedream": {},
         "autoproc": {},
@@ -83,57 +131,16 @@ def show(request, images, prefix, run):
         "xdsxscale": {},
     }
 
-    # XDSAPP logs
-    xdsapp_dir = path.join(dataset_dir, "xdsapp")
-    xdsappreport = path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
-    if path.exists(xdsappreport):
-        xdsappOK = "ready"
-        xdsappLogs = _logs(xdsapp_dir)
-    _tables["xdsapp"] = parse_log_process(path.join(dataset_dir, "xdsapp", f"results_{prefix}_{run}_data.txt"))
-
-    # DIALS logs
-    dials_dir = path.join(dataset_dir, "dials")
-    if path.exists(path.join(dials_dir, "xia2.html")):
-        dialsOK = "ready"
-        dialsLogs = _logs(path.join(dials_dir, "LogFiles"))
-    _tables["dials"] = parse_log_process(path.join(dataset_dir, "dials", "xia2.html"))
-
-    # XIA2/XDS logs
-    xds_dir = path.join(dataset_dir, "xdsxscale")
-    if path.exists(path.join(xds_dir, "xia2.html")):
-        xdsOK = "ready"
-        xdsLogs = _logs(path.join(xds_dir, "LogFiles"))
-    _tables["xdsxscale"] = parse_log_process(path.join(dataset_dir, "xdsxscale", "xia2.html"))
-
-    # autoPROC logs
-    autoproc_dir = path.join(dataset_dir, "autoproc")
-    if path.exists(path.join(autoproc_dir, "summary.html")):
-        autoprocOK = "ready"
-        autoprocLogs = _logs(autoproc_dir)
-    _tables["autoproc"] = parse_log_process(path.join(dataset_dir, "autoproc", "summary.html"))
-
-    # Pipedream logs
-    pipedream_dir = path.join(proj.data_path(), "fragmax", "results", f"{prefix}_{run}", "pipedream")
-    if path.exists(path.join(pipedream_dir, "process", "summary.html")):
-        pipedreamOK = "ready"
-        pipedreamLogs = _logs(pipedream_dir)
-    _tables["pipedream"] = parse_log_process(path.join(pipedream_dir, "process", "summary.html"))
-
-    # EDNA logs
-    edna_dir = path.join(dataset_dir, "edna")
-    ednareport = path.join(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
-    if path.exists(ednareport):
-        ednaOK = "ready"
-        ednaLogs = _logs(edna_dir)
-    _tables["edna"] = parse_log_process(path.join(dataset_dir, "edna", f"ep_{prefix}_{run}_aimless_anom.log"))
-
-    # Fast DP reports
-    fastdp_dir = path.join(dataset_dir, "fastdp")
-    fastdpreport = path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
-    if path.exists(fastdpreport):
-        fastdpOK = "ready"
-        fastdpLogs = _logs(fastdp_dir)
-    _tables["fastdp"] = parse_log_process(path.join(dataset_dir, "fastdp", f"ap_{prefix}_run{run}_noanom_aimless.log"))
+    #
+    # Logs for data processing tools
+    #
+    pipedreamreport, pipedreamLogs, _tables["pipedream"] = _pipedream_logs()
+    autoprocreport, autoprocLogs, _tables["autoproc"] = _autoproc_logs()
+    ednareport, ednaLogs, _tables["edna"] = _edna_logs()
+    fastdpreport, fastdpLogs, _tables["fastdp"] = _fastdp_logs()
+    xdsappreport, xdsappLogs, _tables["xdsapp"] = _xdsapp_logs()
+    dialsreport, dialsLogs, _tables["dials"] = _dials_logs()
+    xdsreport, xdsLogs, _tables["xdsxscale"] = _xds_logs()
 
     #
     # Logs for refinement methods
@@ -268,13 +275,6 @@ def show(request, images, prefix, run):
             "pipedreamreport": pipedreamreport,
             "ednareport": ednareport,
             "fastdpreport": fastdpreport,
-            "xdsappOK": xdsappOK,
-            "dialsOK": dialsOK,
-            "xdsOK": xdsOK,
-            "autoprocOK": autoprocOK,
-            "pipedreamOK": pipedreamOK,
-            "ednaOK": ednaOK,
-            "fastdpOK": fastdpOK,
             "fastdpLogs": fastdpLogs,
             "ednaLogs": ednaLogs,
             "autoprocLogs": autoprocLogs,

@@ -355,7 +355,7 @@
                     <tr>
                         <td class="resultsHeader" style="height: 60px;"></td>
                         <td class="resultsHeader">
-                            {% if pipedreamOK == "ready" %}
+                            {% if pipedreamreport %}
                             <a class="btn-small" href="/logs/show/{{pipedreamreport}}" target="_blank">
                                 Pipedream
                             </a>
@@ -364,7 +364,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if autoprocOK == "ready" %}
+                            {% if autoprocreport %}
                             <a class="btn-small" href="/logs/show/{{autoprocreport}}" target="_blank">
                                 autoPROC
                             </a>
@@ -373,7 +373,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if ednaOK == "ready" %}
+                            {% if ednareport %}
                             <a class="btn-small" href="/logs/show/{{ednareport}}" target="_blank">
                                 EDNA
                             </a>
@@ -382,7 +382,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if fastdpOK == "ready" %}
+                            {% if fastdpreport %}
                             <a class="btn-small" href="/logs/show/{{fastdpreport}}" target="_blank">
                                 FastDP
                             </a>
@@ -391,7 +391,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if xdsappOK == "ready" %}
+                            {% if xdsappreport %}
                             <a class="btn-small" href="/logs/show/{{xdsappreport}}" target="_blank">
                                 XDSAPP
                             </a>
@@ -400,7 +400,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if dialsOK == "ready" %}
+                            {% if dialsreport %}
                             <a class="btn-small" href="/logs/show/{{dialsreport}}" target="_blank">
                                 XIA2/DIALS
                             </a>
@@ -409,7 +409,7 @@
                             {% endif %}
                         </td>
                         <td class="resultsHeader">
-                            {% if xdsOK == "ready" %}
+                            {% if xdsreport %}
                             <a class="btn-small" href="/logs/show/{{xdsreport}}" target="_blank">
                                 XIA2/XDS
                             </a>
@@ -591,10 +591,9 @@
     </div>
     </div>
 
-
     <div class="flexdiv">
         <div id="snaps">
-            {% if dialsOK == "ready" %}
+            {% if dialsreport %}
             <form action="/reciprocal_lattice/{{imgprf}}/{{run}}" method="get" size="1" style="padding-left:25%;"
                 target="_blank">
                 <button class="btn-large" type="submit" size="1">Open Reciprocal Lattice Viewer</button>
@@ -608,7 +607,6 @@
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
-
 
         </div>
         <div class="flex-left">
@@ -867,63 +865,51 @@
             </div>
             <div id="EDNA" class="card tabcontent ">
                 <div class="card-title logtab">EDNA_proc Logs</div>
-                {% if ednaOK == "ready" %}
-                    {% for logName, logPath in ednaLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in ednaLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="fastdp" class="card tabcontent ">
                 <div class="card-title logtab">FastDP Logs</div>
-                {% if fastdpOK == "ready" %}
-                    {% for logName, logPath in fastdpLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in fastdpLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="DIALS" class="card tabcontent ">
                 <div class="card-title logtab">XIA2/DIALS Logs</div>
-                {% if dialsOK == "ready" %}
-                    {% for logName, logPath in dialsLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in dialsLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="XDS" class="card tabcontent">
                 <div class="card-title logtab">XIA2/XDS Logs</div>
-                {% if xdsOK == "ready" %}
-                    {% for logName, logPath in xdsLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in xdsLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="XDSAPP" class="card tabcontent ">
                 <div class="card-title logtab">XDSAPP Logs</div>
-                {% if xdsappOK == "ready" %}
-                    {% for logName, logPath in xdsappLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in xdsappLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="autoPROC" class="card tabcontent ">
                 <div class="card-title logtab">autoPROC Logs</div>
-                {% if autoprocOK == "ready" %}
-                    {% for logName, logPath in autoprocLogs %}
-                    <div>
-                        <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+                {% for logName, logPath in autoprocLogs %}
+                <div>
+                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                </div>
+                {% endfor %}
             </div>
             <div id="Pipedream" class="card tabcontent">
                 <div class="card-title">Pipedream Logs</div>
