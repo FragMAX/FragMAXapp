@@ -1,12 +1,10 @@
 from os import path
 from django.shortcuts import render
 from django.contrib import messages
-from fragview.sites import SITE
 from fragview.projects import current_project
 from fragview.models import Fragment
 from fragview import hpc
 from fragview.projects import project_raw_master_h5_files
-from ast import literal_eval
 from time import sleep
 import csv
 import io
@@ -105,32 +103,6 @@ def testfunc(request):
 
 def ugly(request):
     return render(request, "fragview/ugly.html")
-
-
-def log_viewer(request):
-    logFile = request.GET["logFile"]
-    downloadPath = f"/static/biomax{logFile[len(SITE.PROPOSALS_DIR):]}"
-    if path.exists(logFile):
-        if path.splitext(logFile)[-1] == ".json" and "pandda" in logFile:
-            filetype = "json"
-            with open(logFile, "r", encoding="utf-8") as r:
-                init_log = literal_eval(r.read())
-            log = "<table>\n"
-            for k, v in sorted(init_log.items()):
-                log += f"<tr><td>{k}</td><td> {v}</td></tr>\n"
-            log += "</table>"
-        else:
-            filetype = "txt"
-            with open(logFile, "r", encoding="utf-8") as r:
-                log = r.read()
-    else:
-        filetype = ""
-        log = ""
-    return render(
-        request,
-        "fragview/log_viewer.html",
-        {"log": log, "dataset": logFile, "downloadPath": downloadPath, "filetype": filetype},
-    )
 
 
 def perc2float(v):

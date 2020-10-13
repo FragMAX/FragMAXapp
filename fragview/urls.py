@@ -7,7 +7,6 @@ from fragview.views import encryption, download, dataset_info, logs
 urlpatterns = [
     # use 'project summary' view as the landing page
     path('', projects.project_summary, name='project_summary'),
-    path('log_viewer/', misc.log_viewer, name='log_viewer'),
 
     path('testpage/', misc.testfunc, name='testpage'),
 
