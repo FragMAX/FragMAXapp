@@ -215,31 +215,20 @@
         <tr style="border-bottom: 0;">
           <th>
             <p>Logs</p>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
-              <button class="link" type="submit"
-                value="{{project.data_path}}/fragmax/results/{{prefix}}/pipedream/summary.out" name="logFile"
-                size="1">Pipedream</button>
+            <form action="/logs/show/fragmax/results/{{prefix}}/pipedream/summary.out" target="_blank">
+              <button class="link" type="submit" size="1">Pipedream</button>
             </form>
-
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
-              <button class="link" type="submit"
-                value="{{project.data_path}}/fragmax/results/{{prefix}}/pipedream/process.out" name="logFile"
-                size="1">autoPROC</button>
+            <form action="/logs/show/fragmax/results/{{prefix}}/pipedream/process.out" target="_blank">
+              <button class="link" type="submit" size="1">autoPROC</button>
             </form>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
-              <button class="link" type="submit"
-                value="{{project.data_path}}/fragmax/results/{{prefix}}/pipedream/refine.out" name="logFile"
-                size="1">BUSTER</button>
+            <form action="/logs/show/fragmax/results/{{prefix}}/pipedream/refine.out" target="_blank">
+              <button class="link" type="submit" size="1">BUSTER</button>
             </form>
-            <form action="/log_viewer/" method="get" id="logFileform" target="_blank" style="height: 10px;">
-              <button class="link" type="submit"
-                value="{{project.data_path}}/fragmax/results/{{prefix}}/pipedream/rhofit-{{ligand}}.out" name="logFile"
-                size="1">RhoFit</button>
+            <form action="/logs/show/fragmax/results/{{prefix}}/pipedream/rhofit-{{ligand}}.out" target="_blank">
+              <button class="link" type="submit" size="1">RhoFit</button>
             </form>
           </th>
-
         </tr>
-
       </table>
     </div>
 
