@@ -56,9 +56,15 @@ class ViewTesterMixin:
         templ_names = [t.name for t in response.templates]
         self.assertIn(template_name, templ_names)
 
+    def assert_response(self, response, status_code, content_regexp):
+        self.assertEquals(response.status_code, status_code)
+        self.assertRegex(response.content.decode(), content_regexp)
+
     def assert_bad_request(self, response, error_msg):
-        self.assertEquals(response.status_code, 400)
-        self.assertRegex(response.content.decode(), error_msg)
+        self.assert_response(response, 400, error_msg)
+
+    def assert_not_found_response(self, response, error_msg):
+        self.assert_response(response, 404, error_msg)
 
 
 def data_file_path(file_name):

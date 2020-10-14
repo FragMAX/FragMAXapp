@@ -6,6 +6,10 @@ from fragview.fileio import read_proj_text_file, read_proj_file
 
 
 def _get_log_path(proj, log_file):
+    """
+    convert the path relative to the project's data directory,
+    to absolute path on the file system
+    """
     return Path(proj.data_path(), log_file)
 
 
@@ -22,12 +26,18 @@ def _log_not_found_resp(log_file):
 
 
 def _show_html_log(request, log_path):
+    """
+    render a HTML log
+    """
     log_path = str(log_path).replace("/data/visitors/", "/static/")
 
     return render(request, "fragview/html_log.html", {"reportHTML": log_path})
 
 
 def _show_text_log(request, proj, download_url, log_path):
+    """
+    render a text log
+    """
     return render(
         request,
         "fragview/text_log.html",
