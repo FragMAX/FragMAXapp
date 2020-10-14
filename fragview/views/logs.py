@@ -14,6 +14,13 @@ def _is_html(log_path):
     return ".html" == suffix
 
 
+def _log_not_found_resp(log_file):
+    """
+    standard response when requested log is not found
+    """
+    return HttpResponseNotFound(f"log file '{log_file}' not found")
+
+
 def _show_html_log(request, log_path):
     log_path = str(log_path).replace("/data/visitors/", "/static/")
 
@@ -37,7 +44,7 @@ def show(request, log_file):
     log_path = _get_log_path(proj, log_file)
 
     if not log_path.is_file():
-        return HttpResponseNotFound(f"log file '{log_file}' not found")
+        return _log_not_found_resp(log_file)
 
     if _is_html(log_path):
         return _show_html_log(request, log_path)
@@ -47,8 +54,11 @@ def show(request, log_file):
 
 def download(request, log_file):
     proj = current_project(request)
+    log_path = _get_log_path(proj, log_file)
+
+    if not log_path.is_file():
+        return _log_not_found_resp(log_file)
 
     return HttpResponse(
-        read_proj_file(proj, _get_log_path(proj, log_file)),
-        content_type="application/octet-stream",
+        read_proj_file(proj, log_path), content_type="application/octet-stream",
     )
