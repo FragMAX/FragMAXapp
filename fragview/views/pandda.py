@@ -16,6 +16,7 @@ from random import randint
 from collections import Counter
 from django.shortcuts import render
 from fragview import hpc, versions
+from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.fileio import open_proj_file, read_proj_text_file, read_text_lines, read_proj_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
@@ -1040,11 +1041,10 @@ def pandda_worker(proj, method, options, cifMethod):
 
         if path.exists(pdb):
             hklin = pdb.replace(".pdb", ".mtz")
-            resHigh, freeRflag, fsigf_Flag = _read_mtz_file(proj, hklin)
-            script = _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod)
-            time.sleep(0.1)
+            res_high, free_r_flag, native_f, sigma_fp = read_info(proj, hklin)
+            script = _write_prepare_script(proj, rn, method, dataset, pdb, res_high,
+                                           free_r_flag, native_f, sigma_fp, cifMethod)
             hpc.run_sbatch(script)
-            # os.remove(script)
 
     pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
     os.makedirs(pandda_dir, exist_ok=True)
@@ -1058,7 +1058,7 @@ def pandda_worker(proj, method, options, cifMethod):
     # os.remove(script)
 
 
-def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fsigf_Flag, cifMethod):
+def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, native_f, sigma_fp, cif_method):
     if "pipedream" in pdb or "buster" in pdb:
         mtz = path.join(path.dirname(pdb), "refine.mtz")
     else:
@@ -1081,13 +1081,13 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, freeRflag, fs
         frag_obj = lib.get_fragment(frag)
         if frag_obj is not None:
             smiles = lib.get_fragment(frag).smiles
-            if cifMethod == "elbow":
+            if cif_method == "elbow":
                 cif_cmd = f"phenix.elbow --smiles='{smiles}' --output=$WORK_DIR/{frag} --opt\n"
                 clear_tmp_cmd = ""
-            elif cifMethod == "acedrg":
+            elif cif_method == "acedrg":
                 cif_cmd = f"acedrg -i '{smiles}' -o $WORK_DIR/{frag}\n"
                 clear_tmp_cmd = f"rm -rf $WORK_DIR/{frag}_TMP/\n"
-            elif cifMethod == "grade":
+            elif cif_method == "grade":
                 cif_cmd = f"grade '{smiles}' -ocif $WORK_DIR/{frag}.cif -opdb $WORK_DIR/{frag}.pdb -nomogul\n"
                 clear_tmp_cmd = ""
             copy_frags_cmd = cif_cmd + "\n" + clear_tmp_cmd
@@ -1123,12 +1123,12 @@ module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
 echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
     cad hklin1 final.mtz hklout final.mtz
 
-uniqueify -f {freeRflag} final.mtz final.mtz
+uniqueify -f {free_r_flag} final.mtz final.mtz
 
-echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
+echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\
     freerflag hklin final.mtz hklout final_rfill.mtz
 
-phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
+phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'
 mv final.mtz final_original.mtz
 mv final_map_coeffs.mtz final.mtz
 
@@ -1142,7 +1142,6 @@ rm $HOME/slurm*.out
 
 """
     else:
-        print("not encrypted")
         body = f"""#!/bin/bash
 #!/bin/bash
 #SBATCH -t 00:15:00
@@ -1171,12 +1170,12 @@ module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
 echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
     cad hklin1 $DEST_DIR/final.mtz hklout $DEST_DIR/final.mtz
 
-uniqueify -f {freeRflag} $DEST_DIR/final.mtz $DEST_DIR/final.mtz
+uniqueify -f {free_r_flag} $DEST_DIR/final.mtz $DEST_DIR/final.mtz
 
-echo -e "COMPLETE FREE={freeRflag} \\nEND" | \\
+echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\
     freerflag hklin $DEST_DIR/final.mtz hklout $DEST_DIR/final_rfill.mtz
 
-phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{fsigf_Flag}'
+phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'
 mv $DEST_DIR/final.mtz $DEST_DIR/final_original.mtz
 mv $DEST_DIR/final_map_coeffs.mtz $DEST_DIR/final.mtz
 rm $HOME/final.log*

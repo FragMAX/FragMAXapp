@@ -1,6 +1,8 @@
 import os
 import csv
 import stat
+from tempfile import NamedTemporaryFile
+from contextlib import contextmanager
 from .encryption import EncryptedFile, decrypt
 from fragview.projects import project_logs_dir, project_process_dir
 
@@ -44,6 +46,39 @@ def read_proj_file(proj, file_path):
     # no encryption, read as normal
     with open(file_path, "rb") as f:
         return f.read()
+
+
+@contextmanager
+def temp_decrypted(proj, file_path):
+    """
+    A context manager that will decrypt specified file to a temp
+    file. This context manager will take care of deleting the
+    decrypted project once we exit the context.
+
+    This is used if we need to use third party code that
+    needs to read the plaintext file from the file system,
+    for example gemmi MTZ reader
+
+    For unencrypted projects, this will just return specified file path.
+    """
+    if not proj.encrypted:
+        # not encrypted project, we can use file as is
+        yield file_path
+        return
+
+    #
+    # decrypt into temp file
+    #
+    with NamedTemporaryFile(suffix=".mtz", delete=False) as f:
+        temp_name = f.name
+        f.write(read_proj_file(proj, file_path))
+
+    try:
+        yield temp_name
+    finally:
+        # whatever happens,
+        # the decrypted file must be removed
+        os.remove(temp_name)
 
 
 def read_proj_text_file(proj, file_path):
