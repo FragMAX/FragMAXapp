@@ -7,8 +7,6 @@ import shutil
 import threading
 import json
 import time
-import tempfile
-import subprocess
 from ast import literal_eval
 from os import path
 from glob import glob
@@ -18,10 +16,9 @@ from django.shortcuts import render
 from fragview import hpc, versions
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
-from fragview.fileio import open_proj_file, read_proj_text_file, read_text_lines, read_proj_file, write_script
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_text_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
-from worker.scripts import read_mtz_flags_path
 
 
 def str2bool(v):
@@ -1186,28 +1183,6 @@ rm $HOME/slurm*.out
     write_script(script, body)
 
     return script
-
-
-def _read_mtz_file(proj, mtz_file):
-    with tempfile.NamedTemporaryFile(suffix=".mtz", delete=False) as f:
-        temp_name = f.name
-        f.write(read_proj_file(proj, mtz_file))
-
-    stdout = subprocess.run(["mtzdmp", temp_name], stdout=subprocess.PIPE).stdout
-
-    for i in stdout.decode().splitlines():
-        if "A )" in i:
-            resHigh = i.split()[-3]
-        if "free" in i.lower() and "flag" in i.lower():
-            freeRflag = i.split()[-1]
-
-    stdout = subprocess.run([read_mtz_flags_path(), temp_name], stdout=subprocess.PIPE).stdout
-    fsigf_Flag = stdout.decode("utf-8").split()[1].split(":")[-1]
-
-    # make sure unencrypted MTZ is removed as soon as possible
-    os.remove(temp_name)
-
-    return resHigh, freeRflag, fsigf_Flag
 
 
 #

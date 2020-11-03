@@ -1,13 +1,6 @@
 #!/bin/sh
 
 #
-# make mtzdmp command available
-#
-export MX_SOFT=/mxn/groups/biomax/wmxsoft
-. /mxn/groups/biomax/wmxsoft/env_setup/ccp4_env.sh
-
-
-#
 # start the supervisord inside 'FragMAX' conda environment
 #
 

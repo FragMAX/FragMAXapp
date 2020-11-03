@@ -6,7 +6,6 @@ from .proposals import get_proposals
 UPDATE_STATUS_SCRIPT = "update_status.py"
 UPDATE_RESULTS_SCRIPT = "update_results.py"
 PANDDA_WORKER = "pandda_prepare_runs.py"
-READ_MTZ_FLAGS = "read_mtz_flags.py"
 
 
 def current_project(request):
