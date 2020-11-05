@@ -18,10 +18,12 @@ from django.http import HttpResponseNotFound, HttpResponse
 from fragview import hpc, versions
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
+from fragview.projects import project_pandda_results_dir
+from fragview.sites import SITE
 from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, read_proj_text_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
-from fragview.projects import project_pandda_results_dir
+from fragview.sites.plugin import Duration, DataSize
 
 
 def str2bool(v):
@@ -791,11 +793,12 @@ def submit(request):
             "nproc": ncpus,
         }
 
-        res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
+        res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
 
         methodshort = proc[:2] + ref[:2]
         if methodshort == "bebe":
             methodshort = "best"
+
         _write_main_script(proj, method, methodshort, options)
 
         if not options["reprocessZmap"] and path.exists(res_dir):
@@ -813,87 +816,76 @@ def submit(request):
 
 
 def _write_main_script(proj, method, methodshort, options):
+    def _hpc_options():
+        if proj.encrypted:
+            # when running in encrypted mode, we need to use the
+            # 'all' partition, as 'fujitsu' node don't have access
+            # to fragmax web host, which we use to read and write
+            # encrypted data
+            return "all", DataSize(gigabyte=210), 48
+
+        # use 'fujitsu' nodes, when possible, as they have better performance
+        return "fujitsu", DataSize(gigabyte=310), 64
+
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
 
     epoch = round(time.time())
+
     log_prefix = project_log_path(proj, f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
     data_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
 
     pandda_script = project_script(proj, PANDDA_WORKER)
     pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
+    pandda_res_dir = path.join(project_results_dir(proj), "pandda")
+    pandda_proto_res_dir = path.join(pandda_res_dir, proj.protein)
+
     giant_cluster = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"
     if options["reprocessZmap"]:
         pandda_cluster = ""
-        # reset_pandda_res_dir = f"mv {pandda_method_dir}/pandda {pandda_method_dir}/pandda_old"
     else:
-        pandda_cluster = f"{giant_cluster} {pandda_method_dir}/*/final.pdb pdb_label=foldername"
-        # reset_pandda_res_dir = ""
-    fixsymlink1 = (
-        "cd "
-        + proj.data_path()
-        + "/fragmax/results/pandda/"
-        + proj.protein
-        + """/ ; find -type l -iname *-pandda-input.* -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;"""  # noqa W605
-    )
-    fixsymlink2 = (
-        "cd "
-        + proj.data_path()
-        + "/fragmax/results/pandda/"
-        + proj.protein
-        + """/ ; find -type l -iname *pandda-model.pdb -exec bash -c 'ln -f "$(readlink -m "$0")" "$0"' {} \;"""  # noqa W605
-    )
+        pandda_cluster = f"{giant_cluster} ./*/final.pdb pdb_label=foldername"
+
+    hpc = SITE.get_hpc_runner()
+    batch = hpc.new_batch_file(script)
+    partition, memory, cpus_per_task = _hpc_options()
+    batch.set_options(time=Duration(hours=99), job_name=f"PDD{methodshort}", exclusive=True, nodes=1,
+                      partition=partition, cpus_per_task=cpus_per_task, memory=memory,
+                      stdout=f"{log_prefix}out.txt", stderr=f"{log_prefix}err.txt")
+
     if proj.encrypted:
-        body = f"""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 99:00:00
-#SBATCH -J PDD{methodshort}
-#SBATCH --exclusive
-#SBATCH -N1
-#SBATCH -p all
-#SBATCH --cpus-per-task=48
-#SBATCH --mem=210000
-#SBATCH -o {log_prefix}out.txt
-#SBATCH -e {log_prefix}err.txt
+        batch.add_commands(
+            crypt_shell.crypt_cmd(proj),
+            "WORK_DIR=$(mktemp -d)",
+            "cd $WORK_DIR",
+            crypt_shell.fetch_dir(proj, data_dir, ".")
+        )
 
-{crypt_shell.crypt_cmd(proj)}
-
-WORK_DIR=$(mktemp -d)
-cd $WORK_DIR
-
-{crypt_shell.fetch_dir(proj, data_dir, ".")}
-
-module load gopresto {versions.CCP4_MOD} {versions.PYMOL_MOD}
-python {pandda_script} $WORK_DIR {proj.protein} "{options}"
-
-{crypt_shell.upload_dir(proj, '$WORK_DIR/pandda', data_dir + '/pandda')}
-rm -rf "$WORK_DIR"
-"""
+        batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
+        batch.add_commands(
+            pandda_cluster,
+            f"python {pandda_script} . {proj.protein} \"{options}\"",
+            crypt_shell.upload_dir(proj, "$WORK_DIR/pandda", path.join(data_dir, "pandda")),
+            crypt_shell.upload_dir(proj,
+                                   "$WORK_DIR/clustered-datasets",
+                                   path.join(data_dir, "clustered-datasets"))
+        )
     else:
+        batch.add_command(f"cd {pandda_method_dir}")
+        batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
 
-        body = f"""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 99:00:00
-#SBATCH -J PDD{methodshort}
-#SBATCH --exclusive
-#SBATCH -N1
-#SBATCH -p fujitsu
-#SBATCH --cpus-per-task=64
-#SBATCH --mem=310G
-#SBATCH -o {log_prefix}out.txt
-#SBATCH -e {log_prefix}err.txt
+        batch.add_commands(
+            pandda_cluster,
+            f"python {pandda_script} {pandda_method_dir} {proj.protein} \"{options}\"",
+            f"chmod -R 777 {pandda_res_dir}")
 
-cd {pandda_method_dir}
-module purge
-module load gopresto {versions.CCP4_MOD} {versions.PYMOL_MOD}
-{pandda_cluster}
+        # add commands to fix symlinks
+        ln_command = '\'ln -f "$(readlink -m "$0")" "$0"\' {} \\;'
+        batch.add_commands(
+            f"cd {pandda_proto_res_dir}; find -type l -iname *-pandda-input.* -exec bash -c {ln_command}",
+            f"cd {pandda_proto_res_dir}; find -type l -iname *pandda-model.pdb -exec bash -c {ln_command}"
+        )
 
-python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"
-
-chmod -R 777 {proj.data_path()}/fragmax/results/pandda/
-{fixsymlink1}
-{fixsymlink2}"""
-
-    write_script(script, body)
+    batch.save()
 
 
 def giant_score(proj, method):
@@ -1058,6 +1050,7 @@ def pandda_worker(proj, method, options, cifMethod):
             res_high, free_r_flag, native_f, sigma_fp = read_info(proj, hklin)
             script = _write_prepare_script(proj, rn, method, dataset, pdb, res_high,
                                            free_r_flag, native_f, sigma_fp, cifMethod)
+
             hpc.run_sbatch(script)
 
     pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
@@ -1069,7 +1062,6 @@ def pandda_worker(proj, method, options, cifMethod):
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
     hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
-    # os.remove(script)
 
 
 def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, native_f, sigma_fp, cif_method):
@@ -1081,7 +1073,7 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
-    script = f"pandda_prepare_{proj.protein}{fset}.sh"
+    script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
     lib = proj.library
 
     copy_frags_cmd = ""
@@ -1108,99 +1100,41 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
             if path.exists(f"{os.path.join(fragments_path, frag_cif)}") and False:
                 copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
 
-    if proj.encrypted:
-        body = f"""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 00:15:00
-#SBATCH -J PnD{rn}
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=5000
-#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
-#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
-module purge
-module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD} {versions.BUSTER_MOD}
+    hpc = SITE.get_hpc_runner()
+    batch = hpc.new_batch_file(script)
+    batch.set_options(time=Duration(minutes=15), job_name=f"PnD{rn}", cpus_per_task=1, memory=DataSize(gigabyte=5),
+                      stdout=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
+                      stderr=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"))
 
-{crypt_shell.crypt_cmd(proj)}
+    batch.add_commands(
+        crypt_shell.crypt_cmd(proj),
+        f'DEST_DIR="{output_dir}"',
+        "WORK_DIR=$(mktemp -d)",
+        "cd $WORK_DIR",
+        crypt_shell.fetch_file(proj, pdb, "final.pdb"),
+        crypt_shell.fetch_file(proj, mtz, "final.mtz")
+    )
 
-DEST_DIR="{output_dir}"
-WORK_DIR=$(mktemp -d)
-cd $WORK_DIR
+    batch.purge_modules()
+    batch.load_modules(["gopresto", versions.PHENIX_MOD, versions.CCP4_MOD, versions.BUSTER_MOD])
 
-{crypt_shell.fetch_file(proj, pdb, "final.pdb")}
-{crypt_shell.fetch_file(proj, mtz, "final.mtz")}
+    batch.add_commands(
+        copy_frags_cmd,
+        f'echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\\n'
+        '    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz',
+        "uniqueify -f FreeR_flag $WORK_DIR/final.mtz $WORK_DIR/final.mtz",
+        f'echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\\n'
+        '    freerflag hklin $WORK_DIR/final.mtz hklout $WORK_DIR/final_rfill.mtz',
+        f"phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'",
+        "mv final.mtz final_original.mtz",
+        "mv final_map_coeffs.mtz final.mtz",
+        "rm -rf $DEST_DIR",
+        crypt_shell.upload_dir(proj, "$WORK_DIR", "$DEST_DIR"),
+        "rm -rf $WORK_DIR"
+    )
 
-{copy_frags_cmd}
-
-module purge
-module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
-
-echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
-    cad hklin1 final.mtz hklout final.mtz
-
-uniqueify -f {free_r_flag} final.mtz final.mtz
-
-echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\
-    freerflag hklin final.mtz hklout final_rfill.mtz
-
-phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'
-mv final.mtz final_original.mtz
-mv final_map_coeffs.mtz final.mtz
-
-rm -rf $DEST_DIR
-mkdir -p $DEST_DIR
-{crypt_shell.upload_dir(proj, '$WORK_DIR', output_dir)}
-
-rm -rf $WORK_DIR
-rm $HOME/final.log*
-rm $HOME/slurm*.out
-
-"""
-    else:
-        body = f"""#!/bin/bash
-#!/bin/bash
-#SBATCH -t 00:15:00
-#SBATCH -J PnD{rn}
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=5000
-#SBATCH -o {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_out.txt
-#SBATCH -e {proj.data_path()}/fragmax/logs/{fset}_PanDDA_{epoch}_%j_err.txt
-module purge
-module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD} {versions.BUSTER_MOD}
-
-
-DEST_DIR="{output_dir}"
-WORK_DIR=$DEST_DIR
-rm -rf $DEST_DIR
-mkdir -p $DEST_DIR
-cd $DEST_DIR
-cp {pdb} $DEST_DIR/final.pdb
-cp {mtz} $DEST_DIR/final.mtz
-
-{copy_frags_cmd}
-
-module purge
-module load gopresto {versions.PHENIX_MOD} {versions.CCP4_MOD}
-
-echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\
-    cad hklin1 $DEST_DIR/final.mtz hklout $DEST_DIR/final.mtz
-
-uniqueify -f {free_r_flag} $DEST_DIR/final.mtz $DEST_DIR/final.mtz
-
-echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\
-    freerflag hklin $DEST_DIR/final.mtz hklout $DEST_DIR/final_rfill.mtz
-
-phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'
-mv $DEST_DIR/final.mtz $DEST_DIR/final_original.mtz
-mv $DEST_DIR/final_map_coeffs.mtz $DEST_DIR/final.mtz
-rm $HOME/final.log*
-rm $HOME/slurm*.out
-"""
-
-    script = project_script(proj, script)
-    write_script(script, body)
-
+    batch.save()
     return script
-
 
 #
 # regexp object used when parsing

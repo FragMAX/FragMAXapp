@@ -1,5 +1,5 @@
 from fragview import tokens
-from fragview.projects import project_script, project_fragmax_dir
+from fragview.projects import project_script
 from django.conf import settings
 
 
@@ -29,10 +29,5 @@ def fetch_dir(proj, src, dest):
 def upload_dir(proj, src_dir, res_dir):
     if proj.encrypted:
         return f"$CRYPT_CMD upload_dir {src_dir} {res_dir}\n"
-
-    # project is in unencrypted mode
-    if not res_dir.startswith(project_fragmax_dir(proj)):
-        # refuse to do any 'rm -rf' outside of project's fragmax directory
-        raise Exception(f"{res_dir} outside of project directory")
 
     return f"mkdir -p {res_dir}\nrsync -r {src_dir}/* {res_dir}\n"

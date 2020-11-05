@@ -95,6 +95,7 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
     # write original pdb file 'as-is' to models folder
     with open_proj_file(proj, orig_pdb.file_path()) as dest:
         dest.write(pdb_data)
+
     # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
     with open_proj_file(proj, nohetnoanisou_pdb.file_path()) as dest:
         for line in pdb_data.splitlines(keepends=True):
@@ -135,7 +136,7 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
 # a transaction.
 #
 # This way if we fail to write the PDB file to disk, the new
-# PDB entry will not be commited to the database.
+# PDB entry will not be committed to the database.
 #
 @transaction.atomic
 def _process_add_request(request):
