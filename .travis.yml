@@ -13,7 +13,7 @@ install:
   # create FragMAX conda environment
   - conda env create --quiet --file environment.yml
   - conda activate FragMAX
-  - conda install flake8
+  - conda install flake8 black
   - conda info --all
 
   # for now, tests assume we are deployed at MAXIV
@@ -22,3 +22,4 @@ install:
 script:
   - ./manage.py test
   - flake8
+  - black --check .

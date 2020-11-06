@@ -1,0 +1,85 @@
+[tool.black]
+exclude = '''
+(
+  #
+  # black-list (heh) where we don't enforce black formatting
+  #
+  # this is mostly old files, which are waiting for one global
+  # 'black reformat' commit, try to not add more file to this list
+  #
+  fragview/views/density.py |
+  fragview/auth/__init__.py |
+  fragview/apps.py |
+  fragmax/wsgi.py |
+  fragmax/urls.py |
+  deploy/create_vol.py |
+  fragview/context_processors.py |
+  fragmax/settings.py |
+  fragview/auth/ispyb.py |
+  fragview/autoproc.py |
+  fragview/fileio.py |
+  fragview/dsets.py |
+  fragview/hpc.py |
+  fragview/fraglib.py |
+  fragview/middleware.py |
+  fragview/migrations/0002_projectdetails.py |
+  fragview/status.py |
+  fragview/cbf.py |
+  fragview/sites/maxiv/hpc.py |
+  fragview/views/crypt.py |
+  fragview/sites/plugin.py |
+  fragview/migrations/0001_initial.py |
+  fragview/views/diffraction.py |
+  fragview/models.py |
+  fragview/views/fragment.py |
+  fragview/urls.py |
+  fragview/views/eldensity.py |
+  fragview/views/encryption.py |
+  fragview/views/download.py |
+  fragview/forms.py |
+  fragview/views/hpc.py |
+  fragview/views/ligfit.py |
+  fragview/views/misc.py |
+  fragview/views/reciprocal.py |
+  fragview/views/result_pdbs.py |
+  fragview/views/projects.py |
+  fragview/views/pdbs.py |
+  fragview/views/soaking.py |
+  manage.py |
+  fragview/views/utils.py |
+  fragview/views/results.py |
+  static/update_status.py |
+  fragview/views/process.py |
+  tests/test_context_processors.py |
+  fragview/views/pipedream.py |
+  tests/test_fraglib.py |
+  tests/test_fileio.py |
+  tests/test_auth_ispyb.py |
+  fragview/views/refine.py |
+  fragview/views/dataset_info.py |
+  tests/test_views_fragment.py |
+  tests/test_views_diffraction.py |
+  tests/test_projects.py |
+  tests/test_views_pandda.py |
+  tests/test_worker_cpp4.py |
+  tests/test_worker_dials.py |
+  tests/test_models.py |
+  worker/__init__.py |
+  tests/test_middleware.py |
+  tests/test_xsdata.py |
+  tests/utils.py |
+  tests/test_forms.py |
+  worker/dials.py |
+  worker/results.py |
+  tests/test_views_pdbs.py |
+  tests/test_views_projects.py |
+  worker/data/pandda_prepare_runs.py |
+  worker/data/update_status.py |
+  worker/data/crypt_files.py |
+  worker/project.py |
+  fragview/views/density.py |
+  worker/data/update_status.py |
+  fragview/views/pandda.py |
+  worker/data/update_results.py
+)
+'''
