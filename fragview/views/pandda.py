@@ -17,7 +17,7 @@ from collections import Counter
 from django.shortcuts import render
 from fragview import hpc, versions
 from fragview.views import crypt_shell
-from fragview.fileio import open_proj_file, read_text_lines, read_proj_file, write_script
+from fragview.fileio import open_proj_file, read_proj_text_file, read_text_lines, read_proj_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
 from worker.scripts import read_mtz_flags_path
@@ -616,13 +616,14 @@ def analyse(request):
 
     if method is None or "panddaSelect" in method:
         reports = list()
-        localcmd, pandda_html = pandda_to_fragmax_html(newestpath, pandda_runs[newestmethod])
+        localcmd, pandda_html = pandda_to_fragmax_html(proj, newestpath, pandda_runs[newestmethod])
+
         analyses_date = path.basename(newestpath).replace("analyses-", "")
         method = newestmethod
         reports.append([analyses_date, localcmd, pandda_html])
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path, pandda_runs[method])
+            localcmd, pandda_html = pandda_to_fragmax_html(proj, pandda_analyses_path, pandda_runs[method])
             if [analyses_date, localcmd, pandda_html] not in reports:
                 reports.append([analyses_date, localcmd, pandda_html])
 
@@ -630,11 +631,11 @@ def analyse(request):
         reports = list()
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(pandda_analyses_path, pandda_runs[method])
+            localcmd, pandda_html = pandda_to_fragmax_html(proj, pandda_analyses_path, pandda_runs[method])
             reports.append([analyses_date, localcmd, pandda_html])
 
     selection_json = f"{panda_results_path}/{method}/selection.json"
-    clusters_png = None
+
     if path.exists(selection_json):
         clusters = path.join(path.dirname(selection_json), "clustered-datasets", "dendrograms")
         clusters_png = {
@@ -665,24 +666,26 @@ def analyse(request):
     )
 
 
-def pandda_to_fragmax_html(pandda_path, pandda_runs):
+def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
     method = path.basename(path.dirname(path.dirname(pandda_path)))
-    if os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html") and pandda_path == pandda_runs[0]:
-        with open(pandda_path + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
-            pandda_html = inp.readlines()
-            localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+    pandda_analyse_html = path.join(pandda_path, "html_summaries", "pandda_analyse.html")
 
-        for n, line in enumerate(pandda_html):
+    if path.exists(pandda_analyse_html) and pandda_path == pandda_runs[0]:
+        localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+
+        pandda_html = ""
+        for line in read_text_lines(proj, pandda_analyse_html):
             if '<th class="text-nowrap" scope="row">' in line:
                 dt = line.split('scope="row">')[-1].split("<")[0]
-                pandda_html[n] = (
-                    f'<td class="sorting_1" style="text-align: center;" >'
-                    f'<form action="/pandda_densityA/" method="get" '
-                    f'target="_blank"><button class="btn" type="submit" '
-                    f'value="{method};{dt};1;1;stay" '
-                    f'name="structure" size="1">Open</button></form></td>' + line
-                )
-        pandda_html = "".join(pandda_html)
+                line = \
+                    f'<td class="sorting_1" style="text-align: center;" >' \
+                    f'<form action="/pandda_densityA/" method="get" ' \
+                    f'target="_blank"><button class="btn" type="submit" ' \
+                    f'value="{method};{dt};1;1;stay" ' \
+                    f'name="structure" size="1">Open</button></form></td>{line}'
+
+            pandda_html += f"{line}\n"
+
         pandda_html = pandda_html.replace(
             '<th class="text-nowrap">Dataset</th>',
             '<th class="text-nowrap">Open</th><th class="text-nowrap">Dataset</th>',
@@ -693,12 +696,9 @@ def pandda_to_fragmax_html(pandda_path, pandda_runs):
         )
         pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
 
-    elif os.path.exists(pandda_path + "/html_summaries/pandda_analyse.html") and pandda_path != pandda_runs[0]:
-        with open(pandda_path + "/html_summaries/pandda_analyse.html", "r", encoding="utf-8") as inp:
-            pandda_html = inp.readlines()
-            pandda_html = "".join(pandda_html)
-
-            localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+    elif path.exists(pandda_analyse_html) and pandda_path != pandda_runs[0]:
+        localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+        pandda_html = read_proj_text_file(proj, pandda_analyse_html)
 
     elif os.path.exists(pandda_path + "/html_summaries/pandda_initial.html"):
         with open(pandda_path + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
@@ -708,6 +708,7 @@ def pandda_to_fragmax_html(pandda_path, pandda_runs):
     else:
         localcmd = "notready"
         pandda_html = "noreport"
+
     return localcmd, pandda_html
 
 
