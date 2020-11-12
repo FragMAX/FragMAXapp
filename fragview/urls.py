@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, eldensity, fragment, crypt, result_pdbs
-from fragview.views import encryption, download, dataset_info, logs
+from fragview.views import encryption, download, dataset_info, logs, commit
 
 
 urlpatterns = [
@@ -91,4 +91,7 @@ urlpatterns = [
     # logs access
     re_path('logs/show/(?P<log_file>.*)$', logs.show),
     re_path('logs/download/(?P<log_file>.*)$', logs.download),
+
+    # running commit, for tracking and trouble shooting
+    path('commit', commit.show, name="commit"),
 ]

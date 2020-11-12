@@ -98,4 +98,10 @@ COPY deploy/start_celery_workers.sh .
 COPY --chown=root:1300 deploy/ssh_config /etc/ssh/ssh_config
 
 COPY deploy/start_supervisord.sh .
+
+# include commit description into the image,
+# for tracking and trouble shooting
+ARG COMMIT_DESC=unknown
+RUN echo ${COMMIT_DESC} > commit
+
 CMD [ "/app/start_supervisord.sh" ]

@@ -1,6 +1,6 @@
 # build & push
 
-docker build -t docker.maxiv.lu.se/fragmax .
+build_docker.sh
 docker push docker.maxiv.lu.se/fragmax
 
 # pull
