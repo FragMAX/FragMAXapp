@@ -168,8 +168,11 @@
                         </tr>
                         <tr>
                             <td>
-                                <div id="container-{{ fragment_name }}" class="mol-container">
-                                    <input class="ligpng" type="image" src="/fragment/{{ fragment_name }}/image" onclick="load{{ fragment_name }}()" />
+                                <div id="container-{{fragment_name}}" class="mol-container">
+                                    <img id="img-{{fragment_name}}" class="ligpng"
+                                         type="image" src="/fragment/{{fragment_name}}/image"
+                                         onclick="load_fragment('{{fragment_name}}')"
+                                    />
                                 </div>
                             </td>
                         </tr>
@@ -189,29 +192,37 @@
     </div>
 </div>
 
-
 <script>
-  let config = { backgroundColor: '0xffffff' };
-{% for fragment_name, fragment_smiles in project_fragments.items %}
-function load{{fragment_name}}(){
-  let element{{fragment_name}} = $('#container-{{fragment_name}}');
-  let viewer{{fragment_name}} = $3Dmol.createViewer( element{{fragment_name}}, config );
-  let pdbUri{{fragment_name}} = '{{data_path}}/fragmax/fragments/{{fragment_name}}.pdb';
-  jQuery.ajax( pdbUri{{fragment_name}}, {
+let config = { backgroundColor: '0xffffff' };
+
+function load_fragment(name)
+{
+  /* show 'loading' animation */
+  const img = $(`#img-${name}`)[0];
+  img.src = "/static/img/loading.gif";
+  img.classList.remove("ligpng");
+
+  /* request ligand PDB and show it with 3Dmol viewer */
+  const element = $(`#container-${name}`);
+  const viewer = $3Dmol.createViewer(element, config);
+  const pdbUri = `/fragment/${name}/pdb`;
+
+  jQuery.ajax(pdbUri,
+  {
     success: function(data) {
-      let v = viewer{{fragment_name}};
-      v.addModel( data, "pdb" );                       /* load data */
-      v.setStyle({}, {stick: {}});  /* style all atoms */
-      v.zoomTo();                                      /* set camera */
-      v.render();                                      /* render scene */
-      v.zoom(1.0, 1000);                               /* slight zoom */
+      let v = viewer;
+      v.addModel(data, "pdb" );       /* load data */
+      v.setStyle({}, {stick: {}});    /* style all atoms */
+      v.zoomTo();                     /* set camera */
+      v.render();                     /* render scene */
+      v.zoom(1.0, 1000);              /* slight zoom */
     },
-    error: function(hdr, status, err) {
-      console.error( "Failed to load PDB " + pdbUri{{fragment_name}} + ": " + err );
+    error: function(hdr, status, err)
+    {
+      console.error(`Failed to load PDB ${pdbUri}: ${err}`);
     },
   });
-  }
-  {% endfor %}
+}
 </script>
 
- {% endblock %}
+{% endblock %}

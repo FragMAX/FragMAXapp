@@ -8,7 +8,7 @@ import pyfastcopy  # noqa
 import shutil
 import celery
 from celery.utils.log import get_task_logger
-from worker import dist_lock, elbow
+from worker import dist_lock
 from worker.xsdata import copy_collection_metadata_files
 from fragview.sites import SITE
 from fragview.fileio import makedirs
@@ -64,18 +64,10 @@ def _add_new_shifts_files(proj, shifts):
 def _setup_project_files(proj):
     _create_fragmax_folders(proj)
     meta_files = SITE.create_meta_files(proj)
-    _prepare_fragments(proj)
     _copy_scripts(proj)
     _write_data_collections_file(proj, meta_files)
     SITE.prepare_project_folders(proj, proj.shifts())
     _write_project_status(proj)
-
-
-def _prepare_fragments(proj):
-    frags_dir = project_fragments_dir(proj)
-    lib = proj.library
-
-    elbow.generate_cif_pdb(lib.fragment_set.all(), frags_dir)
 
 
 def _make_fragmax_dir(proj):

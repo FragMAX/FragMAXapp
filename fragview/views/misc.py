@@ -3,9 +3,8 @@ from django.shortcuts import render
 from django.contrib import messages
 from fragview.projects import current_project
 from fragview.models import Fragment
-from fragview import hpc
-from fragview.projects import project_raw_master_h5_files
-from time import sleep
+from fragview.projects import project_raw_master_h5_files, project_fragment_pdb, project_fragment_cif
+from fragview.fileio import remove_file
 import csv
 import io
 
@@ -47,7 +46,7 @@ def library_view(request):
 
     data_frags = csv_file.read().decode("utf-8")
     io_string = io.StringIO(data_frags)
-    updated_frags = dict()
+    updated_frags = set()
     id_db = lib.id
     for column in csv.reader(io_string, delimiter=","):
         if len(column) == 2:
@@ -64,28 +63,21 @@ def library_view(request):
                     f.smiles = smiles
                     f.save()
                     print(lib.get_fragment(fragID).smiles)
-                    updated_frags[fragID] = smiles
+                    updated_frags.add(fragID)
             else:
                 print("New fragment " + fragID)
                 new_frag_entry = Fragment(library_id=id_db, name=fragID, smiles=smiles)
                 new_frag_entry.save()
-                updated_frags[fragID] = smiles
+                updated_frags.add(fragID)
 
         else:
             messages.error(request, "The library CSV should be: fragmentID, SMILES " + "".join(column))
-    if updated_frags:
-        script_dir = path.join(proj.data_path(), "fragmax", "scripts")
-        script = path.join(script_dir, f"elbow.sh")
-        with open(script, "w") as outfile:
-            outfile.write("#!/bin/bash\n")
-            outfile.write("#!/bin/bash\n")
-            outfile.write("module purge\n")
-            outfile.write("module load gopresto Phenix\n")
-            for fragID, smiles in updated_frags.items():
-                outfile.write(f"cd {proj.data_path()}/fragmax/fragments/\n")
-                outfile.write(f"phenix.elbow --smiles='{smiles}' --output={fragID}\n")
-        hpc.run_sbatch(script)
-    sleep(5)
+
+    for fragID in updated_frags:
+        # remove, if any, old PDB/CIF fragment files
+        remove_file(project_fragment_pdb(proj, fragID))
+        remove_file(project_fragment_cif(proj, fragID))
+
     return render(
         request,
         "fragview/library_view.html",

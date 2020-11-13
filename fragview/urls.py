@@ -86,6 +86,7 @@ urlpatterns = [
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
     path('fragment/<fragment>/image', fragment.svg, name='fragment_svg'),
+    path('fragment/<fragment>/pdb', fragment.pdb),
     path('crypt/', crypt.index),
 
     # logs access

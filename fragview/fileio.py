@@ -1,6 +1,7 @@
 import os
 import csv
 import stat
+from os import path
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 from .encryption import EncryptedFile, decrypt
@@ -148,3 +149,13 @@ def subdirs(root_dir, depth):
     for chld in _iterdirs(root_dir):
         for sub in subdirs(chld, sublevel):
             yield sub
+
+
+def remove_file(file_path):
+    """
+    remove file if it exists
+    """
+    if not path.isfile(file_path):
+        return
+
+    os.remove(file_path)

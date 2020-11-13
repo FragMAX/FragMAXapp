@@ -95,8 +95,6 @@ def update_library(request):
     if not form.is_valid():
         return render(request, "fragview/library_view.html", {"form": "form"})
 
-    # _prepare_fragments(proj)
-
     return render(request, "fragview/library_view.html", {"form": "form"})
 
 
