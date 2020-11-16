@@ -640,8 +640,9 @@ def analyse(request):
             path.splitext(path.basename(x))[0]: x.replace("/data/visitors", "/static")
             for x in glob(f"{clusters}/*png")
         }
-        with open(selection_json, "r", encoding="utf-8") as r:
-            init_log = literal_eval(r.read())
+
+        init_log = literal_eval(read_proj_text_file(proj, selection_json))
+
         log = "<table>\n"
         for k, v in sorted(init_log.items()):
             log += f"<tr><td>{k}</td><td> {v}</td></tr>\n"
