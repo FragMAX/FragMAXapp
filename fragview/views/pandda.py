@@ -11,14 +11,17 @@ from ast import literal_eval
 from os import path
 from glob import glob
 from random import randint
+from pathlib import Path
 from collections import Counter
 from django.shortcuts import render
+from django.http import HttpResponseNotFound, HttpResponse
 from fragview import hpc, versions
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
-from fragview.fileio import open_proj_file, read_text_lines, read_proj_text_file, write_script
+from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, read_proj_text_file, write_script
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
+from fragview.projects import project_pandda_results_dir
 
 
 def str2bool(v):
@@ -585,9 +588,27 @@ def giant(request):
         return render(request, "fragview/pandda_export.html", {"scores_plots": scoreDict})
 
 
+def cluster_image(request, method, cluster):
+    proj = current_project(request)
+    png_path = path.join(project_pandda_results_dir(proj), method,
+                         "clustered-datasets", "dendrograms", f"{cluster}.png")
+
+    if not path.isfile(png_path):
+        return HttpResponseNotFound(f"no dendrogram image for {method}/{cluster} found")
+
+    return HttpResponse(read_proj_file(proj, png_path), content_type="image/png")
+
+
+def _clusters(method_dir):
+    dendrograms = Path(method_dir, "clustered-datasets", "dendrograms")
+    for png in dendrograms.glob("*.png"):
+        yield png.stem
+
+
 def analyse(request):
     proj = current_project(request)
-    panda_results_path = os.path.join(proj.data_path(), "fragmax", "results", "pandda", proj.protein)
+
+    panda_results_path = project_pandda_results_dir(proj)
 
     delete_analyses = request.GET.get("delete-analyses")
     if delete_analyses is not None:
@@ -632,15 +653,10 @@ def analyse(request):
             localcmd, pandda_html = pandda_to_fragmax_html(proj, pandda_analyses_path, pandda_runs[method])
             reports.append([analyses_date, localcmd, pandda_html])
 
-    selection_json = f"{panda_results_path}/{method}/selection.json"
+    method_dir = path.join(panda_results_path, method)
+    selection_json = path.join(method_dir, "selection.json")
 
     if path.exists(selection_json):
-        clusters = path.join(path.dirname(selection_json), "clustered-datasets", "dendrograms")
-        clusters_png = {
-            path.splitext(path.basename(x))[0]: x.replace("/data/visitors", "/static")
-            for x in glob(f"{clusters}/*png")
-        }
-
         init_log = literal_eval(read_proj_text_file(proj, selection_json))
 
         log = "<table>\n"
@@ -649,7 +665,6 @@ def analyse(request):
         log += "</table>"
     else:
         log = ""
-        clusters_png = None
 
     return render(
         request,
@@ -660,7 +675,8 @@ def analyse(request):
             "proc_methods": available_methods,
             "alternatives": {path.basename(x).replace("analyses-", ""): x for x in pandda_runs[method]},
             "selection_table": log,
-            "clusters_png": clusters_png,
+            "method": method,
+            "clusters": _clusters(method_dir),
         },
     )
 

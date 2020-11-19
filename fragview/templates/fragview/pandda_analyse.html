@@ -189,17 +189,16 @@
   </form>
 </div>
 {% endfor %}
+
 <div id="html-selected-datasets" class="card tabcontent ">
-  {% if clusters_png %}
   <div class="card dendrograms">
-    {% for key,value in clusters_png.items %}
-    <figure style="max-width: 50%;">
-      <img src="{{value}}">
-      <figcaption>{{key}}</figcaption>
-    </figure>
+    {% for cluster in clusters %}
+      <figure style="max-width: 50%;">
+        <img src="/pandda/cluster/{{method}}/{{cluster}}/image">
+        <figcaption>{{cluster}}</figcaption>
+      </figure>
     {% endfor %}
   </div>
-  {% endif %}
   {{selection_table|safe}}
 
 </div>

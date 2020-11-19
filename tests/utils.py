@@ -60,6 +60,14 @@ class ViewTesterMixin:
         self.assertEquals(response.status_code, status_code)
         self.assertRegex(response.content.decode(), content_regexp)
 
+    def assert_response_equals(self, response, status_code, content, content_type):
+        """
+        assert exact match of responses's status code, content body and content-type header
+        """
+        self.assertEquals(response.status_code, status_code)
+        self.assertEquals(response.content, content)
+        self.assertEquals(response["content-type"], content_type)
+
     def assert_bad_request(self, response, error_msg):
         self.assert_response(response, 400, error_msg)
 

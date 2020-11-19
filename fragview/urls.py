@@ -34,6 +34,9 @@ urlpatterns = [
     path('pandda_export/', pandda.giant, name='pandda_export'),
     path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
+    # pandda cluster dendrogram images
+    path('pandda/cluster/<method>/<cluster>/image', pandda.cluster_image),
+
     path('ugly/', misc.ugly, name='ugly'),
     path('reciprocal_lattice/<sample>/<run>', reciprocal.show, name='reciprocal_lattice'),
 
