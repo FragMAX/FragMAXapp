@@ -120,3 +120,4 @@ Here is a non-exhaustive alphabetically-ordered list of software used by FragMAX
 |XDSAPP|[HZB](https://www.helmholtz-berlin.de/)|[How to cite](https://www.helmholtz-berlin.de/forschung/oe/np/gmx/xdsapp/index_en.html)|
 |XIA2|[XIA2](https://xia2.github.io/)|[How to cite](https://xia2.github.io/acknowledgements.html#id4)|
 
+If you find a missing reference in this list, please let us know by creating a new issue or emailing the devs. 
