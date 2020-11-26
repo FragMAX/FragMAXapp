@@ -97,15 +97,15 @@ To start _Web Application_ activate 'FragMAX' environment and run:
 
 # Acknowledgement
 
-FragMAXapp uses many scientific softwares from multiple developers for its purposes. Each of these softwares should be cited independently when publishing your results. 
+FragMAXapp uses many scientific software packages from multiple developers for its purposes.
+Each of these packages should be cited independently when publishing your results.
 
 Here is a non-exhaustive alphabetically-ordered list of software used by FragMAXapp, Developers, citation and links for original documentation.
 
-
 |Software|Developer|Links|
 |---|---|---|
-|autoBUSTER|[Global Phasing](https://www.globalphasing.com/)|- [Documentation](https://www.globalphasing.com/buster/)<br>- [How to cite](http://www.globalphasing.com/buster/wiki/index.cgi?BusterCite)|
 |autoPROC|[Global Phasing](https://www.globalphasing.com/)|- [Documentation](https://www.globalphasing.com/autoproc/)<br>- [How to cite](https://www.globalphasing.com/autoproc/wiki/index.cgi?CitingAutoPROC)|
+|BUSTER|[Global Phasing](https://www.globalphasing.com/)|- [Documentation](https://www.globalphasing.com/buster/)<br>- [How to cite](http://www.globalphasing.com/buster/wiki/index.cgi?BusterCite)|
 |CCP4 suite|[CCP4](https://www.ccp4.ac.uk/)|[How to cite](http://legacy.ccp4.ac.uk/html/REFERENCES.html)|
 |Crystal Shifter|[OxfordLabTech](https://oxfordlabtech.com/shifter/)|-|
 |DIALS|[DIALS](https://dials.github.io/)|[How to cite](http://scripts.iucr.org/cgi-bin/paper?S2059798317017235)|
