@@ -5,7 +5,6 @@ from os import path
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 from .encryption import EncryptedFile, decrypt
-from fragview.projects import project_logs_dir, project_process_dir
 
 
 def open_proj_file(proj, file_path):
@@ -33,6 +32,8 @@ def read_proj_file(proj, file_path):
         # make string path, to support cases when
         # file_path is specified as pathlib.Path
         str_path = str(file_path)
+
+        from fragview.projects import project_logs_dir, project_process_dir
 
         # HPC logs and 'data processing' file are not encrypted
         if str_path.startswith(project_logs_dir(proj)) or \
