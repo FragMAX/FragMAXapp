@@ -86,7 +86,7 @@ def run_structure_solving(
         script_file_path = project_script(proj, f"proc2res_{dset}.sh")
         batch = hpc.new_batch_file(script_file_path)
         batch.set_options(time=Duration(hours=12), job_name="Refine_FragMAX", nodes=1, cpus_per_task=2,
-                          mem_per_cpu=DataSize(kilobyte=5),
+                          mem_per_cpu=DataSize(gigabyte=5),
                           stdout=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
                           stderr=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt"))
 
