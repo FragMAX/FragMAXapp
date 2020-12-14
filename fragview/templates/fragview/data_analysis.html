@@ -2044,9 +2044,7 @@
             evt.currentTarget.className += " active";
         }
     }
-</script>
 
-<script>
     $(document).ready(function () {
         $("#processALLckbox").click(function () {
             if ($(this).is(":checked")) {
@@ -2113,57 +2111,6 @@
     function getCIFmethod() {
         return document.querySelector('input[name="library_method"]:checked').value;
     }
-
-    var f = document.getElementById("dtprocBtn");
-
-    f.onsubmit = function dataproc() {
-
-        /* Data proc options */
-        var friedel = document.getElementsByName("friedel")[0].value
-        var customxds = document.getElementsByName("customdataproc-xds")[0].value
-        var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
-        var customdials = document.getElementsByName("customdataproc-dials")[0].value
-        var customautoproc = document.getElementsByName("customdataproc-autoproc")[0].value
-
-        $("#friedelLawProc").val(friedel);
-        $("#hpcNodesProc").val(getHpcNodes());
-        $("#dtsFilterProc").val(getDtsFilters());
-
-        $("#customXds").val(customxds);
-        $("#customAutoProc").val(customautoproc);
-        $("#customDials").val(customdials);
-        $("#customXdsApp").val(customxdsapp);
-    }
-
-    var f2 = document.getElementById("rfprocBtn");
-
-    f2.onsubmit = function refineproc() {
-        //Refinement options
-        var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
-        var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
-        var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
-
-        var customrefdimple = "customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
-        var customrefbuster = "customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
-        var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
-
-        document.getElementsByName("customRefDimple")[0].value = customrefdimple;
-        document.getElementsByName("customRefBuster")[0].value = customrefbuster;
-        document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
-
-        $("#hpcNodesRefine").val(getHpcNodes());
-        $("#dtsFilterRefine").val(getDtsFilters());
-    }
-
-    var f3 = document.getElementById("ligprocBtn");
-
-    f3.onsubmit = function ligandfitproc() {
-        /* Ligand fit options */
-        $("#hpcNodesLigfit").val(getHpcNodes());
-        $("#cifMethodLigfit").val(getCIFmethod());
-        $("#dtsFilterLigfit").val(getDtsFilters());
-    }
-
 
     var sliderj = document.getElementById("jellyRange");
     var outputj = document.getElementById("jellyvalue");
@@ -2278,69 +2225,118 @@
             chckboxes[i].checked = false;
         }
     }
-</script>
 
+    function setup_process_submit()
+    {
+        document.getElementById("dtprocBtn").onsubmit = function()
+        {
 
-<script>
-    // PanDDA parser
-    var f5 = document.getElementById("sendpandda");
+            /* Data proc options */
+            var friedel = document.getElementsByName("friedel")[0].value
+            var customxds = document.getElementsByName("customdataproc-xds")[0].value
+            var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
+            var customdials = document.getElementsByName("customdataproc-dials")[0].value
+            var customautoproc = document.getElementsByName("customdataproc-autoproc")[0].value
 
-    f5.onsubmit = function panddasetup() {
+            $("#friedelLawProc").val(friedel);
+            $("#hpcNodesProc").val(getHpcNodes());
+            $("#dtsFilterProc").val(getDtsFilters());
 
-        var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
-        var ref_type = document.querySelector('input[name="ref_type"]:checked').value;
-
-        var complete = document.getElementsByName("compdatasets")[0].value;
-
-        var use_apo = document.getElementById("apoGS").checked
-        var use_dmso = document.getElementById("dmsoGS").checked
-        var proczMaps = document.getElementById("proczMaps").checked
-
-        var use_CAD = document.getElementById("use_CAD").value
-        var ref_CAD = document.getElementById("refine_popMTZ").value
-
-        var ign_errordts = document.getElementById("ignoreErr").checked
-        var keepup_last = document.getElementById("keepup").checked
-        var ign_symlink = document.getElementById("fixsym").checked
-        var min_datasets = document.getElementById("min_datasets").value
-        var PanDDAcustom = document.getElementById("PanDDAcustom").value
-        var pandda_max_rfree = "max_rfree=" + document.getElementById("pandda_max_rfree").value
-        var pandda_high_res_upper_limit = "high_res_upper_limit=" + document.getElementById("pandda_res_low_limit")
-            .value
-        var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit")
-            .value
-        var PanDDAfilter = "" + getCheckedBoxes("checkSel");
-        var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
-        var cpus_pandda = document.getElementById("pandda_nproc").value;
-        var pandda_blacklist = ""
-        if (cpus_pandda == "") {
-            cpus_pandda = 32
-        } else if (cpus_pandda >= 64) {
-            cpus_pandda = 64
-        } else if (cpus_pandda <= 0) {
-            cpus_pandda = 16
+            $("#customXds").val(customxds);
+            $("#customAutoProc").val(customautoproc);
+            $("#customDials").val(customdials);
+            $("#customXdsApp").val(customxdsapp);
         }
-
-        var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
-            use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
-            ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +
-            PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " +
-            pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda + ";" + pandda_blacklist
-
-        document.getElementsByName("panddaform")[0].value = PanDDAout
-
     }
 
-    var f6 = document.getElementById("sendgiant");
+    function setup_refine_submit()
+    {
+        document.getElementById("rfprocBtn").onsubmit = function()
+        {
+            var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
+            var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
+            var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
 
-    f6.onsubmit = function giantsetup() {
+            var customrefdimple = "customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
+            var customrefbuster = "customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
+            var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
 
-        var method = document.getElementById("inspects").value;
+            document.getElementsByName("customRefDimple")[0].value = customrefdimple;
+            document.getElementsByName("customRefBuster")[0].value = customrefbuster;
+            document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
 
+            $("#hpcNodesRefine").val(getHpcNodes());
+            $("#dtsFilterRefine").val(getDtsFilters());
+        }
+    }
 
-        var out = "giantscore;" + method
-        document.getElementsByName("giantform")[0].value = out
+    function setup_ligproc_submit()
+    {
+        document.getElementById("ligprocBtn").onsubmit = function()
+        {
+            /* Ligand fit options */
+            $("#hpcNodesLigfit").val(getHpcNodes());
+            $("#cifMethodLigfit").val(getCIFmethod());
+            $("#dtsFilterLigfit").val(getDtsFilters());
+        }
+    }
 
+    function setup_pandda_submit()
+    {
+        document.getElementById("sendpandda").onsubmit = function()
+        {
+            var proc_type = document.querySelector('input[name="proc_type"]:checked').value;
+            var ref_type = document.querySelector('input[name="ref_type"]:checked').value;
+
+            var complete = document.getElementsByName("compdatasets")[0].value;
+
+            var use_apo = document.getElementById("apoGS").checked
+            var use_dmso = document.getElementById("dmsoGS").checked
+            var proczMaps = document.getElementById("proczMaps").checked
+
+            var use_CAD = document.getElementById("use_CAD").value
+            var ref_CAD = document.getElementById("refine_popMTZ").value
+
+            var ign_errordts = document.getElementById("ignoreErr").checked
+            var keepup_last = document.getElementById("keepup").checked
+            var ign_symlink = document.getElementById("fixsym").checked
+            var min_datasets = document.getElementById("min_datasets").value
+            var PanDDAcustom = document.getElementById("PanDDAcustom").value
+            var pandda_max_rfree = "max_rfree=" + document.getElementById("pandda_max_rfree").value
+            var pandda_high_res_upper_limit = "high_res_upper_limit=" + document.getElementById("pandda_res_low_limit")
+                .value
+            var pandda_high_res_lowe_limit = "high_res_lower_limit=" + document.getElementById("pandda_res_high_limit")
+                .value
+            var PanDDAfilter = "" + getCheckedBoxes("checkSel");
+            var cifMethodPandda = document.querySelector('input[name="library_method"]:checked').value;
+            var cpus_pandda = document.getElementById("pandda_nproc").value;
+            var pandda_blacklist = ""
+            if (cpus_pandda == "") {
+                cpus_pandda = 32
+            } else if (cpus_pandda >= 64) {
+                cpus_pandda = 64
+            } else if (cpus_pandda <= 0) {
+                cpus_pandda = 16
+            }
+
+            var PanDDAout = "analyse;" + proc_type + ";" + ref_type + ";" + complete + ";" +
+                use_apo + ";" + use_dmso + ";" + proczMaps + ";" + use_CAD + ";" + ref_CAD + ";" +
+                ign_errordts + ";" + keepup_last + ";" + ign_symlink + ";" + PanDDAfilter + ";" + min_datasets + ";" +
+                PanDDAcustom + " " + pandda_max_rfree + " " + pandda_high_res_upper_limit + " " +
+                pandda_high_res_lowe_limit + ";" + cifMethodPandda + ";" + cpus_pandda + ";" + pandda_blacklist
+
+            document.getElementsByName("panddaform")[0].value = PanDDAout
+        }
+    }
+
+    function setup_giant_submit()
+    {
+        document.getElementById("sendgiant").onsubmit = function()
+        {
+            var method = document.getElementById("inspects").value;
+            var out = "giantscore;" + method
+            document.getElementsByName("giantform")[0].value = out
+        }
     }
 
     function setup_pipedream_submit()
@@ -2352,7 +2348,7 @@
             return;
         }
 
-        fpipedream.onsubmit = function submit_pipedream()
+        fpipedream.onsubmit = function()
         {
             var datasetSelect = getDtsFilters()
 
@@ -2444,6 +2440,11 @@
 
     $(document).ready(function()
     {
+        setup_process_submit();
+        setup_refine_submit();
+        setup_ligproc_submit();
+        setup_pandda_submit();
+        setup_giant_submit();
         setup_pipedream_submit();
     });
 </script>
