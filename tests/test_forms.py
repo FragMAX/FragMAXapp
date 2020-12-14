@@ -127,8 +127,8 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
                  useBuster="on",
                  refSpaceGroup="SGRP",
                  pdbModel="32",
-                 customRefDimple="ddimp",
-                 customRefBuster="busta"))
+                 customDimple="ddimp",
+                 customBuster="busta"))
 
         form = forms.RefineForm(request.POST)
         valid = form.is_valid()

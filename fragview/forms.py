@@ -108,9 +108,9 @@ class RefineForm(_ProcJobForm):
     useBuster = forms.BooleanField(required=False)
     useFSpipeline = forms.BooleanField(required=False)
     refSpaceGroup = forms.CharField(required=False)
-    customRefDimple = forms.CharField(required=False)
-    customRefBuster = forms.CharField(required=False)
-    customRefFspipe = forms.CharField(required=False)
+    customDimple = forms.CharField(required=False)
+    customBuster = forms.CharField(required=False)
+    customFspipe = forms.CharField(required=False)
     runAimless = forms.BooleanField(required=False)
 
     # PDB model field is a drop-down, but we treat it as integer, as
@@ -141,15 +141,15 @@ class RefineForm(_ProcJobForm):
 
     @property
     def custom_dimple(self):
-        return self._get_field("customRefDimple")
+        return self._get_field("customDimple")
 
     @property
     def custom_buster(self):
-        return self._get_field("customRefBuster")
+        return self._get_field("customBuster")
 
     @property
     def custom_fspipe(self):
-        return self._get_field("customRefFspipe")
+        return self._get_field("customFspipe")
 
     @property
     def run_aimless(self):

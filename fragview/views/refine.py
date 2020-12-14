@@ -55,16 +55,14 @@ def run_structure_solving(
     userPDB,
     spacegroup,
     filters,
-    customrefdimple,
-    customrefbuster,
-    customreffspipe,
+    custom_dimple,
+    custom_buster,
+    custom_fspipe,
     aimless,
 ):
     # Modules list for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
-    customreffspipe = customreffspipe.split("customrefinefspipe:")[-1]
-    customrefbuster = customrefbuster.split("customrefinebuster:")[-1]
-    customrefdimple = customrefdimple.split("customrefinedimple:")[-1]
+
     argsfit = "none"
 
     if useFSP:
@@ -92,33 +90,33 @@ def run_structure_solving(
         batch.add_commands(crypt_shell.crypt_cmd(proj))
 
         edna = find_edna(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         fastdp = find_fastdp(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         xdsapp = find_xdsapp(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         xdsxscale = find_xdsxscale(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         dials = find_dials(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         autoproc = find_autoproc(
-            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster,
-            customrefdimple
+            proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
+            custom_dimple
         )
 
         for part_cmd in [edna, fastdp, xdsapp, xdsxscale, dials, autoproc]:
@@ -163,7 +161,7 @@ def _upload_result_cmd(proj, res_dir):
 
 
 def find_autoproc(
-    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     srcmtz = None
     aimless_c = ""
@@ -192,7 +190,7 @@ def find_autoproc(
 
     autoproc_cmd = copy + "\n" + aimless_c + "\n"
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
 
     upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -200,7 +198,7 @@ def find_autoproc(
 
 
 def find_dials(
-    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     aimless_c = ""
 
@@ -218,7 +216,7 @@ def find_dials(
         aimless_c = f"{cmd}"
     dials_cmd = copy + "\n" + aimless_c + "\n"
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
     upload_cmd = _upload_result_cmd(proj, res_dir)
 
@@ -226,7 +224,7 @@ def find_dials(
 
 
 def find_xdsxscale(
-    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     aimless_c = ""
     res_dir = path.join(project_results_dir(proj), f"{dataset}_{run}", "xdsxscale")
@@ -245,7 +243,7 @@ def find_xdsxscale(
         aimless_c = f"{cmd}"
     xdsxscale_cmd = copy + "\n" + aimless_c + "\n"
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
 
     upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -254,7 +252,7 @@ def find_xdsxscale(
 
 
 def find_xdsapp(
-    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     srcmtz = False
     dstmtz = None
@@ -278,7 +276,7 @@ def find_xdsapp(
 
     xdsapp_cmd = copy + "\n" + aimless_c + "\n"
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
 
     upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -287,7 +285,7 @@ def find_xdsapp(
 
 
 def find_edna(
-        proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+        proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     srcmtz = False
     dstmtz = None
@@ -311,7 +309,7 @@ def find_edna(
     edna_cmd = copy + "\n" + aimless_c + "\n"
 
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
 
     upload_cmd = _upload_result_cmd(proj, res_dir)
@@ -320,7 +318,7 @@ def find_edna(
 
 
 def find_fastdp(
-    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, customreffspipe, customrefbuster, customrefdimple
+    proj, dataset, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster, custom_dimple
 ):
     srcmtz = False
     dstmtz = None
@@ -342,25 +340,25 @@ def find_fastdp(
         aimless_c = f"{cmd}"
     fastdp_cmd = copy + "\n" + aimless_c + "\n"
     refine_cmd = set_refine(
-        argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz
+        argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz
     )
     upload_cmd = _upload_result_cmd(proj, res_dir)
 
     return f"{fastdp_cmd}\n{refine_cmd}\n{upload_cmd}"
 
 
-def set_refine(argsfit, userPDB, customrefbuster, customreffspipe, customrefdimple, dstmtz):
+def set_refine(argsfit, userPDB, custom_buster, custom_fspipe, custom_dimple, dstmtz):
     dimple_cmd = ""
     buster_cmd = ""
     fsp_cmd = ""
 
     if "dimple" in argsfit:
-        dimple_cmd = get_dimple_command(dstmtz, customrefdimple)
+        dimple_cmd = get_dimple_command(dstmtz, custom_dimple)
 
     if "buster" in argsfit:
-        buster_cmd = get_buster_command(dstmtz, userPDB, customrefbuster)
+        buster_cmd = get_buster_command(dstmtz, userPDB, custom_buster)
 
     if "fspipeline" in argsfit:
-        fsp_cmd = get_fspipeline_command(userPDB, customreffspipe)
+        fsp_cmd = get_fspipeline_command(userPDB, custom_fspipe)
 
     return dimple_cmd + "\n" + buster_cmd + "\n" + fsp_cmd

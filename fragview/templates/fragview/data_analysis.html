@@ -371,9 +371,9 @@
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterRefine" />
                         <input type="hidden" name="hpcNodes" id="hpcNodesRefine" />
-                        <input type="hidden" name="customRefDimple" />
-                        <input type="hidden" name="customRefBuster" />
-                        <input type="hidden" name="customRefFspipe" />
+                        <input type="hidden" name="customDimple" id="customDimpleRefine"/>
+                        <input type="hidden" name="customBuster" id="customBusterRefine"/>
+                        <input type="hidden" name="customFspipe" id="customFspipeRefine"/>
 
                         <table class="optionstable">
                             <col width="8%">
@@ -698,7 +698,7 @@
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class="top-options">
-                        <input class="selectbox" name="customdataproc-autoproc" placeholder="default: None"/>
+                        <input class="selectbox" id="customdataproc-autoproc" placeholder="default: None"/>
                         See available parameters <a
                             href="https://www.globalphasing.com/autoproc/manual/autoPROC4.html#processcli"
                             target="_blank">here</a>
@@ -852,8 +852,8 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customrefine-dimple"
-                            placeholder="default: None"></input>
+                    <td class="top-options">
+                        <input class="selectbox" id="customrefine-dimple" placeholder="default: None"/>
                         See available parameters <a href="http://ccp4.github.io/dimple/" target="_blank">here</a>
                     </td>
                 </tr>
@@ -931,8 +931,8 @@
 
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customrefine-buster"
-                            placeholder="default: None"></input>
+                    <td class="top-options">
+                        <input class="selectbox" id="customrefine-buster" placeholder="default: None"/>
                         See available parameters <a
                             href="https://www.globalphasing.com/buster/manual/autobuster/manual/autoBUSTER4.html#refine_args"
                             target="_blank">here</a>
@@ -1121,8 +1121,8 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customrefine-fsp"
-                            placeholder="default: None"></input>
+                    <td class="top-options">
+                        <input class="selectbox" id="customrefine-fspipe" placeholder="default: None"/>
                     </td>
                 </tr>
 
@@ -2253,17 +2253,9 @@
     {
         document.getElementById("rfprocBtn").onsubmit = function()
         {
-            var refinemode = ";;refinemode:" + document.getElementsByName("refMode")[0].value
-            var mrthreshold = ";;mrthreshold:" + document.getElementsByName("mrthresh")[0].value
-            var refinerescutoff = ";;refinerescutoff:" + document.getElementsByName("refrescutoff")[0].value
-
-            var customrefdimple = "customrefinedimple:" + document.getElementsByName("customrefine-dimple")[0].value
-            var customrefbuster = "customrefinebuster:" + document.getElementsByName("customrefine-buster")[0].value
-            var customreffspipe = "customrefinefspipe:" + document.getElementsByName("customrefine-fsp")[0].value
-
-            document.getElementsByName("customRefDimple")[0].value = customrefdimple;
-            document.getElementsByName("customRefBuster")[0].value = customrefbuster;
-            document.getElementsByName("customRefFspipe")[0].value = customreffspipe;
+            $("#customDimpleRefine").val($("#customrefine-dimple").val());
+            $("#customBusterRefine").val($("#customrefine-buster").val());
+            $("#customFspipeRefine").val($("#customrefine-fspipe").val());
 
             $("#hpcNodesRefine").val(getHpcNodes());
             $("#dtsFilterRefine").val(getDtsFilters());
