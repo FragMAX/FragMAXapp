@@ -639,7 +639,7 @@
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class="top-options">
-                        <input class="selectbox" name="customdataproc-dials" placeholder="default: None"/>
+                        <input class="selectbox" id="customdataproc-dials" placeholder="default: None"/>
                         See available parameters <a href="https://xia2.github.io/parameters.html"
                             target="_blank">here</a>
                     </td>
@@ -668,7 +668,7 @@
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class="top-options">
-                        <input class="selectbox" name="customdataproc-xds" placeholder="default: None"/>
+                        <input class="selectbox" id="customdataproc-xds" placeholder="default: None"/>
                         See available parameters <a href="https://xia2.github.io/parameters.html"
                             target="_blank">here</a>
                     </td>
@@ -727,7 +727,7 @@
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
                     <td class="top-options">
-                        <input class="selectbox" name="customdataproc-xdsapp" placeholder="default: None"/>
+                        <input class="selectbox" id="customdataproc-xdsapp" placeholder="default: None"/>
                         See available parameters <a
                             href="https://www.helmholtz-berlin.de/forschung/oe/np/gmx/xdsapp/usage/multiple-datasets_en.html"
                             target="_blank">here</a>
@@ -2229,22 +2229,16 @@
     {
         document.getElementById("dtprocBtn").onsubmit = function()
         {
+            $("#customDials").val($("#customdataproc-dials").val());
+            $("#customXds").val($("#customdataproc-xds").val());
+            $("#customXdsApp").val($("#customdataproc-xdsapp").val());
+            $("#customAutoProc").val($("#customdataproc-autoproc").val());
 
-            /* Data proc options */
-            var friedel = document.getElementsByName("friedel")[0].value
-            var customxds = document.getElementsByName("customdataproc-xds")[0].value
-            var customxdsapp = document.getElementsByName("customdataproc-xdsapp")[0].value
-            var customdials = document.getElementsByName("customdataproc-dials")[0].value
-            var customautoproc = document.getElementsByName("customdataproc-autoproc")[0].value
-
-            $("#friedelLawProc").val(friedel);
             $("#hpcNodesProc").val(getHpcNodes());
             $("#dtsFilterProc").val(getDtsFilters());
 
-            $("#customXds").val(customxds);
-            $("#customAutoProc").val(customautoproc);
-            $("#customDials").val(customdials);
-            $("#customXdsApp").val(customxdsapp);
+            const friedel = document.getElementsByName("friedel")[0].value;
+            $("#friedelLawProc").val(friedel);
         }
     }
 
