@@ -56,29 +56,21 @@
     cursor: pointer;
   }
 </style>
-<h4>MAX IV HPC Status</h4>
 
-
+<h4>HPC Status</h4>
 
 <div class="card" style="min-width: 1020px;">
   <div class="card-content">
-    <div class="card-title">HPC Status for user: {{user}}
-      <br>Proposal: {{proposal}}
-      <br><a href="/jobhistory" target="_blank">Job History</a>
-      <button class="btn btn-right" onClick="window.location.reload()">REFRESH</button>
+    <div class="card-title">
+      <a href="/jobhistory" target="_blank">Job History</a>
     </div>
     <br>
     <table class="table bordered">
       <thead>
         <tr>
           <th>JOB ID</th>
-          <th>PARTITION</th>
           <th>NAME</th>
-          <th>USER</th>
-          <th>ST</th>
           <th>TIME</th>
-          <th>NODES</th>
-          <th>NODE</th>
           <th>Output file</th>
           <th>Error file</th>
           <th>Kill Job</th>
@@ -91,35 +83,44 @@
         </tr>
       </thead>
       <tbody>
-        {% for jobid,partition,name,user,ST,TIME,NODE,NODEname,StdERR,StdOUT in hpcList %}
-        {% if StdERR != "None" %}
+        {% for job in jobs %}
 
         <tr>
-          <td>{{jobid}}</td>
-          <td>{{partition}}</td>
-          <td>{{name}}</td>
-          <td>{{user}}</td>
-          <td>{{ST}}</td>
-          <td>{{TIME}}</td>
-          <td>{{NODE}}</td>
-          <td>{{NODEname}}</td>
-          <td><a href="{{StdOUT}} " target="blank"> job_{{jobid}}.out</a></td>
-          <td><a href="{{StdERR}} " target="blank"> job_{{jobid}}.err</a></td>
+          <td>{{job.id}}</td>
+          <td>{{job.name}}</td>
+          <td>
+            {% with t=job.run_time %}
+              {% if t %}
+                {{t.hours}}:{{t.minutes|stringformat:"02d"}}:{{t.seconds|stringformat:"02d"}}
+              {% else %}
+                (pending)
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <a href="/logs/show/fragmax/logs/{{job.stdout}}" target="blank">
+              {{job.stdout}}
+            </a>
+          </td>
+          <td>
+            <a href="/logs/show/fragmax/logs/{{job.stderr}}" target="blank">
+              {{job.stderr}}
+            </a>
+          </td>
           <td>
             <form action="/hpc/kill/" method="post">
               {% csrf_token %}
-              <button class="btn-small" type="submit" value="{{jobid}}" name="job_ids" size="1">Kill</button>
+              <button class="btn-small" type="submit" value="{{job.id}}" name="job_ids" size="1">Kill</button>
             </form>
           </td>
           <td>
             <label style="padding-top: 10px; padding-left: 20px">
               <input class="filled-in dt-checkboxes job-chbx" id="selecttokill" name="jobselect" type="checkbox"
-                value="{{jobid}}">
+                value="{{job.id}}">
               <span for="checkALLdatasets"> </span>
             </label>
           </td>
         </tr>
-        {% endif %}
         {% endfor %}
       </tbody>
     </table>

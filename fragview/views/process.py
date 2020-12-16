@@ -162,13 +162,13 @@ def run_xdsapp(proj, nodes, filters, options):
 
     buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
     for num, bucket in enumerate(buckets):
-        script_file_path = project_script(proj, f"xdsapp_fragmax_part{num}.sh")
-        batch = hpc.new_batch_file(script_file_path)
+        batch = hpc.new_batch_file("XDSAPP",
+                                   project_script(proj, f"xdsapp_fragmax_part{num}.sh"),
+                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_out.txt"),
+                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_err.txt"))
 
-        batch.set_options(time=Duration(hours=168), job_name="XDSAPP", exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300),
-                          stdout=project_log_path(proj, f"multi_xdsapp_{epoch}_%j_out.txt"),
-                          stderr=project_log_path(proj, f"multi_xdsapp_{epoch}_%j_err.txt"))
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1, cpus_per_task=64,
+                          partition="fujitsu", memory=DataSize(gigabyte=300))
 
         batch.purge_modules()
         batch.load_modules(softwares)
@@ -200,7 +200,7 @@ def run_xdsapp(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        hpc.run_batch(script_file_path)
+        batch.run()
 
 
 def run_autoproc(proj, nodes, filters, options):
@@ -294,13 +294,13 @@ def run_xds(proj, nodes, filters, options):
 
     buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
     for num, bucket in enumerate(buckets):
-        script_file_path = project_script(proj, f"xdsxscale_fragmax_part{num}.sh")
-        batch = hpc.new_batch_file(script_file_path)
+        batch = hpc.new_batch_file("XIA2/XDS",
+                                   project_script(proj, f"xdsxscale_fragmax_part{num}.sh"),
+                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_out.txt"),
+                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_err.txt"))
 
-        batch.set_options(time=Duration(hours=168), job_name="XIA2/XDS", exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300),
-                          stdout=project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_out.txt"),
-                          stderr=project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_err.txt"))
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
+                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300))
 
         batch.purge_modules()
         batch.load_modules(softwares)
@@ -336,7 +336,7 @@ def run_xds(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        hpc.run_batch(script_file_path)
+        batch.run()
 
 
 def run_dials(proj, nodes, filters, options):
@@ -374,13 +374,14 @@ def run_dials(proj, nodes, filters, options):
 
     buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
     for num, bucket in enumerate(buckets):
-        script_file_path = project_script(proj, f"dials_fragmax_part{num}.sh")
-        batch = hpc.new_batch_file(script_file_path)
+        batch = hpc.new_batch_file(
+            "DIALS",
+            project_script(proj, f"dials_fragmax_part{num}.sh"),
+            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_out.txt"),
+            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_err.txt"))
 
-        batch.set_options(time=Duration(hours=168), job_name="DIALS", exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300),
-                          stdout=project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_out.txt"),
-                          stderr=project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_err.txt"))
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
+                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300))
 
         batch.purge_modules()
         batch.load_modules(softwares)
@@ -417,4 +418,4 @@ def run_dials(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        hpc.run_batch(script_file_path)
+        batch.run()

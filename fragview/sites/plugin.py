@@ -1,7 +1,10 @@
+from typing import List
+
+
 class SitePlugin:
     NAME = None
     LOGO = None
-    DISABLED_FEATURES = []
+    DISABLED_FEATURES: List[str] = []
     ACCOUNT_STYLE = None
     AUTH_BACKEND = None
     PROPOSALS_DIR = None  # root path to where proposals data is stored
@@ -83,6 +86,7 @@ class LigandTool:
     """
     tools that can convert ligand SMILES into PDB/CIF files
     """
+
     GRADE = "grade"
     ACEDRG = "acedrg"
     ELBOW = "elbow"
@@ -164,10 +168,7 @@ class PipelineCommands:
 
 
 class HPC:
-    def run_batch(self, sbatch_script, sbatch_options=None):
-        raise NotImplementedError()
-
-    def new_batch_file(self, script_name):
+    def new_batch_file(self, job_name, script_name, stdout, stderr):
         """
         create new batch file, returns instance of BatchFile class
         """
@@ -178,6 +179,7 @@ class Duration:
     """
     represents a time duration
     """
+
     def __init__(self, hours: int = None, minutes: int = None, seconds: int = None):
         def between_0_and_60(val):
             return 60 > val >= 0
@@ -227,16 +229,18 @@ class DataSize:
 class BatchFile:
     HEADER = "#!/bin/bash"
 
-    def __init__(self, filename):
+    def __init__(self, name, filename, stdout, stderr):
+        self._name = name
         self._filename = filename
+        self._stdout = stdout
+        self._stderr = stderr
         self._body = f"{self.HEADER}\n"
 
-    def set_options(self, time: Duration = None, job_name=None, exclusive=None, nodes=None, partition=None,
+    def set_options(self, time: Duration = None, exclusive=None, nodes=None, partition=None,
                     cpus_per_task=None, mem_per_cpu: DataSize = None, memory: DataSize = None,
                     stdout=None, stderr=None):
         """
         time - a limit on the total run time of the batch file
-        job_name - human readable name
         exclusive - don't share compute node with this job
         nodes - minimum of nodes be allocated to this job
         cpus_per_task - expected number of CPU this task will use
@@ -250,6 +254,7 @@ class BatchFile:
 
     def save(self):
         from fragview.fileio import write_script
+
         write_script(self._filename, self._body)
 
     def assign_variable(self, var_name, expression):
