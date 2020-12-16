@@ -9,7 +9,7 @@ for services management.
 This script is invoked by the systemd service unit to start and stop the
 FragMAX application.
 
-On start, django webserver, redis and celery worker daemons will be started.
+On start, django webserver, redis, jobsd and celery worker daemons will be started.
 This script will block, waiting for SIGTERM. Once the SIGTERM is received,
 the daemons started will be terminated with SIGTERM.
 """
@@ -50,6 +50,13 @@ def current_dir():
     return path.abspath(path.dirname(__file__))
 
 
+def python_path(conda_env_dir):
+    """
+    derive absolute path to python binary
+    """
+    return path.join(conda_env_dir, "bin", "python")
+
+
 def start_redis(conda_env_dir):
     # derive absolute path to redis-server binary
     redis_server = path.join(conda_env_dir, "bin", "redis-server")
@@ -57,11 +64,16 @@ def start_redis(conda_env_dir):
     return subprocess.Popen([redis_server], cwd=current_dir())
 
 
-def start_webserver(conda_env_dir):
-    # derive absolute path to python binary
-    python = path.join(conda_env_dir, "bin", "python")
+def start_jobsd(conda_env_dir):
     return subprocess.Popen(
-        [python, "manage.py", "runserver", "0.0.0.0:8080"], cwd=current_dir()
+        [python_path(conda_env_dir), "jobsd.py"], cwd=current_dir(),
+    )
+
+
+def start_webserver(conda_env_dir):
+    return subprocess.Popen(
+        [python_path(conda_env_dir), "manage.py", "runserver", "0.0.0.0:8080"],
+        cwd=current_dir(),
     )
 
 
@@ -86,6 +98,7 @@ def main():
 
     # start all daemons
     redis = start_redis(conda_env_dir)
+    jobsd = start_jobsd(conda_env_dir)
     webserver = start_webserver(conda_env_dir)
     celery = start_celery(conda_env_dir)
 
@@ -95,10 +108,12 @@ def main():
 
     print("got TERM signal, terminating daemons")
 
-    # first terminate webserver and celery, and keep
+    # first terminate webserver, celery and jobsd, and keep
     # redis running, as redis should go down last
     celery.send_signal(signal.SIGTERM)
     webserver.send_signal(signal.SIGTERM)
+    jobsd.send_signal(signal.SIGTERM)
+    jobsd.wait()
     webserver.wait()
     celery.wait()
 

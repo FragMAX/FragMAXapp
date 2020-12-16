@@ -107,7 +107,7 @@ def _create_fragmax_folders(proj):
     """
     fragmax_dir = _make_fragmax_dir(proj)
 
-    makedirs(path.join(fragmax_dir, "logs"))
+    makedirs(path.join(fragmax_dir, "logs", "system"))
     makedirs(path.join(fragmax_dir, "scripts"))
     makedirs(path.join(fragmax_dir, "models"))
     makedirs(path.join(fragmax_dir, "export"))

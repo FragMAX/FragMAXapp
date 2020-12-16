@@ -126,6 +126,10 @@ def project_log_path(project, log_file):
     return path.join(project_logs_dir(project), log_file)
 
 
+def project_syslog_path(project, log_file):
+    return path.join(project_logs_dir(project), "system", log_file)
+
+
 def project_update_status_script(project):
     return project_script(project, UPDATE_STATUS_SCRIPT)
 

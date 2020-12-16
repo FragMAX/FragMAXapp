@@ -17,8 +17,8 @@ class HPC(plugin.HPC):
         # TODO: check exit code and bubble up error on exit code != 0
         _ssh_on_frontend(cmd)
 
-    def new_batch_file(self, script_name):
-        return BatchFile(script_name)
+    def new_batch_file(self, job_name, script_name, stdout, stderr):
+        return BatchFile(job_name, script_name, stdout, stderr)
 
 
 # TODO: this is copy and paste code from fragview.hpc model,
@@ -37,6 +37,10 @@ def _ssh_on_frontend(command):
 
 
 class BatchFile(plugin.BatchFile):
+    def __init__(self, name, filename, stdout, stderr):
+        super().__init__(name, filename, stdout, stderr)
+        self._add_option(f"--job-name={name}")
+
     def _add_option(self, option_string):
         self.add_line(f"#SBATCH {option_string}")
 
@@ -57,24 +61,18 @@ class BatchFile(plugin.BatchFile):
     def set_options(
         self,
         time=None,
-        job_name=None,
         exclusive=None,
         nodes=None,
         cpus_per_task=None,
         mem_per_cpu=None,
         partition=None,
         memory=None,
-        stdout=None,
-        stderr=None,
     ):
         def _slurm_size(size):
             return f"{size.value}{size.unit}"
 
         if time:
             self._add_option(f"--time={time.as_hms_text()}")
-
-        if job_name:
-            self._add_option(f"--job-name={job_name}")
 
         if exclusive:
             self._add_option("--exclusive")
@@ -93,9 +91,3 @@ class BatchFile(plugin.BatchFile):
 
         if memory:
             self._add_option(f"--mem={_slurm_size(memory)}")
-
-        if stdout:
-            self._add_option(f"--output={stdout}")
-
-        if stderr:
-            self._add_option(f"--error={stderr}")
