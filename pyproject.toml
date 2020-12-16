@@ -18,7 +18,6 @@ exclude = '''
   fragview/auth/ispyb.py |
   fragview/autoproc.py |
   fragview/fileio.py |
-  fragview/hpc.py |
   fragview/fraglib.py |
   fragview/middleware.py |
   fragview/migrations/0002_projectdetails.py |
@@ -31,7 +30,6 @@ exclude = '''
   fragview/views/encryption.py |
   fragview/views/download.py |
   fragview/forms.py |
-  fragview/views/hpc.py |
   fragview/views/ligfit.py |
   fragview/views/misc.py |
   fragview/views/reciprocal.py |
