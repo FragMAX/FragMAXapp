@@ -1,7 +1,11 @@
 import sys
 import subprocess
+from typing import Dict, List
+from datetime import datetime
+from pathlib import Path
 from django.conf import settings
 from fragview.sites import SITE
+from jobs import client
 
 
 def _hpc_user(logged_in_user):
@@ -16,9 +20,9 @@ def _ssh_on_frontend(command):
     return a tuple of (stdout, stderr, exit_code)
     """
     print(f"running on HPC '{command}'")
-    with subprocess.Popen(["ssh", settings.HPC_FRONT_END],
-                          stdin=subprocess.PIPE,
-                          stdout=subprocess.PIPE) as proc:
+    with subprocess.Popen(
+        ["ssh", settings.HPC_FRONT_END], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    ) as proc:
 
         stdout, stderr = proc.communicate(command.encode("utf-8"))
         return stdout, stderr, proc.returncode
@@ -53,18 +57,53 @@ def frontend_run(command, forward=True):
         return stdout, stderr
 
 
-def jobs_list(logged_in_user):
-    user = _hpc_user(logged_in_user)
+def _elapsed_time(start: datetime, end: datetime) -> Dict[str, int]:
+    """
+    calculate time elapsed from start to end time,
+    returns elapsed time divided into hours, minutes and seconds
+    """
+    delta = end - start
 
-    command = ["ssh", "-t", settings.HPC_FRONT_END, "squeue", "-u", user]
+    # let's use seconds precision
+    seconds_delta = delta.seconds
 
-    proc = subprocess.Popen(command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    seconds = seconds_delta % 60
+    minutes = (seconds_delta // 60) % 60
+    hours = seconds_delta // 3600
 
-    out, _ = proc.communicate()
+    return dict(hours=hours, minutes=minutes, seconds=seconds)
 
-    return out
+
+def get_jobs() -> List[Dict]:
+    def _run_time(start_time):
+        if start_time is None:
+            return None
+
+        return _elapsed_time(start_time, now)
+
+    now = datetime.now()
+
+    #
+    # convert Jobs table into a format that is more
+    # convenient for presenting to the user
+    #
+    jobs = []
+    for job in client.get_jobs():
+        jobs.append(
+            dict(
+                id=job.id,
+                name=job.name,
+                stdout=Path(job.stdout).name,
+                stderr=Path(job.stderr).name,
+                run_time=_run_time(job.start_time),
+            )
+        )
+
+    return jobs
+
+
+def cancel_jobs(job_ids):
+    client.cancel_jobs(job_ids)
 
 
 def run_sbatch(sbatch_script, sbatch_options=None):
