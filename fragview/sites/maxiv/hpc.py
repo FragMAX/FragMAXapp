@@ -17,8 +17,8 @@ class HPC(plugin.HPC):
         # TODO: check exit code and bubble up error on exit code != 0
         _ssh_on_frontend(cmd)
 
-    def new_batch_file(self, script_name):
-        return BatchFile(script_name)
+    def new_batch_file(self, job_name, script_name, stdout, stderr):
+        return BatchFile(job_name, script_name, stdout, stderr)
 
 
 # TODO: this is copy and paste code from fragview.hpc model,
@@ -74,6 +74,7 @@ class BatchFile(plugin.BatchFile):
             self._add_option(f"--time={time.as_hms_text()}")
 
         if job_name:
+            raise NotImplementedError("port to new 'non-option' style")
             self._add_option(f"--job-name={job_name}")
 
         if exclusive:
@@ -95,7 +96,9 @@ class BatchFile(plugin.BatchFile):
             self._add_option(f"--mem={_slurm_size(memory)}")
 
         if stdout:
+            raise NotImplementedError("port to new 'non-option' style")
             self._add_option(f"--output={stdout}")
 
         if stderr:
+            raise NotImplementedError("port to new 'non-option' style")
             self._add_option(f"--error={stderr}")

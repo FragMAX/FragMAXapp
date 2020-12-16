@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from fragview.sites import SITE
-from conf import REDIS_URL
+from conf import REDIS_URL, DATABASE_DIR
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,8 +83,6 @@ WSGI_APPLICATION = 'fragmax.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-DATABASE_DIR = os.path.join(BASE_DIR, "db")
 
 DATABASES = {
     'default': {
