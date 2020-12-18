@@ -1,5 +1,6 @@
 from os import path
 import unittest
+from unittest.mock import ANY
 import shutil
 import tempfile
 from fragview import auth
@@ -16,7 +17,7 @@ class WorkerTaskTester(unittest.TestCase):
         """
         make assertions that a RedLock with specified id was acquired and released
         """
-        red_lock_mock.assert_called_once_with(lock_id)
+        red_lock_mock.assert_called_once_with(lock_id, [ANY])
 
         lock = red_lock_mock.return_value
         lock.acquire.assert_called_once_with()
@@ -27,6 +28,7 @@ class ViewTesterMixin:
     """
     Utility mixin, that provides method to setup authenticated HTTP client
     """
+
     PROP1 = "20180201"
     PROP2 = "20170223"
 
@@ -47,8 +49,13 @@ class ViewTesterMixin:
         self.lib = Library(name="JBS")
         self.lib.save()
 
-        self.proj = Project(protein="PRT", library=self.lib, proposal=self.PROP1,
-                            shift="20190808", encrypted=encrypted)
+        self.proj = Project(
+            protein="PRT",
+            library=self.lib,
+            proposal=self.PROP1,
+            shift="20190808",
+            encrypted=encrypted,
+        )
         self.proj.save()
 
     def assert_contains_template(self, response, template_name):

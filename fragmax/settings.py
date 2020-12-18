@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from fragview.sites import SITE
+from conf import REDIS_URL
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -155,8 +156,8 @@ STATICFILES_DIRS = [
 #
 # Celery (worker threads) config
 #
-CELERY_BROKER_URL = "redis://localhost"
-CELERY_RESULT_BACKEND = "redis://localhost"
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 
 #
 # HPC (compute cluster) settings

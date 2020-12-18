@@ -1,15 +1,20 @@
 from contextlib import contextmanager
 import time
-import redis
 import redlock
+from redis import Redis
+import conf
 
-# sleep time between attempts to aquire lock
+# sleep time between attempts to acquire lock
 POLL_TIMEOUT = 1.2
+
+
+def _redis_connection():
+    return Redis.from_url(conf.REDIS_URL)
 
 
 @contextmanager
 def acquire(lock_id):
-    lock = redlock.RedLock(lock_id)
+    lock = redlock.RedLock(lock_id, [_redis_connection()])
 
     # loop until we acquire lock
     while not lock.acquire():
@@ -30,5 +35,4 @@ def is_acquired(lock_id):
     # check for the lock entry in the redis database,
     # not sure if this is a kosher way to do this, but
     # it seems to work
-    r = redis.Redis()
-    return r.get(lock_id) is not None
+    return _redis_connection().get(lock_id) is not None

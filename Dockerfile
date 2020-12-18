@@ -64,6 +64,7 @@ COPY fragview fragview/
 COPY fragmax fragmax/
 COPY worker worker/
 COPY static static/
+COPY conf.py .
 COPY manage.py deploy/migrate_db.sh ./
 # docker images are for now hard-coded for 'MAXIV' site
 COPY deploy/local_site.py-maxiv local_site.py

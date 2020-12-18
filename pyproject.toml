@@ -64,7 +64,6 @@ exclude = '''
   worker/__init__.py |
   tests/test_middleware.py |
   tests/test_xsdata.py |
-  tests/utils.py |
   tests/test_forms.py |
   worker/dials.py |
   worker/results.py |
