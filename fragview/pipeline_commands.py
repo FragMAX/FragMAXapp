@@ -5,18 +5,18 @@ def _get_pipe_cmds():
     return SITE.get_pipeline_commands()
 
 
-def get_xia_dials_command(
+def get_xia_dials_commands(
     space_group, unit_cell, custom_parameters, friedel, image_file, num_images
 ):
-    return _get_pipe_cmds().get_xia_dials_command(
+    return _get_pipe_cmds().get_xia_dials_commands(
         space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     )
 
 
-def get_xia_xdsxscale_command(
+def get_xia_xdsxscale_commands(
     space_group, unit_cell, custom_parameters, friedel, image_file, num_images
 ):
-    return _get_pipe_cmds().get_xia_xdsxscale_command(
+    return _get_pipe_cmds().get_xia_xdsxscale_commands(
         space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     )
 

@@ -140,10 +140,10 @@ class BeamlineInfo:
 
 
 class PipelineCommands:
-    def get_xia_dials_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xia_dials_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
         raise NotImplementedError()
 
-    def get_xia_xdsxscale_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xia_xdsxscale_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
         raise NotImplementedError()
 
     def get_xdsapp_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):

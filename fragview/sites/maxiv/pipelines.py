@@ -2,21 +2,21 @@ from fragview.sites import plugin
 
 
 class PipelineCommands(plugin.PipelineCommands):
-    def get_xia_dials_command(
+    def get_xia_dials_commands(
         self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     ):
-        return (
+        return [
             f"xia2 goniometer.axes=0,1,0 pipeline=dials failover=true {space_group} {unit_cell} {custom_parameters} "
             f"nproc=64 {friedel} image={image_file}:1:{num_images} multiprocessing.mode=serial multiprocessing.njob=1"
-        )
+        ]
 
-    def get_xia_xdsxscale_command(
+    def get_xia_xdsxscale_commands(
         self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     ):
-        return (
+        return [
             f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {space_group} {unit_cell} {custom_parameters} "
             f"nproc=64 {friedel} image={image_file}:1:{num_images} multiprocessing.mode=serial multiprocessing.njob=1"
-        )
+        ]
 
     def get_xdsapp_command(
         self,

@@ -13,7 +13,7 @@ from fragview.xsdata import XSDataCollection
 from fragview.views.utils import add_update_status_script_cmds
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
-from fragview.pipeline_commands import get_xia_dials_command, get_xia_xdsxscale_command
+from fragview.pipeline_commands import get_xia_dials_commands, get_xia_xdsxscale_commands
 from fragview.pipeline_commands import get_xdsapp_command, get_autoproc_command
 
 
@@ -331,7 +331,7 @@ def run_xds(proj, nodes, filters, options):
             batch.add_commands(
                 f"mkdir -p {outdir}/xdsxscale",
                 f"cd {outdir}/xdsxscale",
-                get_xia_xdsxscale_command(spg, unit_cell, customxds, friedel, image_file, num_images))
+                *get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images))
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
@@ -412,7 +412,7 @@ def run_dials(proj, nodes, filters, options):
             batch.add_commands(
                 f"mkdir -p {outdir}/dials",
                 f"cd {outdir}/dials",
-                get_xia_dials_command(spg, unit_cell, customdials, friedel, image_file, num_images))
+                *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images))
 
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
