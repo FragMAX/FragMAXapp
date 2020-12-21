@@ -18,6 +18,9 @@ class HPC(plugin.HPC):
 
 
 class BatchFile(plugin.BatchFile):
+    # HZB uses tcsh shell
+    HEADER = "#!/bin/tcsh"
+
     def load_python_env(self):
         """
         no need to add any new commands here, as python3 is always available
