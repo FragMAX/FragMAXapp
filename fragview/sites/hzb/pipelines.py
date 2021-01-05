@@ -32,8 +32,8 @@ class PipelineCommands(plugin.PipelineCommands):
         num_images,
     ):
         return (
-            f"/usr/bin/python2 /soft/pxsoft/run/xdsit/options.py --cmd --dir={output_dir}/xdsapp -j 8 -c 8 -i "
-            f"{image_file} {space_group} {custom_parameters} {friedel} --range='1 {num_images}'"
+            f"/soft/pxsoft/run/xdsit/xdsappbeta/xdsit.py --image={image_file} --range='1 {num_images}' "
+            f"{friedel} --dir={output_dir}/xdsapp  --jobs=8 --cpu=8"
         )
 
     def get_dimple_command(self, dstmtz, custom_parameters):
