@@ -8,8 +8,10 @@ from fragview.models import Project
 from fragview.sites import SITE
 from fragview.projects import (
     project_script,
+    project_syslog_path,
     get_update_results_command,
 )
+from jobs.client import JobsSet
 
 logger = get_task_logger(__name__)
 
@@ -43,14 +45,19 @@ def _generate_results_file(proj):
     if not path.exists(resultscsv):
         subprocess.call(["touch", resultscsv])
 
-    hpc = SITE.get_hpc_runner()
-    script = project_script(proj, "resync_results.sh")
-    batch = hpc.new_batch_file(script)
-
+    jobs = JobsSet("re-sync results")
+    batch = SITE.get_hpc_runner().new_batch_file(
+        f"re-synch results",
+        project_script(proj, "resync_results.sh"),
+        project_syslog_path(proj, "resync_results_%j.out"),
+        project_syslog_path(proj, "resync_results_%j.err"),
+    )
     batch.load_python_env()
     for result in resultsList:
         dataset, run = path.basename(result).split("_")
+
         batch.add_command(get_update_results_command(proj, dataset, run))
 
     batch.save()
-    hpc.run_batch(script)
+    jobs.add_job(batch)
+    jobs.submit()

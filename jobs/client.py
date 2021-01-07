@@ -27,7 +27,7 @@ class JobsSet:
         self._name = name
         self._jobs = []
 
-    def add_job(self, batch_file: BatchFile, run_after: List[str] = []):
+    def add_job(self, batch_file: BatchFile, run_after: List[BatchFile] = []):
         self._jobs.append((batch_file, run_after))
 
     def submit(self):

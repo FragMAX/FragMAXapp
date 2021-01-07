@@ -9,9 +9,15 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from fragview.fileio import open_proj_file
 from fragview.models import PDB
-from fragview.projects import current_project
+from fragview.projects import (
+    current_project,
+    project_syslog_path,
+    project_script,
+    project_models_dir,
+)
 from fragview.sites import SITE
 from fragview.versions import PHENIX_MOD
+from jobs.client import JobsSet
 
 
 #
@@ -117,23 +123,26 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
 
     if n_chains > 1:
         txc_pdb = _add_pdb_entry(proj, txc_filename, pdb_id)
-        script_dir = path.join(proj.data_path(), "fragmax", "scripts")
-        script = path.join(script_dir, f"phenix_ensembler.sh")
-        models_path = f"{proj.data_path()}/fragmax/models"
-        input_pdb_name = f"{models_path}/{name}"
 
-        hpc = SITE.get_hpc_runner()
+        models_path = project_models_dir(proj)
+        input_pdb_name = path.join(models_path, f"{name}.pdb")
 
-        batch = hpc.new_batch_file(script)
+        jobs = JobsSet("phenix ensembler")
+        batch = SITE.get_hpc_runner().new_batch_file(
+            "phenix ensembler",
+            project_script(proj, "phenix_ensembler.sh"),
+            project_syslog_path(proj, "phenix_ensembler_%j.out"),
+            project_syslog_path(proj, "phenix_ensembler_%j.err"),
+        )
         batch.load_modules(["gopresto", PHENIX_MOD])
         batch.add_commands(
             f"cd {models_path}",
-            f"phenix.ensembler {input_pdb_name}.pdb trim=TRUE output.location='{models_path}'",
+            f"phenix.ensembler {input_pdb_name} trim=TRUE output.location='{models_path}'",
             f"mv {models_path}/ensemble_merged.pdb {txc_pdb.file_path()}",
         )
         batch.save()
-
-        hpc.run_batch(script)
+        jobs.add_job(batch)
+        jobs.submit()
 
 
 #
