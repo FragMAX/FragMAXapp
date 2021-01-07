@@ -10,6 +10,7 @@ from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration
 from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
+from jobs.client import JobsSet
 
 
 def datasets(request):
@@ -48,6 +49,7 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
     # Modules for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
+    jobs = JobsSet("Ligand Fit")
     hpc = SITE.get_hpc_runner()
 
     datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
@@ -92,12 +94,14 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
             ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} " \
                           f"fill=True clean_up=True {custom_ligfit}\n"
 
-        script_file_path = project_script(proj, f"autoligand_{sample}_{num}.sh")
-        batch = hpc.new_batch_file(script_file_path)
+        batch = hpc.new_batch_file(
+            "autoLigfit",
+            project_script(proj, f"autoligand_{sample}_{num}.sh"),
+            project_log_path(proj, "auto_ligfit_%j_out.txt"),
+            project_log_path(proj, "auto_ligfit_%j_err.txt")
+        )
 
-        batch.set_options(time=Duration(hours=1), job_name="autoLigfit", cpus_per_task=1,
-                          stdout=project_log_path(proj, "auto_ligfit_%j_out.txt"),
-                          stderr=project_log_path(proj, "auto_ligfit_%j_err.txt"))
+        batch.set_options(time=Duration(hours=1), cpus_per_task=1)
 
         batch.purge_modules()
         batch.load_modules(softwares)
@@ -117,6 +121,6 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
         )
 
         batch.save()
+        jobs.add_job(batch)
 
-        if smiles != "none":
-            hpc.run_batch(script_file_path)
+    jobs.submit()

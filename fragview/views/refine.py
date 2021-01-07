@@ -15,6 +15,7 @@ from fragview.models import PDB
 from fragview.forms import RefineForm
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
+from jobs.client import JobsSet
 
 
 def datasets(request):
@@ -72,6 +73,7 @@ def run_structure_solving(
     if useBUSTER:
         argsfit += "buster"
 
+    jobs = JobsSet("Refine")
     hpc = SITE.get_hpc_runner()
 
     for dset in get_refine_datasets(proj, filters, useFSP, useDIMPLE, useBUSTER):
@@ -80,12 +82,13 @@ def run_structure_solving(
         epoch = str(round(time.time()))
         slctd_sw = argsfit.replace("none", "")
 
-        script_file_path = project_script(proj, f"proc2res_{dset}.sh")
-        batch = hpc.new_batch_file(script_file_path)
-        batch.set_options(time=Duration(hours=12), job_name="Refine_FragMAX", nodes=1, cpus_per_task=2,
-                          mem_per_cpu=DataSize(gigabyte=5),
-                          stdout=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
-                          stderr=project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt"))
+        batch = hpc.new_batch_file(
+            f"refine {set_name}",
+            project_script(proj, f"proc2res_{dset}.sh"),
+            project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
+            project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt")
+        )
+        batch.set_options(time=Duration(hours=12), nodes=1, cpus_per_task=2, mem_per_cpu=DataSize(gigabyte=5))
 
         batch.add_commands(crypt_shell.crypt_cmd(proj))
 
@@ -142,7 +145,9 @@ def run_structure_solving(
         add_update_results_script_cmds(proj, dset, batch, softwares)
 
         batch.save()
-        hpc.run_batch(script_file_path)
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def aimless_cmd(spacegroup, dstmtz):

@@ -24,6 +24,7 @@ from fragview.views.utils import png_http_response
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
 from fragview.sites.plugin import Duration, DataSize
+from jobs.client import JobsSet
 
 
 def str2bool(v):
@@ -800,17 +801,15 @@ def submit(request):
         if methodshort == "bebe":
             methodshort = "best"
 
-        _write_main_script(proj, method, methodshort, options)
-
         if not options["reprocessZmap"] and path.exists(res_dir):
-            t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
+            t1 = threading.Thread(target=pandda_worker, args=(proj, method, methodshort, options, cifMethod))
             t1.daemon = True
             t1.start()
         elif options["reprocessZmap"]:
             script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
             hpc.run_sbatch(script)
         else:
-            t1 = threading.Thread(target=pandda_worker, args=(proj, method, options, cifMethod))
+            t1 = threading.Thread(target=pandda_worker, args=(proj, method, methodshort, options, cifMethod))
             t1.daemon = True
             t1.start()
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
@@ -829,7 +828,6 @@ def _write_main_script(proj, method, methodshort, options):
         return "fujitsu", DataSize(gigabyte=310), 64
 
     script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
-
     epoch = round(time.time())
 
     log_prefix = project_log_path(proj, f"{proj.protein}PanDDA_{method}_{epoch}_%j_")
@@ -847,11 +845,13 @@ def _write_main_script(proj, method, methodshort, options):
         pandda_cluster = f"{giant_cluster} ./*/final.pdb pdb_label=foldername"
 
     hpc = SITE.get_hpc_runner()
-    batch = hpc.new_batch_file(script)
+    batch = hpc.new_batch_file(f"PDD{methodshort}",
+                               script,
+                               f"{log_prefix}out.txt",
+                               f"{log_prefix}err.txt")
     partition, memory, cpus_per_task = _hpc_options()
-    batch.set_options(time=Duration(hours=99), job_name=f"PDD{methodshort}", exclusive=True, nodes=1,
-                      partition=partition, cpus_per_task=cpus_per_task, memory=memory,
-                      stdout=f"{log_prefix}out.txt", stderr=f"{log_prefix}err.txt")
+    batch.set_options(time=Duration(hours=99), exclusive=True, nodes=1,
+                      partition=partition, cpus_per_task=cpus_per_task, memory=memory)
 
     if proj.encrypted:
         batch.add_command(crypt_shell.crypt_cmd(proj))
@@ -887,6 +887,7 @@ def _write_main_script(proj, method, methodshort, options):
         )
 
     batch.save()
+    return batch
 
 
 def giant_score(proj, method):
@@ -1013,9 +1014,10 @@ def giant_score(proj, method):
     hpc.frontend_run(giant_worker_script)
 
 
-def pandda_worker(proj, method, options, cifMethod):
+def pandda_worker(proj, method, methodshort, options, cifMethod):
     rn = str(randint(10000, 99999))
 
+    prepare_scripts = []
     fragDict = dict()
 
     for _dir in glob(f"{project_process_dir(proj)}/fragment/{proj.library.name}/*"):
@@ -1052,7 +1054,7 @@ def pandda_worker(proj, method, options, cifMethod):
             script = _write_prepare_script(proj, rn, method, dataset, pdb, res_high,
                                            free_r_flag, native_f, sigma_fp, cifMethod)
 
-            hpc.run_sbatch(script)
+            prepare_scripts.append(script)
 
     pandda_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
     os.makedirs(pandda_dir, exist_ok=True)
@@ -1061,8 +1063,18 @@ def pandda_worker(proj, method, options, cifMethod):
         json_str = json.dumps(selectedDict)
         f.write(json_str.encode())
 
-    script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
-    hpc.run_sbatch(script, f"--dependency=singleton --job-name=PnD{rn}")
+    main_script = _write_main_script(proj, method, methodshort, options)
+
+    #
+    # submit all pandda script to the HPC
+    #
+    jobs = JobsSet("PanDDa")
+
+    for prep_script in prepare_scripts:
+        jobs.add_job(prep_script)
+
+    jobs.add_job(main_script, prepare_scripts)
+    jobs.submit()
 
 
 def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, native_f, sigma_fp, cif_method):
@@ -1074,7 +1086,6 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
     output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
-    script = project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh")
     lib = proj.library
 
     copy_frags_cmd = ""
@@ -1102,10 +1113,11 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
                 copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
 
     hpc = SITE.get_hpc_runner()
-    batch = hpc.new_batch_file(script)
-    batch.set_options(time=Duration(minutes=15), job_name=f"PnD{rn}", cpus_per_task=1, memory=DataSize(gigabyte=5),
-                      stdout=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
-                      stderr=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"))
+    batch = hpc.new_batch_file(f"PnD{rn}",
+                               project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh"),
+                               project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
+                               project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"))
+    batch.set_options(time=Duration(minutes=15), cpus_per_task=1, memory=DataSize(gigabyte=5))
 
     batch.add_command(crypt_shell.crypt_cmd(proj))
     batch.assign_variable("DEST_DIR", output_dir)
@@ -1135,7 +1147,8 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
     )
 
     batch.save()
-    return script
+    return batch
+
 
 #
 # regexp object used when parsing
@@ -1219,9 +1232,7 @@ def get_best_alt_dataset(proj, dataset, options):
             r_work, r_free, resolution = _get_pdb_data(proj, pdb)
             rwork_res.append((pdb, r_work, r_free, resolution))
         rwork_res.sort(key=lambda pair: pair[1:4])
-        print("FragMAX selected:")
-        print("pdb, r_work, r_free, resolution")
-        print(rwork_res[0])
+
         return rwork_res[0][0]
 
 
