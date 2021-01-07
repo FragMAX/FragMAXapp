@@ -1,5 +1,7 @@
 from os import path
 import unittest
+import shutil
+import tempfile
 from fragview import auth
 from django import test
 from fragview.models import Project, Library
@@ -73,6 +75,14 @@ class ViewTesterMixin:
 
     def assert_not_found_response(self, response, error_msg):
         self.assert_response(response, 404, error_msg)
+
+
+class TempDirMixin:
+    def setup_temp_dir(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tear_down_temp_dir(self):
+        shutil.rmtree(self.temp_dir)
 
 
 def data_file_path(file_name):

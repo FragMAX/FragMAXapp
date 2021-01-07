@@ -1,11 +1,10 @@
 import os
 import stat
 import unittest
-import tempfile
 from unittest.mock import Mock, patch
 from os import path
-import shutil
 from tempfile import TemporaryDirectory
+from tests.utils import TempDirMixin
 from fragview import encryption
 from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, write_script, read_csv_lines
 
@@ -153,7 +152,7 @@ class TestReadCSVLines(unittest.TestCase):
 
 
 @patch("builtins.print")
-class TestWriteScript(unittest.TestCase):
+class TestWriteScript(unittest.TestCase, TempDirMixin):
     """
     test the write_script() function
     """
@@ -161,11 +160,11 @@ class TestWriteScript(unittest.TestCase):
     SCRIPT_LONG_BODY = "some-dummy-long-body-script"
 
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.setup_temp_dir()
         self.script_path = path.join(self.temp_dir, "dummy.sh")
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_func(self, print_mock):
         write_script(self.script_path, self.SCRIPT_BODY)

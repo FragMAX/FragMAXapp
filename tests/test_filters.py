@@ -1,5 +1,4 @@
 import shutil
-import tempfile
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
@@ -15,7 +14,7 @@ from fragview.filters import (
     get_ligfit_datasets,
     get_ligfit_pdbs,
 )
-from tests.utils import data_file_path
+from tests.utils import data_file_path, TempDirMixin
 
 
 PROTEIN = "PrtK"
@@ -96,9 +95,9 @@ def _create_pdbs(proj):
     Path(d12a_res_dir, "dials", "dimple", "final.pdb").mkdir(parents=True)
 
 
-class _FiltersTester(TestCase):
+class _FiltersTester(TestCase, TempDirMixin):
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.setup_temp_dir()
         Site.PROPOSALS_DIR = self.temp_dir
 
         with patch("fragview.projects.SITE", Site):
@@ -114,7 +113,7 @@ class _FiltersTester(TestCase):
         _create_pdbs(self.proj)
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
 
 @patch("fragview.projects.SITE", Site)

@@ -1,11 +1,10 @@
-import shutil
 import unittest
-import tempfile
 from os import path
 from fragview.encryption import EncryptedFile, generate_key, decrypt, CryptoErr
+from tests.utils import TempDirMixin
 
 
-class TestDecrypt(unittest.TestCase):
+class TestDecrypt(unittest.TestCase, TempDirMixin):
     """
     test decrypt() function
     """
@@ -14,12 +13,12 @@ class TestDecrypt(unittest.TestCase):
     DATA = b"for a second time, the Tummal fell into ruin"
 
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.setup_temp_dir()
         self.filepath = path.join(self.temp_dir, self.FILE)
         self.enc_key = generate_key()
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def _write_encrypted(self):
         with EncryptedFile(self.enc_key, self.filepath) as f:

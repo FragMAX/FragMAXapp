@@ -1,14 +1,12 @@
-import shutil
-import tempfile
 from unittest import TestCase
 from unittest.mock import Mock
-from tests.utils import xs_data_path
+from tests.utils import xs_data_path, TempDirMixin
 from fragview.fileio import makedirs, read_csv_lines
 from fragview.projects import project_process_protein_dir, project_data_collections_file
 from worker.project import _write_data_collections_file
 
 
-class TestWriteDataCollectionsFile(TestCase):
+class TestWriteDataCollectionsFile(TestCase, TempDirMixin):
     EXPECTED_CSV_LINES = [
         [
             "imagePrefix",
@@ -57,7 +55,7 @@ class TestWriteDataCollectionsFile(TestCase):
         # set-up mocked project with it's
         # directory inside temp directory
         #
-        self.temp_dir = tempfile.mkdtemp()
+        self.setup_temp_dir()
 
         proj = Mock()
         proj.protein = "AR"
@@ -69,7 +67,7 @@ class TestWriteDataCollectionsFile(TestCase):
         self.proj = proj
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_func(self):
         # write datacollection file

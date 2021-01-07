@@ -1,16 +1,14 @@
-import shutil
-import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 from django.test import TestCase
-from tests.utils import ViewTesterMixin
+from tests.utils import ViewTesterMixin, TempDirMixin
 
 TEXT_LOG = "log.txt"
 HTML_LOG = "log.html"
 TEXT_LOG_BODY = "the front fell off"
 
 
-class TestLogs(TestCase, ViewTesterMixin):
+class TestLogs(TestCase, ViewTesterMixin, TempDirMixin):
     """
     test 'show' and 'download' logs views
     """
@@ -18,8 +16,8 @@ class TestLogs(TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
         self.setup_project()
+        self.setup_temp_dir()
 
-        self.temp_dir = tempfile.mkdtemp()
         self.mock_data_path = Mock(return_value=self.temp_dir)
 
         #
@@ -33,7 +31,7 @@ class TestLogs(TestCase, ViewTesterMixin):
         self.html_log.touch()
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_show_not_found(self):
         """

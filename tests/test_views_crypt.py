@@ -1,9 +1,7 @@
-import shutil
-import tempfile
 from unittest.mock import Mock, patch
 from os import path
 from django import test
-from tests.utils import ViewTesterMixin
+from tests.utils import ViewTesterMixin, TempDirMixin
 from fragview import tokens, encryption
 from fragview.fileio import makedirs
 from fragview.models import EncryptionKey
@@ -32,17 +30,17 @@ class _CryptViewTesterMixin(ViewTesterMixin):
         key.save()
 
 
-class TestReadWrite(test.TestCase, _CryptViewTesterMixin):
+class TestReadWrite(test.TestCase, _CryptViewTesterMixin, TempDirMixin):
     def setUp(self):
         self.setup_crypto()
+        self.setup_temp_dir()
 
-        self.temp_dir = tempfile.mkdtemp()
         with patch("fragview.projects.SITE") as site:
             site.PROPOSALS_DIR = self.temp_dir
             self.pdb_path = project_model_file(self.proj, self.PDB_FILE)
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_write(self):
         with patch("fragview.projects.SITE") as site:

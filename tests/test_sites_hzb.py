@@ -1,8 +1,7 @@
-import shutil
-import tempfile
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
+from tests.utils import TempDirMixin
 from fragview.sites.hzb import SitePlugin
 
 
@@ -37,13 +36,13 @@ def _make_image_files(proposals_dir):
     _make_dset_files(protein_dir, "X99c", 3)
 
 
-class TestGetDatasets(TestCase):
+class TestGetDatasets(TestCase, TempDirMixin):
     """
     test HZB plugin's get_project_datasets() method
     """
 
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.setup_temp_dir()
 
         _make_image_files(self.temp_dir)
 
@@ -55,7 +54,7 @@ class TestGetDatasets(TestCase):
         self.plugin = SitePlugin()
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_get_sets(self):
         # get the datasets

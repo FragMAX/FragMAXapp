@@ -1,5 +1,3 @@
-import shutil
-import tempfile
 import unittest
 from unittest.mock import Mock, patch
 from pathlib import Path
@@ -9,7 +7,7 @@ from fragview.models import EncryptionKey
 from fragview.views.pandda import _get_pdb_data
 from fragview.fileio import open_proj_file
 from fragview.projects import project_pandda_results_dir
-from tests.utils import data_file_path, ViewTesterMixin
+from tests.utils import data_file_path, ViewTesterMixin, TempDirMixin
 
 
 class TestGetPdbData(unittest.TestCase):
@@ -38,7 +36,7 @@ class TestGetPdbData(unittest.TestCase):
 
 
 @patch("fragview.models.Project.data_path")
-class TestClusterImage(test.TestCase, ViewTesterMixin):
+class TestClusterImage(test.TestCase, ViewTesterMixin, TempDirMixin):
     """
     test cluster_image() view function,
 
@@ -52,8 +50,8 @@ class TestClusterImage(test.TestCase, ViewTesterMixin):
 
     def setUp(self):
         self.setup_client()
+        self.setup_temp_dir()
 
-        self.temp_dir = tempfile.mkdtemp()
         self.mock_data_path = Mock(return_value=self.temp_dir)
 
     def _get_url(self):
@@ -69,7 +67,7 @@ class TestClusterImage(test.TestCase, ViewTesterMixin):
         )
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        self.tear_down_temp_dir()
 
     def test_png_not_found(self, mock_data_path):
         """
