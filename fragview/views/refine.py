@@ -124,8 +124,8 @@ def run_structure_solving(
                 # skip the tools, where no result was found
                 continue
 
+            batch.assign_variable("WORK_DIR", "`mktemp -d`")
             batch.add_commands(
-                "WORK_DIR=$(mktemp -d)",
                 "cd $WORK_DIR",
                 crypt_shell.fetch_file(proj, userPDB, "model.pdb"))
 

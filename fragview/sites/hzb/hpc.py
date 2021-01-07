@@ -27,6 +27,9 @@ class BatchFile(plugin.BatchFile):
         """
         pass
 
+    def assign_variable(self, var_name, expression):
+        self.add_command(f"set {var_name}={expression}")
+
     def set_options(self, **_):
         """
         for now, we ignore all options

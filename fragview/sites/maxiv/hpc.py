@@ -51,10 +51,22 @@ class BatchFile(plugin.BatchFile):
         self.purge_modules()
         self.load_modules(["GCCcore/8.3.0", "Python/3.7.4"])
 
-    def set_options(self, time=None, job_name=None, exclusive=None, nodes=None,
-                    cpus_per_task=None, mem_per_cpu=None, partition=None, memory=None,
-                    stdout=None, stderr=None):
+    def assign_variable(self, var_name, expression):
+        self.add_command(f"{var_name}={expression}")
 
+    def set_options(
+        self,
+        time=None,
+        job_name=None,
+        exclusive=None,
+        nodes=None,
+        cpus_per_task=None,
+        mem_per_cpu=None,
+        partition=None,
+        memory=None,
+        stdout=None,
+        stderr=None,
+    ):
         def _slurm_size(size):
             return f"{size.value}{size.unit}"
 

@@ -252,6 +252,9 @@ class BatchFile:
         from fragview.fileio import write_script
         write_script(self._filename, self._body)
 
+    def assign_variable(self, var_name, expression):
+        raise NotImplementedError()
+
     def load_python_env(self):
         """
         add commands to activate python environment

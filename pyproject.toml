@@ -25,7 +25,6 @@ exclude = '''
   fragview/migrations/0002_projectdetails.py |
   fragview/status.py |
   fragview/cbf.py |
-  fragview/sites/maxiv/hpc.py |
   fragview/views/crypt.py |
   fragview/sites/plugin.py |
   fragview/migrations/0001_initial.py |
