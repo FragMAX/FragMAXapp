@@ -15,6 +15,7 @@ from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.pipeline_commands import get_xia_dials_commands, get_xia_xdsxscale_commands
 from fragview.pipeline_commands import get_xdsapp_command, get_autoproc_command
+from jobs.client import JobsSet
 
 
 def datasets(request):
@@ -157,6 +158,7 @@ def run_xdsapp(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.CCP4_MOD, versions.XDSAPP_MOD]
 
+    jobs = JobsSet("XDSAPP")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -200,7 +202,9 @@ def run_xdsapp(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def run_autoproc(proj, nodes, filters, options):
@@ -289,6 +293,7 @@ def run_xds(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.XDS_MOD, versions.DIALS_MOD]
 
+    jobs = JobsSet("XIA2/XDS")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -336,7 +341,9 @@ def run_xds(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def run_dials(proj, nodes, filters, options):
@@ -369,6 +376,7 @@ def run_dials(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.DIALS_MOD]
 
+    jobs = JobsSet("XIA2/DIALS")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -418,4 +426,6 @@ def run_dials(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()

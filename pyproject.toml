@@ -36,7 +36,6 @@ exclude = '''
   fragview/views/misc.py |
   fragview/views/reciprocal.py |
   fragview/views/projects.py |
-  fragview/views/pdbs.py |
   fragview/views/soaking.py |
   manage.py |
   fragview/views/utils.py |  # conflict between flake8 and black
