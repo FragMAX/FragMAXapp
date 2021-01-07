@@ -15,6 +15,7 @@ from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.pipeline_commands import get_xia_dials_commands, get_xia_xdsxscale_commands
 from fragview.pipeline_commands import get_xdsapp_command, get_autoproc_command
+from jobs.client import JobsSet
 
 
 def datasets(request):
@@ -155,6 +156,7 @@ def run_xdsapp(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.CCP4_MOD, versions.XDSAPP_MOD]
 
+    jobs = JobsSet("XDSAPP")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -198,25 +200,28 @@ def run_xdsapp(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def run_autoproc(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.CCP4_MOD, versions.AUTOPROC_MOD, versions.DURIN_MOD]
 
+    jobs = JobsSet("autoPROC")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
     buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
     for num, bucket in enumerate(buckets):
-        script_file_path = project_script(proj, f"autoproc_fragmax_part{num}.sh")
-        batch = hpc.new_batch_file(script_file_path)
+        batch = hpc.new_batch_file("autoPROC",
+                                   project_script(proj, f"autoproc_fragmax_part{num}.sh"),
+                                   project_log_path(proj, f"multi_autoproc_{epoch}_%j_out.txt"),
+                                   project_log_path(proj, f"multi_autoproc_{epoch}_%j_err.txt"))
 
-        batch.set_options(time=Duration(hours=168), job_name="autoPROC", exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300),
-                          stdout=project_log_path(proj, f"multi_autoproc_{epoch}_%j_out.txt"),
-                          stderr=project_log_path(proj, f"multi_autoproc_{epoch}_%j_err.txt"))
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1, cpus_per_task=64,
+                          partition="fujitsu", memory=DataSize(gigabyte=300))
 
         batch.purge_modules()
         batch.load_modules(softwares)
@@ -254,7 +259,9 @@ def run_autoproc(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        hpc.run_batch(script_file_path)
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def run_xds(proj, nodes, filters, options):
@@ -287,6 +294,7 @@ def run_xds(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.XDS_MOD, versions.DIALS_MOD]
 
+    jobs = JobsSet("XIA2/XDS")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -334,7 +342,9 @@ def run_xds(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()
 
 
 def run_dials(proj, nodes, filters, options):
@@ -367,6 +377,7 @@ def run_dials(proj, nodes, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.DIALS_MOD]
 
+    jobs = JobsSet("XIA2/DIALS")
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
@@ -416,4 +427,6 @@ def run_dials(proj, nodes, filters, options):
             add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
-        batch.run()
+        jobs.add_job(batch)
+
+    jobs.submit()
