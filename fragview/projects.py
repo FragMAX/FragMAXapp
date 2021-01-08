@@ -200,3 +200,7 @@ def project_model_path(project, pdb_file):
 
 def project_static_url(project):
     return path.join("/", "static", "biomax", project.proposal, project.shift)
+
+
+def get_update_results_command(project, dataset, run):
+    return f"python3 {project_update_results_script(project)} {project.data_path()} {dataset} {run}"

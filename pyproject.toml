@@ -65,7 +65,6 @@ exclude = '''
   tests/test_xsdata.py |
   tests/test_forms.py |
   worker/dials.py |
-  worker/results.py |
   tests/test_views_pdbs.py |
   tests/test_views_projects.py |
   worker/data/pandda_prepare_runs.py |

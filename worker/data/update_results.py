@@ -1,18 +1,16 @@
+import argparse
 from glob import glob
 from os import path
 import csv
-import sys
 import shutil
+from pathlib import Path
 from collections import defaultdict
 from xml.etree import cElementTree as ET
 
-proposal, shift = sys.argv[2].split("/")
-biomax_path = "/data/visitors/biomax"
 
-
-def _generate_results_file(dataset, run, proposal, shift, protein):
-    fmax_proc_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}"
-    res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
+def _generate_results_file(data_root, project_dir, protein, dataset, run):
+    fmax_proc_dir = path.join(project_dir, "fragmax", "process", protein)
+    res_dir = path.join(project_dir, "fragmax", "results")
 
     xdsappLogs = glob(f"{fmax_proc_dir}/{dataset}/*/xdsapp/results*txt")
     autoprocLogs = glob(f"{fmax_proc_dir}/{dataset}/*/autoproc/summary.html")
@@ -22,6 +20,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
     EDNALogs = sorted(glob(f"{fmax_proc_dir}/{dataset}/*/edna/*XSCALE.LP"), reverse=True)
     ppdprocLogs = glob(f"{res_dir}/{dataset}*/pipedream/process/process.log")
     ppdrefFiles = glob(f"{res_dir}/{dataset}*/pipedream/refine*/refine.pdb")
+
     if ppdrefFiles:
         resultsList = (
             glob(f"{res_dir}/{dataset}_{run}/*/*/final.pdb")
@@ -33,7 +32,8 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
             f"{res_dir}/{dataset}_{run}/*/*/refine.pdb"
         )
     isaDict = {"xdsapp": "", "autoproc": "", "xdsxscale": "", "dials": "", "fastdp": "", "edna": "", "pipedream": ""}
-    project_results_file = f"{biomax_path}/{proposal}/{shift}/fragmax/process/{protein}/results.csv"
+
+    project_results_file = path.join(fmax_proc_dir, "results.csv")
 
     resultsFile = list()
     header = [
@@ -148,12 +148,12 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
             if usracr in [x[0] for x in resultsFile if x is not None]:
                 for n, line in enumerate(resultsFile):
                     if usracr in line[0]:
-                        entry_results = _get_results_func(usracr, entry, isaDict, res_dir)
+                        entry_results = _get_results_func(data_root, usracr, entry, isaDict, res_dir, dataset, run)
                         if entry_results is not None:
                             lst = entry_results
                             resultsFile[n] = lst
             else:
-                entry_results = _get_results_func(usracr, entry, isaDict, res_dir)
+                entry_results = _get_results_func(data_root, usracr, entry, isaDict, res_dir, dataset, run)
 
                 if entry_results is not None:
                     resultsFile.append(entry_results)
@@ -165,16 +165,16 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
                         pass
 
         else:
-            usracr = "_".join(entry.split("/")[8:11])
+            usracr = "_".join(entry.split("/")[-4:-1])
             if usracr in [x[0] for x in resultsFile if x is not None]:
                 for n, line in enumerate(resultsFile):
                     if usracr in line[0]:
-                        entry_results = _get_results_func(usracr, entry, isaDict, res_dir)
+                        entry_results = _get_results_func(data_root, usracr, entry, isaDict, res_dir, dataset, run)
                         if entry_results is not None:
                             lst = entry_results
                             resultsFile[n] = lst
             else:
-                entry_results = _get_results_func(usracr, entry, isaDict, res_dir)
+                entry_results = _get_results_func(data_root, usracr, entry, isaDict, res_dir, dataset, run)
                 if entry_results is not None:
                     resultsFile.append(entry_results)
             with open(project_results_file, "w") as csvFile:
@@ -184,7 +184,7 @@ def _generate_results_file(dataset, run, proposal, shift, protein):
                         writer.writerow(row)
 
 
-def _get_results_func(usracr, entry, isaDict, res_dir):
+def _get_results_func(data_root, usracr, entry, isaDict, res_dir, dataset, run):
     (
         pdbout,
         dif_map,
@@ -215,8 +215,9 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
     if "pipedream" in entry:
         pipeline = "pipedream"
     else:
-        pipeline = "_".join(entry.split("/")[9:11])
-    process_method = entry.split("/")[9]
+        pipeline = "_".join(entry.split("/")[-3:-1])
+
+    process_method = entry.split("/")[-3]
     refine_method = pipeline.split("_")[-1]
     rhofitscore = ""
     ligfitscore = ""
@@ -383,7 +384,8 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
 
     if not ligblob:
         ligblob = [0, 0, 0]
-    if path.exists("/data/visitors/" + pdbout) and "Apo" not in pdbout:
+
+    if path.exists(path.join(data_root, pdbout)) and "Apo" not in pdbout:
         ligfitPath = path.join(res_dir, f"{dataset}_{run}", process_method, refine_method, "ligfit")
         rhofitPath = path.join(res_dir, f"{dataset}_{run}", process_method, refine_method, "rhofit")
         if path.exists(rhofitPath):
@@ -413,6 +415,7 @@ def _get_results_func(usracr, entry, isaDict, res_dir):
         ligfit_dataset = "_".join(usracr.split("_")[:-1])
     else:
         ligfit_dataset = "_".join(usracr.split("_")[:-2])
+
     row_to_write = [
         usracr,
         pdbout,
@@ -701,14 +704,36 @@ def etree_to_dict(t):
     return d
 
 
-if sys.argv[1] == "alldatasets":
-    res_dir = f"{biomax_path}/{proposal}/{shift}/fragmax/results"
-    datasets = [path.basename(x) for x in glob(f"{res_dir}/*_*")]
-    for d_r in datasets:
-        dataset, run = d_r.split("_")
-        protein = dataset.split("-")[0]
-        _generate_results_file(dataset, run, proposal, shift, protein)
-else:
-    dataset, run = sys.argv[1].split("_")
-    protein = dataset.split("-")[0]
-    _generate_results_file(dataset, run, proposal, shift, protein)
+def derive_data_root(proj_path):
+    """
+    given project absolute path, derive the site's data strorage root path, which
+    we assume to be 2 directories deep,
+
+    i.e. if project's path is '/dota/foo/bar/projXYZ'
+    we assume that site's data root is '/data/foo'
+    """
+    parents = Path(proj_path).parents
+
+    return str(parents[len(parents) - 3])
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="update dataset result")
+    parser.add_argument("project_dir")
+    parser.add_argument("dataset")
+    parser.add_argument("run")
+
+    args = parser.parse_args()
+    protein = args.dataset.split("-")[0]
+
+    return args.project_dir, protein, args.dataset, args.run
+
+
+def main():
+    project_dir, protein, dataset, run = parse_args()
+    data_root = derive_data_root(project_dir)
+
+    _generate_results_file(data_root, project_dir, protein, dataset, run)
+
+
+main()

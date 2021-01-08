@@ -5,7 +5,11 @@ import subprocess
 from celery.utils.log import get_task_logger
 from worker import dist_lock
 from fragview.models import Project
-from fragview import hpc
+from fragview.sites import SITE
+from fragview.projects import (
+    project_script,
+    get_update_results_command,
+)
 
 logger = get_task_logger(__name__)
 
@@ -27,7 +31,9 @@ def resync_results(proj_id):
         return
 
     with dist_lock.acquire(_lock_id(proj)):
-        logger.info(f"re-sync results file for project {proj.protein}-{proj.library.name} ({proj.id})")
+        logger.info(
+            f"re-sync results file for project {proj.protein}-{proj.library.name} ({proj.id})"
+        )
         _generate_results_file(proj)
 
 
@@ -35,14 +41,16 @@ def _generate_results_file(proj):
     resultsList = glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*")
     resultscsv = f"{proj.data_path()}/fragmax/process/{proj.protein}/results.csv"
     if not path.exists(resultscsv):
-        subprocess.call(['touch', resultscsv])
-    script = f"{proj.data_path()}/fragmax/scripts/update_results.sh"
-    with open(f"{proj.data_path()}/fragmax/scripts/update_results.sh", "w") as writeFile:
-        writeFile.write("#!/bin/bash\n")
-        writeFile.write("#!/bin/bash\n")
-        writeFile.write("module purge\n")
-        writeFile.write("module load GCC/7.3.0-2.30  OpenMPI/3.1.1 Python/3.7.0\n")
-        for result in resultsList:
-            writeFile.write(f"python3 {proj.data_path()}/fragmax/scripts/update_results.py {path.basename(result)} "
-                            f"{proj.proposal}/{proj.shift}\n")
-    hpc.run_sbatch(script)
+        subprocess.call(["touch", resultscsv])
+
+    hpc = SITE.get_hpc_runner()
+    script = project_script(proj, "resync_results.sh")
+    batch = hpc.new_batch_file(script)
+
+    batch.load_python_env()
+    for result in resultsList:
+        dataset, run = path.basename(result).split("_")
+        batch.add_command(get_update_results_command(proj, dataset, run))
+
+    batch.save()
+    hpc.run_batch(script)

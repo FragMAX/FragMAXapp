@@ -1,4 +1,4 @@
-from fragview.projects import project_update_status_script, project_update_results_script
+from fragview.projects import project_update_status_script, get_update_results_command
 
 
 def scrsplit(a, n):
@@ -19,10 +19,10 @@ def add_update_status_script_cmds(project, sample, batch, modules):
 
 
 def add_update_results_script_cmds(project, sample, batch, modules):
+    dataset, run = sample.split("_")
 
     batch.load_python_env()
-    batch.add_command(
-        f"python3 {project_update_results_script(project)} {sample} {project.proposal}/{project.shift}")
+    batch.add_command(get_update_results_command(project, dataset, run))
 
     batch.purge_modules()
     batch.load_modules(modules)
