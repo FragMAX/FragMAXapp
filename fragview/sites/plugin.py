@@ -156,7 +156,7 @@ class PipelineCommands:
     def get_dimple_command(self, dstmtz, custom_parameters):
         raise NotImplementedError()
 
-    def get_fspipeline_command(self, pdb, custom_parameters):
+    def get_fspipeline_commands(self, pdb, custom_parameters):
         raise NotImplementedError()
 
     def get_buster_command(self, dstmtz, pdb, custom_parameters):

@@ -53,8 +53,8 @@ def get_dimple_command(dstmtz, custom_parameters):
     return _get_pipe_cmds().get_dimple_command(dstmtz, custom_parameters)
 
 
-def get_fspipeline_command(pdb, custom_parameters):
-    return _get_pipe_cmds().get_fspipeline_command(pdb, custom_parameters)
+def get_fspipeline_commands(pdb, custom_parameters):
+    return _get_pipe_cmds().get_fspipeline_commands(pdb, custom_parameters)
 
 
 def get_buster_command(dstmtz, pdb, custom_parameters):

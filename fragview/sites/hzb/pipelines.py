@@ -39,8 +39,8 @@ class PipelineCommands(plugin.PipelineCommands):
     def get_dimple_command(self, dstmtz, custom_parameters):
         return f"dimple {dstmtz} model.pdb dimple {custom_parameters}"
 
-    def get_fspipeline_command(self, pdb, custom_parameters):
-        return (
+    def get_fspipeline_commands(self, pdb, custom_parameters):
+        return [
             f"/soft/pxsoft/64/pymol_2.1/bin/python /frag/fragmax/fm_bessy/fspipeline.py --sa=false --refine={pdb} "
-            f'--exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 {custom_parameters}'
-        )
+            f'--exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" --cpu=1 {custom_parameters}',
+        ]
