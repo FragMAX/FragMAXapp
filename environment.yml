@@ -19,7 +19,6 @@ dependencies:
   - pycryptodomex=3.9.7
   - pip:
     - django-static-jquery==2.1.4
-    - pyfastcopy==1.0.3
     - pypdb==1.300
     - redlock==1.2.0
     - zipstream-new==1.1.7

@@ -1,6 +1,5 @@
 from os import path
 from glob import glob
-import pyfastcopy  # noqa
 import celery
 import subprocess
 from celery.utils.log import get_task_logger

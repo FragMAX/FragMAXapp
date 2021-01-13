@@ -1,5 +1,4 @@
 import time
-import pyfastcopy  # noqa
 import threading
 from os import path
 from glob import glob

@@ -1,4 +1,3 @@
-import pyfastcopy  # noqa
 import shutil
 from os import path
 from glob import glob

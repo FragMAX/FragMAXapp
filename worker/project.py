@@ -4,7 +4,6 @@ import grp
 import csv
 import stat
 from glob import glob
-import pyfastcopy  # noqa
 import shutil
 import celery
 from celery.utils.log import get_task_logger

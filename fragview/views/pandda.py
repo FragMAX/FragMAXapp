@@ -2,7 +2,6 @@ import re
 import os
 import csv
 import natsort
-import pyfastcopy  # noqa
 import shutil
 import threading
 import json
