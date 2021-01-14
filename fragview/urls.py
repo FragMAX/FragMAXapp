@@ -69,6 +69,7 @@ urlpatterns = [
 
     # generated PDB access views
     path('pdbs/final/<dataset>/<process>/<refine>', result_pdbs.final),
+    path('pdbs/ligand/<dataset>/<process>/<refine>/<fitting>', result_pdbs.ligand),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 

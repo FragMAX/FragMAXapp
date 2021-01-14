@@ -40,7 +40,6 @@ exclude = '''
   fragview/views/ligfit.py |
   fragview/views/misc.py |
   fragview/views/reciprocal.py |
-  fragview/views/result_pdbs.py |
   fragview/views/projects.py |
   fragview/views/pdbs.py |
   fragview/views/soaking.py |

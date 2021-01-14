@@ -347,10 +347,10 @@
       UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
     });
 
-    V.load_pdb("{{ligfitpdb}}", null, function () {
+    V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/ligfit", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "ligfit"
     });
-    V.load_pdb("{{rhofitpdb}}", null, function () {
+    V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/rhofit", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "rhofit"
     });
     var blobs = {{xyzlist}};

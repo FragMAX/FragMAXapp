@@ -115,7 +115,6 @@ def show(request):
                         rhocenter = "[" + ",".join(coords) + "]"
                         break
         else:
-            rhofit = ""
             rhocenter = "[0,0,0]"
             rhofitbox = "none"
         try:
@@ -129,12 +128,9 @@ def show(request):
                         ligcenter = "[" + ",".join(coords) + "]"
                         break
         except Exception:
-            ligfit = ""
             ligcenter = "[0,0,0]"
             ligfitbox = "none"
     else:
-        ligfit = ""
-        rhofit = ""
         rhofitscore = "-"
         ligfitscore = "-"
         ligcenter = "[]"
@@ -162,10 +158,6 @@ def show(request):
         prevstr = usracr
         nextstr = usracr
 
-    pdbout = pdbout.replace("/data/visitors/", "/static/")
-    ligfit = ligfit.replace("/data/visitors/", "/static/")
-    rhofit = rhofit.replace("/data/visitors/", "/static/")
-
     # get xyz for ligands
     blist = blist.replace(" ", "")
 
@@ -191,7 +183,6 @@ def show(request):
         "fragview/density.html",
         {
             "name": usracr,
-            "pdb": pdbout,
             "xyzlist": blist,
             "center": center,
             "ligand": ligand,
@@ -215,8 +206,6 @@ def show(request):
             "dualviewbox": dualviewbox,
             "lpos": lpos,
             "rpos": rpos,
-            "ligfitpdb": ligfit,
-            "rhofitpdb": rhofit,
             "refineLog": refineLog,
             "pipelineLog": pipelineLog,
             "rhofitlog": rhofitlog,
