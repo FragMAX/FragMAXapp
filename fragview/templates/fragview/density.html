@@ -240,11 +240,11 @@
     </div>
 
     <div>
-
-
     </div>
+
     <div style="display:{{ligbox}};">
-      <div style="padding-left:30px !important; display:{{rhofitbox}}">
+      {% if show_rhofit %}
+      <div style="padding-left:30px !important;">
         <div>
           <form action="/logs/show/{{rhofitlog}}" method="get" target="_blank">
             <h6> RhoFit - <button class="link" type="submit" size="1">Log</button>
@@ -260,10 +260,11 @@
           </label>
         </div>
       </div>
+      {% endif %}
 
 
-
-      <div style="padding-left:30px !important; display:{{ligfitbox}};">
+      {% if show_ligfit %}
+      <div style="padding-left:30px !important">
         <div>
           <form action="/logs/show/{{ligandfitlog}}" method="get" target="_blank">
             <h6> LigandFit - <button class="link" type="submit" size="1">Log</button>
@@ -279,14 +280,16 @@
           </label>
         </div>
       </div>
-      <div style="padding-top: 18px;padding-left:30px !important; display:{{dualviewbox}}">
+      {% endif %}
+
+      {% if show_rhofit or show_ligfit %}
+      <div style="padding-top: 18px;padding-left:30px !important">
         <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
           <button class="btn navbt2" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open
             Dual Viewer</button>
         </form>
-
       </div>
-
+      {% endif %}
 
     </div>
     <div style="padding-left:30px !important;padding-top: 8px">
@@ -328,7 +331,6 @@
     </div>
   </div>
 
-
   <div id="viewer"></div>
 
   <footer id="help"></footer>
@@ -347,12 +349,18 @@
       UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
     });
 
+    {% if show_ligfit %}
     V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/ligfit", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "ligfit"
     });
+    {% endif %}
+
+    {% if show_rhofit %}
     V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/rhofit", null, function () {
       this.V.model_bags[V.model_bags.length - 1].label = "rhofit"
     });
+    {% endif %}
+
     var blobs = {{xyzlist}};
 
 

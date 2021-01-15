@@ -95,7 +95,8 @@ def show(request):
 
     if "apo" not in usracr.lower():
         ligbox = "block"
-        ligfitbox = "block"
+        show_ligfit = True
+        show_rhofit = True
         rhofitbox = "block"
         rpos = 0
         lpos = 0
@@ -116,6 +117,7 @@ def show(request):
                         break
         else:
             rhocenter = "[0,0,0]"
+            show_rhofit = False
             rhofitbox = "none"
         try:
             ligfit = sorted(glob(f"{fitres_dir}/ligfit/LigandFit_run_*/ligand*.pdb"))[-1]
@@ -129,7 +131,7 @@ def show(request):
                         break
         except Exception:
             ligcenter = "[0,0,0]"
-            ligfitbox = "none"
+            show_ligfit = False
     else:
         rhofitscore = "-"
         ligfitscore = "-"
@@ -137,7 +139,8 @@ def show(request):
         rhocenter = "[]"
         ligbox = "none"
         rhofitbox = "none"
-        ligfitbox = "none"
+        show_ligfit = False
+        show_rhofit = False
         rpos = 0
         lpos = 0
 
@@ -162,11 +165,6 @@ def show(request):
     blist = blist.replace(" ", "")
 
     center = blist[1 : blist.index("]") + 1]  # noqa E203
-
-    if rhofitbox == "none" or ligfitbox == "none":
-        dualviewbox = "none"
-    else:
-        dualviewbox = "block"
 
     if refineM == "dimple":
         refineName = "Refmac"
@@ -201,9 +199,9 @@ def show(request):
             "ligbox": ligbox,
             "prevstr": prevstr,
             "nextstr": nextstr,
-            "ligfitbox": ligfitbox,
+            "show_ligfit": show_ligfit,
+            "show_rhofit": show_rhofit,
             "rhofitbox": rhofitbox,
-            "dualviewbox": dualviewbox,
             "lpos": lpos,
             "rpos": rpos,
             "refineLog": refineLog,
