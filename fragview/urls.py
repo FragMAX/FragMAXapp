@@ -22,7 +22,7 @@ urlpatterns = [
     path('results/resolution', results.resolution),
     path('results/cellparams', results.cellparams),
 
-    path('density/', density.show, name='density'),
+    path('density/<structure>', density.show, name='density'),
     path('dual_density/', density.compare_poses, name='dual_density'),
     path('pipedream_density/', density.show_pipedream, name='pipedream_density'),
     path('pandda_density/', density.pandda, name='pandda_density'),

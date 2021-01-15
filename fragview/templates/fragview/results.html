@@ -232,11 +232,11 @@
     <tr class="resultsTableRow">
       <td>
         {% if item.pdbout %}
-        <form action="/density/" method="get" target="_blank">
-          <button class="btn" type="submit" value="{{item.usracr}}" name="structure"
-            style="height: 48px; margin-top: 15px;"><i class="material-icons"
-              style="font-size:28px; padding-top: 6px;">3d_rotation</i></button>
-        </form>
+        <a href="/density/{{item.usracr}}" target="_blank">
+          <button class="btn" style="height: 48px; margin-top: 15px;">
+            <i class="material-icons" style="font-size:28px; padding-top: 6px;">3d_rotation</i>
+          </button>
+        </a>
         {% else %}
         <form action="/pipedream_density/" method="get" target="_blank">
           <button class="btn" type="submit" value="{{item.usracr}}" name="structure" size="1" style="height: 48px">

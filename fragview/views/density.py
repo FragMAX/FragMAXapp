@@ -12,14 +12,12 @@ from fragview.versions import base_static
 from fragview.fileio import read_csv_lines
 
 
-def show(request):
+def show(request, structure):
     proj = current_project(request)
-
-    value = str(request.GET.get("structure"))
 
     lines = read_csv_lines(project_results_file(proj))[1:]
 
-    result_info = list(filter(lambda x: x[0] == value, lines))[0]
+    result_info = list(filter(lambda x: x[0] == structure, lines))[0]
     if len(result_info) == 23:
         (
             usracr,

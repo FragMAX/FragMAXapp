@@ -154,12 +154,12 @@
     </div>
     <div style="padding-left:15px !important; padding-top:8px !important;">
       <div style="display:inline-flex">
-        <form action="/density/" method="get">
-          <button class="btn navbt" type="submit" value="{{prevstr}}" name="structure">Prev Model</button>
-        </form>
-        <form action="/density/" method="get" style="padding-left: 8px;">
-          <button class="btn navbt" type="submit" value="{{nextstr}}" name="structure">Next Model</button>
-        </form>
+        <a href="/density/{{prevstr}}">
+          <button class="btn navbt">Prev Model</button>
+        </a>
+        <a href="/density/{{nextstr}}" style="padding-left: 8px">
+          <button class="btn navbt">Next Model</button>
+        </a>
       </div>
     </div>
     <div>
