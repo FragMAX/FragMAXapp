@@ -76,7 +76,15 @@ class SitePlugin(plugin.SitePlugin):
         }
 
     def get_supported_ligand_tools(self):
-        return LigandTool.GRADE, {LigandTool.GRADE, LigandTool.ACEDRG, LigandTool.ELBOW}
+        return (
+            LigandTool.GRADE,
+            {
+                LigandTool.GRADE,
+                # disable AceDRG until issue #11 is resolved
+                # LigandTool.ACEDRG,
+                LigandTool.ELBOW,
+            },
+        )
 
     def get_pipeline_commands(self):
         return PipelineCommands()
