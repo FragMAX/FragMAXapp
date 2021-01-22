@@ -845,6 +845,7 @@ def _write_main_script(proj, method, methodshort, options):
 
         batch.add_commands(
             pandda_cluster,
+            "source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh",
             f"python {pandda_script} {pandda_method_dir} {proj.protein} \"{options}\"",
             f"chmod -R 777 {pandda_res_dir}")
 
@@ -1102,10 +1103,10 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
 
     batch.add_commands(
         copy_frags_cmd,
-        f'echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\\n'
+        f'echo " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\\n'
         '    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz',
         "uniqueify -f FreeR_flag $WORK_DIR/final.mtz $WORK_DIR/final.mtz",
-        f'echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\\n'
+        f'echo "COMPLETE FREE={free_r_flag} \\nEND" | \\\n'
         '    freerflag hklin $WORK_DIR/final.mtz hklout $WORK_DIR/final_rfill.mtz',
         f"phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'",
         "mv final.mtz final_original.mtz",
