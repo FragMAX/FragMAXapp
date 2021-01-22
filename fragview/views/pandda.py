@@ -852,9 +852,9 @@ def _write_main_script(proj, method, methodshort, options):
                       stdout=f"{log_prefix}out.txt", stderr=f"{log_prefix}err.txt")
 
     if proj.encrypted:
+        batch.add_command(crypt_shell.crypt_cmd(proj))
+        batch.assign_variable("WORK_DIR", "`mktemp -d`")
         batch.add_commands(
-            crypt_shell.crypt_cmd(proj),
-            "WORK_DIR=$(mktemp -d)",
             "cd $WORK_DIR",
             crypt_shell.fetch_dir(proj, data_dir, ".")
         )
@@ -1105,10 +1105,10 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
                       stdout=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
                       stderr=project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"))
 
+    batch.add_command(crypt_shell.crypt_cmd(proj))
+    batch.assign_variable("DEST_DIR", output_dir)
+    batch.assign_variable("WORK_DIR", "`mktemp -d`")
     batch.add_commands(
-        crypt_shell.crypt_cmd(proj),
-        f'DEST_DIR="{output_dir}"',
-        "WORK_DIR=$(mktemp -d)",
         "cd $WORK_DIR",
         crypt_shell.fetch_file(proj, pdb, "final.pdb"),
         crypt_shell.fetch_file(proj, mtz, "final.mtz")
