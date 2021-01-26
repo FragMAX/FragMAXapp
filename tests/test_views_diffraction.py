@@ -2,7 +2,10 @@ from os import path
 from unittest.mock import patch
 from django import test
 from django.urls import reverse
-from fragview.projects import project_raw_protein_dir, project_process_protein_dir, project_static_url
+from fragview.projects import (
+    project_raw_protein_dir,
+    project_process_protein_dir,
+)
 from tests.utils import ViewTesterMixin
 
 SHIFT = "20180101"
@@ -19,30 +22,42 @@ class TestImage(test.TestCase, ViewTesterMixin):
 
     def test_image_ok(self):
         """
-        test the happy path for generating diffraction picture from H5 file
+        test the happy path for generating diffraction picture from source image file
         """
-        expected_h5_path = path.join(project_raw_protein_dir(self.proj), DATA_SET,
-                                     f"{DATA_SET}_{RUN}_data_000000.h5")
+        expected_h5_path = path.join(
+            project_raw_protein_dir(self.proj),
+            DATA_SET,
+            f"{DATA_SET}_{RUN}_data_000000.h5",
+        )
 
-        expected_jpeg_path = path.join(project_process_protein_dir(self.proj), DATA_SET,
-                                       f"diffraction_{RUN}_000000.jpeg")
+        expected_jpeg_path = path.join(
+            project_process_protein_dir(self.proj),
+            DATA_SET,
+            f"diffraction_{RUN}_000000.jpeg",
+        )
 
-        expected_url = path.join(project_static_url(self.proj), "fragmax", "process",
-                                 self.proj.protein, DATA_SET, f"diffraction_{RUN}_000000.jpeg")
-
-        # mock the celery task invocation and files systems access
+        # mock the celery task invocation and TBD
         with patch("fragview.views.diffraction.get_diffraction") as get_diff_mock:
             with patch("os.path.isfile") as isfile_mock:
-                isfile_mock.return_value = True
+                with patch("fragview.views.utils.read_proj_file") as read_proj_file:
+                    isfile_mock.return_value = True
+                    read_proj_file.return_value = b"dummy-jpeg-data"
 
-                resp = self.client.get(self.url)
+                    resp = self.client.get(self.url)
 
-                # check that task was invoked on correct H5 and JPEG paths
-                get_diff_mock.delay.assert_called_with(expected_h5_path, expected_jpeg_path)
-                isfile_mock.assert_called_with(expected_h5_path)
+                    # check that task was invoked on correct image and JPEG paths
+                    get_diff_mock.delay.assert_called_with(
+                        expected_h5_path, expected_jpeg_path
+                    )
+                    isfile_mock.assert_called_with(expected_h5_path)
+                    read_proj_file.assert_called_once_with(
+                        self.proj, expected_jpeg_path
+                    )
 
-                # check that we got redirected to the generated jpeg
-                self.assertRedirects(resp, expected_url, fetch_redirect_response=False)
+                    # check that we got jpeg response
+                    self.assert_response_equals(
+                        resp, 200, b"dummy-jpeg-data", "image/jpeg"
+                    )
 
     def test_image_not_found(self):
         """
@@ -51,4 +66,6 @@ class TestImage(test.TestCase, ViewTesterMixin):
         with patch("os.path.isfile") as isfile_mock:
             isfile_mock.return_value = False
             resp = self.client.get(self.url)
-            self.assertContains(resp, "diffraction source file not found", status_code=404)
+            self.assertContains(
+                resp, "diffraction source file not found", status_code=404
+            )

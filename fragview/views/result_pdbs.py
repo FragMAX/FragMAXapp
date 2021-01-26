@@ -1,13 +1,7 @@
 from os import path
-from fragview.fileio import read_proj_file
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponseNotFound
 from fragview.projects import current_project, project_results_dir
-
-
-def _binary_http_response(proj, pdb_path):
-    return HttpResponse(
-        read_proj_file(proj, pdb_path), content_type="application/octet-stream"
-    )
+from fragview.views.utils import download_http_response
 
 
 def _refine_dir(proj, dataset, process, refine):
@@ -18,7 +12,7 @@ def final(request, dataset, process, refine):
     proj = current_project(request)
     pdb_path = path.join(_refine_dir(proj, dataset, process, refine), "final.pdb")
 
-    return _binary_http_response(proj, pdb_path)
+    return download_http_response(proj, pdb_path)
 
 
 def ligand(request, dataset, process, refine, fitting):
@@ -43,4 +37,4 @@ def ligand(request, dataset, process, refine, fitting):
     if not path.isfile(pdb_path):
         return HttpResponseNotFound(f"no '{fitting}' PDB file found")
 
-    return _binary_http_response(proj, pdb_path)
+    return download_http_response(proj, pdb_path)

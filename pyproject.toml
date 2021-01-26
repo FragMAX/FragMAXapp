@@ -28,7 +28,6 @@ exclude = '''
   fragview/views/crypt.py |
   fragview/sites/plugin.py |
   fragview/migrations/0001_initial.py |
-  fragview/views/diffraction.py |
   fragview/models.py |
   fragview/urls.py |
   fragview/views/eldensity.py |
@@ -43,7 +42,7 @@ exclude = '''
   fragview/views/pdbs.py |
   fragview/views/soaking.py |
   manage.py |
-  fragview/views/utils.py |
+  fragview/views/utils.py |  # conflict between flake8 and black
   fragview/views/results.py |
   static/update_status.py |
   fragview/views/process.py |
@@ -55,7 +54,6 @@ exclude = '''
   fragview/views/refine.py |
   fragview/views/dataset_info.py |
   tests/test_views_fragment.py |
-  tests/test_views_diffraction.py |
   tests/test_projects.py |
   tests/test_worker_cpp4.py |
   tests/test_worker_dials.py |
