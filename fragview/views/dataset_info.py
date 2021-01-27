@@ -103,8 +103,6 @@ def show(request, images, prefix, run):
 
     proj = current_project(request)
 
-    images = str(images / 2)
-
     dataset_dir = path.join(project_process_protein_dir(proj), prefix, f"{prefix}_{run}")
 
     curp = proj.data_path()
@@ -125,8 +123,6 @@ def show(request, images, prefix, run):
     soakTime = "N/A"
 
     snapshots = [spath.replace("/mxn/groups/ispybstorage/", "/static/") for spath in xsdata.snapshots]
-
-    half = int(float(images) / 200)
 
     #
     # Logs for data processing tools
@@ -222,7 +218,7 @@ def show(request, images, prefix, run):
             "soakTime": soakTime,
             "xsdata": xsdata,
             "snapshots": snapshots,
-            "diffraction_half": half,
+            "diffraction_half": int(images / 2),
             "energy": energy,
             "totalExposure": totalExposure,
             "edgeResolution": edgeResolution,
