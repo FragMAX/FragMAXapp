@@ -19,7 +19,7 @@ class SitePlugin(plugin.SitePlugin):
     NAME = "Helmholtz-Zentrum Berlin"
     LOGO = "hzb.png"
 
-    FEATURES_DISABLED = ["soaking_plan", "pipedream", "download"]
+    DISABLED_FEATURES = ["soaking_plan", "download"]
 
     AUTH_BACKEND = "fragview.auth.LocalBackend"
 
