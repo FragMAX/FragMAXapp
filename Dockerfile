@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 # add path to adxv command
 ENV PATH="/mxn/groups/biomax/wmxsoft/xds_related:${PATH}"
 
-# enable non-interactive mode for apt package utilities while build docker image,
+# enable non-interactive mode for apt package utilities while building docker image,
 # so that we don't get any interactive questins when installing packages
 ARG DEBIAN_FRONTEND=noninteractive
 
