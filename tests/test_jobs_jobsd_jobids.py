@@ -1,5 +1,5 @@
 from unittest import TestCase
-from jobsd import JobIDs
+from jobs.jobsd.jobids import JobIDs
 from tests.utils import TempDirMixin
 
 
