@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 from fragview.views import projects, datasets, hpc, results, density, misc, analysis, pandda, reciprocal, soaking, pdbs
 from fragview.views import pipedream, refine, process, ligfit, diffraction, eldensity, fragment, crypt, result_pdbs
-from fragview.views import encryption, download, dataset_info, logs, commit
+from fragview.views import encryption, download, dataset_info, logs, commit, fragments
 
 
 urlpatterns = [
@@ -41,7 +41,7 @@ urlpatterns = [
     path('reciprocal_lattice/<sample>/<run>', reciprocal.show, name='reciprocal_lattice'),
 
     path('project_details/', misc.project_details, name='project_details'),
-    path('library_view/', misc.library_view, name='library_view'),
+    path('library_view/', fragments.show, name='library_view'),
     path('download_options/', misc.download_options, name='download_options'),
 
     # project management views
