@@ -22,4 +22,5 @@ dependencies:
     - pypdb==1.300
     - redlock==1.2.0
     - zipstream-new==1.1.7
+    - asyncssh==2.5.0
     - django-material==1.6.7

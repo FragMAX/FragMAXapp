@@ -18,12 +18,10 @@ MASTER_IMG_SUFFIX = "_0001.cbf"
 class SitePlugin(plugin.SitePlugin):
     NAME = "Helmholtz-Zentrum Berlin"
     LOGO = "hzb.png"
-
     DISABLED_FEATURES = ["soaking_plan", "download"]
-
     AUTH_BACKEND = "fragview.auth.LocalBackend"
-
     PROPOSALS_DIR = "/data/fragmaxrpc/user"
+    HPC_JOBS_RUNNER = "local"
 
     def get_project_experiment_date(self, project):
         return _get_experiment_timestamp(project)
