@@ -15,3 +15,10 @@ DATABASE_DIR = str(Path(Path(__file__).parent, "db").absolute())
 
 # path to jobsd requests socket
 JOBSD_SOCKET = str(Path(DATABASE_DIR, "jobsd.sock"))
+
+# SLURM front-end host ssh settings
+SLURM_FRONT_END = {
+    "host": "clu0-fe-0",
+    "user": "biomax-service",
+    "key_file": "/volume/ssh/id_rsa",
+}

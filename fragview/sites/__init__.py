@@ -1,4 +1,5 @@
 from importlib import import_module
+from fragview.sites.plugin import SitePlugin
 
 
 def _load_site_plugin():
@@ -12,4 +13,4 @@ def _load_site_plugin():
     return site_module.SitePlugin()
 
 
-SITE = _load_site_plugin()
+SITE: SitePlugin = _load_site_plugin()

@@ -7,8 +7,9 @@ from jobs.messages import Job
 
 
 class JobNode:
-    def __init__(self, job):
+    def __init__(self, job, run_on):
         self.job = job
+        self.run_on = run_on
         self.run_after = []
 
     def set_run_after(self, run_after):
@@ -36,7 +37,8 @@ def to_linked_job_nodes(jobs_list: List[dict]) -> Set[JobNode]:
                     job_desc["program"],
                     job_desc["stdout"],
                     job_desc["stderr"],
-                )
+                ),
+                job_desc["run_on"],
             ),
             run_after,
         )
