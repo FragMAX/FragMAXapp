@@ -16,6 +16,7 @@ class SitePlugin(plugin.SitePlugin):
     ACCOUNT_STYLE = "DUO"
     AUTH_BACKEND = "fragview.auth.ISPyBBackend"
     PROPOSALS_DIR = "/data/visitors/biomax"
+    HPC_JOBS_RUNNER = "slurm"
 
     def get_project_experiment_date(self, project):
         # use main shift's date as somewhat random experiment data

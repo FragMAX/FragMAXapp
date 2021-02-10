@@ -1,18 +1,26 @@
-from typing import List
-import asyncio
-from asyncio.subprocess import PIPE
+import os
+import sys
 import signal
+import logging
+import asyncio
+import argparse
+from typing import List
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
+from jobs.jobsd.errs import JobFailedException
 from jobs.jobsd.job_graphs import to_linked_job_nodes, get_root_jobs, JobNode
 from jobs.jobsd.jobids import JobIDs
+from jobs.jobsd.runners import get_runners
 import conf
+
+log = logging.getLogger(__name__)
 
 
 class JobsTable:
-    def __init__(self):
+    def __init__(self, job_runners):
         self.job_ids = JobIDs(conf.DATABASE_DIR)
         self.jobs_nodes = set()
         self.job_tasks = {}
+        self.job_runners = job_runners
 
     def add_pending_job(self, job_node: JobNode):
         def _expand_path_template(path, job_id):
@@ -33,25 +41,31 @@ class JobsTable:
     def get_jobs(self) -> List[Job]:
         return [node.job for node in self.jobs_nodes]
 
+    def _get_runner(self, job_node):
+        return self.job_runners[job_node.run_on]
+
     def start_job(self, job_node: JobNode):
         job = job_node.job
 
         job.mark_as_started()
 
-        job_task = asyncio.create_task(run_job(job.program, job.stdout, job.stderr))
+        log.info(f"run job '{job_node.job.name}' on {job_node.run_on}")
+        runner = self._get_runner(job_node)
+        job_task = asyncio.create_task(runner(job.program, job.stdout, job.stderr))
+
         self.job_tasks[job.id] = job_task
 
         return job_task
 
     def cancel_job(self, job_id):
-        print(f"canceling job {job_id}")
+        log.info(f"canceling job {job_id}")
         if job_id not in self.job_tasks:
-            print(f"unknown job {job_id}")
+            log.info(f"unknown job {job_id}")
             return
 
         job_task = self.job_tasks[job_id]
         if job_task.done():
-            print(f"job {job_id} already finished")
+            log.info(f"job {job_id} already finished")
             return
 
         job_task.cancel()
@@ -67,76 +81,34 @@ class JobsTable:
         self.jobs_nodes.remove(job_node)
 
 
-async def log_output(stream, log_file):
-    with open(log_file, "wb") as log:
-        while True:
-            buf = await stream.read(1024 * 4)
-            if not buf:
-                break
-
-            log.write(buf)
-            log.flush()
-
-
-def append_to_log(log_file, message):
-    with open(log_file, "ab") as log:
-        log.write(f"{message}\n".encode())
-
-
-class _JobFailedException(Exception):
-    pass
-
-
-async def run_job(program, stdout_log, stderr_log):
-    try:
-        print(f"'{program}' started")
-
-        proc = await asyncio.create_subprocess_exec(program, stdout=PIPE, stderr=PIPE)
-
-        await asyncio.gather(
-            log_output(proc.stdout, stdout_log), log_output(proc.stderr, stderr_log)
-        )
-
-    except asyncio.CancelledError:
-        proc.terminate()
-        append_to_log(stderr_log, "Job terminated by the user.")
-        raise _JobFailedException()
-    except OSError as ex:
-        append_to_log(stderr_log, f"Failed to launch job:\n{ex}")
-        raise _JobFailedException()
-    finally:
-        print(f"'{program}' terminated")
-
-
 async def run_jobs_tree(root: JobNode, jobs_table: JobsTable):
     try:
+        # run all dependencies
         co = [run_jobs_tree(dep, jobs_table) for dep in root.run_after]
         await asyncio.gather(*co)
 
-        print(f"running job '{root.job.name}'")
-
+        # run this job
         await jobs_table.start_job(root)
 
-    except _JobFailedException:
+    except JobFailedException:
         raise
 
     finally:
         jobs_table.job_finished(root)
-        print(f"done running {root.job.name}")
 
 
 async def run_jobs_roots(roots, jobs_table):
     try:
         co = [run_jobs_tree(tree, jobs_table) for tree in roots]
         await asyncio.gather(*co)
-    except _JobFailedException:
+    except JobFailedException:
         # we can ignore exception here, as it have been
         # handled while it was unwinding the call stack
         pass
 
 
 async def start_jobs(command: StartJobs, jobs_table):
-    print(f"starting '{command.name}' jobs set")
+    log.info(f"starting '{command.name}' jobs set")
 
     job_nodes = to_linked_job_nodes(command.jobs)
     for job_node in job_nodes:
@@ -194,7 +166,7 @@ def init_signals():
 async def run():
     exit_event = init_signals()
 
-    jobs_table = JobsTable()
+    jobs_table = JobsTable(get_runners())
 
     server = await asyncio.start_unix_server(
         lambda r, w: client_connected(r, w, jobs_table), conf.JOBSD_SOCKET
@@ -206,8 +178,36 @@ async def run():
 
     # disconnect from the socket and exit
     serv_task.cancel()
-    print("bye bye")
+    log.info("bye bye")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="jobs daemon")
+
+    parser.add_argument("--uid", type=int, help="run with specified UID (user ID)")
+    parser.add_argument("--gid", type=int, help="run with specified GID (group ID)")
+
+    return parser.parse_args()
+
+
+def set_uid_gid(uid, gid):
+    if gid is not None:
+        os.setgid(gid)
+
+    if uid is not None:
+        os.setuid(uid)
+
+
+def setup_daemon():
+    args = parse_args()
+
+    # set-up logging to goto stdout
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+    # switch uid/gid if requested
+    set_uid_gid(args.uid, args.gid)
 
 
 def main():
+    setup_daemon()
     asyncio.run(run())
