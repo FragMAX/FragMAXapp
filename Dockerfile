@@ -16,7 +16,7 @@ RUN apt-get update \
     && echo "libnss-ldapd	libnss-ldapd/nsswitch	multiselect	passwd, group, shadow" | debconf-set-selections \
     && apt-get -y  install \
         # for troubleshooting
-        nano \
+        nano less \
         # for LDAP authentication
         nslcd \
         # for accessing HPC
@@ -62,10 +62,10 @@ RUN mkdir /app
 WORKDIR /app
 COPY fragview fragview/
 COPY fragmax fragmax/
+COPY jobs jobs/
 COPY worker worker/
 COPY static static/
-COPY conf.py .
-COPY manage.py deploy/migrate_db.sh ./
+COPY conf.py jobsd.py manage.py deploy/migrate_db.sh ./
 # docker images are for now hard-coded for 'MAXIV' site
 COPY deploy/local_site.py-maxiv local_site.py
 # hack to serve css, js etc files from the 'material' package via nginx
