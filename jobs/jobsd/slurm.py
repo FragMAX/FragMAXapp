@@ -3,6 +3,7 @@ import asyncio
 import asyncssh
 import logging
 from typing import Iterable
+from asyncio.subprocess import PIPE
 from contextlib import asynccontextmanager
 from jobs.jobsd.slurm_parser import parse_sbatch_reply, parse_sacct_reply
 
@@ -82,16 +83,42 @@ class SlurmClient:
         self.front_end = FrontEndConnection(ssh_params)
 
     async def submit_sbatch(self, sbatch_path, stdout_log_path, stderr_log_path):
-        async with self.front_end.connection() as conn:
-            # TODO: handle:
-            # asyncssh.process.ProcessError: Process exited with non-zero exit status 1
-            result = await conn.run(
-                f"sbatch --output={stdout_log_path} --error={stderr_log_path} {sbatch_path}",
-                check=True,
-            )
+        #
+        # for some reason running 'sbatch' command using asyncssh connection
+        # does not work correctly, the submitted batch file will be run in
+        # weird environment, and will fail to load presto modules
+        #
+        # as a work-around, spawn the cli 'ssh' command and use that to issue
+        # 'sbatch' command on the front end host
+        #
+        ssh_param = self.front_end.ssh_params
+        proc = await asyncio.create_subprocess_exec(
+            "ssh",
+            "-i",
+            ssh_param.key_file,
+            f"{ssh_param.username}@{ssh_param.host}",
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        cmd = (
+            f"sbatch --output={stdout_log_path} --error={stderr_log_path} {sbatch_path}"
+        )
+        log.info(cmd)
+        proc.stdin.write(cmd.encode())
+        await proc.stdin.drain()
 
-        # TODO: handle parse errors
-        return parse_sbatch_reply(result.stdout)
+        proc.stdin.close()
+        await proc.stdin.wait_closed()
+
+        stdout, stderr = await proc.communicate()
+
+        if stdout:
+            log.info(f"[ssh stdout]\n{stdout.decode()}")
+        if stderr:
+            log.info(f"[ssh stderr]\n{stderr.decode()}")
+
+        return parse_sbatch_reply(stdout.decode())
 
     async def cancel_sbatch(self, job_id):
         async with self.front_end.connection() as conn:

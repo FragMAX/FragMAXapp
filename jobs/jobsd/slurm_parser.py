@@ -4,13 +4,14 @@ SBATCH_REPLY = re.compile(r"^Submitted batch job (\d+)")
 
 
 def parse_sbatch_reply(reply):
-    match = SBATCH_REPLY.match(reply)
-    if match is None:
-        # no match, something went wrong
-        # TODO: think about the exception we should raise
-        raise ValueError(f"sbatch_reply, can't parse '{reply}'")
+    for line in reply.splitlines():
+        match = SBATCH_REPLY.match(line)
+        if match is not None:
+            return match.groups()[0]
 
-    return match.groups()[0]
+    # could not find expected 'Submitted...' reply line
+    # TODO: think about the exception we should raise
+    raise ValueError(f"sbatch_reply, can't parse '{reply}'")
 
 
 SACCT_HEADER_REXP = re.compile(r"\s*JobID\s.+State.+")
