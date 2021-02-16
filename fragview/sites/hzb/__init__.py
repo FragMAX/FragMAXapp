@@ -44,7 +44,7 @@ class SitePlugin(plugin.SitePlugin):
         return HPC()
 
     def get_group_name(self, project):
-        return "fragadm"
+        return project.proposal
 
     def create_meta_files(self, project):
         from fragview.cbf import generate_meta_xml_files
