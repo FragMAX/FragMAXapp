@@ -89,6 +89,12 @@ class SitePlugin(plugin.SitePlugin):
     def get_pipeline_commands(self):
         return PipelineCommands()
 
+    def get_pandda_inspect_commands(self, pandda_path) -> str:
+        return (
+            f"module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO;"
+            f" cd {pandda_path}; pandda.inspect"
+        )
+
 
 def _copy_xmls_from_raw(project):
     from worker.xsdata import copy_collection_metadata_files

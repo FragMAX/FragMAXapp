@@ -60,6 +60,14 @@ class SitePlugin:
     def get_pipeline_commands(self):
         raise NotImplementedError()
 
+    def get_pandda_inspect_commands(self, pandda_path) -> str:
+        """
+        The shell commands for launching pandda inspect tool.
+        We show this command to the user on the 'pandda analyse' page as
+        instructions on how to run pandda inspect for a given analysis result.
+        """
+        raise NotImplementedError()
+
 
 class Pipeline:
     AUTO_PROC = "auto_proc"

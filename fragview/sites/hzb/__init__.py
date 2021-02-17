@@ -82,6 +82,12 @@ class SitePlugin(plugin.SitePlugin):
     def get_pipeline_commands(self):
         return PipelineCommands()
 
+    def get_pandda_inspect_commands(self, pandda_path) -> str:
+        return (
+            f"source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh; "
+            f"cd {pandda_path}; pandda.inspect"
+        )
+
 
 def _get_experiment_timestamp(project):
     def _find_path():

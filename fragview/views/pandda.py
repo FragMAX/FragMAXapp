@@ -686,9 +686,9 @@ def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
     method = path.basename(path.dirname(path.dirname(pandda_path)))
     pandda_analyse_html = path.join(pandda_path, "html_summaries", "pandda_analyse.html")
 
-    if path.exists(pandda_analyse_html) and pandda_path == pandda_runs[0]:
-        localcmd = path.dirname(pandda_path) + "; pandda.inspect"
+    localcmd = SITE.get_pandda_inspect_commands(path.dirname(pandda_path))
 
+    if path.exists(pandda_analyse_html) and pandda_path == pandda_runs[0]:
         pandda_html = ""
         for line in read_text_lines(proj, pandda_analyse_html):
             if '<th class="text-nowrap" scope="row">' in line:
@@ -713,7 +713,6 @@ def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
         pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
 
     elif path.exists(pandda_analyse_html) and pandda_path != pandda_runs[0]:
-        localcmd = path.dirname(pandda_path) + "; pandda.inspect"
         pandda_html = read_proj_text_file(proj, pandda_analyse_html)
 
     elif os.path.exists(pandda_path + "/html_summaries/pandda_initial.html"):
