@@ -1,25 +1,28 @@
 from fragview.sites import plugin
 
 
+CCP4_INIT_FILE = "/soft/pxsoft/64/ccp4/ccp4-7.1/bin/ccp4.setup-csh"
+
+
 class PipelineCommands(plugin.PipelineCommands):
     def get_xia_dials_commands(
         self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     ):
         return [
-            "source /soft/pxsoft/64/ccp4/ccp4-7.1/ccp4-7.1/bin/ccp4.setup-csh",
+            f"source {CCP4_INIT_FILE}",
             f"xia2 pipeline=dials failover=true {space_group} {unit_cell} {custom_parameters} "
-            f"nproc=40 {friedel} image={image_file}:1:{num_images} "
-            f"multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=40",
+            f"nproc=16 {friedel} image={image_file}:1:{num_images} "
+            f"multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=16",
         ]
 
     def get_xia_xdsxscale_commands(
         self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     ):
         return [
-            "source /soft/pxsoft/64/ccp4/ccp4-7.1/ccp4-7.1/bin/ccp4.setup-csh",
+            f"source {CCP4_INIT_FILE}",
             f"xia2 pipeline=3dii failover=true {space_group} {unit_cell} {custom_parameters} "
-            f"nproc=40 {friedel} image={image_file}:1:{num_images} "
-            f"multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=40",
+            f"nproc=16 {friedel} image={image_file}:1:{num_images} "
+            f"multiprocessing.mode=serial multiprocessing.njob=1 multiprocessing.nproc=16",
         ]
 
     def get_xdsapp_command(
