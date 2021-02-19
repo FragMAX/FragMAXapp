@@ -488,7 +488,8 @@ def pandda_events(proj, filters):
     low_conf = 0
 
     for eventcsv in eventscsv:
-        method = eventcsv.split("/")[10]
+        method = eventcsv.split("/")[-4]
+
         with open(eventcsv, "r") as inp:
             a = inp.readlines()
         a = [x.split(",") for x in a]
@@ -525,6 +526,7 @@ def pandda_events(proj, filters):
     for k, v in eventDict.items():
         for k1, v1 in v.items():
             v[k1] = sorted(v1.items(), key=lambda t: t[1])[0]
+
     return allEventDict, eventDict, low_conf, medium_conf, high_conf
 
 
