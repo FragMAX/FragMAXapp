@@ -553,13 +553,9 @@ def pandda(request):
 
         ligand = dataset.split("-")[-1].split("_")[0]
 
-        modelledDir = path.join(datasets_dir, dataset, "modelled_structures")
-
         pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
         _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
         centroids = find_site_centroids(_sites)
-
-        pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
 
         with open(path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r") as inp:
             inspect_events = inp.readlines()
@@ -602,26 +598,6 @@ def pandda(request):
         else:
             ligconfid = "low_conf_radio"
 
-        pdb = pdb.replace("/data/visitors/", "")
-
-        map1 = (
-            "biomax/"
-            + proj.proposal
-            + "/"
-            + proj.shift
-            + "/fragmax/results/pandda/"
-            + proj.protein
-            + "/"
-            + method
-            + "/pandda/processed_datasets/"
-            + dataset
-            + "/"
-            + dataset
-            + "-z_map.native.ccp4"
-        )
-
-        map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0].replace("/data/visitors/", "")
-
         summarypath = (
             "biomax/"
             + proj.proposal
@@ -647,15 +623,11 @@ def pandda(request):
                 "siten": site_idx,
                 "event": event,
                 "centroids": centroids,
-                "method": method,
                 "rwork": rwork,
                 "rfree": rfree,
                 "resolution": resolution,
                 "spg": spg,
                 "dataset": dataset,
-                "pdb": pdb,
-                "2fofc": map2,
-                "fofc": map1,
                 "ligand": ligand,
                 "center": center,
                 "analysed": analysed,
@@ -682,37 +654,6 @@ def pandda_consensus(request):
     panddaInput = str(request.GET.get("structure"))
 
     dataset, site_idx, event_idx, method, ddtag, run = panddaInput.split(";")
-
-    map1 = (
-        "biomax/"
-        + proj.proposal
-        + "/"
-        + proj.shift
-        + "/fragmax/results/pandda/"
-        + proj.protein
-        + "/"
-        + method
-        + "/pandda/processed_datasets/"
-        + dataset
-        + ddtag
-        + "_"
-        + run
-        + "/"
-        + dataset
-        + ddtag
-        + "_"
-        + run
-        + "-z_map.native.ccp4"
-    )
-
-    glob_pattern = (
-        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}/pandda/processed_datasets/"
-        + f"{dataset}{ddtag}_{run}/*BDC*ccp4"
-    )
-    map2 = glob(glob_pattern)[0].replace("/data/visitors/", "")
-    average_map = map2.split("event")[0] + "ground-state-average-map.native.ccp4"
-    library = proj.library
-    name = map2.split("/")[-2]
 
     summarypath = (
         "biomax/"
@@ -741,11 +682,6 @@ def pandda_consensus(request):
     pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
     _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
     centroids = find_site_centroids(_sites)
-    modelledDir = path.join(pandda_res_dir, "processed_datasets", f"{dataset}{ddtag}_{run}", "modelled_structures")
-
-    pdb = sorted(glob(f"{modelledDir}/*fitted*"))[-1]
-    pdb = pdb.replace("/data/visitors/", "")
-
     events_csv = path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv")
     with open(events_csv, "r") as inp:
         inspect_events = inp.readlines()
@@ -815,12 +751,7 @@ def pandda_consensus(request):
             "rfree": rfree,
             "resolution": resolution,
             "spg": spg,
-            "pdb": pdb,
-            "2fofc": map2,
-            "fofc": map1,
-            "average_map": average_map,
-            "name": name,
-            "library": library,
+            "library": proj.library,
             "ligand": ligand,
             "center": center,
             "centroids": centroids,

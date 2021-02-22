@@ -328,7 +328,7 @@
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
 
       <b>
-        <h6>{{name}}</h6>
+        <h6>{{dataset}}</h6>
       </b>
       <b>
         <h6>{{method}}</h6>
@@ -350,32 +350,40 @@
   <div id="inset"></div>
 
   <script>
-
-
     document.getElementById('{{interesting}}').checked = true;
     document.getElementById('{{ligplaced}}').checked = true;
     document.getElementById('{{ligconfid}}').checked = true;
 
     V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
 
-    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-      "/static/{{2fofc}}",
-      "/static/{{fofc}}");
-
+    V1.load_pdb_and_ccp4_maps(
+      "/pdbs/pandda/{{dataset}}/{{method}}",
+      "/density_map/pandda/{{dataset}}/{{method}}/bdc",
+      "/density_map/pandda/{{dataset}}/{{method}}/zmap");
 
     V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
 
-    V2.load_pdb("/static/{{pdb}}", null, function () {
-      V2.recenter({{ center }}, null, 25);
-          });
-    V2.load_ccp4_maps("/static/{{average_map}}", null, function () {
-      V2.map_bags[V2.map_bags.length - 1].name = "average_map"
-    });
+    V2.load_pdb(
+      "/pdbs/pandda/{{dataset}}/{{method}}",
+      null,
+      function()
+      {
+        V2.recenter({{ center }}, null, 25);
+      }
+    );
+
+    V2.load_ccp4_maps(
+      "/density_map/pandda/{{dataset}}/{{method}}/average",
+      null,
+      function()
+      {
+        V2.map_bags[V2.map_bags.length - 1].name = "average_map"
+      }
+    );
+
     V1.recenter({{ center }}, null, 25)
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);
-
-
 
     var ligcenter = [{{ center }}]
     var centroid = {{ centroids }};
@@ -444,7 +452,7 @@
 
     function show_input_mtz() {
 
-      mtz = "{{data_path}}/fragmax/results/pandda/{{protein}}/{{method}}/{{name}}/final.mtz"
+      mtz = "{{data_path}}/fragmax/results/pandda/{{protein}}/{{method}}/{{dataset}}/final.mtz"
       map_name = "inputMTZ"
       if (search_maps(map_name, V1.map_bags) === undefined) {
         GemmiMtz().then(function (Module) {

@@ -70,6 +70,7 @@ urlpatterns = [
     # generated PDB access views
     path('pdbs/final/<dataset>/<process>/<refine>', result_pdbs.final),
     path('pdbs/ligand/<dataset>/<process>/<refine>/<fitting>', result_pdbs.ligand),
+    path('pdbs/pandda/<dataset>/<method>', result_pdbs.pandda),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
@@ -85,8 +86,16 @@ urlpatterns = [
     path('ligfit_datasets/', ligfit.datasets, name='ligfit_datasets'),
 
     path('diffraction/<dataset>/<run>/<int:image_num>', diffraction.image, name='diffraction_image'),
-    path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map),
     path('pipedream_ccp4_map/<sample>/<process>/<type>', eldensity.pipedream_map),
+
+    # pandda generated density maps
+    path('density_map/pandda/<dataset>/<method>/zmap', eldensity.pandda_consensus_zmap),
+    path('density_map/pandda/<dataset>/<method>/bdc', eldensity.pandda_bdc),
+    path('density_map/pandda/<dataset>/<method>/average', eldensity.pandda_average),
+
+    # MTZs, note: must be listed after 'density_map/pandda' URLs
+    path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map),
+
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 
     path('fragment/<fragment>/image', fragment.svg, name='fragment_svg'),

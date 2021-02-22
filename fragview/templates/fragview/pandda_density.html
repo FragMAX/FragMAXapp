@@ -329,17 +329,23 @@
 
     V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
 
-    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-      "/static/{{2fofc}}",
-      "/static/{{fofc}}");
-
+    V1.load_pdb_and_ccp4_maps(
+      "/pdbs/pandda/{{dataset}}/{{method}}",
+      "/density_map/pandda/{{dataset}}/{{method}}/bdc",
+      "/density_map/pandda/{{dataset}}/{{method}}/zmap");
 
     V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
 
-    V2.load_pdb("/static/{{pdb}}", null, function () {
-      V2.recenter({{ center }}, null, 25);
-      });
-    V2.load_ccp4_maps("/static/{{average_map}}");
+    V2.load_pdb(
+      "/pdbs/pandda/{{dataset}}/{{method}}",
+      null,
+      function()
+      {
+        V2.recenter({{ center }}, null, 25);
+      }
+    );
+
+    V2.load_ccp4_maps("/density_map/pandda/{{dataset}}/{{method}}/average");
     V1.recenter({{ center }}, null, 25)
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);

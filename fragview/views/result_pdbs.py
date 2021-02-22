@@ -1,6 +1,11 @@
 from os import path
+from pathlib import Path
 from django.http import HttpResponseNotFound
-from fragview.projects import current_project, project_results_dir
+from fragview.projects import (
+    current_project,
+    project_results_dir,
+    project_pandda_processed_dataset_dir,
+)
 from fragview.views.utils import download_http_response
 
 
@@ -36,5 +41,21 @@ def ligand(request, dataset, process, refine, fitting):
 
     if not path.isfile(pdb_path):
         return HttpResponseNotFound(f"no '{fitting}' PDB file found")
+
+    return download_http_response(proj, pdb_path)
+
+
+def pandda(request, dataset, method):
+    proj = current_project(request)
+
+    modelled_structures_dir = Path(
+        project_pandda_processed_dataset_dir(proj, method, dataset),
+        "modelled_structures",
+    )
+
+    #
+    # pick 'fitted-vNNNN.pdb' file, with highest NNNN number
+    #
+    pdb_path = max(modelled_structures_dir.glob("*fitted*.pdb"))
 
     return download_http_response(proj, pdb_path)
