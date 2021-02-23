@@ -30,7 +30,6 @@ exclude = '''
   fragview/migrations/0001_initial.py |
   fragview/models.py |
   fragview/urls.py |
-  fragview/views/eldensity.py |
   fragview/views/encryption.py |
   fragview/views/download.py |
   fragview/forms.py |

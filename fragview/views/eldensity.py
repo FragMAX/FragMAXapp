@@ -1,9 +1,7 @@
 import re
 from os import path
 from pathlib import Path
-from django.http import HttpResponse
 from django.shortcuts import redirect
-from fragview import fileio
 from fragview.views.utils import download_http_response
 from fragview.projects import (
     current_project,
@@ -31,10 +29,15 @@ def map(request, dataset, process, refine, type):
     """
     proj = current_project(request)
 
-    mtz_path = path.join(project_results_dir(proj), dataset, process, refine, _density_filename("final", type))
+    mtz_path = path.join(
+        project_results_dir(proj),
+        dataset,
+        process,
+        refine,
+        _density_filename("final", type),
+    )
 
-    return HttpResponse(fileio.read_proj_file(proj, mtz_path),
-                        content_type="application/octet-stream")
+    return download_http_response(proj, mtz_path)
 
 
 def pipedream_map(request, sample, process, type):

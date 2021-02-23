@@ -17,6 +17,10 @@ def jpeg_http_response(proj, file_path):
     return binary_http_response(proj, file_path, "image/jpeg")
 
 
+def png_http_response(proj, file_path):
+    return binary_http_response(proj, file_path, "image/png")
+
+
 def download_http_response(proj, file_path):
     return binary_http_response(proj, file_path, "application/octet-stream")
 

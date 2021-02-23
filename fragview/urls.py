@@ -94,7 +94,7 @@ urlpatterns = [
     path('density_map/pandda/<dataset>/<method>/average', eldensity.pandda_average),
 
     # MTZs, note: must be listed after 'density_map/pandda' URLs
-    path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map),
+    path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map, name="density_map"),
 
     path('reciprocal/<sample>/<run>', reciprocal.rlp),
 

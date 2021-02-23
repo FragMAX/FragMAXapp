@@ -13,13 +13,14 @@ from random import randint
 from pathlib import Path
 from collections import Counter
 from django.shortcuts import render
-from django.http import HttpResponseNotFound, HttpResponse
+from django.http import HttpResponseNotFound
 from fragview import hpc, versions
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.projects import project_pandda_results_dir
 from fragview.sites import SITE
-from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, read_proj_text_file, write_script
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_text_file, write_script
+from fragview.views.utils import png_http_response
 from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
 from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
 from fragview.sites.plugin import Duration, DataSize
@@ -599,7 +600,7 @@ def cluster_image(request, method, cluster):
     if not path.isfile(png_path):
         return HttpResponseNotFound(f"no dendrogram image for {method}/{cluster} found")
 
-    return HttpResponse(read_proj_file(proj, png_path), content_type="image/png")
+    return png_http_response(proj, png_path)
 
 
 def _clusters(method_dir):

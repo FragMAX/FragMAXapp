@@ -4,7 +4,8 @@ from fragview.projects import (
     project_fragments_dir,
     project_fragment_pdb,
 )
-from fragview import smiles, fileio
+from fragview import smiles
+from fragview.views.utils import download_http_response
 from worker.fragments import smiles_to_pdb
 
 
@@ -32,6 +33,5 @@ def pdb(request, fragment):
 
     frag = _get_fragment_model(proj, fragment)
     smiles_to_pdb.delay(frag.smiles, project_fragments_dir(proj), frag.name).wait()
-    pdb_data = fileio.read_proj_file(proj, project_fragment_pdb(proj, frag.name))
 
-    return HttpResponse(pdb_data, content_type="application/octet-stream")
+    return download_http_response(proj, project_fragment_pdb(proj, frag.name))
