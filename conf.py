@@ -22,3 +22,7 @@ SLURM_FRONT_END = {
     "user": "biomax-service",
     "key_file": "/volume/ssh/id_rsa",
 }
+
+# maximum number of jobs jobsd
+# will allow to run at the same time
+JOBSD_MAX_JOBS = 128

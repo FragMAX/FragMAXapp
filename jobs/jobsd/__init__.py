@@ -5,6 +5,8 @@ import logging
 import asyncio
 import argparse
 from typing import List
+from asyncio import Event
+from contextlib import asynccontextmanager
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
 from jobs.jobsd.errs import JobFailedException
 from jobs.jobsd.job_graphs import to_linked_job_nodes, get_root_jobs, JobNode
@@ -15,12 +17,43 @@ import conf
 log = logging.getLogger(__name__)
 
 
+class JobsThrottle:
+    def __init__(self, max_jobs):
+        self.max_jobs = max_jobs
+        self._running_jobs = 0
+        self.running_jobs_changed = Event()
+
+    @property
+    def running_jobs(self):
+        return self._running_jobs
+
+    @running_jobs.setter
+    def running_jobs(self, v):
+        self._running_jobs = v
+        self.running_jobs_changed.set()
+
+    @asynccontextmanager
+    async def jobs_limit(self):
+        while self.running_jobs >= self.max_jobs:
+            await self.running_jobs_changed.wait()
+            self.running_jobs_changed.clear()
+
+        try:
+            self.running_jobs += 1
+            yield
+        finally:
+            # make sure we count down,
+            # event if the job failed or was cancelled
+            self.running_jobs -= 1
+
+
 class JobsTable:
     def __init__(self, job_runners):
         self.job_ids = JobIDs(conf.DATABASE_DIR)
         self.jobs_nodes = set()
         self.job_tasks = {}
         self.job_runners = job_runners
+        self.throttle = JobsThrottle(conf.JOBSD_MAX_JOBS)
 
     def add_pending_job(self, job_node: JobNode):
         def _expand_path_template(path, job_id):
@@ -44,16 +77,19 @@ class JobsTable:
     def _get_runner(self, job_node):
         return self.job_runners[job_node.run_on]
 
-    def start_job(self, job_node: JobNode):
+    async def _throttled_runner(self, job_node):
         job = job_node.job
-
-        job.mark_as_started()
-
-        log.info(f"run job '{job_node.job.name}' on {job_node.run_on}")
         runner = self._get_runner(job_node)
-        job_task = asyncio.create_task(runner(job.program, job.stdout, job.stderr))
 
-        self.job_tasks[job.id] = job_task
+        async with self.throttle.jobs_limit():
+            job.mark_as_started()
+            await runner(job.program, job.stdout, job.stderr)
+
+    def start_job(self, job_node: JobNode):
+        log.info(f"run job '{job_node.job.name}' on {job_node.run_on}")
+        job_task = asyncio.create_task(self._throttled_runner(job_node))
+
+        self.job_tasks[job_node.job.id] = job_task
 
         return job_task
 
