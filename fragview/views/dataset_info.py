@@ -255,6 +255,7 @@ def show(request, images, prefix, run):
         {
             "csvfile": lines,
             "shift": curp.split("/")[-1],
+            "pipelines": SITE.get_supported_pipelines(),
             "run": run,
             "imgprf": prefix,
             "imgs": images,
