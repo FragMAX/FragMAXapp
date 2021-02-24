@@ -185,9 +185,7 @@
     .log-name {
         padding-left:20px;
     }
-</style>
 
-<style>
     .myImg {
         cursor: pointer;
     }
@@ -244,8 +242,6 @@
         font-size: 17px;
     }
 
-
-
     /* Create an active/current tablink class */
     .tab button.active {
         background-color: #fea901;
@@ -265,9 +261,7 @@
     #resultsTable tr:nth-child(even) {
         background-color: #e2e2e2;
     }
-</style>
 
-<style>
     * {
         box-sizing: border-box
     }
@@ -845,23 +839,36 @@
 
         <div class=" card_options">
             <div class="card tab">
-                <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
-                <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-                <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
-                <button class="tablinks" onclick="openMethod(event, 'XDS')">XIA2/XDS</button>
-                <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
-                <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
-                <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
-                <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-                <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
-                <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
-
-
-                {% comment %} <button class="tablinks" onclick="openMethod(event, 'RhoFit')">RhoFit</button>
-                <button class="tablinks" onclick="openMethod(event, 'LigFit')">LigandFit</button>
-                {% endcomment %}
-
-
+                {% if "edna_proc" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
+                {% endif %}
+                {% if "fastdp" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
+                {% endif %}
+                {% if "xia2_dials" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
+                {% endif %}
+                {% if "xia2_xds" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'XDS')">XIA2/XDS</button>
+                {% endif %}
+                {% if "xdsapp" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
+                {% endif %}
+                {% if "auto_proc" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
+                {% endif %}
+                {% if "dimple" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
+                {% endif %}
+                {% if "buster" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
+                {% endif %}
+                {% if "fspipeline" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
+                {% endif %}
+                {% if "pipedream_refine" in pipelines %}
+                    <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
+                {% endif %}
             </div>
             <div id="EDNA" class="card tabcontent ">
                 <div class="card-title logtab">EDNA_proc Logs</div>
@@ -915,14 +922,22 @@
                 <div class="card-title">Pipedream Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
+                        {% if "pipedream_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'pipedream-pipedream-v')">Pipedream</button>
+                        {% endif %}
+                        {% if "auto_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-pipedream-v')">autoPROC</button>
+                        {% endif %}
+                        {% if "buster" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'buster-pipedream-v')">BUSTER</button>
+                        {% endif %}
+                        {% if "rho_fit" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'rhofit-pipedream-v')">RhoFit</button>
+                        {% endif %}
                     </div>
                     <div id="pipedream-pipedream-v" class="tabcontent-vertical">
                         {% for proc_m, logs in pipedream_logs.items %}
@@ -976,18 +991,30 @@
                 <div class="card-title">DIMPLE Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
+                        {% if "auto_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-dimple-v')">autoPROC</button>
+                        {% endif %}
+                        {% if "edna_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-dimple-v')">EDNA_proc</button>
+                        {% endif %}
+                        {% if "fastdp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'fastdp-dimple-v')">FastDP</button>
+                        {% endif %}
+                        {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-dimple-v')">XIA2/DIALS</button>
+                        {% endif %}
+                        {% if "xia2_xds" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2xds-dimple-v')">XIA2/XDS</button>
+                        {% endif %}
+                        {% if "xdsapp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xdsapp-dimple-v')">XDSAPP</button>
+                        {% endif %}
                     </div>
                     <div id="autoproc-dimple-v" class="tabcontent-vertical">
                         {% for proc_m, logs in dimple_logs.items %}
@@ -1062,18 +1089,30 @@
                 <div class="card-title">BUSTER Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
+                        {% if "auto_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-buster-v')">autoPROC</button>
+                        {% endif %}
+                        {% if "edna_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-buster-v')">EDNA_proc</button>
+                        {% endif %}
+                        {% if "fastdp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'fastdp-buster-v')">FastDP</button>
+                        {% endif %}
+                        {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-buster-v')">XIA2/DIALS</button>
+                        {% endif %}
+                        {% if "xia2_xds" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2xds-buster-v')">XIA2/XDS</button>
+                        {% endif %}
+                        {% if "xdsapp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xdsapp-buster-v')">XDSAPP</button>
+                        {% endif %}
                     </div>
                     <div id="autoproc-buster-v" class="tabcontent-vertical">
                         {% for proc_m, logs in buster_logs.items %}
@@ -1148,18 +1187,30 @@
                 <div class="card-title">fspipeline Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
+                        {% if "auto_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-fspipeline-v')">autoPROC</button>
+                        {% endif %}
+                        {% if "edna_proc" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-fspipeline-v')">EDNA_proc</button>
+                        {% endif %}
+                        {% if "fastdp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'fastdp-fspipeline-v')">FastDP</button>
+                        {% endif %}
+                        {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-fspipeline-v')">XIA2/DIALS</button>
+                        {% endif %}
+                        {% if "xia2_xds" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2xds-fspipeline-v')">XIA2/XDS</button>
+                        {% endif %}
+                        {% if "xdsapp" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xdsapp-fspipeline-v')">XDSAPP</button>
+                        {% endif %}
                     </div>
                     <div id="autoproc-fspipeline-v" class="tabcontent-vertical">
                         {% for proc_m, logs in fspipeline_logs.items %}
