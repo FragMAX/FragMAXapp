@@ -22,77 +22,99 @@ def show(request, images, prefix, run):
 
     def _pipedream_logs():
         pipedream_dir = path.join(project_results_dir(proj), f"{prefix}_{run}", "pipedream")
-        vals = parse_log_process(path.join(pipedream_dir, "process", "summary.html"))
 
         if not path.exists(path.join(pipedream_dir, "process", "summary.html")):
-            return None, [], vals
+            return [], None
 
-        pipedreamreport = Path(pipedream_dir, "summary.out").relative_to(curp)
+        vals = parse_log_process(path.join(pipedream_dir, "process", "summary.html"))
+        vals["tool"] = "pipedream"
+        vals["report"] = Path(pipedream_dir, "summary.out").relative_to(curp)
 
-        return pipedreamreport, _logs(pipedream_dir), vals
+        return _logs(pipedream_dir), vals
 
     def _autoproc_logs():
         autoproc_dir = path.join(dataset_dir, "autoproc")
-        vals = parse_log_process(path.join(autoproc_dir, "summary.html"))
 
         if not path.exists(path.join(autoproc_dir, "summary.html")):
-            return None, [], vals
+            return[], None
 
-        autoprocreport = Path(autoproc_dir, "summary.html").relative_to(curp)
+        vals = parse_log_process(path.join(autoproc_dir, "summary.html"))
+        vals["tool"] = "autoproc"
+        vals["report"] = Path(autoproc_dir, "summary.html").relative_to(curp)
 
-        return autoprocreport, _logs(autoproc_dir), vals
+        return _logs(autoproc_dir), vals
 
     def _edna_logs():
         edna_dir = path.join(dataset_dir, "edna")
-        vals = parse_log_process(path.join(edna_dir, f"ep_{prefix}_{run}_aimless_anom.log"))
 
         ednareport = Path(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
         if not ednareport.is_file():
-            return None, [], vals
+            return [], None
 
-        return ednareport.relative_to(curp), _logs(edna_dir), vals
+        vals = parse_log_process(path.join(edna_dir, f"ep_{prefix}_{run}_aimless_anom.log"))
+        vals["tool"] = "edna"
+        vals["report"] = ednareport.relative_to(curp)
+        return _logs(edna_dir), vals
 
     def _fastdp_logs():
         fastdp_dir = path.join(dataset_dir, "fastdp")
-        vals = parse_log_process(path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_aimless.log"))
 
         fastdpreport = Path(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
         if not fastdpreport.is_file():
-            return None, [], vals
+            return [], None
 
-        return fastdpreport.relative_to(curp), _logs(fastdp_dir), vals
+        vals = parse_log_process(path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_aimless.log"))
+        vals["tool"] = "fastdp"
+        vals["report"] = fastdpreport.relative_to(curp)
+        return _logs(fastdp_dir), vals
 
     def _xdsapp_logs():
-        xdsapp_dir = path.join(dataset_dir, "xdsapp")
-        vals = parse_log_process(path.join(xdsapp_dir, f"results_{prefix}_{run}_data.txt"))
+        def _report_file():
+            #
+            # handle different versions of XDSAPP,
+            # older versions name the report file: 'results_<dataset>_data.txt'
+            # newer versions                       'results_<dataset>.txt'
+            #
+            report_file = next(xdsapp_dir.glob(f"results_{prefix}_{run}*.txt"), None)
+            if report_file is None or not report_file.is_file():
+                return None
 
-        xdsappreport = Path(xdsapp_dir, f"results_{prefix}_{run}_data.txt")
-        if not xdsappreport.is_file():
-            return None, [], vals
+            return report_file
 
-        return xdsappreport.relative_to(curp), _logs(xdsapp_dir), vals
+        xdsapp_dir = Path(dataset_dir, "xdsapp")
+        xdsappreport = _report_file()
+
+        if xdsappreport is None:
+            return [], None
+
+        vals = parse_log_process(str(xdsappreport))
+        vals["tool"] = "xdsapp"
+        vals["report"] = xdsappreport.relative_to(curp)
+        return _logs(xdsapp_dir), vals
 
     def _dials_logs():
         dials_dir = path.join(dataset_dir, "dials")
-        vals = parse_log_process(path.join(dials_dir, "xia2.html"))
 
         if not path.exists(path.join(dials_dir, "xia2.html")):
-            return None, [], vals
+            return [], None
 
-        dialsreport = Path(dials_dir, "xia2.html").relative_to(curp)
+        vals = parse_log_process(path.join(dials_dir, "xia2.html"))
+        vals["tool"] = "xia2/dials"
+        vals["report"] = Path(dials_dir, "xia2.html").relative_to(curp)
 
-        return dialsreport, _logs(path.join(dials_dir, "LogFiles")), vals
+        return _logs(path.join(dials_dir, "LogFiles")), vals
 
     def _xds_logs():
         xds_dir = path.join(dataset_dir, "xdsxscale")
-        vals = parse_log_process(path.join(xds_dir, "xia2.html"))
 
         if not path.exists(path.join(xds_dir, "xia2.html")):
-            return None, [], vals
+            return [], None
 
-        xdsreport = Path(xds_dir, "xia2.html").relative_to(curp)
+        vals = parse_log_process(path.join(xds_dir, "xia2.html"))
+        vals["tool"] = "xia2/xds"
+        vals["report"] = Path(xds_dir, "xia2.html").relative_to(curp)
 
-        return xdsreport, _logs(path.join(xds_dir, "LogFiles")), vals
+        return _logs(path.join(xds_dir, "LogFiles")), vals
 
     proj = current_project(request)
 
@@ -121,26 +143,41 @@ def show(request, images, prefix, run):
 
     half = int(float(images) / 200)
 
-    _tables = {
-        "pipedream": {},
-        "autoproc": {},
-        "edna": {},
-        "fastdp": {},
-        "xdsapp": {},
-        "dials": {},
-        "xdsxscale": {},
-    }
-
     #
     # Logs for data processing tools
     #
-    pipedreamreport, pipedreamLogs, _tables["pipedream"] = _pipedream_logs()
-    autoprocreport, autoprocLogs, _tables["autoproc"] = _autoproc_logs()
-    ednareport, ednaLogs, _tables["edna"] = _edna_logs()
-    fastdpreport, fastdpLogs, _tables["fastdp"] = _fastdp_logs()
-    xdsappreport, xdsappLogs, _tables["xdsapp"] = _xdsapp_logs()
-    dialsreport, dialsLogs, _tables["dials"] = _dials_logs()
-    xdsreport, xdsLogs, _tables["xdsxscale"] = _xds_logs()
+
+    data_proc_stats = []
+
+    pipedreamLogs, proc_stats = _pipedream_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
+
+    dialsreport = None
+    dialsLogs, proc_stats = _dials_logs()
+    if proc_stats is not None:
+        dialsreport = proc_stats["report"]
+        data_proc_stats.append(proc_stats)
+
+    xdsLogs, proc_stats = _xds_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
+
+    xdsappLogs, proc_stats = _xdsapp_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
+
+    autoprocLogs, proc_stats = _autoproc_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
+
+    ednaLogs, proc_stats = _edna_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
+
+    fastdpLogs, proc_stats = _fastdp_logs()
+    if proc_stats is not None:
+        data_proc_stats.append(proc_stats)
 
     #
     # Logs for refinement methods
@@ -190,55 +227,6 @@ def show(request, images, prefix, run):
             for x in sorted(glob(f"{pipedream_res_dirs}/rhofit/*log") + glob(f"{pipedream_res_dirs}/rhofit/*out"))
         }
 
-    # Information for the data processing table
-    spg_list = [_tables[key]["spg"] for key in _tables.keys()]
-    unique_rflns_list = [_tables[key]["unique_rflns"] for key in _tables.keys()]
-    total_observations_list = [_tables[key]["total_observations"] for key in _tables.keys()]
-
-    overall_res_list = [_tables[key]["low_res_avg"] + " - " + _tables[key]["high_res_avg"] for key in _tables.keys()]
-    outter_shell_res_list = [
-        "(" + _tables[key]["low_res_out"] + " - " + _tables[key]["high_res_out"] + ")" for key in _tables.keys()
-    ]
-    resolution_list = zip(overall_res_list, outter_shell_res_list)
-    for n, i in enumerate(overall_res_list):
-        if i == " - ":
-            overall_res_list[n] = ""
-    for n, i in enumerate(outter_shell_res_list):
-        if i == "( - )":
-            outter_shell_res_list[n] = ""
-    unit_cell_list_d = [", ".join(_tables[key]["unit_cell"].split(",")[:3]) for key in _tables.keys()]
-    unit_cell_list_a = [", ".join(_tables[key]["unit_cell"].split(",")[3:]) for key in _tables.keys()]
-    unit_cell_list = zip(unit_cell_list_d, unit_cell_list_a)
-
-    multiplicity_list = [_tables[key]["multiplicity"] for key in _tables.keys()]
-
-    isig_avg_list = [_tables[key]["isig_avg"] for key in _tables.keys()]
-    isig_out_list = ["(" + _tables[key]["isig_out"] + ")" for key in _tables.keys()]
-    for n, i in enumerate(isig_out_list):
-        if i == "()":
-            isig_out_list[n] = ""
-    isgi_list = zip(isig_avg_list, isig_out_list)
-    rmeas_avg_list = [_tables[key]["rmeas_avg"] for key in _tables.keys()]
-    rmeas_out_list = ["(" + _tables[key]["rmeas_out"] + ")" for key in _tables.keys()]
-    for n, i in enumerate(rmeas_out_list):
-        if i == "()":
-            rmeas_out_list[n] = ""
-    rmeas_list = zip(rmeas_avg_list, rmeas_out_list)
-
-    completeness_avg_list = [_tables[key]["completeness_avg"] for key in _tables.keys()]
-    completeness_out_list = ["(" + _tables[key]["completeness_out"] + ")" for key in _tables.keys()]
-    for n, i in enumerate(completeness_out_list):
-        if i == "()":
-            completeness_out_list[n] = ""
-    completeness_list = zip(completeness_avg_list, completeness_out_list)
-
-    mosaicity_list = [_tables[key]["mosaicity"] for key in _tables.keys()]
-    ISa_list = [_tables[key]["ISa"] for key in _tables.keys()]
-    WilsonB_list = [_tables[key]["WilsonB"] for key in _tables.keys()]
-    cc12_avg_list = [_tables[key]["cc12_avg"] for key in _tables.keys()]
-    cc12_out_list = ["(" + _tables[key]["cc12_out"] + ")" for key in _tables.keys()]
-    cc12_list = zip(cc12_avg_list, cc12_out_list)
-
     if "Apo" in prefix:
         soakTime = "Soaking not performed"
         fragConc = "-"
@@ -253,6 +241,7 @@ def show(request, images, prefix, run):
         request,
         "fragview/dataset_info.html",
         {
+            "data_processing": data_proc_stats,
             "csvfile": lines,
             "shift": curp.split("/")[-1],
             "pipelines": SITE.get_supported_pipelines(),
@@ -269,13 +258,7 @@ def show(request, images, prefix, run):
             "energy": energy,
             "totalExposure": totalExposure,
             "edgeResolution": edgeResolution,
-            "xdsappreport": xdsappreport,
             "dialsreport": dialsreport,
-            "xdsreport": xdsreport,
-            "autoprocreport": autoprocreport,
-            "pipedreamreport": pipedreamreport,
-            "ednareport": ednareport,
-            "fastdpreport": fastdpreport,
             "fastdpLogs": fastdpLogs,
             "ednaLogs": ednaLogs,
             "autoprocLogs": autoprocLogs,
@@ -285,19 +268,6 @@ def show(request, images, prefix, run):
             "dialsLogs": dialsLogs,
             "site": SITE,
             "beamline": SITE.get_beamline_info(),
-            "spg_list": spg_list,
-            "unique_rflns_list": unique_rflns_list,
-            "total_observations_list": total_observations_list,
-            "unit_cell_list": unit_cell_list,
-            "multiplicity_list": multiplicity_list,
-            "isgi_list": isgi_list,
-            "rmeas_list": rmeas_list,
-            "completeness_list": completeness_list,
-            "mosaicity_list": mosaicity_list,
-            "ISa_list": ISa_list,
-            "WilsonB_list": WilsonB_list,
-            "cc12_list": cc12_list,
-            "resolution_list": resolution_list,
             "dimple_logs": _dimple_logs,
             "fspipeline_logs": _fspipeline_logs,
             "buster_logs": _buster_logs,
@@ -319,6 +289,13 @@ def _load_results(proj, prefix, run):
 
 
 def parse_log_process(pplog):
+    def split_unit_cell_vals(unit_cell):
+        """
+        split unit cell values into 'dim' and 'ang' parts
+        """
+        vals = unit_cell.split(",")
+        return dict(dim=vals[:3], ang=vals[3:])
+
     spg = ""
     unique_rflns = ""
     total_observations = ""
@@ -336,9 +313,6 @@ def parse_log_process(pplog):
     completeness_out = ""
     mosaicity = ""
     ISa = ""
-    WilsonB = ""
-    cc12_avg = ""
-    cc12_out = ""
 
     if path.exists(pplog):
         with open(pplog, "r", encoding="utf-8") as r:
@@ -367,13 +341,8 @@ def parse_log_process(pplog):
                 if "Completeness [%]" in line:
                     completeness_avg = line.split()[-2]
                     completeness_out = line.split()[-1][1:-1]
-                if "B(Wilson) [A^2]" in line:
-                    WilsonB = line.split()[-1]
                 if "Mosaicity [deg]" in line:
                     mosaicity = line.split()[-1]
-                if "CC(1/2)" in line:
-                    cc12_avg = line.split()[-2]
-                    cc12_out = line.split()[-1][1:-1]
                 if "ISa" in line:
                     ISa = line.split()[-1]
         if "dials" in pplog or "xdsxscale" in pplog:
@@ -396,11 +365,6 @@ def parse_log_process(pplog):
                     unique_rflns = line.split()[-3]
                 if "Total observations" in line:
                     total_observations = line.split()[-3]
-                if "CC half  " in line:
-                    cc12_avg = line.split()[-3]
-                    cc12_out = line.split()[-1]
-                if "Wilson B factor " in line:
-                    WilsonB = line.split()[-1]
                 if "Mosaic spread" in line:
                     mosaicity = line.split()[-1]
                 if "I/sigma  " in line:
@@ -413,7 +377,6 @@ def parse_log_process(pplog):
                 ISa = ""
         if "autoproc" in pplog or "pipedream" in pplog:
             spg = "None"
-            WilsonB = ""
             for n, line in enumerate(log):
                 if "Unit cell and space group:" in line:
                     spg = "".join(line.split()[11:]).replace("'", "")
@@ -434,9 +397,6 @@ def parse_log_process(pplog):
                 if "Completeness (ellipsoidal)" in line or "Completeness (spherical)" in line:
                     completeness_avg = line.split()[2]
                     completeness_out = line.split()[-1]
-                if "CC(1/2)  " in line:
-                    cc12_avg = line.split()[1]
-                    cc12_out = line.split()[-1]
                 if "Rmeas   (all I+ & I-)" in line:
                     rmeas_avg = line.split()[-3]
                     rmeas_out = line.split()[-1]
@@ -477,11 +437,7 @@ def parse_log_process(pplog):
                     completeness_out = line.split()[-1]
                 if "mosaicity" in line:
                     mosaicity = line.split()[-1]
-                if "Mn(I) half-set correlation CC(1/2)" in line:
-                    cc12_avg = line.split()[-3]
-                    cc12_out = line.split()[-1]
                 ISa = ""
-                WilsonB = ""
 
         stats = {
             "spg": spg,
@@ -491,7 +447,7 @@ def parse_log_process(pplog):
             "low_res_out": low_res_out,
             "high_res_avg": high_res_avg,
             "high_res_out": high_res_out,
-            "unit_cell": unit_cell,
+            "unit_cell": split_unit_cell_vals(unit_cell),
             "multiplicity": multiplicity,
             "isig_avg": isig_avg,
             "isig_out": isig_out,
@@ -501,31 +457,8 @@ def parse_log_process(pplog):
             "completeness_out": completeness_out,
             "mosaicity": mosaicity,
             "ISa": ISa,
-            "WilsonB": WilsonB,
-            "cc12_avg": cc12_avg,
-            "cc12_out": cc12_out,
         }
     else:
-        stats = {
-            "spg": "",
-            "unique_rflns": "",
-            "total_observations": "",
-            "low_res_avg": "",
-            "low_res_out": "",
-            "high_res_avg": "",
-            "high_res_out": "",
-            "unit_cell": "",
-            "multiplicity": "",
-            "isig_avg": "",
-            "isig_out": "",
-            "rmeas_avg": "",
-            "rmeas_out": "",
-            "completeness_avg": "",
-            "completeness_out": "",
-            "mosaicity": "",
-            "ISa": "",
-            "WilsonB": "",
-            "cc12_avg": "",
-            "cc12_out": "",
-        }
+        stats = None
+
     return stats
