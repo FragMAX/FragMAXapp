@@ -62,7 +62,7 @@ class TestLogs(TestCase, ViewTesterMixin, TempDirMixin):
 
         self.assertEqual(resp.status_code, 200)
         self.assert_contains_template(resp, "fragview/html_log.html")
-        self.assertEqual(resp.context["reportHTML"], str(self.html_log))
+        self.assertEqual(resp.context["html_url"], "/logs/htmldata/log.html")
 
     def test_show_text_log(self):
         """

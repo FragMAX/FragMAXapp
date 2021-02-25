@@ -105,6 +105,7 @@ urlpatterns = [
     # logs access
     re_path('logs/show/(?P<log_file>.*)$', logs.show),
     re_path('logs/download/(?P<log_file>.*)$', logs.download),
+    re_path('logs/htmldata/(?P<data_file>.*)$', logs.htmldata),
 
     # running commit, for tracking and trouble shooting
     path('commit', commit.show, name="commit"),
