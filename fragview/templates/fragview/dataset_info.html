@@ -348,163 +348,124 @@
                 <thead>
                     <tr>
                         <td class="resultsHeader" style="height: 60px;"></td>
+                        {% for entry in data_processing %}
                         <td class="resultsHeader">
-                            {% if pipedreamreport %}
-                            <a class="btn-small" href="/logs/show/{{pipedreamreport}}" target="_blank">
-                                Pipedream
+                            <a class="btn-small" href="/logs/show/{{entry.report}}" target="_blank">
+                                {{entry.tool}}
                             </a>
-                            {% else %}
-                            Pipedream
-                            {% endif %}
                         </td>
-                        <td class="resultsHeader">
-                            {% if autoprocreport %}
-                            <a class="btn-small" href="/logs/show/{{autoprocreport}}" target="_blank">
-                                autoPROC
-                            </a>
-                            {% else %}
-                            autoPROC
-                            {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if ednareport %}
-                            <a class="btn-small" href="/logs/show/{{ednareport}}" target="_blank">
-                                EDNA
-                            </a>
-                            {% else %}
-                            EDNA
-                            {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if fastdpreport %}
-                            <a class="btn-small" href="/logs/show/{{fastdpreport}}" target="_blank">
-                                FastDP
-                            </a>
-                            {% else %}
-                            FastDP
-                            {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if xdsappreport %}
-                            <a class="btn-small" href="/logs/show/{{xdsappreport}}" target="_blank">
-                                XDSAPP
-                            </a>
-                            {% else %}
-                            XDSAPP
-                            {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if dialsreport %}
-                            <a class="btn-small" href="/logs/show/{{dialsreport}}" target="_blank">
-                                XIA2/DIALS
-                            </a>
-                            {% else %}
-                            XIA2/DIALS
-                            {% endif %}
-                        </td>
-                        <td class="resultsHeader">
-                            {% if xdsreport %}
-                            <a class="btn-small" href="/logs/show/{{xdsreport}}" target="_blank">
-                                XIA2/XDS
-                            </a>
-                            {% else %}
-                            XIA2/XDS
-                            {% endif %}
-                        </td>
+                        {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                    </tr>
+                    <tr></tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Spacegroup</td>
-                        {% for value in spg_list %}
-                        <td style="text-align:center">{{value}}</td>
+                        {% for entry in data_processing %}
+                        <td style="text-align:center">{{entry.spg}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Unit cell
-                            parameters</td>
-                        {% for dim, ang in unit_cell_list %}
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Unit cell parameters</td>
+                        {% for entry in data_processing %}
                         <td style="text-align:center">
-                            <div>{{dim}}</div>
-                            <div> {{ang}}</div>
+                            <div>
+                            {% for v in entry.unit_cell.dim %}
+                                {{v}}&nbsp;
+                            {% endfor %}
+                            </div>
+                            <div>
+                            {% for v in entry.unit_cell.ang %}
+                                {{v}}&nbsp;
+                            {% endfor %}
+                            </div>
                         </td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Resolution
-                            limit</td>
-                        {% for inner, outter in resolution_list %}
-                        <td style="text-align:center">{{inner}} {{outter}}</td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of
-                            reflections</td>
-                        {% for value in total_observations_list %}
-                        <td style="text-align:center">{{value}}</td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Number of
-                            uniques</td>
-                        {% for value in unique_rflns_list %}
-                        <td style="text-align:center">{{value}}</td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Multiplicity
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Resolution limit</td>
+                        {% for entry in data_processing %}
+                        <td style="text-align:center">
+                            <div>
+                                {{entry.low_res_avg}} - {{entry.high_res_avg}}
+                            </div>
+                            <div>
+                                ({{entry.low_res_out}} - {{entry.high_res_out}})
+                            </div>
                         </td>
-                        {% for inner in multiplicity_list %}
-                        <td style="text-align:center">{{inner}}</td>
                         {% endfor %}
                     </tr>
-
+                    <tr>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            Number of reflections
+                        </td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">{{entry.total_observations}}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            Number of uniques
+                        </td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">{{entry.unique_rflns}}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            Multiplicity
+                        </td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">{{entry.multiplicity}}</td>
+                        {% endfor %}
+                    </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">I/sigI</td>
-                        {% for inner, outter in isgi_list %}
-                        <td style="text-align:center">{{inner}} {{outter}}</td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">
+                                {{entry.isig_avg}} ({{entry.isig_out}})
+                            </td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">R_meas</td>
-                        {% for inner, outter in rmeas_list %}
-                        <td style="text-align:center">{{inner}} {{outter}}</td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">
+                                {{entry.rmeas_avg}} ({{entry.rmeas_out}})
+                            </td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Completeness
-                            [%]</td>
-                        {% for inner, outter in completeness_list %}
-                        <td style="text-align:center">{{inner}} {{outter}}</td>
-                        {% endfor %}
-                    </tr>
-                    {% comment %} <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">B(Wilson)
-                            [A<sup>2</sup>]
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            Completeness [%]
                         </td>
-                        {% for value in WilsonB_list %}
-                        <td style="text-align:center">{{value}}</td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">
+                                {{entry.completeness_avg}} ({{entry.completeness_out}})
+                            </td>
                         {% endfor %}
-                    </tr> {% endcomment %}
+                    </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Mosaicity [°]
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            Mosaicity [°]
                         </td>
-                        {% for value in mosaicity_list %}
-                        <td style="text-align:center">{{value}}</td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">
+                                {{entry.mosaicity}}
+                            </td>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">ISa</td>
-                        {% for value in ISa_list %}
-                        <td style="text-align:center">{{value}}</td>
+                        <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
+                            ISa
+                        </td>
+                        {% for entry in data_processing %}
+                            <td style="text-align:center">
+                                {{entry.ISa}}
+                            </td>
                         {% endfor %}
                     </tr>
-
-
                 </tbody>
-
             </table>
         </div>
         <div id="structRefinement" class="card tabcontent ">
