@@ -5,12 +5,12 @@ from fragview.projects import current_project
 from fragview.fileio import read_proj_text_file, read_proj_file
 
 
-def _get_log_path(proj, log_file):
+def _get_file_path(proj, file_path):
     """
     convert the path relative to the project's data directory,
     to absolute path on the file system
     """
-    return Path(proj.data_path(), log_file)
+    return Path(proj.data_path(), file_path)
 
 
 def _is_html(log_path):
@@ -25,13 +25,27 @@ def _log_not_found_resp(log_file):
     return HttpResponseNotFound(f"log file '{log_file}' not found")
 
 
-def _show_html_log(request, log_path):
+def htmldata(request, data_file):
+    proj = current_project(request)
+
+    log_path = _get_file_path(proj, data_file)
+
+    if not log_path.is_file():
+        return HttpResponseNotFound()
+
+    return HttpResponse(read_proj_file(proj, log_path))
+
+
+def _show_html_log(request, html_file_url):
     """
     render a HTML log
     """
-    log_path = str(log_path).replace("/data/visitors/", "/static/")
+    proj = current_project(request)
 
-    return render(request, "fragview/html_log.html", {"reportHTML": log_path})
+    rel_path = html_file_url.relative_to(proj.data_path())
+    html_file_url = f"/logs/htmldata/{rel_path}"
+
+    return render(request, "fragview/html_log.html", {"html_url": html_file_url})
 
 
 def _show_text_log(request, proj, download_url, log_path):
@@ -51,7 +65,7 @@ def _show_text_log(request, proj, download_url, log_path):
 
 def show(request, log_file):
     proj = current_project(request)
-    log_path = _get_log_path(proj, log_file)
+    log_path = _get_file_path(proj, log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)
@@ -64,7 +78,7 @@ def show(request, log_file):
 
 def download(request, log_file):
     proj = current_project(request)
-    log_path = _get_log_path(proj, log_file)
+    log_path = _get_file_path(proj, log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)
