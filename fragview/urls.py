@@ -78,7 +78,9 @@ urlpatterns = [
     path('submit_pipedream/', pipedream.submit, name='submit_pipedream'),
 
     path('hpc/kill/', hpc.kill),
+    # TODO: change URL to jobs/status
     path('hpcstatus/', hpc.status, name='hpcstatus'),
+    # TODO: change URL to jobs/history
     path('jobhistory/', hpc.jobhistory, name='jobhistory'),
 
     path('dataproc_datasets/', process.datasets, name='dataproc_datasets'),

@@ -57,9 +57,7 @@ def datasets(request):
         t.daemon = True
         t.start()
 
-    return render(
-        request, "fragview/dataproc_datasets.html", {"allproc": "Jobs submitted using " + str(nodes) + " per method"}
-    )
+    return render(request, "fragview/jobs_submitted.html")
 
 
 def _as_buckets(elms, num_buckets):
