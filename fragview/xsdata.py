@@ -17,9 +17,12 @@ class XSDataCollection:
 
     def _get_snapshots(self):
         for i in range(1, 5):
-            snap = self.node[f"xtalSnapshotFullPath{i}"]
-            if snap != "None":
-                yield snap
+            snap = self.node.get(f"xtalSnapshotFullPath{i}")
+            if snap is None or snap == "None":
+                # no snapshot for this index specified
+                continue
+
+            yield snap
 
     @property
     def snapshots(self):

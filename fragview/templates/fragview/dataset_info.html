@@ -558,10 +558,12 @@
             <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
             <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
 
+            {% if snapshots %}
             <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
+            {% endif %}
 
         </div>
         <div class="flex-left">

@@ -56,7 +56,6 @@ exclude = '''
   tests/test_models.py |
   worker/__init__.py |
   tests/test_middleware.py |
-  tests/test_xsdata.py |
   tests/test_forms.py |
   worker/dials.py |
   tests/test_views_pdbs.py |
