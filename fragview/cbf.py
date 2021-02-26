@@ -73,8 +73,6 @@ def _create_xml_file(project, dataset, cbf_ini, cbf_end):
     synchrotronMode = ""
     transmission = format_e(float(cbf[25].split()[1]))
     wavelength = format_e(float(cbf[30].split()[1]))
-    xtalSnapshotFullPath1 = "None"
-    xtalSnapshotFullPath2 = "None"
     detector2theta = format_e(float(cbf[26].split()[1]))
     rotationAxis = cbf[4].split()[1]
 
@@ -125,10 +123,6 @@ def _create_xml_file(project, dataset, cbf_ini, cbf_end):
             <transmission>{transmission}</transmission>
             <wavelength>{wavelength}</wavelength>
             <xbeam>0.00000e+00</xbeam>
-            <xtalSnapshotFullPath1>{xtalSnapshotFullPath1}</xtalSnapshotFullPath1>
-            <xtalSnapshotFullPath2>{xtalSnapshotFullPath2}</xtalSnapshotFullPath2>
-            <xtalSnapshotFullPath3>None</xtalSnapshotFullPath3>
-            <xtalSnapshotFullPath4>None</xtalSnapshotFullPath4>
             <ybeam>0.00000e+00</ybeam>
         </dataCollection>
     </XSDataResultRetrieveDataCollection>"""
