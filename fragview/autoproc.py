@@ -1,6 +1,7 @@
 from os import path
 from glob import glob
 from fragview import hpc
+from fragview.dsets import parse_master_h5_path
 from fragview.projects import shifts_raw_master_h5_files, project_script
 
 
@@ -13,7 +14,7 @@ def import_autoproc(proj, shifts):
     num_of_datasets = len(h5s)
 
     for set_num, h5 in zip(range(num_of_datasets), h5s):
-        dataset, run = h5.split("/")[-1][:-10].split("_")
+        dataset, run = parse_master_h5_path(h5)
 
         print(f"importing {dataset}-{run} ({set_num + 1}/{num_of_datasets}) results")
 

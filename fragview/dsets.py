@@ -1,4 +1,4 @@
-from pathlib import PosixPath
+from pathlib import Path, PosixPath
 from fragview.fileio import read_csv_lines
 from fragview.projects import project_data_collections_file, project_all_status_file
 
@@ -7,7 +7,16 @@ class DataSet:
     ISPYB_STORAGE = PosixPath("/mxn/groups/ispybstorage")
 
     def __init__(
-        self, image_prefix, sample_name, data_path, acronym, run, num_images, resolution, snapshot, status,
+        self,
+        image_prefix,
+        sample_name,
+        data_path,
+        acronym,
+        run,
+        num_images,
+        resolution,
+        snapshot,
+        status,
     ):
         self.image_prefix = image_prefix
         self.sample_name = sample_name
@@ -119,5 +128,38 @@ def get_datasets(proj):
         status = ds_status[ds_name] if ds_name in ds_status else unknown_status
 
         yield DataSet(
-            line[0], line[1], line[2], line[3], line[4], line[5], line[6], line[7], status,
+            line[0],
+            line[1],
+            line[2],
+            line[3],
+            line[4],
+            line[5],
+            line[6],
+            line[7],
+            status,
         )
+
+
+def parse_master_h5_path(file_path):
+    """
+    utility function to derive sample name and run number from
+    the full path to dataset's master .h5 file
+
+    e.g. path:
+
+     /data/<...>/raw/Nsp10/Nsp10-RGD201024/Nsp10-RGD201024_2_master.h5
+
+    gives us 'Nsp10-RGD20102' as sample name and 2 as run number
+    """
+    file_stem = Path(file_path).stem
+    dataset, run, _ = file_stem.rsplit("_", 2)
+    return dataset, run
+
+
+def parse_dataset_name(dset_name):
+    """
+    split full dataset name into sample name and run number
+
+    e.g. 'Nsp10-apo33_1' becomes 'Nsp10-apo33' and 1
+    """
+    return dset_name.rsplit("_", 1)

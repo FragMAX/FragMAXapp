@@ -1,3 +1,4 @@
+from fragview.dsets import parse_dataset_name
 from fragview.projects import (
     project_script,
     project_scripts_dir,
@@ -21,8 +22,11 @@ def run_update_status(proj):
 
     for dset in project_datasets(proj):
         # for each dataset, run the update status script
-        dataset, run = dset.rsplit("_")
-        batch.add_command(f"python3 ./{UPDATE_STATUS_SCRIPT} {proj.data_path()} {dataset} {run}")
+        dataset, run = parse_dataset_name(dset)
+
+        batch.add_command(
+            f"python3 ./{UPDATE_STATUS_SCRIPT} {proj.data_path()} {dataset} {run}"
+        )
 
     batch.save()
 

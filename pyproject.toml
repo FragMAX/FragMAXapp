@@ -18,12 +18,10 @@ exclude = '''
   fragview/auth/ispyb.py |
   fragview/autoproc.py |
   fragview/fileio.py |
-  fragview/dsets.py |
   fragview/hpc.py |
   fragview/fraglib.py |
   fragview/middleware.py |
   fragview/migrations/0002_projectdetails.py |
-  fragview/status.py |
   fragview/cbf.py |
   fragview/views/crypt.py |
   fragview/sites/plugin.py |
@@ -69,7 +67,6 @@ exclude = '''
   worker/data/crypt_files.py |
   worker/project.py |
   fragview/views/density.py |
-  worker/data/update_status.py |
   fragview/views/pandda.py |
   worker/data/update_results.py
 )
