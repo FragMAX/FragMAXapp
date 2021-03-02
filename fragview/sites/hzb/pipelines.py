@@ -35,7 +35,7 @@ class PipelineCommands(plugin.PipelineCommands):
         num_images,
     ):
         return (
-            f"/soft/pxsoft/64/xdsapp3/xdsit.py --image {image_file} --range '1 {num_images}' "
+            f"/soft/pxsoft/64/xdsapp3/xdsit.py --image {image_file} --range '1 {num_images}' {custom_parameters} "
             f"{friedel} --dir={output_dir}/xdsapp --jobs 1 --cpu 16"
         )
 
