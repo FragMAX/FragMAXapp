@@ -41,7 +41,6 @@ exclude = '''
   manage.py |
   fragview/views/utils.py |  # conflict between flake8 and black
   fragview/views/results.py |
-  static/update_status.py |
   fragview/views/process.py |
   tests/test_context_processors.py |
   fragview/views/pipedream.py |
