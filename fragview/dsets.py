@@ -31,7 +31,7 @@ class DataSet:
         self._snapshots = None
 
     def is_apo(self):
-        return self.sample_name.startswith("Apo")
+        return self.sample_name.lower().startswith("apo")
 
     def _get_snapshots(self):
         def _rel(abs_path):

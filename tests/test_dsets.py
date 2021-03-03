@@ -1,5 +1,10 @@
 from unittest import TestCase
-from fragview.dsets import parse_master_h5_path, parse_dataset_name
+from fragview.dsets import (
+    parse_master_h5_path,
+    parse_dataset_name,
+    DataSet,
+    DataSetStatus,
+)
 
 
 class TestParseMasterH5Path(TestCase):
@@ -46,3 +51,35 @@ class TestParseDatasetName(TestCase):
         self._check("Nsp10-VT00224_1", "Nsp10-VT00224", "1")
         self._check("Nsp10-SBX17160_4", "Nsp10-SBX17160", "4")
         self._check("Nsp10-361_5d_3_1", "Nsp10-361_5d_3", "1")
+
+
+class TestDataSet(TestCase):
+    """
+    test DataSet class
+    """
+
+    def _create_data_set(self, sample_name):
+        return DataSet(
+            "img_prefix",
+            sample_name,
+            "/dummy/path",
+            "Nsp5",
+            "1",
+            "900",
+            "1.70",
+            "/some/snap.jpeg",
+            DataSetStatus(),
+        )
+
+    def test_is_apo(self):
+        """
+        check DataSet.is_apo() method
+        """
+        data_set = self._create_data_set("apo2")
+        self.assertTrue(data_set.is_apo())
+
+        data_set = self._create_data_set("Apo42")
+        self.assertTrue(data_set.is_apo())
+
+        data_set = self._create_data_set("SBX17106")
+        self.assertFalse(data_set.is_apo())
