@@ -33,6 +33,8 @@ class _ProcJobForm(forms.Form):
 class LigfitForm(_ProcJobForm):
     useRhoFit = forms.BooleanField(required=False)
     usePhenixLigfit = forms.BooleanField(required=False)
+    customLigFit = forms.CharField(required=False)
+    customRhoFit = forms.CharField(required=False)
 
     @property
     def use_rho_fit(self):
@@ -41,6 +43,14 @@ class LigfitForm(_ProcJobForm):
     @property
     def use_phenix_ligfit(self):
         return self._get_field("usePhenixLigfit")
+
+    @property
+    def custom_ligfit(self):
+        return self._get_field("customLigFit")
+
+    @property
+    def custom_rhofit(self):
+        return self._get_field("customRhoFit")
 
 
 class ProcessForm(_ProcJobForm):

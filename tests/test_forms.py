@@ -22,6 +22,7 @@ def is_dir_mock(non_exist_dir):
     construct an 'os.path.isdir()' mock, which returns
     false for the 'non_exist_dir' path, and true otherwise
     """
+
     def _isdir(dir):
         return dir != non_exist_dir
 
@@ -32,23 +33,29 @@ class ProjFormTesterMixin:
     """
     Utility Mixin for testing Project Form class
     """
+
     ReqsFactory = RequestFactory()
 
-    def _request(self,
-                 protein=PROTEIN,
-                 library_name=LIBRARY,
-                 root=PROPOSAL,
-                 subdirs=f"{SHIFT_1},{SHIFT_2}",
-                 fragmenst_file_data="B2a,N#Cc1c(cccc1)O",
-                 encrypted=False):
+    def _request(
+        self,
+        protein=PROTEIN,
+        library_name=LIBRARY,
+        root=PROPOSAL,
+        subdirs=f"{SHIFT_1},{SHIFT_2}",
+        fragmenst_file_data="B2a,N#Cc1c(cccc1)O",
+        encrypted=False,
+    ):
 
         req = self.ReqsFactory.post(
             "/",  # we don't really care about the URL here
-            dict(protein=protein,
-                 library_name=library_name,
-                 root=root,
-                 subdirs=subdirs,
-                 encrypted=encrypted))
+            dict(
+                protein=protein,
+                library_name=library_name,
+                root=root,
+                subdirs=subdirs,
+                encrypted=encrypted,
+            ),
+        )
 
         frags_file = SimpleUploadedFile("frags.csv", fragmenst_file_data.encode())
         req.FILES["fragments_file"] = frags_file
@@ -63,7 +70,8 @@ class JobsFormTesterMixin:
     def _request(self, args):
         return self.ReqsFactory.post(
             "/",  # we don't really care about the URL here
-            {**dict(hpcNodes=42), **args})
+            {**dict(hpcNodes=42), **args},
+        )
 
 
 class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
@@ -79,7 +87,15 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
         self.assertFalse(form.use_phenix_ligfit)
 
     def test_use_both(self):
-        request = self._request(dict(datasetsFilter=self.DS_FILTER, useRhoFit="on", usePhenixLigfit="on"))
+        request = self._request(
+            dict(
+                datasetsFilter=self.DS_FILTER,
+                useRhoFit="on",
+                usePhenixLigfit="on",
+                customLigFit="cLigFit",
+                customRhoFit="cRhoFit",
+            )
+        )
 
         form = forms.LigfitForm(request.POST)
 
@@ -88,18 +104,23 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
         self.assertEqual(form.datasets_filter, self.DS_FILTER)
         self.assertTrue(form.use_rho_fit)
         self.assertTrue(form.use_phenix_ligfit)
+        self.assertEqual(form.custom_ligfit, "cLigFit")
+        self.assertEqual(form.custom_rhofit, "cRhoFit")
 
 
 class TestProcessForm(test.TestCase, JobsFormTesterMixin):
     def test_form(self):
         request = self._request(
-            dict(useDials="on",
-                 useXdsapp="on",
-                 spaceGroup="SGRP",
-                 cellParams="cellpy",
-                 friedelLaw="true",
-                 customXds="cXds",
-                 customDials="dlsdl"))
+            dict(
+                useDials="on",
+                useXdsapp="on",
+                spaceGroup="SGRP",
+                cellParams="cellpy",
+                friedelLaw="true",
+                customXds="cXds",
+                customDials="dlsdl",
+            )
+        )
 
         form = forms.ProcessForm(request.POST)
         valid = form.is_valid()
@@ -123,12 +144,15 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
 class TestRefineForm(test.TestCase, JobsFormTesterMixin):
     def test_form(self):
         request = self._request(
-            dict(useDimple="on",
-                 useBuster="on",
-                 refSpaceGroup="SGRP",
-                 pdbModel="32",
-                 customDimple="ddimp",
-                 customBuster="busta"))
+            dict(
+                useDimple="on",
+                useBuster="on",
+                refSpaceGroup="SGRP",
+                pdbModel="32",
+                customDimple="ddimp",
+                customBuster="busta",
+            )
+        )
 
         form = forms.RefineForm(request.POST)
         valid = form.is_valid()
@@ -200,7 +224,6 @@ class TestProjectFormSave(test.TestCase, ProjFormTesterMixin):
 
 
 class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
-
     def _assertValidationError(self, form, field, expected_error_regexp):
         self.assertFalse(form.is_valid())
 
@@ -222,13 +245,19 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
             self.assertTrue(is_valid)
 
-            isdir.assert_has_calls([
-                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL)),
-                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
-                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)),
-                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
-                mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)),
-            ])
+            isdir.assert_has_calls(
+                [
+                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL)),
+                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
+                    mock.call(
+                        path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)
+                    ),
+                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
+                    mock.call(
+                        path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)
+                    ),
+                ]
+            )
 
     def test_invalid_empty_subdirs_list(self):
         """
@@ -261,7 +290,9 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
             proj_form = forms.ProjectForm(request.POST, {})
 
-            self._assertValidationError(proj_form, "fragments_file", "please specify fragments definitions file")
+            self._assertValidationError(
+                proj_form, "fragments_file", "please specify fragments definitions file"
+            )
 
     def test_library_file_parse_err(self):
         """
@@ -275,7 +306,9 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
             proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-            self._assertValidationError(proj_form, "fragments_file", "unexpected number of cells")
+            self._assertValidationError(
+                proj_form, "fragments_file", "unexpected number of cells"
+            )
 
     def test_proposal_invalid_exp(self):
         """
@@ -284,7 +317,9 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
         request = self._request(root="kiwi")
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-        self._assertValidationError(proj_form, "root", "invalid Proposal Number 'kiwi', should be 8 digits")
+        self._assertValidationError(
+            proj_form, "root", "invalid Proposal Number 'kiwi', should be 8 digits"
+        )
 
     def test_shift_list_invalid_exp(self):
         """
@@ -315,7 +350,9 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
         _isdir = is_dir_mock(projects.shift_dir(PROPOSAL, SHIFT_2))
         with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "subdirs", f"shift '{SHIFT_2}' not found")
+            self._assertValidationError(
+                proj_form, "subdirs", f"shift '{SHIFT_2}' not found"
+            )
 
     def test_protein_not_found(self):
         """
@@ -326,4 +363,8 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
         _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT_1, PROTEIN))
         with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "subdirs", "shift '00000001' have no data for protein 'MyProt'")
+            self._assertValidationError(
+                proj_form,
+                "subdirs",
+                "shift '00000001' have no data for protein 'MyProt'",
+            )

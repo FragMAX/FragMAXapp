@@ -478,6 +478,9 @@
                         <input type="hidden" name="datasetsFilter" id="dtsFilterLigfit" />
                         <input type="hidden" name="hpcNodes" id="hpcNodesLigfit" />
                         <input type="hidden" name="cifMethod" id="cifMethodLigfit" />
+                        <input type="hidden" name="customLigFit" id="customLigFit"/>
+                        <input type="hidden" name="customRhoFit" id="customRhoFit"/>
+
 
                         <table class="optionstable">
                             <col width="8%">
@@ -1159,8 +1162,8 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customligfit-rhofit"
-                            placeholder="default: None"></input>
+                    <td class="top-options">
+                        <input class="selectbox" id="customligfit-rhofit" placeholder="default: None"/>
                         See available parameters <a
                             href="https://www.globalphasing.com/buster/manual/rhofit/manual/#keywords"
                             target="_blank">here</a>
@@ -1202,8 +1205,8 @@
                 </tr>
                 <tr class="custompar">
                     <th class=" top-options">Custom parameters</th>
-                    <td class=" top-options"><input class="selectbox" name="customligfit-ligfit"
-                            placeholder="default: None"></input>
+                    <td class="top-options">
+                        <input class="selectbox" id="customligfit-ligfit" placeholder="default: None"/>
                         See available parameters <a
                             href="https://www.phenix-online.org/documentation/reference/ligandfit.html#sample-command-line-inputs"
                             target="_blank">here</a>
@@ -1973,15 +1976,6 @@
                                             placeholder="default: None"></input>
                                     </td>
                                 </tr>
-                                {% comment %}
-                                <tr>
-                                    <th></th>
-                                    <td style="padding-top:20px">
-
-                                        <input class="btn btn-right" type="button" value="Run ligand fitting"> </input>
-                                    </td>
-                                </tr> {% endcomment %}
-
                             </tbody>
                         </table>
                     </div>
@@ -2259,6 +2253,9 @@
         document.getElementById("ligprocBtn").onsubmit = function()
         {
             /* Ligand fit options */
+            $("#customLigFit").val($("#customligfit-ligfit").val());
+            $("#customRhoFit").val($("#customligfit-rhofit").val());
+
             $("#hpcNodesLigfit").val(getHpcNodes());
             $("#cifMethodLigfit").val(getCIFmethod());
             $("#dtsFilterLigfit").val(getDtsFilters());

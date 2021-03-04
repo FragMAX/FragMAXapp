@@ -19,7 +19,8 @@ def datasets(request):
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid ligfit arguments {form.errors}")
 
-    worker_args = (proj, form.use_phenix_ligfit, form.use_rho_fit, form.datasets_filter, form.cif_method)
+    worker_args = (proj, form.use_phenix_ligfit, form.use_rho_fit, form.datasets_filter, form.cif_method,
+                   form.custom_ligfit, form.custom_rhofit)
 
     t1 = threading.Thread(target=auto_ligand_fit, args=worker_args)
     t1.daemon = True
@@ -43,7 +44,7 @@ def get_fragment_smiles(proj, dset):
     return fragID, frag.smiles
 
 
-def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
+def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfit, custom_rhofit):
     # Modules for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
@@ -81,14 +82,15 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
         if useRhoFit:
             if os.path.exists(rhofit_outdir):
                 rhofit_cmd += f"rm -rf {rhofit_outdir}\n"
-            rhofit_cmd += f"rhofit -l {ligCIF} -m {mtz_input} -p {pdb} -d {rhofit_outdir}\n"
+            rhofit_cmd += f"rhofit -l {ligCIF} -m {mtz_input} -p {pdb} -d {rhofit_outdir} {custom_rhofit}\n"
 
         if useLigFit:
             if os.path.exists(ligfit_outdir):
                 ligfit_cmd += f"rm -rf {ligfit_outdir}\n"
             ligfit_cmd += f"mkdir -p {ligfit_outdir}\n"
             ligfit_cmd += f"cd {ligfit_outdir} \n"
-            ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} fill=True clean_up=True \n"
+            ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} " \
+                          f"fill=True clean_up=True {custom_ligfit}\n"
 
         script_file_path = project_script(proj, f"autoligand_{sample}_{num}.sh")
         batch = hpc.new_batch_file(script_file_path)
