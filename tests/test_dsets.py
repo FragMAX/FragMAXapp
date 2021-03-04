@@ -1,7 +1,6 @@
 from unittest import TestCase
 from fragview.dsets import (
     parse_master_h5_path,
-    parse_dataset_name,
     DataSet,
     DataSetStatus,
 )
@@ -35,22 +34,6 @@ class TestParseMasterH5Path(TestCase):
             "Nsp10-361_4e_2_s11",
             "1",
         )
-
-
-class TestParseDatasetName(TestCase):
-    """
-    test parse_dataset_name() function
-    """
-
-    def _check(self, dataset, expected_sample, expected_run):
-        sample, run = parse_dataset_name(dataset)
-        self.assertEqual(sample, expected_sample)
-        self.assertEqual(run, expected_run)
-
-    def test_func(self):
-        self._check("Nsp10-VT00224_1", "Nsp10-VT00224", "1")
-        self._check("Nsp10-SBX17160_4", "Nsp10-SBX17160", "4")
-        self._check("Nsp10-361_5d_3_1", "Nsp10-361_5d_3", "1")
 
 
 class TestDataSet(TestCase):

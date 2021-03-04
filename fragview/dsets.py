@@ -154,12 +154,3 @@ def parse_master_h5_path(file_path):
     file_stem = Path(file_path).stem
     dataset, run, _ = file_stem.rsplit("_", 2)
     return dataset, run
-
-
-def parse_dataset_name(dset_name):
-    """
-    split full dataset name into sample name and run number
-
-    e.g. 'Nsp10-apo33_1' becomes 'Nsp10-apo33' and 1
-    """
-    return dset_name.rsplit("_", 1)

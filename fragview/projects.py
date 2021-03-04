@@ -4,6 +4,7 @@ from pathlib import Path
 from fragview.sites import SITE
 from .proposals import get_proposals
 
+
 UPDATE_STATUS_SCRIPT = "update_status.py"
 UPDATE_RESULTS_SCRIPT = "update_results.py"
 PANDDA_WORKER = "pandda_prepare_runs.py"
@@ -27,8 +28,17 @@ def shift_dir(proposal_number, shift):
     return path.join(proposal_dir(proposal_number), shift)
 
 
+def parse_dataset_name(dset_name):
+    """
+    split full dataset name into sample name and run number
+
+    e.g. 'Nsp10-apo33_1' becomes 'Nsp10-apo33' and 1
+    """
+    return dset_name.rsplit("_", 1)
+
+
 def dataset_xml_file(project, data_set):
-    set_name, _ = data_set.rsplit("_", 2)
+    set_name, _ = parse_dataset_name(data_set)
 
     return Path(project_process_protein_dir(project), set_name, f"{data_set}.xml")
 

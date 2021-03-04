@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import versions
 from fragview.forms import LigfitForm
-from fragview.projects import current_project, project_script, project_log_path
+from fragview.projects import current_project, project_script, project_log_path, parse_dataset_name
 from fragview.projects import project_fragment_cif, project_fragment_pdb
 from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
 from fragview.sites import SITE
@@ -28,20 +28,31 @@ def datasets(request):
     return render(request, "fragview/jobs_submitted.html")
 
 
+def get_fragment_smiles(proj, dset):
+    """
+    figure out fragment ID and fragment SMILES for a dataset
+    """
+    # cut out protein name from the sample name
+    sample = dset[len(proj.protein) + 1:]
+
+    fragID, _ = parse_dataset_name(sample)
+    frag = proj.library.get_fragment(fragID)
+
+    if frag is None:
+        return fragID, "none"
+
+    return fragID, frag.smiles
+
+
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod):
     # Modules for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
-    lib = proj.library
 
     hpc = SITE.get_hpc_runner()
 
     datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
     for num, (sample, pdb) in enumerate(get_ligfit_pdbs(proj, datasets)):
-        fragID = pdb.split("fragmax")[-1].split("/")[2].split("-")[-1].split("_")[0]
-        if lib.get_fragment(fragID) is not None:
-            smiles = lib.get_fragment(fragID).smiles
-        else:
-            smiles = "none"
+        fragID, smiles = get_fragment_smiles(proj, sample)
         clear_tmp_cmd = ""
         cif_out = pdb.replace("final.pdb", fragID)
         if cifMethod == "elbow":

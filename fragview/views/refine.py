@@ -8,7 +8,7 @@ from fragview import versions
 from fragview.views import crypt_shell
 from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
 from fragview.projects import current_project, project_script, project_process_protein_dir
-from fragview.projects import project_results_dir, project_log_path
+from fragview.projects import project_results_dir, project_log_path, parse_dataset_name
 from fragview.filters import get_refine_datasets
 from fragview.pipeline_commands import get_dimple_command, get_fspipeline_commands, get_buster_command
 from fragview.models import PDB
@@ -75,7 +75,7 @@ def run_structure_solving(
     hpc = SITE.get_hpc_runner()
 
     for dset in get_refine_datasets(proj, filters, useFSP, useDIMPLE, useBUSTER):
-        set_name, run = dset.rsplit("_", 2)
+        set_name, run = parse_dataset_name(dset)
 
         epoch = str(round(time.time()))
         slctd_sw = argsfit.replace("none", "")

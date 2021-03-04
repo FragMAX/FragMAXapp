@@ -87,3 +87,19 @@ class TestCurrentProject(test.TestCase):
         request = self._setup_request_mock([self.OTHER_PROPOSAL])
 
         self.assertIsNone(projects.current_project(request))
+
+
+class TestParseDatasetName(test.TestCase):
+    """
+    test parse_dataset_name() function
+    """
+
+    def _check(self, dataset, expected_sample, expected_run):
+        sample, run = projects.parse_dataset_name(dataset)
+        self.assertEqual(sample, expected_sample)
+        self.assertEqual(run, expected_run)
+
+    def test_func(self):
+        self._check("Nsp10-VT00224_1", "Nsp10-VT00224", "1")
+        self._check("Nsp10-SBX17160_4", "Nsp10-SBX17160", "4")
+        self._check("Nsp10-361_5d_3_1", "Nsp10-361_5d_3", "1")
