@@ -6,6 +6,7 @@ import asyncio
 import argparse
 from typing import List
 from asyncio import Event
+from asyncio.streams import StreamReader
 from contextlib import asynccontextmanager
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
 from jobs.jobsd.runner import JobFailedException
@@ -15,6 +16,8 @@ from jobs.jobsd.runners import get_runners
 import conf
 
 log = logging.getLogger(__name__)
+
+READ_CHUNK_SIZE = 1024
 
 
 class JobsThrottle:
@@ -183,8 +186,31 @@ async def handle_command(command, jobs_table: JobsTable):
         assert False, f"unexpected command {command.LABEL}"
 
 
+async def read_long_line(reader: StreamReader):
+    """
+    read input from stream reader until we find '\n'
+
+    We need this custom function, as the standard StreamReader.readline()
+    method have a limit on how long lines it can read.
+
+    We can hit that limit, when processing a large 'start_jobs' command.
+    """
+    line = b""
+
+    # read data in chunks, until we find '\n'
+    while True:
+        chunk = await reader.read(READ_CHUNK_SIZE)
+        line += chunk
+
+        if chunk[-1] == 10:
+            # '\n' found, we are done
+            break
+
+    return line
+
+
 async def client_connected(reader, writer, jobs_table: JobsTable):
-    line = await reader.readline()
+    line = await read_long_line(reader)
     command = deserialize_command(line)
     reply = await handle_command(command, jobs_table)
 
