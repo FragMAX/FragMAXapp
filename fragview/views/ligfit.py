@@ -32,8 +32,7 @@ def get_fragment_smiles(proj, dset):
     """
     figure out fragment ID and fragment SMILES for a dataset
     """
-    # cut out protein name from the sample name
-    sample = dset[len(proj.protein) + 1:]
+    _, sample = dset.rsplit("-", 1)
 
     fragID, _ = parse_dataset_name(sample)
     frag = proj.library.get_fragment(fragID)
