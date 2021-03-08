@@ -8,13 +8,6 @@ from fragview.sites import SITE
 from jobs import client
 
 
-def _hpc_user(logged_in_user):
-    if settings.HPC_USER is None:
-        return logged_in_user.username
-
-    return settings.HPC_USER
-
-
 def _ssh_on_frontend(command):
     """
     return a tuple of (stdout, stderr, exit_code)
