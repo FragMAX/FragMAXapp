@@ -3,11 +3,16 @@ import asyncio
 import asyncssh
 import logging
 from typing import Iterable
+from asyncio import Event
 from asyncio.subprocess import PIPE
 from contextlib import asynccontextmanager
+from jobs.jobsd.runner import Runner
 from jobs.jobsd.slurm_parser import parse_sbatch_reply, parse_sacct_reply
 
 log = logging.getLogger(__name__)
+
+# time since last usage, in seconds, before we drop the SSH connection
+SSH_CONNECTION_TIMEOUT = 50
 
 
 class SSHConnectionParams:
@@ -18,9 +23,6 @@ class SSHConnectionParams:
 
 
 class FrontEndConnection:
-    # time since last usage, in seconds, before we drop the SSH connection
-    CONNECTION_TIMEOUT = 42
-
     def __init__(self, ssh_params: SSHConnectionParams):
         self.ssh_params = ssh_params
         # reference counter for SSH connection
@@ -51,7 +53,7 @@ class FrontEndConnection:
     async def _disconnect_timeout(self):
         def time_to_sleep():
             now = time.monotonic()
-            time_to_sleep = (self.conn_last_usage + self.CONNECTION_TIMEOUT) - now
+            time_to_sleep = (self.conn_last_usage + SSH_CONNECTION_TIMEOUT) - now
 
             return time_to_sleep
 
@@ -61,7 +63,7 @@ class FrontEndConnection:
 
         async with self.ssh_conn_lock:
             log.info(
-                f"SSH connection unused for at least {self.CONNECTION_TIMEOUT}s, closing"
+                f"SSH connection unused for at least {SSH_CONNECTION_TIMEOUT}s, closing"
             )
             self.ssh_conn.close()
             await self.ssh_conn.wait_closed()
@@ -161,16 +163,73 @@ class SlurmClient:
         return parse_sacct_reply(result.stdout)
 
 
-class JobWatcher:
-    # job status polling interval, in seconds
-    POLL_INTERVALL = 10
+class PollTimer:
+    """
+    Variable poll timer.
 
+    Allows to wait different periods of time between polls,
+    to have a balance between fast results and not overloading
+    the SLURM front-end with commands.
+
+    The wait periods sequence start with short timeouts, and eventually
+    progresses to an longer timeouts. The last timeout will be re-used
+    until the sequence is restarted.
+
+    On new events, the sequence can be restarted, to provide quick
+    updates when there is some potentially user generated activity.
+    """
+
+    TIMEOUTS = [
+        10,
+        10,
+        10,
+        20,
+        30,
+        # set last poll timeout longer then ssh timeout,
+        # so that ssh connection can be closed, event when
+        # we have long running jobs
+        SSH_CONNECTION_TIMEOUT + 10,
+    ]
+
+    def __init__(self):
+        self._next_timeout = 0
+        self.restart_event = Event()
+
+    def _get_next_timeout(self):
+        if self._next_timeout < len(self.TIMEOUTS):
+            self._next_timeout += 1
+
+        return self.TIMEOUTS[self._next_timeout - 1]
+
+    def restart_sequence(self):
+        self._next_timeout = 0
+        self.restart_event.set()
+
+    async def wait(self):
+        """
+        wait until current wait period is elapsed of the sequence is restared
+        """
+        timeout = self._get_next_timeout()
+
+        try:
+            log.info(f"will wait {timeout}s until polling")
+            await asyncio.wait_for(self.restart_event.wait(), timeout)
+            # sequence was restarted, clear the event for next round
+            self.restart_event.clear()
+        except asyncio.exceptions.TimeoutError:
+            # the poll timeout elapsed
+            pass
+
+
+class JobWatcher:
     def __init__(self, slurm_client: SlurmClient):
         self.client = slurm_client
         self.watched_jobs = {}
         self.poller_running = False
+        self.poll_timer = PollTimer()
 
     def _start_watching(self):
+        self.poll_timer.restart_sequence()
         if self.poller_running:
             # already polling
             return
@@ -181,6 +240,8 @@ class JobWatcher:
     def _job_done(self, job_id):
         self.watched_jobs[job_id].set()
         del self.watched_jobs[job_id]
+
+        self.poll_timer.restart_sequence()
 
     async def _poll_jobs(self):
         def job_ids():
@@ -199,7 +260,7 @@ class JobWatcher:
                 if job_finished_status(status):
                     self._job_done(jid)
 
-            await asyncio.sleep(self.POLL_INTERVALL)
+            await self.poll_timer.wait()
 
         log.info("polling stopped, no more jobs to watch")
         self.poller_running = False
@@ -212,8 +273,12 @@ class JobWatcher:
 
         await job_event.wait()
 
+    def command_received(self):
+        log.info("restarting polling timeout sequence on command")
+        self.poll_timer.restart_sequence()
 
-class SlurmRunner:
+
+class SlurmRunner(Runner):
     def __init__(self, host, user, key_file):
         self.client = SlurmClient(SSHConnectionParams(host, user, key_file))
         self.job_watcher = JobWatcher(self.client)
@@ -235,3 +300,6 @@ class SlurmRunner:
         # TODO check if job have failed, and raise JobFailedException()
 
         log.info(f"'{program}' done")
+
+    def command_received(self):
+        self.job_watcher.command_received()

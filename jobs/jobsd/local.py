@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from asyncio.subprocess import PIPE
-from jobs.jobsd.errs import JobFailedException
+from jobs.jobsd.runner import JobFailedException, Runner
 
 log = logging.getLogger(__name__)
 
@@ -41,3 +41,11 @@ async def run_job(program, stdout_log, stderr_log):
         raise JobFailedException()
     finally:
         log.info(f"'{program}' done")
+
+
+class LocalRunner(Runner):
+    async def run_job(self, program, stdout_log, stderr_log):
+        await run_job(program, stdout_log, stderr_log)
+
+    def command_received(self):
+        pass  # NOP

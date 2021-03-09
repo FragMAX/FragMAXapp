@@ -1,24 +1,24 @@
-from typing import Callable, Dict
+from typing import Dict
 from fragview.sites import SITE
+from jobs.jobsd.runner import Runner
 
 
-def _local_runner():
-    from jobs.jobsd.local import run_job
+def _local_runner() -> Runner:
+    from jobs.jobsd.local import LocalRunner
 
-    return run_job
+    return LocalRunner()
 
 
-def _slurm_runner():
+def _slurm_runner() -> Runner:
     from jobs.jobsd.slurm import SlurmRunner
     from conf import SLURM_FRONT_END
 
-    slurm_runner = SlurmRunner(
+    return SlurmRunner(
         SLURM_FRONT_END["host"], SLURM_FRONT_END["user"], SLURM_FRONT_END["key_file"]
     )
-    return slurm_runner.run_job
 
 
-def _get_hpc_runner() -> Callable[[str, str, str], None]:
+def _get_hpc_runner() -> Runner:
     runner_name = SITE.HPC_JOBS_RUNNER
 
     if runner_name == "local":
@@ -28,5 +28,5 @@ def _get_hpc_runner() -> Callable[[str, str, str], None]:
         return _slurm_runner()
 
 
-def get_runners() -> Dict[str, Callable]:
+def get_runners() -> Dict[str, Runner]:
     return dict(local=_local_runner(), hpc=_get_hpc_runner())

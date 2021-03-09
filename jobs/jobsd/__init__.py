@@ -6,7 +6,7 @@ import asyncio
 import argparse
 from typing import List
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
-from jobs.jobsd.errs import JobFailedException
+from jobs.jobsd.runner import JobFailedException
 from jobs.jobsd.job_graphs import to_linked_job_nodes, get_root_jobs, JobNode
 from jobs.jobsd.jobids import JobIDs
 from jobs.jobsd.runners import get_runners
@@ -21,6 +21,10 @@ class JobsTable:
         self.jobs_nodes = set()
         self.job_tasks = {}
         self.job_runners = job_runners
+
+    def command_received(self):
+        for runner in self.job_runners.values():
+            runner.command_received()
 
     def add_pending_job(self, job_node: JobNode):
         def _expand_path_template(path, job_id):
@@ -42,7 +46,7 @@ class JobsTable:
         return [node.job for node in self.jobs_nodes]
 
     def _get_runner(self, job_node):
-        return self.job_runners[job_node.run_on]
+        return self.job_runners[job_node.run_on].run_job
 
     def start_job(self, job_node: JobNode):
         job = job_node.job
@@ -131,6 +135,8 @@ def cancel_jobs(command: CancelJobs, jobs_table: JobsTable):
 
 
 async def handle_command(command, jobs_table: JobsTable):
+    jobs_table.command_received()
+
     if command.LABEL == "get_jobs":
         return get_jobs(jobs_table)
     elif command.LABEL == "start_jobs":
