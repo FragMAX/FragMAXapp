@@ -12,7 +12,7 @@ services:
       - /etc/nslcd.conf:/etc/nslcd.conf
       - /mxn/home:/mxn/home
       - /mxn/groups/biomax:/mxn/groups/biomax
-      - /mxn/groups/ispybstorage/pyarch:/app/static/pyarch
+      - /data/staff/ispybstorage/pyarch/:/app/static/pyarch
       - /data/visitors/biomax:/data/visitors/biomax
       - fragmax:/volume
 
