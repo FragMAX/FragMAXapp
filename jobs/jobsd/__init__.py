@@ -10,7 +10,7 @@ from asyncio.streams import StreamReader
 from contextlib import asynccontextmanager
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
 from jobs.jobsd.runner import JobFailedException
-from jobs.jobsd.job_graphs import to_linked_job_nodes, get_root_jobs, JobNode
+from jobs.jobsd.job_graphs import get_job_nodes_trees, get_root_jobs, JobNode
 from jobs.jobsd.jobids import JobIDs
 from jobs.jobsd.runners import get_runners
 import conf
@@ -153,7 +153,7 @@ async def run_jobs_roots(roots, jobs_table):
 async def start_jobs(command: StartJobs, jobs_table):
     log.info(f"starting '{command.name}' jobs set")
 
-    job_nodes = to_linked_job_nodes(command.jobs)
+    job_nodes = get_job_nodes_trees(command.jobs)
     for job_node in job_nodes:
         jobs_table.add_pending_job(job_node)
 

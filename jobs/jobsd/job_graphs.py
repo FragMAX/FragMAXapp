@@ -7,7 +7,7 @@ from jobs.messages import Job
 
 
 class JobNode:
-    def __init__(self, job, run_on):
+    def __init__(self, job: Job, run_on: str):
         self.job = job
         self.run_on = run_on
         self.run_after = []
@@ -15,11 +15,8 @@ class JobNode:
     def set_run_after(self, run_after):
         self.run_after = run_after
 
-    def __repr__(self):
-        return f"JobNode(name='{self.job.name}')"
 
-
-def to_linked_job_nodes(jobs_list: List[dict]) -> Set[JobNode]:
+def get_job_nodes_trees(jobs_list: List[dict]) -> Set[JobNode]:
     """
     convert the flat list of jobs list, with ID references to a 'run_after' dependencies
     to a list of JobNode, with dependency linked to JobNode instances
