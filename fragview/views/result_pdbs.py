@@ -45,7 +45,7 @@ def ligand(request, dataset, process, refine, fitting):
     return download_http_response(proj, pdb_path)
 
 
-def pandda(request, dataset, method):
+def pandda_fitted(request, dataset, method):
     proj = current_project(request)
 
     modelled_structures_dir = Path(

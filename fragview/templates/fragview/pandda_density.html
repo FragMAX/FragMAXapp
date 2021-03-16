@@ -330,14 +330,14 @@
     V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
 
     V1.load_pdb_and_ccp4_maps(
-      "/pdbs/pandda/{{dataset}}/{{method}}",
+      "/pdbs/pandda/fitted/{{dataset}}/{{method}}",
       "/density_map/pandda/{{dataset}}/{{method}}/bdc",
       "/density_map/pandda/{{dataset}}/{{method}}/zmap");
 
     V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
 
     V2.load_pdb(
-      "/pdbs/pandda/{{dataset}}/{{method}}",
+      "/pdbs/pandda/fitted/{{dataset}}/{{method}}",
       null,
       function()
       {
