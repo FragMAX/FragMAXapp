@@ -22,11 +22,13 @@ async def log_output(stream, log_file):
             log.flush()
 
 
-async def run_job(program, stdout_log, stderr_log):
+async def run_job(program, arguments, stdout_log, stderr_log):
     try:
         log.info(f"'{program}' started")
 
-        proc = await asyncio.create_subprocess_exec(program, stdout=PIPE, stderr=PIPE)
+        proc = await asyncio.create_subprocess_exec(
+            program, *arguments, stdout=PIPE, stderr=PIPE
+        )
 
         await asyncio.gather(
             log_output(proc.stdout, stdout_log), log_output(proc.stderr, stderr_log)
@@ -44,8 +46,8 @@ async def run_job(program, stdout_log, stderr_log):
 
 
 class LocalRunner(Runner):
-    async def run_job(self, program, stdout_log, stderr_log):
-        await run_job(program, stdout_log, stderr_log)
+    async def run_job(self, program, arguments, stdout_log, stderr_log):
+        await run_job(program, arguments, stdout_log, stderr_log)
 
     def command_received(self):
         pass  # NOP

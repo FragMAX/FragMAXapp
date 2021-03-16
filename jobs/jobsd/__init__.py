@@ -90,7 +90,7 @@ class JobsTable:
 
         async with self.throttle.jobs_limit():
             job.mark_as_started()
-            await runner(job.program, job.stdout, job.stderr)
+            await runner(job.program, job.arguments, job.stdout, job.stderr)
 
     def start_job(self, job_node: JobNode):
         log.info(f"run job '{job_node.job.name}' on {job_node.run_on}")

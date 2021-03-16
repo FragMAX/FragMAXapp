@@ -36,19 +36,21 @@ class JobsSet:
     def add_job(
         self,
         batch_file: BatchFile,
+        arguments: List[str] = [],
         run_after: List[BatchFile] = [],
         run_on: Destination = Destination.HPC,
     ):
-        self._jobs.append((batch_file, run_after, run_on))
+        self._jobs.append((batch_file, arguments, run_after, run_on))
 
     def submit(self):
         job_ids = _assign_ids([job[0] for job in self._jobs])
 
         jobs_list = []
-        for job, run_after, run_on in self._jobs:
+        for job, arguments, run_after, run_on in self._jobs:
             job_dict = dict(
                 name=job._name,
                 program=job._filename,
+                arguments=arguments,
                 run_on=run_on.value,
                 stdout=job._stdout,
                 stderr=job._stderr,

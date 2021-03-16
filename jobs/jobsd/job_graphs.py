@@ -32,6 +32,7 @@ def get_job_nodes_trees(jobs_list: List[dict]) -> Set[JobNode]:
                     None,
                     job_desc["name"],
                     job_desc["program"],
+                    job_desc["arguments"],
                     job_desc["stdout"],
                     job_desc["stderr"],
                 ),

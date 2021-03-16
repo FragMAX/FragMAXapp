@@ -283,7 +283,12 @@ class SlurmRunner(Runner):
         self.client = SlurmClient(SSHConnectionParams(host, user, key_file))
         self.job_watcher = JobWatcher(self.client)
 
-    async def run_job(self, program, stdout_log, stderr_log):
+    async def run_job(self, program, arguments, stdout_log, stderr_log):
+        if arguments:
+            log.warning(
+                f"arguments not supported, ignoring specified args: {arguments}"
+            )
+
         log.info(f"submitting '{program}' command")
         job_id = None
         try:

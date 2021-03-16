@@ -47,6 +47,7 @@ class TestGetJobNodesTrees(TestCase):
                 id=f"{n}",
                 name=f"job{n}",
                 program=f"prog{n}",
+                arguments=[],
                 run_on="local",
                 stdout=f"stdout{n}",
                 stderr=f"stderr{n}",
@@ -102,7 +103,7 @@ class TestGetRootJobs(TestCase):
         self.jobs = []
         self.nodes = []
         for n in range(6):
-            job = Job(f"{n}", f"job{n}", f"prog{n}", f"stdout{n}", f"stderr{n}")
+            job = Job(f"{n}", f"job{n}", f"prog{n}", [], f"stdout{n}", f"stderr{n}")
             node = JobNode(job, run_on="local")
 
             self.jobs.append(job)
