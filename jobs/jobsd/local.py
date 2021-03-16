@@ -24,7 +24,7 @@ async def log_output(stream, log_file):
 
 async def run_job(program, arguments, stdout_log, stderr_log):
     try:
-        log.info(f"'{program}' started")
+        log.info(f"'{program} {arguments}' started")
 
         proc = await asyncio.create_subprocess_exec(
             program, *arguments, stdout=PIPE, stderr=PIPE

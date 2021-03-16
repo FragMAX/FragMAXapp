@@ -9,7 +9,8 @@ from fragview import versions
 from fragview.filters import get_proc_datasets
 from fragview.forms import ProcessForm
 from fragview.xsdata import XSDataCollection
-from fragview.views.utils import add_update_status_script_cmds, start_thread
+from fragview.views.utils import start_thread
+from fragview.views.update_jobs import add_update_job
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.pipeline_commands import get_xia_dials_commands, get_xia_xdsxscale_commands
@@ -154,12 +155,13 @@ def run_xdsapp(proj, filters, options):
         batch.add_commands(
             f"mkdir -p {outdir}/xdsapp",
             f"cd {outdir}/xdsapp",
-            get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images))
-
-        add_update_status_script_cmds(proj, sample, batch, softwares)
+            get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images)
+        )
 
         batch.save()
         jobs.add_job(batch)
+
+        add_update_job(jobs, hpc, proj, "xdsapp", dset, batch)
 
     jobs.submit()
 
@@ -213,10 +215,10 @@ def run_autoproc(proj, filters, options):
             get_autoproc_command(outdir, spg, unit_cell, customautoproc, friedel, h5master, num_images)
         )
 
-        add_update_status_script_cmds(proj, sample, batch, softwares)
-
         batch.save()
         jobs.add_job(batch)
+
+        add_update_job(jobs, hpc, proj, "autoproc", dset, batch)
 
     jobs.submit()
 
@@ -294,10 +296,10 @@ def run_xds(proj, filters, options):
             f"cd {outdir}/xdsxscale",
             *get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images))
 
-        add_update_status_script_cmds(proj, sample, batch, softwares)
-
         batch.save()
         jobs.add_job(batch)
+
+        add_update_job(jobs, hpc, proj, "xds", dset, batch)
 
     jobs.submit()
 
@@ -375,11 +377,12 @@ def run_dials(proj, filters, options):
         batch.add_commands(
             f"mkdir -p {outdir}/dials",
             f"cd {outdir}/dials",
-            *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images))
-
-        add_update_status_script_cmds(proj, sample, batch, softwares)
+            *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images)
+        )
 
         batch.save()
         jobs.add_job(batch)
+
+        add_update_job(jobs, hpc, proj, "dials", dset, batch)
 
     jobs.submit()

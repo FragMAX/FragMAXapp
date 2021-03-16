@@ -1,11 +1,57 @@
 import pandas
 import csv
 from os import path
+from typing import Dict
 from django.http import HttpResponse
 from django.shortcuts import render
 from fragview.projects import current_project, project_results_file
 from worker import resync_results
 from worker import results
+
+
+NUMERICAL_COLUMNS = [
+    "resolution",
+    "ISa",
+    "r_work",
+    "r_free",
+    "bonds",
+    "angles",
+    "a",
+    "b",
+    "c",
+    "alpha",
+    "beta",
+    "gamma",
+    "rhofitscore",
+    "ligfitscore",
+]
+
+
+def _load_results(results_file):
+    def _as_float(row: Dict, name: str):
+        """
+        convert specified cell into float value,
+        for cases when value is 'unknown' or not specified,
+        return None
+        """
+        val = row[name]
+        if val in {"unknown", ""}:
+            return None
+
+        return float(val)
+
+    results_data = []
+    with open(results_file, "r") as readFile:
+        for row in csv.DictReader(readFile):
+            # convert all numerical values to floats,
+            # so that the template can render them with
+            # desired number of decimals
+            for col_name in NUMERICAL_COLUMNS:
+                row[col_name] = _as_float(row, col_name)
+
+            results_data.append(row)
+
+    return results_data
 
 
 def show(request):
@@ -21,14 +67,11 @@ def show(request):
 
     if resync_active:
         # re-synchronization is progress, show 'wait for it' page
-        return render(request,
-                      "fragview/results_notready.html")
+        return render(request, "fragview/results_notready.html")
 
-    with open(results_file, "r") as readFile:
-        reader = csv.DictReader(readFile)
-        results_data = [row for row in reader]
-
-    return render(request, "fragview/results.html", {"results": results_data})
+    return render(
+        request, "fragview/results.html", {"results": _load_results(results_file)}
+    )
 
 
 def _start_resync_job(proj):

@@ -119,6 +119,10 @@ def project_process_dataset_dir(project, dataset) -> Path:
     return Path(project_process_protein_dir(project), sample, dataset)
 
 
+def project_process_tool_dir(project, dataset, tool) -> Path:
+    return Path(project_process_dataset_dir(project, dataset), tool)
+
+
 def project_results_file(project):
     return path.join(project_process_protein_dir(project), "results.csv")
 

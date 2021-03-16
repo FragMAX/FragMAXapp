@@ -4,13 +4,9 @@ from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import versions
 from fragview.views import crypt_shell
-from fragview.views.utils import (
-    add_update_status_script_cmds,
-    add_update_results_script_cmds,
-)
 from fragview.views.utils import start_thread
-from fragview.projects import current_project, project_script, project_log_path
 from fragview.projects import project_process_dataset_dir, project_results_dataset_dir
+from fragview.projects import current_project, project_script, project_log_path
 from fragview.filters import get_refine_datasets
 from fragview.pipeline_commands import (
     get_dimple_command,
@@ -20,7 +16,9 @@ from fragview.models import PDB
 from fragview.forms import RefineForm
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
+from fragview.views.update_jobs import add_update_job
 from jobs.client import JobsSet
+
 
 HPC_MODULES = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
@@ -110,11 +108,10 @@ def launch_refine_jobs(
                 "rm -rf $WORK_DIR",
             )
 
-            add_update_status_script_cmds(proj, dset, batch, HPC_MODULES)
-            add_update_results_script_cmds(proj, dset, batch, HPC_MODULES)
-
             batch.save()
             jobs.add_job(batch)
+
+            add_update_job(jobs, hpc, proj, refine_tool, dset, batch)
 
     jobs.submit()
 

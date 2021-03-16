@@ -1,6 +1,15 @@
+import csv
+from typing import Dict
+from enum import Enum
 from pathlib import Path, PosixPath
 from fragview.fileio import read_csv_lines
 from fragview.projects import project_data_collections_file, project_all_status_file
+
+
+class ToolStatus(Enum):
+    UNKNOWN = "unknown"
+    SUCCESS = "success"
+    FAILURE = "failure"
 
 
 class DataSet:
@@ -57,6 +66,8 @@ class DataSet:
 
 
 class DataSetStatus:
+    CSV_NAMES = dict(unknown="none", success="full", failure="partial")
+
     def __init__(
         self,
         auto_proc="unknown",
@@ -90,6 +101,41 @@ class DataSetStatus:
         self.pipedream_refine = pipedream_refine
         self.pipedream_ligand = pipedream_ligand
 
+    def csv_row(self):
+        vals = [
+            self.auto_proc,
+            self.xia2_dials,
+            self.edna_proc,
+            self.fastdp,
+            self.xdsapp,
+            self.xia2_xds,
+            self.dimple,
+            self.fspipeline,
+            self.buster,
+            self.rho_fit,
+            self.ligand_fit,
+            self.pipedream_proc,
+            self.pipedream_refine,
+            self.pipedream_ligand,
+        ]
+        return [self.CSV_NAMES[v] for v in vals]
+
+    def update(self, tool: str, status: ToolStatus):
+        if tool == "autoproc":
+            self.auto_proc = status.value
+        elif tool == "dials":
+            self.xia2_dials = status.value
+        elif tool == "edna":
+            self.edna_proc = status.value
+        elif tool == "xdsapp":
+            self.xdsapp = status.value
+        elif tool == "xds":
+            self.xia2_xds = status.value
+        elif tool == "dimple":
+            self.dimple = status.value
+        else:
+            raise ValueError(f"unknown tool: {tool}")
+
 
 def _status_from_string(stat):
     if stat == "full":
@@ -101,7 +147,7 @@ def _status_from_string(stat):
     return "unknown"
 
 
-def _load_datasets_status(proj):
+def _load_datasets_status(proj) -> Dict[str, DataSetStatus]:
     status = {}
 
     for line in read_csv_lines(project_all_status_file(proj)):
@@ -111,6 +157,30 @@ def _load_datasets_status(proj):
         status[name] = DataSetStatus(*proc_status)
 
     return status
+
+
+def _write_dataset_status(proj, all_status: Dict[str, DataSetStatus]):
+    with open(project_all_status_file(proj), "w") as f:
+        writer = csv.writer(f)
+
+        for dset, status in all_status.items():
+            writer.writerow([dset, *status.csv_row()])
+
+
+def update_dataset_status(proj, tool: str, dataset: str, status: ToolStatus):
+    """
+    NOTE: we assume the 'write allstatus.csv' lock is held
+    """
+    # load current dataset statuses
+    all_status = _load_datasets_status(proj)
+
+    # update status for specified dataset/tool combination
+    dataset_status = all_status.get(dataset, DataSetStatus())
+    dataset_status.update(tool, status)
+    all_status[dataset] = dataset_status
+
+    # rewrite dataset statuses file
+    _write_dataset_status(proj, all_status)
 
 
 def get_datasets(proj):

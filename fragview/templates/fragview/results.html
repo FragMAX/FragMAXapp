@@ -247,20 +247,34 @@
       </td>
       <td class="score {{item.dataset}}">{{item.usracr}}</td>
       <td>{{item.spg}}</td>
-      <td>{{item.resolution}}</td>
-      <td>{{item.ISa}}</td>
-      <td>{{item.r_work}}</td>
-      <td>{{item.r_free}}</td>
-      <td>{{item.bonds}}</td>
-      <td>{{item.angles}}</td>
-      <td>{{item.a}}</td>
-      <td>{{item.b}}</td>
-      <td>{{item.c}}</td>
-      <td>{{item.alpha}}</td>
-      <td>{{item.beta}}</td>
-      <td>{{item.gamma}}</td>
-      <td>{{item.rhofitscore}}</td>
-      <td>{{item.ligfitscore}}</td>
+      <td>{{item.resolution|floatformat:2}}</td>
+      <td>
+        {% if item.ISa %}
+          {{item.ISa|floatformat:2}}
+        {% else %}
+           unknown
+        {% endif %}
+      </td>
+      <td>{{item.r_work|floatformat:2}}</td>
+      <td>{{item.r_free|floatformat:2}}</td>
+      <td>{{item.bonds|floatformat:3}}</td>
+      <td>{{item.angles|floatformat:3}}</td>
+      <td>{{item.a|floatformat:3}}</td>
+      <td>{{item.b|floatformat:3}}</td>
+      <td>{{item.c|floatformat:3}}</td>
+      <td>{{item.alpha|floatformat:2}}</td>
+      <td>{{item.beta|floatformat:2}}</td>
+      <td>{{item.gamma|floatformat:2}}</td>
+      <td>
+        {% if item.rhofitscore %}
+          {{item.rhofitscore|floatformat:3}}
+        {% endif %}
+      </td>
+      <td>
+        {% if item.ligfitscore %}
+          {{item.ligfitscore|floatformat:3}}
+        {% endif %}
+      </td>
       <td>
         {% if "Apo" not in item.dataset %}
         <a href="/fragment/{{ item.dataset }}/image" target="_blank">
