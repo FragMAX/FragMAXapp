@@ -381,9 +381,6 @@ def pandda_analyse(request):
 
         ligand = dataset.split("-")[-1].split("_")[0]
 
-        processedDir = path.join(datasets_dir, dataset)
-
-        pdb = sorted(glob(f"{processedDir}/*pandda-input*"))[-1]
         with open(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"), "r") as inp:
             inspect_events = inp.readlines()
 
@@ -405,25 +402,7 @@ def pandda_analyse(request):
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
 
-            pdb = pdb.replace(base_static, "")
-            map1 = (
-                proj.data_path()
-                + "/fragmax/results/pandda/"
-                + proj.protein
-                + "/"
-                + method
-                + "/pandda/processed_datasets/"
-                + dataset
-                + "/"
-                + dataset
-                + "-z_map.native.ccp4"
-            )
-            map1 = map1.replace(base_static, "")
-
-            map2 = glob(f"{datasets_dir}/{dataset}/*BDC*ccp4")[0]
-            map2 = map2.replace(base_static, "")
-            average_map = map2.split("event")[0] + "ground-state-average-map.native.ccp4"
-            name = map2.split("/")[-2]
+            is_apo = False
         else:
             with open(path.join(pandda_res_dir, "analyses", "all_datasets_info.csv"), "r") as inp:
                 inspect_events = inp.readlines()
@@ -443,11 +422,7 @@ def pandda_analyse(request):
             if len(panddaInput.split(";")) == 3:
                 event = k[1]
 
-            pdb = pdb.replace(base_static, "")
-            map1 = ""
-            map2 = ""
-            average_map = ""
-            name = "Apo"
+            is_apo = True
 
         summarypath = (
             proj.data_path()
@@ -462,7 +437,6 @@ def pandda_analyse(request):
             + ".html"
         )
         summarypath = summarypath.replace(base_static, "")
-        mtzFile = pdb.replace(".pdb", ".mtz")
 
         _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
         centroids = find_site_centroids(_sites)
@@ -482,6 +456,7 @@ def pandda_analyse(request):
                 else:
                     prevstr = ";".join(lines[n - 1][:-1])
                     nextstr = ";".join(lines[n + 1][:-1])
+
         return render(
             request,
             "fragview/pandda_densityA.html",
@@ -494,17 +469,12 @@ def pandda_analyse(request):
                 "resolution": resolution,
                 "spg": spg,
                 "dataset": dataset,
-                "pdb": pdb,
-                "mtz": mtzFile,
-                "2fofc": map2,
-                "fofc": map1,
                 "ligand": ligand,
                 "center": center,
                 "centroids": centroids,
                 "bdc": bdc,
                 "summary": summarypath,
-                "average_map": average_map,
-                "name": name,
+                "is_apo": is_apo,
                 "library": proj.library,
                 "prevstr": prevstr,
                 "nextstr": nextstr,

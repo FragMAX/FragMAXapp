@@ -110,3 +110,12 @@ def pandda_average(request, dataset, method):
     )
 
     return download_http_response(proj, zmap_path)
+
+
+def pandda_input(request, dataset, method):
+    proj = current_project(request)
+
+    processed_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
+    mtz_path = next(processed_dir.glob("*pandda-input.mtz"))
+
+    return download_http_response(proj, mtz_path)

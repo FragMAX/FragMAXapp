@@ -71,6 +71,7 @@ urlpatterns = [
     path('pdbs/final/<dataset>/<process>/<refine>', result_pdbs.final),
     path('pdbs/ligand/<dataset>/<process>/<refine>/<fitting>', result_pdbs.ligand),
     path('pdbs/pandda/fitted/<dataset>/<method>', result_pdbs.pandda_fitted),
+    path('pdbs/pandda/input/<dataset>/<method>', result_pdbs.pandda_input),
 
     path('data_analysis/', analysis.processing_form, name='data_analysis'),
 
@@ -94,6 +95,7 @@ urlpatterns = [
     path('density_map/pandda/<dataset>/<method>/zmap', eldensity.pandda_consensus_zmap),
     path('density_map/pandda/<dataset>/<method>/bdc', eldensity.pandda_bdc),
     path('density_map/pandda/<dataset>/<method>/average', eldensity.pandda_average),
+    path('density_map/pandda/<dataset>/<method>/input', eldensity.pandda_input),
 
     # MTZs, note: must be listed after 'density_map/pandda' URLs
     path('density_map/<dataset>/<process>/<refine>/<type>', eldensity.map, name="density_map"),

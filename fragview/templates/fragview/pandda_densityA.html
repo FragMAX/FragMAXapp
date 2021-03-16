@@ -199,7 +199,7 @@
           <td>{{resolution}} Å
           </td>
         </tr>
-        {% if name != "Apo" %}
+        {% if not is_apo %}
         <tr>
           <th>Rwork
           </th>
@@ -219,7 +219,7 @@
           <td>{{spg}}
           </td>
         </tr>
-        {% if name != "Apo" %}
+        {% if not is_apo %}
 
         <tr>
           <th>1-BDC
@@ -319,7 +319,7 @@
       <div>
         <h5 style="text-align: center;">{{ligand}}</h5>
       </div>
-      {% if "Apo" not in ligand %}
+      {% if not is_apo %}
       <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
       {% endif %}
     </div>
@@ -337,12 +337,16 @@
         view. Press H for help.</header>
     </div>
   </div>
-  {% if name != "Apo" %}
-  <div id="viewer1" class="viewer-dual"><b>Event map<br></b></div>
-  <div id="viewer2" class="viewer-dual"><b>Average map<br></b></div>
+
+  {% if is_apo %}
+  <div id="viewer1" class="viewer-single">
+    <b>Dataset used to create Ground State Model<br></b>
+  </div>
   {% else %}
-  <div id="viewer1" class="viewer-single"><b>Dataset used to create Ground State Model<br></b></div>
+    <div id="viewer1" class="viewer-dual"><b>Event map<br></b></div>
+    <div id="viewer2" class="viewer-dual"><b>Average map<br></b></div>
   {% endif %}
+
   <header id="hud"></header>
   <footer id="help"></footer>
 
@@ -351,35 +355,52 @@
   <div id="inset"></div>
 
   <script>
-
     V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
 
+    {% if is_apo %}
 
+    V1.load_pdb("/pdbs/pandda/input/{{dataset}}/{{method}}");
 
-    {% if name != "Apo" %}
-    V1.load_pdb_and_ccp4_maps("/static/{{pdb}}",
-      "/static/{{2fofc}}",
-      "/static/{{fofc}}");
+    GemmiMtz().then(
+      function (Module)
+      {
+        UM.load_maps_from_mtz(Module, V1, "/density_map/pandda/{{dataset}}/{{method}}/input");
+      });
+
+    {% else %}
+
+    V1.load_pdb_and_ccp4_maps(
+      "/pdbs/pandda/input/{{dataset}}/{{method}}",
+      "/density_map/pandda/{{dataset}}/{{method}}/bdc",
+      "/density_map/pandda/{{dataset}}/{{method}}/zmap");
 
     V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
 
-    V2.load_pdb("/static/{{pdb}}", null, function () {
-      V2.recenter({{ center }}, null, 25);
-        });
-    V2.load_ccp4_maps("/static/{{average_map}}");
+    V2.load_pdb(
+      "/pdbs/pandda/input/{{dataset}}/{{method}}",
+      null,
+      function ()
+      {
+        V2.recenter({{ center }}, null, 25);
+      });
 
+    V2.load_ccp4_maps("/density_map/pandda/{{dataset}}/{{method}}/average");
     V1.recenter({{ center }}, null, 25)
 
-    {% else %}
-    V1.load_pdb("/static/{{pdb}}");
-    GemmiMtz().then(function (Module) {
-      UM.load_maps_from_mtz(Module, V1, "/static/{{mtz}}");
-    });
     {% endif %}
 
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);
-    {% if name != "Apo" %}
+
+    {% if is_apo %}
+
+    var centroid = {{ centroids }};
+    var centroidL = centroid.length
+    var sites = centroid;
+    var site_idxs = range(1, centroidL);
+
+    {% else %}
+
     var ligcenter = [{{ center }}]
     var centroid = {{ centroids }};
     var centroidL = centroid.length
@@ -396,12 +417,9 @@
         if (charCode == 88) centerligand();
       });
     });
-    {% else %}
-    var centroid = {{ centroids }};
-    var centroidL = centroid.length
-    var sites = centroid;
-    var site_idxs = range(1, centroidL);
+
     {% endif %}
+
     var index = 0;
     var numsites = sites.length;
 

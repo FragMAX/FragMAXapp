@@ -59,3 +59,12 @@ def pandda_fitted(request, dataset, method):
     pdb_path = max(modelled_structures_dir.glob("*fitted*.pdb"))
 
     return download_http_response(proj, pdb_path)
+
+
+def pandda_input(request, dataset, method):
+    proj = current_project(request)
+
+    processed_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
+    pdb_path = next(processed_dir.glob("*pandda-input.pdb"))
+
+    return download_http_response(proj, pdb_path)
