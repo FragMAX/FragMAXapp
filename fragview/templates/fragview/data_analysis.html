@@ -169,28 +169,6 @@
 </style>
 
 <div>
-    <div style="position:absolute; right: 50px">
-        <h5>Parallel Jobs</h5>
-        <div>per data processing method</div>
-        <div class="radio" id="nodes">
-            <label>
-                <input class="with-gap" id="1node" name="node_number" type="radio" value="1">
-                <span class="item-label" for="1node">1</span>
-            </label>
-            <label>
-                <input checked class="with-gap" id="3node" name="node_number" type="radio" value="3">
-                <span class="item-label" for="3node">3</span>
-            </label>
-            <label>
-                <input class="with-gap" id="6node" name="node_number" type="radio" value="6">
-                <span class="item-label" for="6node">6</span>
-            </label>
-            <label>
-                <input class="with-gap" id="9node" name="node_number" type="radio" value="9">
-                <span class="item-label" for="9node">9</span>
-            </label>
-        </div>
-    </div>
     <h5 style="padding-left:310px;">{{project.protein}} Data Analysis</h5>
 
     <h6 style="padding-left:330px;">
@@ -264,7 +242,6 @@
 
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterProc" />
-                        <input type="hidden" name="hpcNodes" id="hpcNodesProc" />
                         <input type="hidden" name="friedelLaw" id="friedelLawProc" />
                         <input type="hidden" name="customXds" id="customXds" />
                         <input type="hidden" name="customAutoProc" id="customAutoProc" />
@@ -369,7 +346,6 @@
 
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterRefine" />
-                        <input type="hidden" name="hpcNodes" id="hpcNodesRefine" />
                         <input type="hidden" name="customDimple" id="customDimpleRefine"/>
                         <input type="hidden" name="customBuster" id="customBusterRefine"/>
                         <input type="hidden" name="customFspipe" id="customFspipeRefine"/>
@@ -476,7 +452,6 @@
 
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterLigfit" />
-                        <input type="hidden" name="hpcNodes" id="hpcNodesLigfit" />
                         <input type="hidden" name="cifMethod" id="cifMethodLigfit" />
                         <input type="hidden" name="customLigFit" id="customLigFit"/>
                         <input type="hidden" name="customRhoFit" id="customRhoFit"/>
@@ -2096,10 +2071,6 @@
         return getCheckedBoxes("checkSel");
     }
 
-    function getHpcNodes() {
-        return document.querySelector('input[name="node_number"]:checked').value;
-    }
-
     function getCIFmethod() {
         return document.querySelector('input[name="library_method"]:checked').value;
     }
@@ -2227,7 +2198,6 @@
             $("#customXdsApp").val($("#customdataproc-xdsapp").val());
             $("#customAutoProc").val($("#customdataproc-autoproc").val());
 
-            $("#hpcNodesProc").val(getHpcNodes());
             $("#dtsFilterProc").val(getDtsFilters());
 
             const friedel = document.getElementsByName("friedel")[0].value;
@@ -2243,7 +2213,6 @@
             $("#customBusterRefine").val($("#customrefine-buster").val());
             $("#customFspipeRefine").val($("#customrefine-fspipe").val());
 
-            $("#hpcNodesRefine").val(getHpcNodes());
             $("#dtsFilterRefine").val(getDtsFilters());
         }
     }
@@ -2256,7 +2225,6 @@
             $("#customLigFit").val($("#customligfit-ligfit").val());
             $("#customRhoFit").val($("#customligfit-rhofit").val());
 
-            $("#hpcNodesLigfit").val(getHpcNodes());
             $("#cifMethodLigfit").val(getCIFmethod());
             $("#dtsFilterLigfit").val(getDtsFilters());
         }

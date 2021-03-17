@@ -69,8 +69,9 @@ class JobsFormTesterMixin:
 
     def _request(self, args):
         return self.ReqsFactory.post(
-            "/",  # we don't really care about the URL here
-            {**dict(hpcNodes=42), **args},
+            # we don't really care about the URL here
+            "/",
+            args,
         )
 
 
@@ -82,7 +83,6 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
 
         valid = form.is_valid()
         self.assertTrue(valid)
-        self.assertEqual(form.hpc_nodes, 42)
         self.assertTrue(form.use_rho_fit)
         self.assertFalse(form.use_phenix_ligfit)
 

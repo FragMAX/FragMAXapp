@@ -26,7 +26,6 @@ def datasets(request):
         return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
     filters = form.datasets_filter
-    nodes = form.hpc_nodes
 
     options = {
         "spacegroup": form.space_group,
@@ -39,55 +38,26 @@ def datasets(request):
     }
 
     if form.use_xdsapp:
-        t = threading.Thread(target=run_xdsapp, args=(proj, nodes, filters, options))
+        t = threading.Thread(target=run_xdsapp, args=(proj, filters, options))
         t.daemon = True
         t.start()
 
     if form.use_dials:
-        t = threading.Thread(target=run_dials, args=(proj, nodes, filters, options))
+        t = threading.Thread(target=run_dials, args=(proj, filters, options))
         t.daemon = True
         t.start()
 
     if form.use_autoproc:
-        t = threading.Thread(target=run_autoproc, args=(proj, nodes, filters, options))
+        t = threading.Thread(target=run_autoproc, args=(proj, filters, options))
         t.daemon = True
         t.start()
 
     if form.use_xdsxscale:
-        t = threading.Thread(target=run_xds, args=(proj, nodes, filters, options))
+        t = threading.Thread(target=run_xds, args=(proj, filters, options))
         t.daemon = True
         t.start()
 
     return render(request, "fragview/jobs_submitted.html")
-
-
-def _as_buckets(elms, num_buckets):
-    num_elms = len(elms)
-
-    if num_buckets > num_elms:
-        num_buckets = num_elms
-
-    # number of elements in small bucket
-    small = num_elms // num_buckets
-
-    # number of elements in large bucket
-    large = small + 1
-
-    # bucket number where we switch from large buckets to small
-    cutoff = num_elms % num_buckets
-
-    start = 0
-
-    for n in range(num_buckets):
-        if n < cutoff:
-            step = large
-        else:
-            step = small
-
-        end = start + step
-        yield elms[start:end]
-
-        start = end
 
 
 def _get_dataset_params(proj, dset):
@@ -104,7 +74,7 @@ def _get_dataset_params(proj, dset):
     return outdir, master_image, sample, xsdata.numberOfImages
 
 
-def run_xdsapp(proj, nodes, filters, options):
+def run_xdsapp(proj, filters, options):
     # XDSAPP cmd options
     # -h, --help
     # show this help message and exit
@@ -160,8 +130,7 @@ def run_xdsapp(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
-    for num, bucket in enumerate(buckets):
+    for num, dset in enumerate(get_proc_datasets(proj, filters)):
         batch = hpc.new_batch_file("XDSAPP",
                                    project_script(proj, f"xdsapp_fragmax_part{num}.sh"),
                                    project_log_path(proj, f"multi_xdsapp_{epoch}_%j_out.txt"),
@@ -173,31 +142,30 @@ def run_xdsapp(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for dset in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
+        outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
-            os.makedirs(outdir, mode=0o760, exist_ok=True)
-            os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
+        os.makedirs(outdir, mode=0o760, exist_ok=True)
+        os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
 
-            if options["spacegroup"] != "":
-                cellpar = " ".join(options["cellparam"].split(","))
-                spacegroup = options["spacegroup"]
-                spg = f"--spacegroup='{spacegroup} {cellpar}'"
-            else:
-                spg = ""
+        if options["spacegroup"] != "":
+            cellpar = " ".join(options["cellparam"].split(","))
+            spacegroup = options["spacegroup"]
+            spg = f"--spacegroup='{spacegroup} {cellpar}'"
+        else:
+            spg = ""
 
-            customxdsapp = options["customxdsapp"]
-            if options["friedel_law"] == "true":
-                friedel = "--fried=True"
-            else:
-                friedel = "--fried=False"
+        customxdsapp = options["customxdsapp"]
+        if options["friedel_law"] == "true":
+            friedel = "--fried=True"
+        else:
+            friedel = "--fried=False"
 
-            batch.add_commands(
-                f"mkdir -p {outdir}/xdsapp",
-                f"cd {outdir}/xdsapp",
-                get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images))
+        batch.add_commands(
+            f"mkdir -p {outdir}/xdsapp",
+            f"cd {outdir}/xdsapp",
+            get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images))
 
-            add_update_status_script_cmds(proj, sample, batch, softwares)
+        add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
         jobs.add_job(batch)
@@ -205,7 +173,7 @@ def run_xdsapp(proj, nodes, filters, options):
     jobs.submit()
 
 
-def run_autoproc(proj, nodes, filters, options):
+def run_autoproc(proj, filters, options):
     # Modules list for HPC env
     softwares = ["gopresto", versions.CCP4_MOD, versions.AUTOPROC_MOD, versions.DURIN_MOD]
 
@@ -213,8 +181,7 @@ def run_autoproc(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
-    for num, bucket in enumerate(buckets):
+    for num, dset in enumerate(get_proc_datasets(proj, filters)):
         batch = hpc.new_batch_file("autoPROC",
                                    project_script(proj, f"autoproc_fragmax_part{num}.sh"),
                                    project_log_path(proj, f"multi_autoproc_{epoch}_%j_out.txt"),
@@ -226,37 +193,36 @@ def run_autoproc(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for dset in bucket:
-            outdir, h5master, sample, num_images = _get_dataset_params(proj, dset)
+        outdir, h5master, sample, num_images = _get_dataset_params(proj, dset)
 
-            os.makedirs(outdir, mode=0o760, exist_ok=True)
+        os.makedirs(outdir, mode=0o760, exist_ok=True)
 
-            if options["spacegroup"] != "":
-                spacegroup = options["spacegroup"]
-                spg = f"symm='{spacegroup}'"
-            else:
-                spg = ""
-            if options["cellparam"] != "":
-                cellpar = " ".join(options["cellparam"].split(","))
-                cellpar = cellpar.replace("(", "").replace(")", "")
-                unit_cell = f"cell='{cellpar}'"
-            else:
-                unit_cell = ""
+        if options["spacegroup"] != "":
+            spacegroup = options["spacegroup"]
+            spg = f"symm='{spacegroup}'"
+        else:
+            spg = ""
+        if options["cellparam"] != "":
+            cellpar = " ".join(options["cellparam"].split(","))
+            cellpar = cellpar.replace("(", "").replace(")", "")
+            unit_cell = f"cell='{cellpar}'"
+        else:
+            unit_cell = ""
 
-            customautoproc = options["customautoproc"]
-            if options["friedel_law"] == "true":
-                friedel = "-ANO"
-            else:
-                friedel = "-noANO"
+        customautoproc = options["customautoproc"]
+        if options["friedel_law"] == "true":
+            friedel = "-ANO"
+        else:
+            friedel = "-noANO"
 
-            batch.add_commands(
-                f"rm -rf {outdir}/autoproc",
-                f"mkdir -p {outdir}",
-                f"cd {outdir}",
-                get_autoproc_command(outdir, spg, unit_cell, customautoproc, friedel, h5master, num_images)
-            )
+        batch.add_commands(
+            f"rm -rf {outdir}/autoproc",
+            f"mkdir -p {outdir}",
+            f"cd {outdir}",
+            get_autoproc_command(outdir, spg, unit_cell, customautoproc, friedel, h5master, num_images)
+        )
 
-            add_update_status_script_cmds(proj, sample, batch, softwares)
+        add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
         jobs.add_job(batch)
@@ -264,7 +230,7 @@ def run_autoproc(proj, nodes, filters, options):
     jobs.submit()
 
 
-def run_xds(proj, nodes, filters, options):
+def run_xds(proj, filters, options):
     # atom=X
     # Tell xia2 to separate anomalous pairs i.e. I(+) ≠ I(−) in scaling.
     # pipeline=3d
@@ -298,10 +264,9 @@ def run_xds(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
-    for num, bucket in enumerate(buckets):
+    for num, dset in enumerate(get_proc_datasets(proj, filters)):
         batch = hpc.new_batch_file("XIA2/XDS",
-                                   project_script(proj, f"xdsxscale_fragmax_part{num}.sh"),
+                                   project_script(proj, f"xds_fragmax_part{num}.sh"),
                                    project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_out.txt"),
                                    project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_err.txt"))
 
@@ -311,35 +276,34 @@ def run_xds(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for dset in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
+        outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
-            os.makedirs(outdir, mode=0o760, exist_ok=True)
-            os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
+        os.makedirs(outdir, mode=0o760, exist_ok=True)
+        os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
 
-            if options["spacegroup"] != "":
-                spacegroup = options["spacegroup"]
-                spg = f"space_group={spacegroup}"
-            else:
-                spg = ""
-            if options["cellparam"] != "":
-                cellpar = ",".join(options["cellparam"].split(","))
-                unit_cell = f"unit_cell={cellpar}"
-            else:
-                unit_cell = ""
-            customxds = options["customxds"]
+        if options["spacegroup"] != "":
+            spacegroup = options["spacegroup"]
+            spg = f"space_group={spacegroup}"
+        else:
+            spg = ""
+        if options["cellparam"] != "":
+            cellpar = ",".join(options["cellparam"].split(","))
+            unit_cell = f"unit_cell={cellpar}"
+        else:
+            unit_cell = ""
+        customxds = options["customxds"]
 
-            if options["friedel_law"] == "true":
-                friedel = "atom=X"
-            else:
-                friedel = ""
+        if options["friedel_law"] == "true":
+            friedel = "atom=X"
+        else:
+            friedel = ""
 
-            batch.add_commands(
-                f"mkdir -p {outdir}/xdsxscale",
-                f"cd {outdir}/xdsxscale",
-                *get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images))
+        batch.add_commands(
+            f"mkdir -p {outdir}/xdsxscale",
+            f"cd {outdir}/xdsxscale",
+            *get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images))
 
-            add_update_status_script_cmds(proj, sample, batch, softwares)
+        add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
         jobs.add_job(batch)
@@ -347,7 +311,7 @@ def run_xds(proj, nodes, filters, options):
     jobs.submit()
 
 
-def run_dials(proj, nodes, filters, options):
+def run_dials(proj, filters, options):
     # atom=X
     # Tell xia2 to separate anomalous pairs i.e. I(+) ≠ I(−) in scaling.
     # pipeline=3d
@@ -381,8 +345,7 @@ def run_dials(proj, nodes, filters, options):
     hpc = SITE.get_hpc_runner()
     epoch = str(round(time.time()))
 
-    buckets = _as_buckets(list(get_proc_datasets(proj, filters)), nodes)
-    for num, bucket in enumerate(buckets):
+    for num, dset in enumerate(get_proc_datasets(proj, filters)):
         batch = hpc.new_batch_file(
             "DIALS",
             project_script(proj, f"dials_fragmax_part{num}.sh"),
@@ -395,36 +358,35 @@ def run_dials(proj, nodes, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        for dset in bucket:
-            outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
+        outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
-            os.makedirs(outdir, mode=0o760, exist_ok=True)
-            os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
+        os.makedirs(outdir, mode=0o760, exist_ok=True)
+        os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
 
-            if options["spacegroup"] != "":
-                spacegroup = options["spacegroup"]
-                spg = f"space_group={spacegroup}"
-            else:
-                spg = ""
-            if options["cellparam"] != "":
-                cellpar = ",".join(options["cellparam"].split(","))
-                cellpar = cellpar.replace("(", "").replace(")", "")
-                unit_cell = f"unit_cell={cellpar}"
-            else:
-                unit_cell = ""
-            customdials = options["customdials"]
+        if options["spacegroup"] != "":
+            spacegroup = options["spacegroup"]
+            spg = f"space_group={spacegroup}"
+        else:
+            spg = ""
+        if options["cellparam"] != "":
+            cellpar = ",".join(options["cellparam"].split(","))
+            cellpar = cellpar.replace("(", "").replace(")", "")
+            unit_cell = f"unit_cell={cellpar}"
+        else:
+            unit_cell = ""
+        customdials = options["customdials"]
 
-            if options["friedel_law"] == "true":
-                friedel = "atom=X"
-            else:
-                friedel = ""
+        if options["friedel_law"] == "true":
+            friedel = "atom=X"
+        else:
+            friedel = ""
 
-            batch.add_commands(
-                f"mkdir -p {outdir}/dials",
-                f"cd {outdir}/dials",
-                *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images))
+        batch.add_commands(
+            f"mkdir -p {outdir}/dials",
+            f"cd {outdir}/dials",
+            *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images))
 
-            add_update_status_script_cmds(proj, sample, batch, softwares)
+        add_update_status_script_cmds(proj, sample, batch, softwares)
 
         batch.save()
         jobs.add_job(batch)

@@ -9,7 +9,6 @@ from fragview.sites.plugin import ProjectLayout
 
 class _ProcJobForm(forms.Form):
     datasetsFilter = forms.CharField(required=False)
-    hpcNodes = forms.IntegerField()
     cifMethod = forms.CharField(required=False)
 
     def _get_field(self, name):
@@ -20,10 +19,6 @@ class _ProcJobForm(forms.Form):
     @property
     def datasets_filter(self):
         return self._get_field("datasetsFilter")
-
-    @property
-    def hpc_nodes(self):
-        return self._get_field("hpcNodes")
 
     @property
     def cif_method(self):
