@@ -82,16 +82,6 @@ def run_structure_solving(
         epoch = str(round(time.time()))
         slctd_sw = argsfit.replace("none", "")
 
-        batch = hpc.new_batch_file(
-            f"refine_{set_name}",
-            project_script(proj, f"proc2res_{dset}.sh"),
-            project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
-            project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt")
-        )
-        batch.set_options(time=Duration(hours=12), nodes=1, cpus_per_task=2, mem_per_cpu=DataSize(gigabyte=5))
-
-        batch.add_commands(crypt_shell.crypt_cmd(proj))
-
         edna = find_edna(
             proj, set_name, run, aimless, spacegroup, argsfit, userPDB, custom_fspipe, custom_buster,
             custom_dimple
@@ -122,7 +112,17 @@ def run_structure_solving(
             custom_dimple
         )
 
-        for part_cmd in [edna, fastdp, xdsapp, xds, dials, autoproc]:
+        for num, part_cmd in enumerate([edna, fastdp, xdsapp, xds, dials, autoproc]):
+            batch = hpc.new_batch_file(
+                f"refine_{set_name}",
+                project_script(proj, f"proc2res_{dset}_{num}.sh"),
+                project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_out.txt"),
+                project_log_path(proj, f"{dset}_{slctd_sw}_{epoch}_%j_err.txt")
+            )
+            batch.set_options(time=Duration(hours=12), nodes=1, cpus_per_task=2, mem_per_cpu=DataSize(gigabyte=5))
+
+            batch.add_commands(crypt_shell.crypt_cmd(proj))
+
             if part_cmd is None:
                 # skip the tools, where no result was found
                 continue
@@ -141,11 +141,11 @@ def run_structure_solving(
                 "rm -rf $WORK_DIR"
             )
 
-        add_update_status_script_cmds(proj, dset, batch, softwares)
-        add_update_results_script_cmds(proj, dset, batch, softwares)
+            add_update_status_script_cmds(proj, dset, batch, softwares)
+            add_update_results_script_cmds(proj, dset, batch, softwares)
 
-        batch.save()
-        jobs.add_job(batch)
+            batch.save()
+            jobs.add_job(batch)
 
     jobs.submit()
 
