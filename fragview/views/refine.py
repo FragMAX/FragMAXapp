@@ -1,5 +1,4 @@
 import time
-import threading
 from os import path
 from glob import glob
 from django.shortcuts import render
@@ -7,6 +6,7 @@ from django.http import HttpResponseBadRequest
 from fragview import versions
 from fragview.views import crypt_shell
 from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
+from fragview.views.utils import start_thread
 from fragview.projects import current_project, project_script, project_process_protein_dir
 from fragview.projects import project_results_dir, project_log_path, parse_dataset_name
 from fragview.filters import get_refine_datasets
@@ -27,7 +27,8 @@ def datasets(request):
 
     pdbmodel = PDB.get(form.pdb_model)
 
-    worker_args = (
+    start_thread(
+        run_structure_solving,
         proj,
         form.use_dimple,
         form.use_fspipeline,
@@ -40,10 +41,6 @@ def datasets(request):
         form.custom_fspipe,
         form.run_aimless,
     )
-
-    t1 = threading.Thread(target=run_structure_solving, args=worker_args)
-    t1.daemon = True
-    t1.start()
 
     return render(request, "fragview/jobs_submitted.html")
 

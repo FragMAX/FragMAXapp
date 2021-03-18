@@ -1,11 +1,20 @@
+from threading import Thread
 from django.http import HttpResponse
-from fragview.projects import project_update_status_script, get_update_results_command, parse_dataset_name
+from fragview.projects import (
+    project_update_status_script,
+    get_update_results_command,
+    parse_dataset_name,
+)
 from fragview.fileio import read_proj_file
+
+
+def start_thread(func, *func_args):
+    Thread(target=func, args=func_args, daemon=True).start()
 
 
 def scrsplit(a, n):
     k, m = divmod(len(a), n)
-    lst = (a[i * k + min(i, m): (i + 1) * k + min(i + 1, m)] for i in range(n))
+    lst = (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))
     return [x for x in lst if x]
 
 

@@ -1,4 +1,3 @@
-import threading
 import os
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
@@ -10,6 +9,7 @@ from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration
 from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
+from fragview.views.utils import start_thread
 from jobs.client import JobsSet
 
 
@@ -20,12 +20,16 @@ def datasets(request):
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid ligfit arguments {form.errors}")
 
-    worker_args = (proj, form.use_phenix_ligfit, form.use_rho_fit, form.datasets_filter, form.cif_method,
-                   form.custom_ligfit, form.custom_rhofit)
-
-    t1 = threading.Thread(target=auto_ligand_fit, args=worker_args)
-    t1.daemon = True
-    t1.start()
+    start_thread(
+        auto_ligand_fit,
+        proj,
+        form.use_phenix_ligfit,
+        form.use_rho_fit,
+        form.datasets_filter,
+        form.cif_method,
+        form.custom_ligfit,
+        form.custom_rhofit,
+    )
 
     return render(request, "fragview/jobs_submitted.html")
 

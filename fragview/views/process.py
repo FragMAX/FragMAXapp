@@ -1,6 +1,5 @@
 import os
 import time
-import threading
 from os import path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
@@ -10,7 +9,7 @@ from fragview import versions
 from fragview.filters import get_proc_datasets
 from fragview.forms import ProcessForm
 from fragview.xsdata import XSDataCollection
-from fragview.views.utils import add_update_status_script_cmds
+from fragview.views.utils import add_update_status_script_cmds, start_thread
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.pipeline_commands import get_xia_dials_commands, get_xia_xdsxscale_commands
@@ -38,24 +37,16 @@ def datasets(request):
     }
 
     if form.use_xdsapp:
-        t = threading.Thread(target=run_xdsapp, args=(proj, filters, options))
-        t.daemon = True
-        t.start()
+        start_thread(run_xdsapp, proj, filters, options)
 
     if form.use_dials:
-        t = threading.Thread(target=run_dials, args=(proj, filters, options))
-        t.daemon = True
-        t.start()
+        start_thread(run_dials, proj, filters, options)
 
     if form.use_autoproc:
-        t = threading.Thread(target=run_autoproc, args=(proj, filters, options))
-        t.daemon = True
-        t.start()
+        start_thread(run_autoproc, proj, filters, options)
 
     if form.use_xdsxscale:
-        t = threading.Thread(target=run_xds, args=(proj, filters, options))
-        t.daemon = True
-        t.start()
+        start_thread(run_xds, proj, filters, options)
 
     return render(request, "fragview/jobs_submitted.html")
 
