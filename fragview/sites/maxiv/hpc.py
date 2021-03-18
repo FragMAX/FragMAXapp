@@ -39,7 +39,7 @@ def _ssh_on_frontend(command):
 class BatchFile(plugin.BatchFile):
     def __init__(self, name, filename, stdout, stderr):
         super().__init__(name, filename, stdout, stderr)
-        self._add_option(f"--job-name={name}")
+        self._add_option(f"--job-name='{name}'")
 
     def _add_option(self, option_string):
         self.add_line(f"#SBATCH {option_string}")

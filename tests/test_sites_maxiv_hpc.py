@@ -6,7 +6,7 @@ from fragview.sites.maxiv import SitePlugin
 
 
 EXPECTED_BATCH = b"""#!/bin/bash
-#SBATCH --job-name=test
+#SBATCH --job-name='test'
 #SBATCH --time=02:00:00
 #SBATCH --exclusive
 #SBATCH --nodes=4
@@ -77,7 +77,7 @@ class TestBatchTimeOption(TestCase):
     test 'time' batch option
     """
 
-    SBATCH_HEADER = "#!/bin/bash\n#SBATCH --job-name=test\n"
+    SBATCH_HEADER = "#!/bin/bash\n#SBATCH --job-name='test'\n"
 
     def setUp(self):
         self.batch = (
