@@ -21,10 +21,16 @@ def acquire(lock_id):
         time.sleep(POLL_TIMEOUT)
 
     # got lock, do the work
-    yield
-
-    # work done, release lock
-    lock.release()
+    try:
+        #
+        # wrap yield inside try-finally block,
+        # so that we release the lock even in the
+        # case lock user code have raised an exception
+        #
+        yield
+    finally:
+        # work done, release lock
+        lock.release()
 
 
 def is_acquired(lock_id):
