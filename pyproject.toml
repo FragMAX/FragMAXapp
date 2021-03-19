@@ -43,7 +43,6 @@ exclude = '''
   tests/test_fraglib.py |
   tests/test_fileio.py |
   tests/test_auth_ispyb.py |
-  fragview/views/refine.py |
   fragview/views/dataset_info.py |
   tests/test_views_fragment.py |
   tests/test_projects.py |

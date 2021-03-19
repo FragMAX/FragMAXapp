@@ -157,36 +157,15 @@ class TestGetRefineDatasets(_FiltersTester):
         """
         test the 'ALL' filter
         """
-        dsets = get_refine_datasets(self.proj, "ALL", True, True, True)
+        dsets = get_refine_datasets(self.proj, "ALL", None)
 
         self.assertListEqual(DATASETS, dsets)
-
-    def test_new_all_tools(self):
-        """
-        test 'NEW' filter, with all refine tools selected
-        """
-        dsets = get_refine_datasets(self.proj, "NEW", True, True, True)
-
-        self.assertListEqual(
-            [
-                "PrtK-Apo55_1",
-                "PrtK-Apo2_1",
-                "PrtK-Apo5_1",
-                "PrtK-JBS-G8a_1",
-                "PrtK-JBS-C1a_1",
-                "PrtK-JBS-H8a_1",
-                "PrtK-JBS-B7a_1",
-                "PrtK-JBS-H4a_2",
-                "PrtK-JBS-B8a_1",
-            ],
-            list(dsets),
-        )
 
     def test_new_fspipeline(self):
         """
         test 'NEW' filter, with fspipeline selected
         """
-        dsets = get_refine_datasets(self.proj, "NEW", True, False, False)
+        dsets = get_refine_datasets(self.proj, "NEW", "fspipeline")
 
         self.assertListEqual(["PrtK-JBS-H8a_1", "PrtK-JBS-B7a_1"], list(dsets))
 
@@ -194,38 +173,15 @@ class TestGetRefineDatasets(_FiltersTester):
         """
         test 'NEW' filter, with dimple selected
         """
-        dsets = get_refine_datasets(self.proj, "NEW", False, True, False)
+        dsets = get_refine_datasets(self.proj, "NEW", "dimple")
 
         self.assertListEqual(["PrtK-JBS-G8a_1", "PrtK-JBS-B8a_1"], list(dsets))
-
-    def test_new_buster(self):
-        """
-        test 'NEW' filter, with buster selected
-        """
-        dsets = get_refine_datasets(self.proj, "NEW", False, False, True)
-
-        # from pprint import pprint
-        # pprint(list(dsets))
-
-        self.assertListEqual(
-            [
-                "PrtK-Apo55_1",
-                "PrtK-Apo2_1",
-                "PrtK-Apo5_1",
-                "PrtK-JBS-G8a_1",
-                "PrtK-JBS-C1a_1",
-                "PrtK-JBS-H4a_2",
-            ],
-            list(dsets),
-        )
 
     def test_selected(self):
         """
         test the filter where datasets are explicitly specified
         """
-        dsets = get_refine_datasets(
-            self.proj, "PrtK-Apo9_1,PrtK-JBS-G8a_1", True, True, True
-        )
+        dsets = get_refine_datasets(self.proj, "PrtK-Apo9_1,PrtK-JBS-G8a_1", "dimple")
 
         self.assertListEqual(["PrtK-Apo9_1", "PrtK-JBS-G8a_1"], list(dsets))
 

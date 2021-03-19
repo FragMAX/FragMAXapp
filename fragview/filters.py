@@ -56,7 +56,7 @@ def get_proc_datasets(proj, filter):
     return _selected_datasets()
 
 
-def get_refine_datasets(proj, filter, use_fspipeline, use_dimple, use_buster):
+def get_refine_datasets(proj, filter, refine_tool):
     """
     perform datasets filtering for 'structure refinement' jobs
 
@@ -68,29 +68,12 @@ def get_refine_datasets(proj, filter, use_fspipeline, use_dimple, use_buster):
 
     otherwise the filter is expected to be a comma separated list of dataset names
 
-    use_fspipeline, use_dimple and use_buster flags are used with 'NEW' filter, and
-    specify the tools for which the processing status will be checked
+    'refine_tool' argument is used with 'NEW' filter and is used to
+    specify the tool for which the processing status will be checked
     """
 
     def _new_datasets():
-        def _get_tools():
-            # at least one tool must be used
-            assert use_fspipeline or use_dimple or use_buster
-
-            tools = []
-
-            if use_fspipeline:
-                tools.append("fspipeline")
-
-            if use_dimple:
-                tools.append("dimple")
-
-            if use_buster:
-                tools.append("buster")
-
-            return tools
-
-        return _dsets_with_tool_status(proj, _get_tools(), "unknown")
+        return _dsets_with_tool_status(proj, [refine_tool], "unknown")
 
     def _selected_datasets():
         for dset in filter.split(","):

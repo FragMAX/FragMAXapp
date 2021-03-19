@@ -76,6 +76,10 @@ def project_results_dir(project):
     return path.join(project_fragmax_dir(project), "results")
 
 
+def project_results_dataset_dir(project, dataset) -> Path:
+    return Path(project_results_dir(project), dataset)
+
+
 def project_models_dir(project):
     return path.join(project_fragmax_dir(project), "models")
 
@@ -108,6 +112,11 @@ def project_model_file(project, model_file):
 
 def project_process_protein_dir(project):
     return path.join(project_process_dir(project), project.protein)
+
+
+def project_process_dataset_dir(project, dataset) -> Path:
+    sample, _ = parse_dataset_name(dataset)
+    return Path(project_process_protein_dir(project), sample, dataset)
 
 
 def project_results_file(project):
