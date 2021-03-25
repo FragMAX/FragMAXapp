@@ -459,22 +459,7 @@ def inspect(request):
                     },
                 )
         else:
-            return render(
-                request,
-                "fragview/pandda.html",
-                {
-                    "proc_methods": proc_methods,
-                    "xdsapp": 0,
-                    "autoproc": 0,
-                    "dials": 0,
-                    "edna": 0,
-                    "fastdp": 0,
-                    "xdsxscale": 0,
-                    "dimple": 0,
-                    "fspipeline": 0,
-                    "buster": 0,
-                },
-            )
+            return HttpResponseNotFound(f"file '{inspect_file}' not found")
 
 
 def pandda_events(proj, filters):
