@@ -56,18 +56,6 @@ def show(request, images, prefix, run):
         vals["report"] = ednareport.relative_to(curp)
         return _logs(edna_dir), vals
 
-    def _fastdp_logs():
-        fastdp_dir = path.join(dataset_dir, "fastdp")
-
-        fastdpreport = Path(fastdp_dir, f"ap_{prefix}_run{run}_noanom_fast_dp.log")
-        if not fastdpreport.is_file():
-            return [], None
-
-        vals = parse_log_process(path.join(fastdp_dir, f"ap_{prefix}_run{run}_noanom_aimless.log"))
-        vals["tool"] = "fastdp"
-        vals["report"] = fastdpreport.relative_to(curp)
-        return _logs(fastdp_dir), vals
-
     def _xdsapp_logs():
         def _report_file():
             #
@@ -175,10 +163,6 @@ def show(request, images, prefix, run):
     if proc_stats is not None:
         data_proc_stats.append(proc_stats)
 
-    fastdpLogs, proc_stats = _fastdp_logs()
-    if proc_stats is not None:
-        data_proc_stats.append(proc_stats)
-
     #
     # Logs for refinement methods
     #
@@ -259,7 +243,6 @@ def show(request, images, prefix, run):
             "totalExposure": totalExposure,
             "edgeResolution": edgeResolution,
             "dialsreport": dialsreport,
-            "fastdpLogs": fastdpLogs,
             "ednaLogs": ednaLogs,
             "autoprocLogs": autoprocLogs,
             "pipedreamLogs": pipedreamLogs,
@@ -408,7 +391,7 @@ def parse_log_process(pplog):
                 if "ISa (" in line:
                     ISa = log[n + 1].split()[-1]
 
-        if "edna" in pplog or "fastdp" in pplog:
+        if "edna" in pplog:
             for line in log:
                 if "Space group:" in line:
                     spg = "".join(line.split()[2:])

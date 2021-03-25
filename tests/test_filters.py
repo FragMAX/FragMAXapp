@@ -80,8 +80,8 @@ def _create_pdbs(proj):
 
     # dataset #0 (PrtK-Apo14_1)
     apo14_res_dir = Path(res_dir, DATASETS[0])
-    _touch(Path(apo14_res_dir, "fastdp", "buster", "final.pdb"))
-    _touch(Path(apo14_res_dir, "fastdp", "dimple", "final.pdb"))
+    _touch(Path(apo14_res_dir, "dials", "buster", "final.pdb"))
+    _touch(Path(apo14_res_dir, "dials", "dimple", "final.pdb"))
     _touch(Path(apo14_res_dir, "xdsapp", "dimple", "final.pdb"))
 
     # dataset #3 (PrtK-JBS-F3a_1)
@@ -272,8 +272,8 @@ class TestGetLigfitPdbs(_FiltersTester):
         self.assertSetEqual(
             relative_res,
             {
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/fastdp/buster/final.pdb"),
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/fastdp/dimple/final.pdb"),
+                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/buster/final.pdb"),
+                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/dimple/final.pdb"),
                 ("PrtK-Apo14_1", "PrtK-Apo14_1/xdsapp/dimple/final.pdb"),
                 ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/autoproc/buster/final.pdb"),
                 ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/dials/dimple/final.pdb"),

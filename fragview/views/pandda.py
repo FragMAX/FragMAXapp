@@ -57,12 +57,11 @@ def inspect(request):
     filterform = request.GET.get("filterForm")
     if filterform is not None:
         if ";" in filterform:
-            AP, DI, FD, ED, XD, XA, BU, DP, FS = filterform.split(";")
+            AP, DI, ED, XD, XA, BU, DP, FS = filterform.split(";")
             xdsapp = 1 if "true" in XA else 0
             autoproc = 1 if "true" in AP else 0
             dials = 1 if "true" in DI else 0
             edna = 1 if "true" in ED else 0
-            fastdp = 1 if "true" in FD else 0
             xdsxscale = 1 if "true" in XD else 0
             dimple = 1 if "true" in DP else 0
             fspipeline = 1 if "true" in FS else 0
@@ -70,7 +69,6 @@ def inspect(request):
             filters = list()
             filters.append("autoproc") if AP == "true" else ""
             filters.append("dials") if DI == "true" else ""
-            filters.append("fastdp") if FD == "true" else ""
             filters.append("EDNA_proc") if ED == "true" else ""
             filters.append("xdsapp") if XA == "true" else ""
             filters.append("xdsxscale") if XD == "true" else ""
@@ -83,7 +81,6 @@ def inspect(request):
             autoproc = 1 if "autoproc" in flat_filters else 0
             dials = 1 if "dials" in flat_filters else 0
             edna = 1 if "edna" in flat_filters else 0
-            fastdp = 1 if "fastdp" in flat_filters else 0
             xdsxscale = 1 if "xdsxscale" in flat_filters else 0
             dimple = 1 if "dimple" in flat_filters else 0
             fspipeline = 1 if "fspipeline" in flat_filters else 0
@@ -95,7 +92,6 @@ def inspect(request):
         autoproc = 1 if "autoproc" in flat_filters else 0
         dials = 1 if "dials" in flat_filters else 0
         edna = 1 if "edna" in flat_filters else 0
-        fastdp = 1 if "fastdp" in flat_filters else 0
         xdsxscale = 1 if "xdsxscale" in flat_filters else 0
         dimple = 1 if "dimple" in flat_filters else 0
         fspipeline = 1 if "fspipeline" in flat_filters else 0
@@ -110,7 +106,6 @@ def inspect(request):
                 AP, DI, FD, ED, XD, XA, BU, DP, FS = method.split(";")
                 filters.append("autoproc") if AP == "true" else ""
                 filters.append("dials") if DI == "true" else ""
-                filters.append("fastdp") if FD == "true" else ""
                 filters.append("EDNA_proc") if ED == "true" else ""
                 filters.append("xdsapp") if XA == "true" else ""
                 filters.append("xdsxscale") if XD == "true" else ""
@@ -394,7 +389,6 @@ def inspect(request):
                     "autoproc": autoproc,
                     "dials": dials,
                     "edna": edna,
-                    "fastdp": fastdp,
                     "xdsxscale": xdsxscale,
                     "dimple": dimple,
                     "fspipeline": fspipeline,
@@ -435,7 +429,6 @@ def inspect(request):
                 autoproc = 1 if "autoproc" in flat_filters else 0
                 dials = 1 if "dials" in flat_filters else 0
                 edna = 1 if "edna" in flat_filters else 0
-                fastdp = 1 if "fastdp" in flat_filters else 0
                 xdsxscale = 1 if "xdsxscale" in flat_filters else 0
                 dimple = 1 if "dimple" in flat_filters else 0
                 fspipeline = 1 if "fspipeline" in flat_filters else 0
@@ -451,7 +444,6 @@ def inspect(request):
                         "autoproc": autoproc,
                         "dials": dials,
                         "edna": edna,
-                        "fastdp": fastdp,
                         "xdsxscale": xdsxscale,
                         "dimple": dimple,
                         "fspipeline": fspipeline,

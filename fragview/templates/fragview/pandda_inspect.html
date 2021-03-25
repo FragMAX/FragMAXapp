@@ -119,10 +119,6 @@
           <input id="useED" name="useED" type="checkbox" class="filled-in dt-checkboxes" value="EDNA_proc" onchange="updateCheck(this)">
           <span for="useED">EDNA_proc</span>
       </label>
-      <label>
-          <input id="useFD" name="useFD" type="checkbox" class="filled-in dt-checkboxes" value="fastdp" onchange="updateCheck(this)">
-          <span for="useFD">fastdp</span>
-      </label>
     </div>
 
     <div class="checkbox" style="font-size:20px" id="refmethod">
@@ -162,7 +158,6 @@ function GetSelectedTextValue(dropdownDataset) {
 function updateCheck() {
   var AP=String(document.getElementById("useAP").checked)
   var DI=String(document.getElementById("useDI").checked)
-  var FD=String(document.getElementById("useFD").checked)
   var ED=String(document.getElementById("useED").checked)
   var XD=String(document.getElementById("useXD").checked)
   var XA=String(document.getElementById("useXA").checked)
@@ -170,7 +165,7 @@ function updateCheck() {
   var DP=String(document.getElementById("useDP").checked)
   var FS=String(document.getElementById("useFS").checked)
 
-  var filters=AP+";"+DI+";"+FD+";"+ED+";"+XD+";"+XA+";"+BU+";"+DP+";"+FS       
+  var filters=AP+";"+DI+";"+ED+";"+XD+";"+XA+";"+BU+";"+DP+";"+FS
   
   document.getElementsByName("filterForm")[0].value = filters
 }
@@ -178,7 +173,6 @@ function updateCheck() {
 
 document.getElementById("useAP").checked={{autoproc}}
 document.getElementById("useDI").checked={{dials}}
-document.getElementById("useFD").checked={{fastdp}}
 document.getElementById("useED").checked={{edna}}
 document.getElementById("useXD").checked={{xdsxscale}}
 document.getElementById("useXA").checked={{xdsapp}}

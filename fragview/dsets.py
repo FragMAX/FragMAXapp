@@ -62,7 +62,7 @@ class DataSetStatus:
         auto_proc="unknown",
         xia2_dials="unknown",
         edna_proc="unknown",
-        fastdp="unknown",
+        fastdp="unknown",  # NOTE: unused
         xdsapp="unknown",
         xia2_xds="unknown",
         dimple="unknown",

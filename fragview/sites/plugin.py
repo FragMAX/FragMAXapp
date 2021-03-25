@@ -79,7 +79,6 @@ class Pipeline:
     AUTO_PROC = "auto_proc"
     XIA2_DIALS = "xia2_dials"
     EDNA_PROC = "edna_proc"
-    FASTDP = "fastdp"
     XDSAPP = "xdsapp"
     XIA2_XDS = "xia2_xds"
     DIMPLE = "dimple"

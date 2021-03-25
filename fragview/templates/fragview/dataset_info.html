@@ -805,9 +805,6 @@
                 {% if "edna_proc" in pipelines %}
                     <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
                 {% endif %}
-                {% if "fastdp" in pipelines %}
-                    <button class="tablinks" onclick="openMethod(event, 'fastdp')">FastDP</button>
-                {% endif %}
                 {% if "xia2_dials" in pipelines %}
                     <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
                 {% endif %}
@@ -836,14 +833,6 @@
             <div id="EDNA" class="card tabcontent ">
                 <div class="card-title logtab">EDNA_proc Logs</div>
                 {% for logName, logPath in ednaLogs %}
-                <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                </div>
-                {% endfor %}
-            </div>
-            <div id="fastdp" class="card tabcontent ">
-                <div class="card-title logtab">FastDP Logs</div>
-                {% for logName, logPath in fastdpLogs %}
                 <div>
                     <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
                 </div>
@@ -962,10 +951,6 @@
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-dimple-v')">EDNA_proc</button>
                         {% endif %}
-                        {% if "fastdp" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'fastdp-dimple-v')">FastDP</button>
-                        {% endif %}
                         {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-dimple-v')">XIA2/DIALS</button>
@@ -994,17 +979,6 @@
                     <div id="enda-dimple-v" class="tabcontent-vertical">
                         {% for proc_m, logs in dimple_logs.items %}
                         {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="fastdp-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
                         <div>
                             <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
@@ -1060,10 +1034,6 @@
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-buster-v')">EDNA_proc</button>
                         {% endif %}
-                        {% if "fastdp" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'fastdp-buster-v')">FastDP</button>
-                        {% endif %}
                         {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-buster-v')">XIA2/DIALS</button>
@@ -1092,17 +1062,6 @@
                     <div id="enda-buster-v" class="tabcontent-vertical">
                         {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="fastdp-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
-                        {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
                         <div>
                             <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
@@ -1158,10 +1117,6 @@
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-fspipeline-v')">EDNA_proc</button>
                         {% endif %}
-                        {% if "fastdp" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'fastdp-fspipeline-v')">FastDP</button>
-                        {% endif %}
                         {% if "xia2_dials" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xia2dials-fspipeline-v')">XIA2/DIALS</button>
@@ -1190,17 +1145,6 @@
                     <div id="enda-fspipeline-v" class="tabcontent-vertical">
                         {% for proc_m, logs in fspipeline_logs.items %}
                         {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="fastdp-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "fastdp" %}
                         {% for log, path in logs.items %}
                         <div>
                             <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>

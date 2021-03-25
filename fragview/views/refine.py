@@ -157,7 +157,6 @@ def _find_autoproc_input_mtzs(dset_dir):
 def _find_input_mtzs(proj, dataset):
     mtz_map = [
         ("edna", "*_noanom_aimless.mtz"),
-        ("fastdp", "*.mtz"),
         ("xdsapp", "*F.mtz"),
         ("dials", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),
         ("xdsxscale", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),

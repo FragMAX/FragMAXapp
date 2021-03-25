@@ -62,7 +62,6 @@ class SitePlugin(plugin.SitePlugin):
             Pipeline.AUTO_PROC,
             Pipeline.XIA2_DIALS,
             Pipeline.EDNA_PROC,
-            Pipeline.FASTDP,
             Pipeline.XDSAPP,
             Pipeline.XIA2_XDS,
             Pipeline.DIMPLE,
