@@ -17,7 +17,7 @@ from fragview.status import set_imported_autoproc_status
 from fragview.projects import project_xml_files, project_process_protein_dir
 from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
-from fragview.projects import UPDATE_STATUS_SCRIPT, PANDDA_WORKER, UPDATE_RESULTS_SCRIPT
+from fragview.projects import PANDDA_WORKER
 from fragview.projects import shifts_xml_files, project_scripts_dir
 
 logger = get_task_logger(__name__)
@@ -126,7 +126,7 @@ def _copy_script_files(proj, script_files):
 
 
 def _copy_scripts(proj):
-    script_files = [UPDATE_STATUS_SCRIPT, PANDDA_WORKER, UPDATE_RESULTS_SCRIPT]
+    script_files = [PANDDA_WORKER]
     if proj.encrypted:
         script_files += ["crypt_files.py", "crypt_files.sh"]
 

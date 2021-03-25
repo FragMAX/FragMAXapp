@@ -5,8 +5,6 @@ from fragview.sites import SITE
 from .proposals import get_proposals
 
 
-UPDATE_STATUS_SCRIPT = "update_status.py"
-UPDATE_RESULTS_SCRIPT = "update_results.py"
 PANDDA_WORKER = "pandda_prepare_runs.py"
 
 
@@ -153,35 +151,6 @@ def project_syslog_path(project, log_file):
     return path.join(project_logs_dir(project), "system", log_file)
 
 
-def project_update_status_script(project):
-    return project_script(project, UPDATE_STATUS_SCRIPT)
-
-
-def project_update_results_script(project):
-    return project_script(project, UPDATE_RESULTS_SCRIPT)
-
-
-def project_update_status_script_cmds(project, sample, softwares):
-    dataset, run = sample.split("_")
-    return (
-        "module purge\n"
-        + "module load gopresto GCCcore/8.3.0 Python/3.7.4\n"
-        + f"python3 {project_update_status_script(project)} {project.data_path()} {dataset} {run}\n"
-        + "module purge\n"
-        + f"module load gopresto {softwares}\n"
-    )
-
-
-def project_update_results_script_cmds(project, sample, softwares):
-    return (
-        "module purge\n"
-        + "module load gopresto GCCcore/8.3.0 Python/3.7.4\n"
-        + f"python3 {project_update_results_script(project)} {sample} {project.proposal}/{project.shift}\n"
-        + "module purge\n"
-        + f"module load gopresto {softwares}\n"
-    )
-
-
 def shifts_raw_master_h5_files(project, shifts):
     """
     generate a list of .h5 image files from the 'raw' directory
@@ -237,7 +206,3 @@ def project_model_path(project, pdb_file):
 
 def project_static_url(project):
     return path.join("/", "static", "biomax", project.proposal, project.shift)
-
-
-def get_update_results_command(project, dataset, run):
-    return f"python3 {project_update_results_script(project)} {project.data_path()} {dataset} {run}"

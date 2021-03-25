@@ -1,10 +1,5 @@
 from threading import Thread
 from django.http import HttpResponse
-from fragview.projects import (
-    project_update_status_script,
-    get_update_results_command,
-    parse_dataset_name,
-)
 from fragview.fileio import read_proj_file
 
 
@@ -32,25 +27,3 @@ def png_http_response(proj, file_path):
 
 def download_http_response(proj, file_path):
     return binary_http_response(proj, file_path, "application/octet-stream")
-
-
-def add_update_status_script_cmds(project, sample, batch, modules):
-    dataset, run = parse_dataset_name(sample)
-
-    batch.load_python_env()
-    batch.add_command(
-        f"python3 {project_update_status_script(project)} {project.data_path()} {dataset} {run}"
-    )
-
-    batch.purge_modules()
-    batch.load_modules(modules)
-
-
-def add_update_results_script_cmds(project, sample, batch, modules):
-    dataset, run = parse_dataset_name(sample)
-
-    batch.load_python_env()
-    batch.add_command(get_update_results_command(project, dataset, run))
-
-    batch.purge_modules()
-    batch.load_modules(modules)

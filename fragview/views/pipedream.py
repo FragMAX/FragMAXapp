@@ -7,7 +7,6 @@ from fragview import hpc, versions
 from fragview.projects import current_project, project_raw_master_h5_files, project_process_protein_dir
 from fragview.projects import project_model_path
 from fragview.projects import project_script
-from fragview.projects import project_update_results_script_cmds, project_update_status_script_cmds
 
 from .utils import scrsplit
 
@@ -234,8 +233,6 @@ def submit(request):
             singlePipedreamOut += "module purge\n"
             singlePipedreamOut += f"module load gopresto {softwares}\n\n"
             singlePipedreamOut += ppd + "\n"
-            singlePipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
-            singlePipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
 
             script = project_script(proj, f"pipedream_{_data}.sh")
             with open(script, "w") as ppdsh:
@@ -394,8 +391,6 @@ def submit(request):
             allPipedreamOut += "module purge\n"
             allPipedreamOut += f"module load gopresto {softwares}\n"
             allPipedreamOut += ppd + "\n"
-            allPipedreamOut += project_update_status_script_cmds(proj, _data, softwares) + "\n"
-            allPipedreamOut += project_update_results_script_cmds(proj, _data, softwares) + "\n\n"
 
             scriptList.append(allPipedreamOut)
         chunkScripts = [header + "".join(x) for x in list(scrsplit(scriptList, nodes))]
