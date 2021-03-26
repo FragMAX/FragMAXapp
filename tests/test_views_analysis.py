@@ -5,7 +5,7 @@ from tests.utils import ViewTesterMixin
 from fragview.models import PDB
 from fragview.sites.plugin import Pipeline, LigandTool
 
-PIPELINES = {Pipeline.BUSTER, Pipeline.XIA2_XDS}
+PIPELINES = {Pipeline.DIMPLE, Pipeline.XIA2_XDS}
 DEF_LIGAND_TOOL = LigandTool.ACEDRG
 LIGAND_TOOLS = {LigandTool.ACEDRG, LigandTool.ELBOW}
 

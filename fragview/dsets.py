@@ -67,7 +67,7 @@ class DataSetStatus:
         xia2_xds="unknown",
         dimple="unknown",
         fspipeline="unknown",
-        buster="unknown",
+        buster="unknown",  # NOTE: unused
         rho_fit="unknown",
         ligand_fit="unknown",
         pipedream_proc="unknown",

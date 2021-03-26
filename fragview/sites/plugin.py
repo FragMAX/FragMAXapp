@@ -83,7 +83,6 @@ class Pipeline:
     XIA2_XDS = "xia2_xds"
     DIMPLE = "dimple"
     FSPIPELINE = "fspipeline"
-    BUSTER = "buster"
     RHO_FIT = "rho_fit"
     LIGAND_FIT = "ligand_fit"
     PIPEDREAM_PROC = "pipedream_proc"
@@ -171,9 +170,6 @@ class PipelineCommands:
         raise NotImplementedError()
 
     def get_fspipeline_commands(self, pdb, custom_parameters):
-        raise NotImplementedError()
-
-    def get_buster_command(self, dstmtz, pdb, custom_parameters):
         raise NotImplementedError()
 
 

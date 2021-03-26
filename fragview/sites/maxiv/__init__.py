@@ -66,7 +66,6 @@ class SitePlugin(plugin.SitePlugin):
             Pipeline.XIA2_XDS,
             Pipeline.DIMPLE,
             Pipeline.FSPIPELINE,
-            Pipeline.BUSTER,
             Pipeline.RHO_FIT,
             Pipeline.LIGAND_FIT,
             # TODO: disable pipedream for now

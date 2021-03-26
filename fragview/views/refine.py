@@ -15,7 +15,6 @@ from fragview.filters import get_refine_datasets
 from fragview.pipeline_commands import (
     get_dimple_command,
     get_fspipeline_commands,
-    get_buster_command,
 )
 from fragview.models import PDB
 from fragview.forms import RefineForm
@@ -46,19 +45,6 @@ def datasets(request):
             form.ref_space_group,
             form.run_aimless,
             "dimple",
-            cmds,
-        )
-
-    if form.use_buster:
-        cmds = [get_buster_command("input.mtz", pdb_file, form.custom_buster)]
-        start_thread(
-            launch_refine_jobs,
-            proj,
-            form.datasets_filter,
-            pdb_file,
-            form.ref_space_group,
-            form.run_aimless,
-            "buster",
             cmds,
         )
 

@@ -820,9 +820,6 @@
                 {% if "dimple" in pipelines %}
                     <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
                 {% endif %}
-                {% if "buster" in pipelines %}
-                    <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
-                {% endif %}
                 {% if "fspipeline" in pipelines %}
                     <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
                 {% endif %}
@@ -882,10 +879,6 @@
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-pipedream-v')">autoPROC</button>
                         {% endif %}
-                        {% if "buster" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'buster-pipedream-v')">BUSTER</button>
-                        {% endif %}
                         {% if "rho_fit" in pipelines %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'rhofit-pipedream-v')">RhoFit</button>
@@ -914,17 +907,6 @@
                         {% endfor %}
                     </div>
 
-                    <div id="buster-pipedream-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in pipedream_logs.items %}
-                        {% if proc_m == "buster" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
                     <div id="rhofit-pipedream-v" class="tabcontent-vertical">
                         {% for proc_m, logs in pipedream_logs.items %}
                         {% if proc_m == "rhofit" %}
@@ -1011,89 +993,6 @@
                     </div>
                     <div id="xdsapp-dimple-v" class="tabcontent-vertical">
                         {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "xdsapp" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div id="BUSTER" class="card tabcontent">
-                <div class="card-title">BUSTER Logs</div>
-                <div class="tab-div-log">
-                    <div class="tab-vertical">
-                        {% if "auto_proc" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'autoproc-buster-v')">autoPROC</button>
-                        {% endif %}
-                        {% if "edna_proc" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'enda-buster-v')">EDNA_proc</button>
-                        {% endif %}
-                        {% if "xia2_dials" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2dials-buster-v')">XIA2/DIALS</button>
-                        {% endif %}
-                        {% if "xia2_xds" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2xds-buster-v')">XIA2/XDS</button>
-                        {% endif %}
-                        {% if "xdsapp" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xdsapp-buster-v')">XDSAPP</button>
-                        {% endif %}
-                    </div>
-                    <div id="autoproc-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
-                        {% if proc_m == "autoproc" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-
-                    <div id="enda-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
-                        {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="xia2dials-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
-                        {% if proc_m == "dials" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="xia2xds-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
-                        {% if proc_m == "xdsxscale" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="xdsapp-buster-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in buster_logs.items %}
                         {% if proc_m == "xdsapp" %}
                         {% for log, path in logs.items %}
                         <div>

@@ -146,28 +146,23 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
         request = self._request(
             dict(
                 useDimple="on",
-                useBuster="on",
                 refSpaceGroup="SGRP",
                 pdbModel="32",
                 customDimple="ddimp",
-                customBuster="busta",
             )
         )
 
         form = forms.RefineForm(request.POST)
         valid = form.is_valid()
-        print(form.errors)
         self.assertTrue(valid)
 
         self.assertTrue(form.use_dimple)
-        self.assertTrue(form.use_buster)
         self.assertFalse(form.use_fspipeline)
         self.assertFalse(form.run_aimless)
 
         self.assertEqual(form.pdb_model, 32)
         self.assertEqual(form.ref_space_group, "SGRP")
         self.assertEqual(form.custom_dimple, "ddimp")
-        self.assertEqual(form.custom_buster, "busta")
         self.assertEqual(form.custom_fspipe, "")
 
 

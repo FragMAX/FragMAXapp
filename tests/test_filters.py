@@ -80,13 +80,13 @@ def _create_pdbs(proj):
 
     # dataset #0 (PrtK-Apo14_1)
     apo14_res_dir = Path(res_dir, DATASETS[0])
-    _touch(Path(apo14_res_dir, "dials", "buster", "final.pdb"))
+    _touch(Path(apo14_res_dir, "dials", "fspipeline", "final.pdb"))
     _touch(Path(apo14_res_dir, "dials", "dimple", "final.pdb"))
     _touch(Path(apo14_res_dir, "xdsapp", "dimple", "final.pdb"))
 
     # dataset #3 (PrtK-JBS-F3a_1)
     f3a_res_dir = Path(res_dir, DATASETS[3])
-    _touch(Path(f3a_res_dir, "autoproc", "buster", "final.pdb"))
+    _touch(Path(f3a_res_dir, "autoproc", "dimple", "final.pdb"))
     _touch(Path(f3a_res_dir, "dials", "dimple", "final.pdb"))
 
     # create one folder named 'final.pdb', to check that we only find
@@ -272,10 +272,10 @@ class TestGetLigfitPdbs(_FiltersTester):
         self.assertSetEqual(
             relative_res,
             {
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/buster/final.pdb"),
+                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/fspipeline/final.pdb"),
                 ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/dimple/final.pdb"),
                 ("PrtK-Apo14_1", "PrtK-Apo14_1/xdsapp/dimple/final.pdb"),
-                ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/autoproc/buster/final.pdb"),
+                ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/autoproc/dimple/final.pdb"),
                 ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/dials/dimple/final.pdb"),
             },
         )

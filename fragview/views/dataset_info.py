@@ -174,15 +174,6 @@ def show(request, images, prefix, run):
         proc_m = path.basename(path.dirname(_file))
         _dimple_logs[proc_m] = {path.basename(x): x for x in sorted(glob(f"{_file}/*log"))}
 
-    # BUSTER
-    buster_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/buster")
-    _buster_logs = dict()
-    for _file in buster_res_dirs:
-        proc_m = path.basename(path.dirname(_file))
-        _buster_logs[proc_m] = {
-            x.split("/buster/")[-1]: x for x in sorted(glob(f"{_file}/*log") + glob(f"{_file}/*/*/*log"))
-        }
-
     # fspipeline
     fspipeline_res_dirs = glob(f"{proj.data_path()}/fragmax/results/{prefix}_{run}/*/fspipeline")
     _fspipeline_logs = dict()
@@ -201,10 +192,6 @@ def show(request, images, prefix, run):
         _pipedream_logs["autoproc"] = {
             "refine/" + path.basename(x): x
             for x in sorted(glob(f"{pipedream_res_dirs}/refine/*log") + glob(f"{pipedream_res_dirs}/refine/*out"))
-        }
-        _pipedream_logs["buster"] = {
-            "process/" + path.basename(x): x
-            for x in sorted(glob(f"{pipedream_res_dirs}/process/*log") + glob(f"{pipedream_res_dirs}/process/*out"))
         }
         _pipedream_logs["rhofit"] = {
             "rhofit/" + path.basename(x): x
@@ -253,7 +240,6 @@ def show(request, images, prefix, run):
             "beamline": SITE.get_beamline_info(),
             "dimple_logs": _dimple_logs,
             "fspipeline_logs": _fspipeline_logs,
-            "buster_logs": _buster_logs,
             "pipedream_logs": _pipedream_logs,
         },
     )

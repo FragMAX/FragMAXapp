@@ -347,7 +347,6 @@
                         {% csrf_token %}
                         <input type="hidden" name="datasetsFilter" id="dtsFilterRefine" />
                         <input type="hidden" name="customDimple" id="customDimpleRefine"/>
-                        <input type="hidden" name="customBuster" id="customBusterRefine"/>
                         <input type="hidden" name="customFspipe" id="customFspipeRefine"/>
 
                         <table class="optionstable">
@@ -375,15 +374,6 @@
                                                     <input class="refineform filled-in dt-checkboxes"
                                                         id="dimplecheckboxinput" name="useDimple" type="checkbox">
                                                     <span for="dimplecheckboxinput">DIMPLE</span>
-                                                </label>
-                                            </div>
-                                            {% endif %}
-                                            {% if "buster" in pipelines %}
-                                            <div class="checkbox" id="xdsxscale">
-                                                <label>
-                                                    <input class="refineform filled-in dt-checkboxes"
-                                                        id="bustercheckboxinput" name="useBuster" type="checkbox">
-                                                    <span for="bustercheckboxinput">BUSTER</span>
                                                 </label>
                                             </div>
                                             {% endif %}
@@ -576,9 +566,6 @@
         {% endif %}
         {% if "dimple" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
-        {% endif %}
-        {% if "buster" in pipelines %}
-        <button class="tablinks" onclick="openMethod(event, 'BUSTER')">BUSTER</button>
         {% endif %}
         {% if "fspipeline" in pipelines %}
         <button class="tablinks" onclick="openMethod(event, 'fspipeline')">fspipeline</button>
@@ -831,87 +818,6 @@
                     <td class="top-options">
                         <input class="selectbox" id="customrefine-dimple" placeholder="default: None"/>
                         See available parameters <a href="http://ccp4.github.io/dimple/" target="_blank">here</a>
-                    </td>
-                </tr>
-
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {% if "buster" in pipelines %}
-    <div class="card tabcontent" id="BUSTER">
-        <div class="card-title">BUSTER Options</div>
-        <table class="optionstable flex-left">
-            <col width="8%">
-            <col width="17%">
-            <tbody>
-                <tr>
-                    <th class=" top-options">Water placement</th>
-                    <td class=" top-options">
-                        <form id="swSelectionForrefinement">
-                            <br>
-                            <div>
-                                <div class="checkbox" id="arpwarp">
-                                    <label>
-                                        <input class="filled-in dt-checkboxes" disabled id="arpwarpcheckboxinput"
-                                            name="arpwarpcheckboxname" type="checkbox" value="arpwarp">
-                                        <span for="arpwarpcheckboxinput">use ARP/wARP </span>
-                                    </label>
-                                </div>
-                                <div class="checkbox" id="arpwarp">
-                                    <label>
-                                        <input class="filled-in dt-checkboxes" disabled id="cootwatercheckboxinput"
-                                            name="cootwatercheckboxname" type="checkbox" value="cootwater">
-                                        <span for="cootwatercheckboxinput">use Coot </span>
-                                    </label>
-                                </div>
-                                <div class="checkbox" id="arpwarp">
-                                    <label>
-                                        <input class="filled-in dt-checkboxes" disabled id="phenixwatercheckboxinput"
-                                            name="phenixwatercheckboxname" type="checkbox" value="phenixwater">
-                                        <span for="phenixwatercheckboxinput">use Phenix </span>
-                                    </label>
-                                </div>
-                            </div>
-                        </form>
-                    </td>
-                </tr>
-                <tr>
-
-                <tr>
-                    <th class=" top-options">Refinement mode</th>
-                    <td class=" top-options">
-                        <select class="selectbox" disabled name="refMode">
-                            <option disabled selected value> -- select an option -- </option>
-                            <option value="refslow">Extra (Slowest)</option>
-                            <option value="refslow">Normal (Slow)</option>
-                            <option value="reffast">Quick (Fast)</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Threshold for MR</th>
-                    <td class=" top-options">
-                        <input class="selectbox" disabled name="mrthresh" placeholder="default: 0.4"></input>
-                    </td>
-                </tr>
-                <tr>
-                    <th class=" top-options">Resolution cutoff</th>
-                    <td class=" top-options">
-                        <input class="selectbox" disabled name="refrescutoff" placeholder="default: None"></input>
-                    </td>
-                </tr>
-
-
-
-                <tr class="custompar">
-                    <th class=" top-options">Custom parameters</th>
-                    <td class="top-options">
-                        <input class="selectbox" id="customrefine-buster" placeholder="default: None"/>
-                        See available parameters <a
-                            href="https://www.globalphasing.com/buster/manual/autobuster/manual/autoBUSTER4.html#refine_args"
-                            target="_blank">here</a>
                     </td>
                 </tr>
 
@@ -1284,13 +1190,6 @@
                                                     <input class="with-gap" id="fspipeline_radio" name="ref_type"
                                                         type="radio" value="fspipeline">
                                                     <span class="item-label" for="fspipeline_radio">fspipeline</span>
-                                                </label>
-                                            </div>
-                                            <div class="radio" id="dataref_type">
-                                                <label>
-                                                    <input class="with-gap" id="buster_radio" name="ref_type"
-                                                        type="radio" value="buster">
-                                                    <span class="item-label" for="buster_radio">BUSTER</span>
                                                 </label>
                                             </div>
                                             <div class="radio" id="dataref_type">
@@ -2203,7 +2102,6 @@
         document.getElementById("rfprocBtn").onsubmit = function()
         {
             $("#customDimpleRefine").val($("#customrefine-dimple").val());
-            $("#customBusterRefine").val($("#customrefine-buster").val());
             $("#customFspipeRefine").val($("#customrefine-fspipe").val());
 
             $("#dtsFilterRefine").val(getDtsFilters());

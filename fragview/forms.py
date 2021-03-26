@@ -110,11 +110,9 @@ class ProcessForm(_ProcJobForm):
 
 class RefineForm(_ProcJobForm):
     useDimple = forms.BooleanField(required=False)
-    useBuster = forms.BooleanField(required=False)
     useFSpipeline = forms.BooleanField(required=False)
     refSpaceGroup = forms.CharField(required=False)
     customDimple = forms.CharField(required=False)
-    customBuster = forms.CharField(required=False)
     customFspipe = forms.CharField(required=False)
     runAimless = forms.BooleanField(required=False)
 
@@ -127,10 +125,6 @@ class RefineForm(_ProcJobForm):
     @property
     def use_dimple(self):
         return self._get_field("useDimple")
-
-    @property
-    def use_buster(self):
-        return self._get_field("useBuster")
 
     @property
     def use_fspipeline(self):
@@ -147,10 +141,6 @@ class RefineForm(_ProcJobForm):
     @property
     def custom_dimple(self):
         return self._get_field("customDimple")
-
-    @property
-    def custom_buster(self):
-        return self._get_field("customBuster")
 
     @property
     def custom_fspipe(self):

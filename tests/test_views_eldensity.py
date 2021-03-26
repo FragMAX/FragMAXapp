@@ -30,7 +30,7 @@ class TestMapView(TestCase, ViewTesterMixin, TempDirMixin):
         # the dataset, process and refine tools for our test
         dataset = f"{self.proj.protein}-VT02"
         process = "edna"
-        refine = "buster"
+        refine = "dimple"
 
         # set-up mocked MTZ density file
         self.create_dummy_mtz(dataset, process, refine)

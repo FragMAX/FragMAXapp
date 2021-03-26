@@ -57,7 +57,7 @@ def inspect(request):
     filterform = request.GET.get("filterForm")
     if filterform is not None:
         if ";" in filterform:
-            AP, DI, ED, XD, XA, BU, DP, FS = filterform.split(";")
+            AP, DI, ED, XD, XA, DP, FS = filterform.split(";")
             xdsapp = 1 if "true" in XA else 0
             autoproc = 1 if "true" in AP else 0
             dials = 1 if "true" in DI else 0
@@ -65,7 +65,6 @@ def inspect(request):
             xdsxscale = 1 if "true" in XD else 0
             dimple = 1 if "true" in DP else 0
             fspipeline = 1 if "true" in FS else 0
-            buster = 1 if "true" in BU else 0
             filters = list()
             filters.append("autoproc") if AP == "true" else ""
             filters.append("dials") if DI == "true" else ""
@@ -74,7 +73,6 @@ def inspect(request):
             filters.append("xdsxscale") if XD == "true" else ""
             filters.append("dimple") if DP == "true" else ""
             filters.append("fspipeline") if FS == "true" else ""
-            filters.append("buster") if BU == "true" else ""
         else:
             flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
             xdsapp = 1 if "xdsapp" in flat_filters else 0
@@ -84,7 +82,6 @@ def inspect(request):
             xdsxscale = 1 if "xdsxscale" in flat_filters else 0
             dimple = 1 if "dimple" in flat_filters else 0
             fspipeline = 1 if "fspipeline" in flat_filters else 0
-            buster = 1 if "buster" in flat_filters else 0
 
     else:
         flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
@@ -95,7 +92,6 @@ def inspect(request):
         xdsxscale = 1 if "xdsxscale" in flat_filters else 0
         dimple = 1 if "dimple" in flat_filters else 0
         fspipeline = 1 if "fspipeline" in flat_filters else 0
-        buster = 1 if "buster" in flat_filters else 0
 
     method = request.GET.get("methods")
     if method is None or "panddaSelect" in method or ";" in method:
@@ -111,7 +107,6 @@ def inspect(request):
                 filters.append("xdsxscale") if XD == "true" else ""
                 filters.append("dimple") if DP == "true" else ""
                 filters.append("fspipeline") if FS == "true" else ""
-                filters.append("buster") if BU == "true" else ""
             allEventDict, eventDict, low_conf, medium_conf, high_conf = pandda_events(proj, filters)
 
             sitesL = list()
@@ -392,7 +387,6 @@ def inspect(request):
                     "xdsxscale": xdsxscale,
                     "dimple": dimple,
                     "fspipeline": fspipeline,
-                    "buster": buster,
                 },
             )
 
@@ -432,7 +426,6 @@ def inspect(request):
                 xdsxscale = 1 if "xdsxscale" in flat_filters else 0
                 dimple = 1 if "dimple" in flat_filters else 0
                 fspipeline = 1 if "fspipeline" in flat_filters else 0
-                buster = 1 if "buster" in flat_filters else 0
 
                 return render(
                     request,
@@ -447,7 +440,6 @@ def inspect(request):
                         "xdsxscale": xdsxscale,
                         "dimple": dimple,
                         "fspipeline": fspipeline,
-                        "buster": buster,
                     },
                 )
         else:
