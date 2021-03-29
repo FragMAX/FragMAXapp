@@ -1,7 +1,6 @@
 import celery
 from os import path
-from worker import dist_lock
-from fragview import hpc, versions
+from fragview import hpc, versions, dist_lock
 from glob import glob
 
 
@@ -15,7 +14,11 @@ def _make_rlp_json(data_dir):
     expt = sorted(glob(f"{data_dir}/*indexed*expt"))
     if refl and expt:
         refl, expt = refl[-1], expt[-1]
-    cmd = f"cd {data_dir};" + f"module load gopresto {versions.DIALS_MOD};" + f"dials.export {refl} {expt} format=json"
+    cmd = (
+        f"cd {data_dir};"
+        + f"module load gopresto {versions.DIALS_MOD};"
+        + f"dials.export {refl} {expt} format=json"
+    )
 
     hpc.frontend_run(cmd)
 

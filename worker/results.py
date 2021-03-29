@@ -3,7 +3,7 @@ from glob import glob
 import celery
 import subprocess
 from celery.utils.log import get_task_logger
-from worker import dist_lock
+from fragview import dist_lock
 from fragview.models import Project
 from fragview.sites import SITE
 from fragview.projects import (

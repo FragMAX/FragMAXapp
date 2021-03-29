@@ -1,5 +1,5 @@
 from os import path
-from worker import dist_lock
+from fragview import dist_lock
 import subprocess
 import celery
 from fragview.sites import SITE

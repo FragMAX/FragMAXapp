@@ -1,7 +1,7 @@
 import celery
 import subprocess
 from pathlib import Path
-from worker import dist_lock
+from fragview import dist_lock
 
 
 def _make_pdb(smiles, frag_dir, frag_name):

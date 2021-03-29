@@ -7,7 +7,7 @@ from glob import glob
 import shutil
 import celery
 from celery.utils.log import get_task_logger
-from worker import dist_lock
+from fragview import dist_lock
 from worker.xsdata import copy_collection_metadata_files
 from fragview.sites import SITE
 from fragview.fileio import makedirs

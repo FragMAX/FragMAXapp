@@ -51,7 +51,6 @@ exclude = '''
   tests/test_models.py |
   worker/__init__.py |
   tests/test_middleware.py |
-  worker/dials.py |
   tests/test_views_pdbs.py |
   tests/test_views_projects.py |
   worker/data/pandda_prepare_runs.py |

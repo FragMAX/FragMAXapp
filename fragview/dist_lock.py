@@ -4,6 +4,7 @@ import redlock
 from redis import Redis
 import conf
 
+
 # sleep time between attempts to acquire lock
 POLL_TIMEOUT = 1.2
 

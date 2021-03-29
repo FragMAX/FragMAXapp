@@ -1,7 +1,7 @@
 import subprocess
 import celery
 from os import path
-from worker import dist_lock
+from fragview import dist_lock
 
 
 def _make_ccp4_maps(mtz_dir, mtz_file):
