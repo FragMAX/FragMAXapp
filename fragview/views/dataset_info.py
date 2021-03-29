@@ -8,6 +8,7 @@ from fragview.projects import (
     project_results_dir,
     project_results_file,
 )
+from fragview.scraper import autoproc, edna
 from fragview.xsdata import XSDataCollection
 from fragview.sites import SITE
 from fragview.fileio import read_csv_lines
@@ -33,28 +34,24 @@ def show(request, images, prefix, run):
         return _logs(pipedream_dir), vals
 
     def _autoproc_logs():
-        autoproc_dir = path.join(dataset_dir, "autoproc")
+        autoproc_summary_report = autoproc.get_summary_report(proj, f"{prefix}_{run}")
 
-        if not path.exists(path.join(autoproc_dir, "summary.html")):
-            return[], None
-
-        vals = parse_log_process(path.join(autoproc_dir, "summary.html"))
-        vals["tool"] = "autoproc"
-        vals["report"] = Path(autoproc_dir, "summary.html").relative_to(curp)
-
-        return _logs(autoproc_dir), vals
-
-    def _edna_logs():
-        edna_dir = path.join(dataset_dir, "edna")
-
-        ednareport = Path(edna_dir, f"ep_{prefix}_{run}_phenix_xtriage_noanom.log")
-        if not ednareport.is_file():
+        if autoproc_summary_report is None:
             return [], None
 
-        vals = parse_log_process(path.join(edna_dir, f"ep_{prefix}_{run}_aimless_anom.log"))
-        vals["tool"] = "edna"
-        vals["report"] = ednareport.relative_to(curp)
-        return _logs(edna_dir), vals
+        vals = autoproc.parse_statistics(autoproc_summary_report)
+        return autoproc.get_log_files(autoproc_summary_report), vals
+
+    def _edna_logs():
+        edna_report = edna.get_report(proj, prefix, run)
+
+        if edna_report is None:
+            return [], None
+
+        vals = edna.parse_statistics(proj, prefix, run)
+        vals.report = edna_report
+
+        return edna.get_log_files(edna_report), vals
 
     def _xdsapp_logs():
         def _report_file():
@@ -343,69 +340,6 @@ def parse_log_process(pplog):
                     spg = "".join(line.split()[2:])
                 if "Unit cell: " in line:
                     unit_cell = "".join(line.split()[2:])
-                ISa = ""
-        if "autoproc" in pplog or "pipedream" in pplog:
-            spg = "None"
-            for n, line in enumerate(log):
-                if "Unit cell and space group:" in line:
-                    spg = "".join(line.split()[11:]).replace("'", "")
-                    unit_cell = ",".join(line.split()[5:11])
-                if "Low resolution limit  " in line:
-                    low_res_avg, low_res_out = line.split()[3], line.split()[5]
-                if "High resolution limit  " in line:
-                    high_res_out, high_res_avg = line.split()[3], line.split()[5]
-                if "Total number of observations  " in line:
-                    total_observations = line.split()[-3]
-                if "Total number unique  " in line:
-                    unique_rflns = line.split()[-3]
-                if "Multiplicity  " in line:
-                    multiplicity = line.split()[1]
-                if "Mean(I)/sd(I)" in line:
-                    isig_avg = line.split()[1]
-                    isig_out = line.split()[-1]
-                if "Completeness (ellipsoidal)" in line or "Completeness (spherical)" in line:
-                    completeness_avg = line.split()[2]
-                    completeness_out = line.split()[-1]
-                if "Rmeas   (all I+ & I-)" in line:
-                    rmeas_avg = line.split()[-3]
-                    rmeas_out = line.split()[-1]
-                elif "Rmeas" in line:
-                    rmeas_avg = line.split()[-3]
-                    rmeas_out = line.split()[-1]
-                if "CRYSTAL MOSAICITY (DEGREES)" in line:
-                    mosaicity = line.split()[-1]
-                if "ISa (" in line:
-                    ISa = log[n + 1].split()[-1]
-
-        if "edna" in pplog:
-            for line in log:
-                if "Space group:" in line:
-                    spg = "".join(line.split()[2:])
-                if "Number of unique reflections" in line:
-                    unique_rflns = line.split()[-1]
-                if "Total number of observations" in line:
-                    total_observations = line.split()[-3]
-                if "Low resolution limit" in line:
-                    low_res_avg = line.split()[3]
-                    low_res_out = line.split()[-1]
-                if "High resolution limit" in line:
-                    high_res_avg = line.split()[3]
-                    high_res_out = line.split()[-1]
-                if "Average unit cell:" in line:
-                    unit_cell = ",".join(line.split()[3:])
-                if "Multiplicity" in line:
-                    multiplicity = line.split()[1]
-                if "Mean((I)/sd(I))" in line:
-                    isig_avg = line.split()[1]
-                    isig_out = line.split()[-1]
-                if "Rmeas (all I+ & I-)" in line:
-                    rmeas_avg = line.split()[5]
-                    rmeas_out = line.split()[-1]
-                if "completeness" in line:
-                    completeness_avg = line.split()[-3]
-                    completeness_out = line.split()[-1]
-                if "mosaicity" in line:
-                    mosaicity = line.split()[-1]
                 ISa = ""
 
         stats = {

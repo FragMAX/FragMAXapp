@@ -10,7 +10,7 @@ class SitePlugin:
     PROPOSALS_DIR = None  # root path to where proposals data is stored
     # runner used for HPC jobs,
     # should be either 'local' or 'slurm'
-    HPC_JOBS_RUNNER: str = None
+    HPC_JOBS_RUNNER: str
 
     def get_project_experiment_date(self, project):
         raise NotImplementedError()

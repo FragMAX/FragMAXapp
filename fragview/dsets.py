@@ -1,5 +1,5 @@
 import csv
-from typing import Dict
+from typing import Dict, Iterator
 from enum import Enum
 from pathlib import Path, PosixPath
 from fragview.fileio import read_csv_lines
@@ -133,6 +133,10 @@ class DataSetStatus:
             self.xia2_xds = status.value
         elif tool == "dimple":
             self.dimple = status.value
+        elif tool == "edna":
+            self.edna_proc = status.value
+        elif tool == "autoproc":
+            self.auto_proc = status.value
         else:
             raise ValueError(f"unknown tool: {tool}")
 
@@ -183,7 +187,7 @@ def update_dataset_status(proj, tool: str, dataset: str, status: ToolStatus):
     _write_dataset_status(proj, all_status)
 
 
-def get_datasets(proj):
+def get_datasets(proj) -> Iterator[DataSet]:
     ds_status = _load_datasets_status(proj)
     lines = read_csv_lines(project_data_collections_file(proj))
 

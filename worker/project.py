@@ -13,8 +13,7 @@ from fragview.sites import SITE
 from fragview.fileio import makedirs
 from fragview.models import Project
 from fragview.xsdata import XSDataCollection
-from fragview.status import run_update_status
-from fragview.autoproc import import_autoproc
+from fragview.status import set_imported_autoproc_status
 from fragview.projects import project_xml_files, project_process_protein_dir
 from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
@@ -56,7 +55,6 @@ def _add_new_shifts_files(proj, shifts):
     meta_files = list(shifts_xml_files(proj, shifts))
     copy_collection_metadata_files(proj, meta_files)
     _write_data_collections_file(proj, project_xml_files(proj))
-    import_autoproc(proj, shifts)
     _write_project_status(proj)
 
 
@@ -199,4 +197,4 @@ def _write_project_status(proj):
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
 
-    run_update_status(proj)
+    set_imported_autoproc_status(proj)

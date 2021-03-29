@@ -13,6 +13,29 @@ class UnknownToolException(Exception):
     pass
 
 
+class ProcStats:
+    def __init__(self, tool, report=None):
+        self.tool = tool
+        self.report = report
+        self.spg = ""
+        self.unique_rflns = ""
+        self.total_observations = ""
+        self.low_res_avg = ""
+        self.low_res_out = ""
+        self.high_res_avg = ""
+        self.high_res_out = ""
+        self.unit_cell = ""
+        self.multiplicity = ""
+        self.isig_avg = ""
+        self.isig_out = ""
+        self.rmeas_avg = ""
+        self.rmeas_out = ""
+        self.completeness_avg = ""
+        self.completeness_out = ""
+        self.mosaicity = ""
+        self.ISa = ""
+
+
 def get_tool_module(tool: str):
     # load the scraping python module dynamically,
     # to avoid importing all scraper modules each time

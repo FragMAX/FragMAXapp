@@ -829,9 +829,11 @@
             </div>
             <div id="EDNA" class="card tabcontent ">
                 <div class="card-title logtab">EDNA_proc Logs</div>
-                {% for logName, logPath in ednaLogs %}
+                {% for log in ednaLogs %}
                 <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                    <a href="/logs/show/{{log}}" class="log-name" target="_blank">
+                        {{log.name}}
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -861,9 +863,12 @@
             </div>
             <div id="autoPROC" class="card tabcontent ">
                 <div class="card-title logtab">autoPROC Logs</div>
-                {% for logName, logPath in autoprocLogs %}
+                {% for log in autoprocLogs %}
                 <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
+                    <a href="/logs/autoproc/show/{{imgprf}}_{{run}}/{{log.name}}"
+                       class="log-name" target="_blank">
+                        {{log.name}}
+                    </a>
                 </div>
                 {% endfor %}
             </div>

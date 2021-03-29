@@ -17,6 +17,7 @@ from fragview.forms import RefineForm
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.views.update_jobs import add_update_job
+from fragview.scraper import edna, autoproc
 from jobs.client import JobsSet
 
 
@@ -116,30 +117,8 @@ def launch_refine_jobs(
     jobs.submit()
 
 
-def _find_autoproc_input_mtzs(dset_dir):
-    """
-    find suitable autoproc MTZ file for refine job
-    """
-
-    #
-    # autoPROC is a special case, compared to other tools
-    #
-    # first we look staraniso_alldata.mtz file,
-    # if it's not found, we look for aimless_unmerged.mtz
-    #
-
-    autoproc_dir = Path(dset_dir, "autoproc")
-    mtzs = ["staraniso_alldata.mtz", "aimless_unmerged.mtz"]
-
-    for mtz_file in mtzs:
-        mtz = Path(autoproc_dir, mtz_file)
-        if mtz.is_file():
-            return mtz
-
-
 def _find_input_mtzs(proj, dataset):
     mtz_map = [
-        ("edna", "*_noanom_aimless.mtz"),
         ("xdsapp", "*F.mtz"),
         ("dials", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),
         ("xdsxscale", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),
@@ -154,11 +133,18 @@ def _find_input_mtzs(proj, dataset):
             yield tool, mtz
 
     #
-    # handle special case autoproc
+    # handle ENDA mtz
     #
-    autoproc_mtz = _find_autoproc_input_mtzs(dset_dir)
-    if autoproc_mtz is not None:
-        yield "autoproc", autoproc_mtz
+    mtz = edna.get_result_mtz(proj, dataset)
+    if mtz is not None:
+        yield "edna", mtz
+
+    #
+    # handle autoPROC
+    #
+    mtz = autoproc.get_result_mtz(proj, dataset)
+    if mtz is not None:
+        yield "autoproc", mtz
 
 
 def _aimless_cmd(spacegroup, dstmtz):

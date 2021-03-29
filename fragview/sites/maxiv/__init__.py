@@ -50,9 +50,8 @@ class SitePlugin(plugin.SitePlugin):
         return _copy_xmls_from_raw(project)
 
     def prepare_project_folders(self, project, shifts):
-        from fragview.autoproc import import_autoproc
-
-        import_autoproc(project, shifts)
+        # NOP
+        pass
 
     def dataset_master_image(self, dataset):
         return f"{dataset}_master.h5"
