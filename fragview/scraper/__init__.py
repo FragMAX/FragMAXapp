@@ -6,7 +6,8 @@ from fragview.dsets import ToolStatus
 #
 PROC_TOOLS = {"dials", "xds", "xdsapp", "edna", "autoproc"}
 REFINE_TOOLS = {"dimple"}
-ALL_TOOLS = set.union(PROC_TOOLS, REFINE_TOOLS)
+LIGFIT_TOOLS = {"rhofit", "ligandfit"}
+ALL_TOOLS = set.union(PROC_TOOLS, REFINE_TOOLS, LIGFIT_TOOLS)
 
 
 class UnknownToolException(Exception):

@@ -1,5 +1,6 @@
 import csv
 from typing import Dict, List
+from pathlib import Path
 from fragview.projects import project_results_file
 from fragview.fileio import read_csv_lines
 
@@ -32,9 +33,13 @@ HEADER = [
 
 
 def _load_results(project) -> Dict[str, List]:
+    results_file = Path(project_results_file(project))
     results = dict()
 
-    for line in read_csv_lines(project_results_file(project)):
+    if not results_file.is_file():
+        return results
+
+    for line in read_csv_lines(results_file):
         name, *vals = line
         results[name] = vals
 
@@ -64,7 +69,7 @@ def update_dataset_results(project, dataset: str, refine_tool: str, updated_resu
     results = _load_results(project)
 
     for res in updated_results:
-        proc_tool, *vals = res
+        proc_tool, *vals, rhofit_score, ligfit_score, ligblob = res
         pipeline = f"{proc_tool}_{refine_tool}"
         results[f"{dataset}_{pipeline}"] = (
             # include 'dummy.pdb' as a hack for now,
@@ -73,7 +78,7 @@ def update_dataset_results(project, dataset: str, refine_tool: str, updated_resu
             # (results view assumes that no PDB listed -> pipedream result)
             ["dummy.pdb"]
             + vals
-            + [dataset, pipeline, "", "", "", ""]
+            + [dataset, pipeline, rhofit_score, ligfit_score, ligblob, ""]
         )
 
     _write_results(project, results)

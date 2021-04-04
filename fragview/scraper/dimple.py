@@ -4,6 +4,8 @@ from fragview.projects import project_results_dataset_dir
 from fragview.dsets import ToolStatus
 from fragview.fileio import subdirs, read_text_lines
 from fragview.scraper.proc_logs import scrape_isa
+from fragview.scraper import rhofit, ligandfit
+
 
 #
 # PDB remark line prefixes we use for parsing
@@ -75,6 +77,9 @@ def _get_final_pdbs(project, dataset):
     res_dir = project_results_dataset_dir(project, dataset)
 
     for sdir in subdirs(res_dir, 2):
+        if sdir.name != "dimple":
+            continue
+
         final_pdb = Path(sdir, "final.pdb")
         if final_pdb.is_file():
             yield final_pdb
@@ -98,6 +103,8 @@ def _get_results(project, dataset, final_pdb: Path):
     spacegroup, resolution, r_work, r_free, bonds, angles, cell = _parse_pdb(final_pdb)
 
     blobs = _scrape_blobs(project, parent_dir)
+    rhofit_score = rhofit.scrape_score(parent_dir)
+    ligfit_score, ligblob = ligandfit.scrape_score_blob(parent_dir)
 
     return (
         proc_tool,
@@ -117,6 +124,9 @@ def _get_results(project, dataset, final_pdb: Path):
         cell.beta,
         cell.gamma,
         blobs,
+        rhofit_score,
+        ligfit_score,
+        ligblob,
     )
 
 

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import versions
@@ -8,8 +9,8 @@ from fragview.projects import project_fragment_cif, project_fragment_pdb
 from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration
-from fragview.views.utils import add_update_status_script_cmds, add_update_results_script_cmds
 from fragview.views.utils import start_thread
+from fragview.views.update_jobs import add_update_job
 from jobs.client import JobsSet
 
 
@@ -50,6 +51,9 @@ def get_fragment_smiles(proj, dset):
 
 
 def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfit, custom_rhofit):
+    def _refine_tool(pdb_path):
+        return Path(pdb_path).parent.name
+
     # Modules for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
@@ -117,14 +121,32 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
             ligfit_cmd,
         )
 
-        add_update_status_script_cmds(proj, sample, batch, softwares)
-        add_update_results_script_cmds(proj, sample, batch, softwares)
-
         batch.add_commands(
             clear_tmp_cmd
         )
 
         batch.save()
         jobs.add_job(batch)
+
+        #
+        # first run update command for refine tool, to include ligand fitting scores into results.csv
+        #
+        update_batch = add_update_job(jobs, hpc, proj, _refine_tool(pdb), sample, batch)
+
+        #
+        # run the update command for each ligand fitting tool, to update allstatus.csv
+        # success/fail cell for the tool-dataset combination
+        #
+        # NOTE: all the update commands needs to be chained to run after each other,
+        # due to limitations (bugs!) in jobsd handling of 'run_after' dependencies.
+        # Currently it does not work to specify that multiple jobs should be run after
+        # a job is finished.
+        #
+
+        if useRhoFit:
+            update_batch = add_update_job(jobs, hpc, proj, "rhofit", sample, update_batch)
+
+        if useLigFit:
+            add_update_job(jobs, hpc, proj, "ligandfit", sample, update_batch)
 
     jobs.submit()

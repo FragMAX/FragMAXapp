@@ -133,10 +133,10 @@ class DataSetStatus:
             self.xia2_xds = status.value
         elif tool == "dimple":
             self.dimple = status.value
-        elif tool == "edna":
-            self.edna_proc = status.value
-        elif tool == "autoproc":
-            self.auto_proc = status.value
+        elif tool == "rhofit":
+            self.rho_fit = status.value
+        elif tool == "ligandfit":
+            self.ligand_fit = status.value
         else:
             raise ValueError(f"unknown tool: {tool}")
 

@@ -16,3 +16,5 @@ def add_update_job(jobs_set: JobsSet, hpc, project, tool, dataset, dataset_batch
         run_after=[dataset_batch],
         run_on=JobsSet.Destination.LOCAL,
     )
+
+    return batch
