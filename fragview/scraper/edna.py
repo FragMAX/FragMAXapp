@@ -14,10 +14,13 @@ def _get_xscale_logs(logs_dir: Path):
     return sorted(logs_dir.glob("*XSCALE.LP"), reverse=True)
 
 
-def scrape_logs(project, logs_dir: Path):
-    isa = ""
+def scrape_isa(project, dataset: str):
+    sample, run = parse_dataset_name(dataset)
+    edna_dir, _ = _find_results(project, sample, run)
 
-    for log in _get_xscale_logs(logs_dir):
+    isa = None
+
+    for log in _get_xscale_logs(edna_dir):
         log_lines = list(read_text_lines(project, log))
         for n, line in enumerate(log_lines):
             if "ISa" in line:
@@ -25,7 +28,6 @@ def scrape_logs(project, logs_dir: Path):
                     isa = log_lines[n + 1].split()[-2]
                     if isa == "b":
                         isa = ""
-
     return isa
 
 
@@ -76,7 +78,6 @@ def parse_statistics(project, sample, run):
     log_file = Path(edna_dir, f"ep_{sample}_{run}_aimless_anom.log")
 
     with open(log_file, "r", encoding="utf-8") as r:
-        print("log_file", log_file)
         log = r.readlines()
 
     stats = ProcStats("edna")

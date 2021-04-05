@@ -1,9 +1,9 @@
 from pathlib import Path
 from gemmi import read_pdb
-from fragview.projects import project_results_dataset_dir, project_process_dataset_dir
+from fragview.projects import project_results_dataset_dir
 from fragview.dsets import ToolStatus
 from fragview.fileio import subdirs, read_text_lines
-from fragview.scraper.proc_logs import scrape_proc_logs
+from fragview.scraper.proc_logs import scrape_isa
 
 #
 # PDB remark line prefixes we use for parsing
@@ -90,8 +90,7 @@ def _get_results(project, dataset, final_pdb: Path):
     parent_dir = final_pdb.parent
 
     proc_tool = parent_dir.parent.name
-    proc_dir = Path(project_process_dataset_dir(project, dataset), proc_tool)
-    isa = scrape_proc_logs(project, proc_dir)
+    isa = scrape_isa(project, proc_tool, dataset)
 
     dif_map = Path(parent_dir, "final_2mFo-DFc.ccp4")
     nat_map = Path(parent_dir, "final_mFo-DFc.ccp4")

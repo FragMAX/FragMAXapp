@@ -10,3 +10,11 @@ def scrape_outcome(project, dataset) -> ToolStatus:
     return xia2.scrape_outcome(
         project, project_process_tool_dir(project, dataset, "dials")
     )
+
+
+def scrape_isa(*_):
+    #
+    # we don't know how to scrape dials logs for ISa value,
+    # treat is as 'unknown ISa'
+    #
+    return None
