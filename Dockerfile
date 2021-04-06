@@ -89,7 +89,7 @@ RUN rm /etc/nginx/sites-enabled/default
 # run nginx workers as biomax-service user
 RUN sed -i 's/user .*;/user biomax-service MAX-Lab;/' /etc/nginx/nginx.conf
 
-# configure supervisord to start all required deamons
+# configure supervisord to start all required daemons
 COPY deploy/supervisord.conf /etc/supervisor/supervisord.conf
 
 # wrapper for running celery workes processes
