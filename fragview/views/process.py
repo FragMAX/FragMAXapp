@@ -292,7 +292,7 @@ def run_xds(proj, nodes, filters, options):
     # Set the cell constants.
 
     # Modules list for HPC env
-    softwares = ["gopresto", versions.XDS_MOD, versions.DIALS_MOD]
+    softwares = ["gopresto", versions.DIALS_MOD, versions.XDS_MOD]
 
     jobs = JobsSet("XIA2/XDS")
     hpc = SITE.get_hpc_runner()
