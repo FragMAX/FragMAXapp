@@ -154,7 +154,7 @@ def run_xdsapp(proj, nodes, filters, options):
     # do resolution test
 
     # Modules list for HPC env
-    softwares = ["gopresto", versions.CCP4_MOD, versions.XDSAPP_MOD]
+    softwares = ["gopresto", versions.XDSAPP_MOD]
 
     jobs = JobsSet("XDSAPP")
     hpc = SITE.get_hpc_runner()
