@@ -133,6 +133,8 @@ class DataSetStatus:
             self.xia2_xds = status.value
         elif tool == "dimple":
             self.dimple = status.value
+        elif tool == "fspipeline":
+            self.fspipeline = status.value
         elif tool == "rhofit":
             self.rho_fit = status.value
         elif tool == "ligandfit":

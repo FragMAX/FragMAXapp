@@ -11,6 +11,7 @@ import fragview.cbf  # noqa F401
 import fragview.sites.hzb  # noqa F401
 import fragview.scraper.dials  # noqa F401
 import fragview.scraper.dimple  # noqa F401
+import fragview.scraper.fspipeline  # noqa F401
 import fragview.scraper.edna  # noqa F401
 import fragview.scraper.proc_logs  # noqa F401
 import fragview.scraper.xds  # noqa F401
