@@ -6,7 +6,7 @@ import asyncio
 import argparse
 from typing import List
 from asyncio import Event
-from asyncio.streams import StreamReader
+from asyncio.streams import StreamReader, StreamWriter
 from contextlib import asynccontextmanager
 from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
 from jobs.jobsd.runner import JobFailedException
@@ -209,7 +209,9 @@ async def read_long_line(reader: StreamReader):
     return line
 
 
-async def client_connected(reader, writer, jobs_table: JobsTable):
+async def client_connected(
+    reader: StreamReader, writer: StreamWriter, jobs_table: JobsTable
+):
     line = await read_long_line(reader)
     command = deserialize_command(line)
     reply = await handle_command(command, jobs_table)
