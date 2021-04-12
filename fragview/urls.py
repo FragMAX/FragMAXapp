@@ -16,7 +16,6 @@ urlpatterns = [
     path('dataset_info/<prefix>/<int:images>/<run>', dataset_info.show, name='dataset_info'),
 
     path('results/', results.show, name='results'),
-    path('results/resync/', results.resync),
     path('results/isa', results.isa),
     path('results/rfactor', results.rfactor),
     path('results/resolution', results.resolution),

@@ -36,7 +36,6 @@ exclude = '''
   fragview/views/projects.py |
   fragview/views/soaking.py |
   manage.py |
-  fragview/views/results.py |
   fragview/views/process.py |
   tests/test_context_processors.py |
   fragview/views/pipedream.py |
