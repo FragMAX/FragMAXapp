@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 A script to run all the daemons for the FragMAX application inside a
 specified conda environment.
