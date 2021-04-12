@@ -64,9 +64,10 @@ def start_redis(conda_env_dir):
     return subprocess.Popen([redis_server], cwd=current_dir())
 
 
-def start_jobsd(conda_env_dir):
+def start_jobsd():
+    cur_dir = current_dir()
     return subprocess.Popen(
-        [python_path(conda_env_dir), "jobsd.py"], cwd=current_dir(),
+        [path.join(cur_dir, "deploy", "start_jobsd.sh")], cwd=cur_dir,
     )
 
 
@@ -98,7 +99,7 @@ def main():
 
     # start all daemons
     redis = start_redis(conda_env_dir)
-    jobsd = start_jobsd(conda_env_dir)
+    jobsd = start_jobsd()
     webserver = start_webserver(conda_env_dir)
     celery = start_celery(conda_env_dir)
 
