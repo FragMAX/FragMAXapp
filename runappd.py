@@ -23,7 +23,7 @@ from os import path
 
 CONDA_ENV = "FragMAX"
 
-got_sigterm = False
+got_exit_signal = False
 
 
 def parse_args():
@@ -87,16 +87,19 @@ def start_celery(conda_env_dir):
     )
 
 
-def sigterm_handler(*_):
-    global got_sigterm
-    got_sigterm = True
+def signals_handler(*_):
+    global got_exit_signal
+    got_exit_signal = True
 
 
 def main():
-    global got_sigterm
+    global got_exit_signal
     conda_env_dir = parse_args()
 
-    signal.signal(signal.SIGTERM, sigterm_handler)
+    # on TERM and INTERRUPT (Ctrl+C) signals,
+    # terminate all started processes and exit
+    signal.signal(signal.SIGTERM, signals_handler)
+    signal.signal(signal.SIGINT, signals_handler)
 
     # start all daemons
     redis = start_redis(conda_env_dir)
@@ -104,11 +107,11 @@ def main():
     webserver = start_webserver(conda_env_dir)
     celery = start_celery(conda_env_dir)
 
-    # wait for TERMINATE signal
-    while not got_sigterm:
+    # wait for exit signals
+    while not got_exit_signal:
         signal.pause()
 
-    print("got TERM signal, terminating daemons")
+    print("got exit signal, terminating daemons")
 
     # first terminate webserver, celery and jobsd, and keep
     # redis running, as redis should go down last
