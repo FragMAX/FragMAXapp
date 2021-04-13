@@ -82,7 +82,8 @@ def start_celery(conda_env_dir):
     # derive absolute path to celery binary
     celery = path.join(conda_env_dir, "bin", "celery")
     return subprocess.Popen(
-        [celery, "-A", "fragmax", "worker", "--loglevel=info"], cwd=current_dir()
+        [celery, "-A", "fragmax", "worker", "--concurrency=4", "--loglevel=info"],
+        cwd=current_dir(),
     )
 
 
