@@ -2,7 +2,7 @@ import time
 import asyncio
 import asyncssh
 import logging
-from typing import Iterable
+from typing import Iterable, Dict
 from asyncio import Event
 from asyncio.subprocess import PIPE
 from contextlib import asynccontextmanager
@@ -224,7 +224,7 @@ class PollTimer:
 class JobWatcher:
     def __init__(self, slurm_client: SlurmClient):
         self.client = slurm_client
-        self.watched_jobs = {}
+        self.watched_jobs: Dict[str, Event] = {}
         self.poller_running = False
         self.poll_timer = PollTimer()
 

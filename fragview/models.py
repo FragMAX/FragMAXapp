@@ -146,7 +146,6 @@ class User(AbstractBaseUser):
         on_delete=models.SET_NULL)
 
     USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = []
 
     def set_current_project(self, new_current_proj):
         self.current_project = new_current_proj

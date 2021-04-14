@@ -1,13 +1,14 @@
-from typing import List
+from typing import List, Optional
 
 
 class SitePlugin:
-    NAME = None
-    LOGO = None
+    NAME: str
+    LOGO: str
     DISABLED_FEATURES: List[str] = []
-    ACCOUNT_STYLE = None
-    AUTH_BACKEND = None
-    PROPOSALS_DIR = None  # root path to where proposals data is stored
+    ACCOUNT_STYLE: Optional[str] = None
+    AUTH_BACKEND: str
+    # root path to where proposals data is stored
+    PROPOSALS_DIR: str
     # runner used for HPC jobs,
     # should be either 'local' or 'slurm'
     HPC_JOBS_RUNNER: str
@@ -142,14 +143,14 @@ class DiffractionImageMaker:
 
 class BeamlineInfo:
     # beamline's name
-    name = None
-    detector_type = None
-    detector_model = None
-    detector_pixel_size = None
-    focusing_optics = None
-    monochrom_type = None
-    beam_divergence = None
-    polarisation = None
+    name: str
+    detector_type: str
+    detector_model: str
+    detector_pixel_size: str
+    focusing_optics: str
+    monochrom_type: str
+    beam_divergence: str
+    polarisation: str
 
 
 class PipelineCommands:

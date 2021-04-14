@@ -1,6 +1,5 @@
-from typing import Iterator, Union
+from typing import Iterator, Union, TextIO
 from pathlib import Path
-from io import TextIOWrapper
 from fragview.scraper import ProcStats
 from fragview.dsets import ToolStatus
 from fragview.projects import project_shift_dirs, parse_dataset_name
@@ -124,7 +123,7 @@ def scrape_outcome(project, dataset: str) -> ToolStatus:
     return _scrape_summary_html(summary_report)
 
 
-def _parse_summary_html(summary_html: TextIOWrapper):
+def _parse_summary_html(summary_html: TextIO):
     # look for line containing
     for line in summary_html:
         if "ISa (see" not in line:

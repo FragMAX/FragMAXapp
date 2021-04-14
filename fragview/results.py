@@ -34,7 +34,7 @@ HEADER = [
 
 def _load_results(project) -> Dict[str, List]:
     results_file = Path(project_results_file(project))
-    results = dict()
+    results: Dict[str, List] = {}
 
     if not results_file.is_file():
         return results

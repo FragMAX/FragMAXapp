@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from typing import Optional
 from fragview.sites import SITE
 from conf import REDIS_URL, DATABASE_DIR
 
@@ -168,7 +169,7 @@ HPC_FRONT_END = "clu0-fe-0"
 # the URL used to read and write encrypted data, e.g. https://fragmax/crypto/
 # must be set in site local settings 'site_settings.py'
 #
-CRYPT_URL = None
+CRYPT_URL: Optional[str] = None
 
 # load site specific settings override, if any
 try:

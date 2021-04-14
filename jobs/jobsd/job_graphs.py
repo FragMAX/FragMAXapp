@@ -10,7 +10,7 @@ class JobNode:
     def __init__(self, job: Job, run_on: str):
         self.job = job
         self.run_on = run_on
-        self.run_after = []
+        self.run_after: List[JobNode] = []
 
     def set_run_after(self, run_after):
         self.run_after = run_after

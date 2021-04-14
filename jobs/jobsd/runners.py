@@ -27,6 +27,8 @@ def _get_hpc_runner() -> Runner:
     if runner_name == "slurm":
         return _slurm_runner()
 
+    assert False, f"unexpected runner type {runner_name}"
+
 
 def get_runners() -> Dict[str, Runner]:
     return dict(local=_local_runner(), hpc=_get_hpc_runner())
