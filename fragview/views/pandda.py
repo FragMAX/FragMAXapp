@@ -1042,7 +1042,7 @@ def pandda_worker(proj, method, methodshort, options, cifMethod):
     for prep_script in prepare_scripts:
         jobs.add_job(prep_script)
 
-    jobs.add_job(main_script, prepare_scripts)
+    jobs.add_job(main_script, run_after=prepare_scripts)
     jobs.submit()
 
 
