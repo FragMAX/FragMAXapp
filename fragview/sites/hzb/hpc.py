@@ -2,8 +2,8 @@ from fragview.sites import plugin
 
 
 class HPC(plugin.HPC):
-    def new_batch_file(self, job_name, script_name, stdout, stderr):
-        return BatchFile(job_name, script_name, stdout, stderr)
+    def new_batch_file(self, job_name, script_name, stdout, stderr, cpus=None):
+        return BatchFile(job_name, script_name, stdout, stderr, cpus)
 
 
 class BatchFile(plugin.BatchFile):

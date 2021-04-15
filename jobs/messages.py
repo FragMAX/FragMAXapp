@@ -13,7 +13,15 @@ class JsonSerializable:
 
 class Job(JsonSerializable):
     def __init__(
-        self, id, name, program, arguments, stdout, stderr, start_time: datetime = None
+        self,
+        id,
+        name,
+        program,
+        arguments,
+        stdout,
+        stderr,
+        cpus=None,
+        start_time: datetime = None,
     ):
         self.id = id
         self.name = name
@@ -21,6 +29,7 @@ class Job(JsonSerializable):
         self.arguments = arguments
         self.stdout = stdout
         self.stderr = stderr
+        self.cpus = cpus
         # None start_time for jobs in pending state
         self.start_time = start_time
 

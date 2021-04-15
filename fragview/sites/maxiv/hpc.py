@@ -17,8 +17,8 @@ class HPC(plugin.HPC):
         # TODO: check exit code and bubble up error on exit code != 0
         _ssh_on_frontend(cmd)
 
-    def new_batch_file(self, job_name, script_name, stdout, stderr):
-        return BatchFile(job_name, script_name, stdout, stderr)
+    def new_batch_file(self, job_name, script_name, stdout, stderr, cpus=None):
+        return BatchFile(job_name, script_name, stdout, stderr, cpus)
 
 
 # TODO: this is copy and paste code from fragview.hpc model,
@@ -37,9 +37,11 @@ def _ssh_on_frontend(command):
 
 
 class BatchFile(plugin.BatchFile):
-    def __init__(self, name, filename, stdout, stderr):
-        super().__init__(name, filename, stdout, stderr)
+    def __init__(self, name, filename, stdout, stderr, cpus=None):
+        super().__init__(name, filename, stdout, stderr, cpus)
         self._add_option(f"--job-name='{name}'")
+        if cpus:
+            self._add_option(f"--cpus-per-task={cpus}")
 
     def _add_option(self, option_string):
         self.add_line(f"#SBATCH {option_string}")
@@ -63,7 +65,6 @@ class BatchFile(plugin.BatchFile):
         time=None,
         exclusive=None,
         nodes=None,
-        cpus_per_task=None,
         mem_per_cpu=None,
         partition=None,
         memory=None,
@@ -79,9 +80,6 @@ class BatchFile(plugin.BatchFile):
 
         if nodes:
             self._add_option(f"--nodes={nodes}")
-
-        if cpus_per_task:
-            self._add_option(f"--cpus-per-task={cpus_per_task}")
 
         if mem_per_cpu:
             self._add_option(f"--mem-per-cpu={_slurm_size(mem_per_cpu)}")

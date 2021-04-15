@@ -7,10 +7,10 @@ from fragview.sites.maxiv import SitePlugin
 
 EXPECTED_BATCH = b"""#!/bin/bash
 #SBATCH --job-name='test'
+#SBATCH --cpus-per-task=2
 #SBATCH --time=02:00:00
 #SBATCH --exclusive
 #SBATCH --nodes=4
-#SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=1G
 #SBATCH --partition=sea
 #SBATCH --mem=2G
@@ -45,14 +45,13 @@ class TestBatch(TestCase):
         with TemporaryDirectory() as temp_dir:
             script = path.join(temp_dir, "test.sh")
 
-            batch = self.hpc.new_batch_file("test", script, "out", "err")
+            batch = self.hpc.new_batch_file("test", script, "out", "err", cpus=2)
 
             # use all options
             batch.set_options(
                 time=Duration(hours=2),
                 exclusive=True,
                 nodes=4,
-                cpus_per_task=2,
                 mem_per_cpu=DataSize(gigabyte=1),
                 partition="sea",
                 memory=DataSize(gigabyte=2),

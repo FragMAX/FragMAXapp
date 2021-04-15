@@ -57,6 +57,9 @@ class JobsSet:
                 id=job_ids[job],
             )
 
+            if job._cpus:
+                job_dict["cpus"] = job._cpus
+
             run_after_ids = [f"{job_ids[job]}" for job in run_after]
             if run_after_ids:
                 job_dict["run_after"] = run_after_ids

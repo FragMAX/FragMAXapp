@@ -175,7 +175,7 @@ class PipelineCommands:
 
 
 class HPC:
-    def new_batch_file(self, job_name, script_name, stdout, stderr):
+    def new_batch_file(self, job_name, script_name, stdout, stderr, cpus=None):
         """
         create new batch file, returns instance of BatchFile class
         """
@@ -236,20 +236,21 @@ class DataSize:
 class BatchFile:
     HEADER = "#!/bin/bash"
 
-    def __init__(self, name, filename, stdout, stderr):
+    def __init__(self, name, filename, stdout, stderr, cpus):
         self._name = name
         self._filename = filename
         self._stdout = stdout
         self._stderr = stderr
         self._body = f"{self.HEADER}\n"
+        # expected number of CPU this task will use
+        self._cpus = cpus
 
     def set_options(self, time: Duration = None, exclusive=None, nodes=None, partition=None,
-                    cpus_per_task=None, mem_per_cpu: DataSize = None, memory: DataSize = None):
+                    mem_per_cpu: DataSize = None, memory: DataSize = None):
         """
         time - a limit on the total run time of the batch file
         exclusive - don't share compute node with this job
         nodes - minimum of nodes be allocated to this job
-        cpus_per_task - expected number of CPU this task will use
         mem_per_cpu - minimum memory required per allocated CPU
         partition - specific partition for the resource allocation
         memory - memory required to run this job, in gigabytes

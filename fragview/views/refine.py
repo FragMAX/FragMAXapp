@@ -35,7 +35,7 @@ def datasets(request):
     pdb_file = pdbmodel.file_path()
 
     if form.use_dimple:
-        cmds = [get_dimple_command("input.mtz", form.custom_dimple)]
+        cmd, cpus = get_dimple_command("input.mtz", form.custom_dimple)
         start_thread(
             launch_refine_jobs,
             proj,
@@ -44,11 +44,12 @@ def datasets(request):
             form.ref_space_group,
             form.run_aimless,
             "dimple",
-            cmds,
+            [cmd],
+            cpus,
         )
 
     if form.use_fspipeline:
-        cmds = get_fspipeline_commands(pdb_file, form.custom_fspipe)
+        cmds, cpus = get_fspipeline_commands(pdb_file, form.custom_fspipe)
         start_thread(
             launch_refine_jobs,
             proj,
@@ -58,13 +59,21 @@ def datasets(request):
             form.run_aimless,
             "fspipeline",
             cmds,
+            cpus,
         )
 
     return render(request, "fragview/jobs_submitted.html")
 
 
 def launch_refine_jobs(
-    proj, filters, pdb_file, space_group, run_aimless, refine_tool, refine_tool_commands
+    proj,
+    filters,
+    pdb_file,
+    space_group,
+    run_aimless,
+    refine_tool,
+    refine_tool_commands,
+    cpus,
 ):
     epoch = round(time.time())
     jobs = JobsSet("Refine")
@@ -79,12 +88,10 @@ def launch_refine_jobs(
                 project_script(proj, f"refine_{tool}_{refine_tool}_{dset}.sh"),
                 project_log_path(proj, f"refine_{tool}_{dset}_{epoch}_%j_out.txt"),
                 project_log_path(proj, f"refine_{tool}_{dset}_{epoch}_%j_err.txt"),
+                cpus,
             )
             batch.set_options(
-                time=Duration(hours=12),
-                nodes=1,
-                cpus_per_task=2,
-                mem_per_cpu=DataSize(gigabyte=5),
+                time=Duration(hours=12), nodes=1, mem_per_cpu=DataSize(gigabyte=5),
             )
 
             batch.add_commands(crypt_shell.crypt_cmd(proj))

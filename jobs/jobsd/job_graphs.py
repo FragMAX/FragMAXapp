@@ -35,6 +35,7 @@ def get_job_nodes_trees(jobs_list: List[dict]) -> Set[JobNode]:
                     job_desc["arguments"],
                     job_desc["stdout"],
                     job_desc["stderr"],
+                    job_desc.get("cpus", 0),
                 ),
                 job_desc["run_on"],
             ),

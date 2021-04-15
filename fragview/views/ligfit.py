@@ -106,10 +106,11 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
             "autoLigfit",
             project_script(proj, f"autoligand_{sample}_{num}.sh"),
             project_log_path(proj, "auto_ligfit_%j_out.txt"),
-            project_log_path(proj, "auto_ligfit_%j_err.txt")
+            project_log_path(proj, "auto_ligfit_%j_err.txt"),
+            cpus=1
         )
 
-        batch.set_options(time=Duration(hours=1), cpus_per_task=1)
+        batch.set_options(time=Duration(hours=1))
 
         batch.purge_modules()
         batch.load_modules(softwares)

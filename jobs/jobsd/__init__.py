@@ -4,7 +4,7 @@ import signal
 import logging
 import asyncio
 import argparse
-from typing import List
+from typing import Set, Dict, List, Optional, Any
 from asyncio import Event
 from asyncio.streams import StreamReader, StreamWriter
 from contextlib import asynccontextmanager
@@ -20,43 +20,66 @@ log = logging.getLogger(__name__)
 READ_CHUNK_SIZE = 1024
 
 
-class JobsThrottle:
-    def __init__(self, max_jobs):
-        self.max_jobs = max_jobs
-        self._running_jobs = 0
-        self.running_jobs_changed = Event()
+class CPUThrottle:
+    def __init__(self, max_cpus):
+        self._max_cpus = max_cpus
+        self._cpus_allocated = 0
+        self._cpus_allocated_changed = Event()
 
     @property
-    def running_jobs(self):
-        return self._running_jobs
+    def cpus_allocated(self):
+        return self._cpus_allocated
 
-    @running_jobs.setter
-    def running_jobs(self, v):
-        self._running_jobs = v
-        self.running_jobs_changed.set()
+    @cpus_allocated.setter
+    def cpus_allocated(self, v):
+        self._cpus_allocated = v
+        self._cpus_allocated_changed.set()
 
     @asynccontextmanager
-    async def jobs_limit(self):
-        while self.running_jobs >= self.max_jobs:
-            await self.running_jobs_changed.wait()
-            self.running_jobs_changed.clear()
+    async def jobs_limit(self, cpus):
+        while self.cpus_allocated + cpus > self._max_cpus:
+            log.info(
+                f"CPU allocation exhausted, allocated {self.cpus_allocated}/{self._max_cpus}"
+            )
+            await self._cpus_allocated_changed.wait()
+            self._cpus_allocated_changed.clear()
 
         try:
-            self.running_jobs += 1
+            self.cpus_allocated += cpus
+            log.info(f"allocated {cpus}, total allocation {self.cpus_allocated}")
             yield
         finally:
             # make sure we count down,
             # event if the job failed or was cancelled
-            self.running_jobs -= 1
+            self.cpus_allocated -= cpus
+
+
+class NOPThrottle:
+    """
+    No-OP throttle, i.e. one that does not limit
+    jobs launching in any ways
+    """
+
+    @asynccontextmanager
+    async def jobs_limit(self, cpus):
+        yield
+
+
+def _get_throttle(max_cpus):
+    if max_cpus:
+        return CPUThrottle(max_cpus)
+
+    # no CPU limit requested, use a No-op throttle
+    return NOPThrottle()
 
 
 class JobsTable:
-    def __init__(self, job_runners):
+    def __init__(self, job_runners, max_cpus: Optional[int]):
         self.job_ids = JobIDs(conf.DATABASE_DIR)
-        self.jobs_nodes = set()
-        self.job_tasks = {}
+        self.jobs_nodes: Set[JobNode] = set()
+        self.job_tasks: Dict[str, Any] = {}
         self.job_runners = job_runners
-        self.throttle = JobsThrottle(conf.JOBSD_MAX_JOBS)
+        self.throttle = _get_throttle(max_cpus)
 
     def command_received(self):
         for runner in self.job_runners.values():
@@ -88,7 +111,7 @@ class JobsTable:
         job = job_node.job
         runner = self._get_runner(job_node)
 
-        async with self.throttle.jobs_limit():
+        async with self.throttle.jobs_limit(job.cpus):
             job.mark_as_started()
             await runner(job.program, job.arguments, job.stdout, job.stderr)
 
@@ -233,10 +256,9 @@ def init_signals():
     return exit_event
 
 
-async def run():
+async def run(cpu_limit):
     exit_event = init_signals()
-
-    jobs_table = JobsTable(get_runners())
+    jobs_table = JobsTable(get_runners(), cpu_limit)
 
     server = await asyncio.start_unix_server(
         lambda r, w: client_connected(r, w, jobs_table), conf.JOBSD_SOCKET
@@ -257,6 +279,12 @@ def parse_args():
 
     parser.add_argument("--uid", type=int, help="run with specified UID (user ID)")
     parser.add_argument("--gid", type=int, help="run with specified GID (group ID)")
+    parser.add_argument(
+        "--cpu-limit",
+        type=int,
+        help="throttel jobs to use max number of specified CPU",
+        default=None,
+    )
 
     return parser.parse_args()
 
@@ -269,9 +297,7 @@ def set_uid_gid(uid, gid):
         os.setuid(uid)
 
 
-def setup_daemon():
-    args = parse_args()
-
+def setup_daemon(uid, gid):
     # set-up logging to goto stdout
     logging.basicConfig(
         stream=sys.stdout,
@@ -282,9 +308,10 @@ def setup_daemon():
     sys.stdout.reconfigure(line_buffering=True)
 
     # switch uid/gid if requested
-    set_uid_gid(args.uid, args.gid)
+    set_uid_gid(uid, gid)
 
 
 def main():
-    setup_daemon()
-    asyncio.run(run())
+    args = parse_args()
+    setup_daemon(args.uid, args.gid)
+    asyncio.run(run(args.cpu_limit))

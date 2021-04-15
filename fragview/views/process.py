@@ -123,21 +123,7 @@ def run_xdsapp(proj, filters, options):
     epoch = str(round(time.time()))
 
     for num, dset in enumerate(get_proc_datasets(proj, filters)):
-        batch = hpc.new_batch_file("XDSAPP",
-                                   project_script(proj, f"xdsapp_fragmax_part{num}.sh"),
-                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_out.txt"),
-                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_err.txt"))
-
-        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1, cpus_per_task=64,
-                          partition="fujitsu", memory=DataSize(gigabyte=300))
-
-        batch.purge_modules()
-        batch.load_modules(softwares)
-
         outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
-
-        os.makedirs(outdir, mode=0o760, exist_ok=True)
-        os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
 
         if options["spacegroup"] != "":
             cellpar = " ".join(options["cellparam"].split(","))
@@ -152,10 +138,27 @@ def run_xdsapp(proj, filters, options):
         else:
             friedel = "--fried=False"
 
+        xdsapp_command, cpus = get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images)
+
+        batch = hpc.new_batch_file("XDSAPP",
+                                   project_script(proj, f"xdsapp_fragmax_part{num}.sh"),
+                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_out.txt"),
+                                   project_log_path(proj, f"multi_xdsapp_{epoch}_%j_err.txt"),
+                                   cpus)
+
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
+                          partition="fujitsu", memory=DataSize(gigabyte=300))
+
+        batch.purge_modules()
+        batch.load_modules(softwares)
+
+        os.makedirs(outdir, mode=0o760, exist_ok=True)
+        os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
+
         batch.add_commands(
             f"mkdir -p {outdir}/xdsapp",
             f"cd {outdir}/xdsapp",
-            get_xdsapp_command(outdir, spg, customxdsapp, friedel, image_file, num_images)
+            xdsapp_command,
         )
 
         batch.save()
@@ -258,17 +261,6 @@ def run_xds(proj, filters, options):
     epoch = str(round(time.time()))
 
     for num, dset in enumerate(get_proc_datasets(proj, filters)):
-        batch = hpc.new_batch_file("XIA2/XDS",
-                                   project_script(proj, f"xds_fragmax_part{num}.sh"),
-                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_out.txt"),
-                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_err.txt"))
-
-        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300))
-
-        batch.purge_modules()
-        batch.load_modules(softwares)
-
         outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -291,10 +283,24 @@ def run_xds(proj, filters, options):
         else:
             friedel = ""
 
+        xds_commands, cpus = get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images)
+
+        batch = hpc.new_batch_file("XIA2/XDS",
+                                   project_script(proj, f"xds_fragmax_part{num}.sh"),
+                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_out.txt"),
+                                   project_log_path(proj, f"multi_xia2XDS_{epoch}_%j_err.txt"),
+                                   cpus)
+
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
+                          partition="fujitsu", memory=DataSize(gigabyte=300))
+
+        batch.purge_modules()
+        batch.load_modules(softwares)
+
         batch.add_commands(
             f"mkdir -p {outdir}/xdsxscale",
             f"cd {outdir}/xdsxscale",
-            *get_xia_xdsxscale_commands(spg, unit_cell, customxds, friedel, image_file, num_images))
+            *xds_commands)
 
         batch.save()
         jobs.add_job(batch)
@@ -339,18 +345,6 @@ def run_dials(proj, filters, options):
     epoch = str(round(time.time()))
 
     for num, dset in enumerate(get_proc_datasets(proj, filters)):
-        batch = hpc.new_batch_file(
-            "DIALS",
-            project_script(proj, f"dials_fragmax_part{num}.sh"),
-            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_out.txt"),
-            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_err.txt"))
-
-        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
-                          cpus_per_task=64, partition="fujitsu", memory=DataSize(gigabyte=300))
-
-        batch.purge_modules()
-        batch.load_modules(softwares)
-
         outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
 
         os.makedirs(outdir, mode=0o760, exist_ok=True)
@@ -374,10 +368,25 @@ def run_dials(proj, filters, options):
         else:
             friedel = ""
 
+        dials_commands, cpus = get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images)
+
+        batch = hpc.new_batch_file(
+            "DIALS",
+            project_script(proj, f"dials_fragmax_part{num}.sh"),
+            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_out.txt"),
+            project_log_path(proj, f"multi_xia2DIALS_{epoch}_%j_err.txt"),
+            cpus)
+
+        batch.set_options(time=Duration(hours=168), exclusive=True, nodes=1,
+                          partition="fujitsu", memory=DataSize(gigabyte=300))
+
+        batch.purge_modules()
+        batch.load_modules(softwares)
+
         batch.add_commands(
             f"mkdir -p {outdir}/dials",
             f"cd {outdir}/dials",
-            *get_xia_dials_commands(spg, unit_cell, customdials, friedel, image_file, num_images)
+            *dials_commands,
         )
 
         batch.save()
