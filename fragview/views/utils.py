@@ -1,5 +1,6 @@
+from os import path
 from threading import Thread
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from fragview.fileio import read_proj_file
 
 
@@ -25,5 +26,7 @@ def png_http_response(proj, file_path):
     return binary_http_response(proj, file_path, "image/png")
 
 
-def download_http_response(proj, file_path):
-    return binary_http_response(proj, file_path, "application/octet-stream")
+def download_http_response(file_path):
+    return FileResponse(
+        open(file_path, "rb"), as_attachment=True, filename=path.basename(file_path)
+    )

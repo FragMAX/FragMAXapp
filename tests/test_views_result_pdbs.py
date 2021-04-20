@@ -32,8 +32,7 @@ class TestFinalView(test.TestCase, ViewTesterMixin):
             resp = self.client.get(self.URL)
 
             # check that we successfully got PDBs content
-            self.assertEqual(resp.status_code, 200)
-            self.assertEqual(resp.content, PDB_CONTENT)
+            self.assert_file_response(resp, PDB_CONTENT)
 
 
 class TestLigandView(test.TestCase, ViewTesterMixin):
@@ -70,9 +69,7 @@ class TestLigandView(test.TestCase, ViewTesterMixin):
             resp = self.client.get(self.LIGFIT_URL)
 
             # check that we successfully got PDBs content
-            self.assert_response_equals(
-                resp, 200, PDB_CONTENT, "application/octet-stream"
-            )
+            self.assert_file_response(resp, PDB_CONTENT)
 
     @patch("fragview.views.result_pdbs.project_results_dir")
     def test_rhofit(self, res_dir_mock):
@@ -89,9 +86,7 @@ class TestLigandView(test.TestCase, ViewTesterMixin):
             resp = self.client.get(self.RHOFIT_URL)
 
             # check that we successfully got PDBs content
-            self.assert_response_equals(
-                resp, 200, PDB_CONTENT, "application/octet-stream"
-            )
+            self.assert_file_response(resp, PDB_CONTENT)
 
     @patch("fragview.views.result_pdbs.project_results_dir")
     def test_no_ligfit_pdb(self, res_dir_mock):

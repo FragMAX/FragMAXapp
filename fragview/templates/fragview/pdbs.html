@@ -74,9 +74,11 @@
                         </a>
                     </td>
                     <td>{{pdb.pdb_id}}</td>
-                    <td class="download"><a
-                            href="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/models/{{pdb.filename}}"
-                            target="download"><i class="material-icons">file_download</i></a></td>
+                    <td>
+                        <a href="/pdb/get/{{pdb.id}}" download>
+                            <i class="material-icons">file_download</i>
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

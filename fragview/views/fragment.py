@@ -34,4 +34,4 @@ def pdb(request, fragment):
     frag = _get_fragment_model(proj, fragment)
     smiles_to_pdb.delay(frag.smiles, project_fragments_dir(proj), frag.name).wait()
 
-    return download_http_response(proj, project_fragment_pdb(proj, frag.name))
+    return download_http_response(project_fragment_pdb(proj, frag.name))

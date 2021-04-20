@@ -41,6 +41,4 @@ class TestMapView(TestCase, ViewTesterMixin, TempDirMixin):
         resp = self.client.get(url)
 
         # check that we got expected response
-        self.assert_response_equals(
-            resp, 200, self.MTZ_DATA, "application/octet-stream"
-        )
+        self.assert_file_response(resp, self.MTZ_DATA)

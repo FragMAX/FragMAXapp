@@ -77,6 +77,12 @@ class ViewTesterMixin:
         self.assertEquals(response.content, content)
         self.assertEquals(response["content-type"], content_type)
 
+    def assert_file_response(self, response, content):
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(response.streaming)
+        resp_content = b"".join(response.streaming_content)
+        self.assertEquals(resp_content, content)
+
     def assert_bad_request(self, response, error_msg):
         self.assert_response(response, 400, error_msg)
 

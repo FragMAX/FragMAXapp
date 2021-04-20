@@ -17,7 +17,7 @@ def final(request, dataset, process, refine):
     proj = current_project(request)
     pdb_path = path.join(_refine_dir(proj, dataset, process, refine), "final.pdb")
 
-    return download_http_response(proj, pdb_path)
+    return download_http_response(pdb_path)
 
 
 def ligand(request, dataset, process, refine, fitting):
@@ -42,7 +42,7 @@ def ligand(request, dataset, process, refine, fitting):
     if not path.isfile(pdb_path):
         return HttpResponseNotFound(f"no '{fitting}' PDB file found")
 
-    return download_http_response(proj, pdb_path)
+    return download_http_response(pdb_path)
 
 
 def pandda_fitted(request, dataset, method):
@@ -58,7 +58,7 @@ def pandda_fitted(request, dataset, method):
     #
     pdb_path = max(modelled_structures_dir.glob("*fitted*.pdb"))
 
-    return download_http_response(proj, pdb_path)
+    return download_http_response(pdb_path)
 
 
 def pandda_input(request, dataset, method):
@@ -67,4 +67,4 @@ def pandda_input(request, dataset, method):
     processed_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
     pdb_path = next(processed_dir.glob("*pandda-input.pdb"))
 
-    return download_http_response(proj, pdb_path)
+    return download_http_response(pdb_path)

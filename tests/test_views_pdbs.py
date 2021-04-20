@@ -1,4 +1,5 @@
 import unittest
+from io import BytesIO
 from unittest.mock import patch, Mock
 from django import test
 from django.urls import reverse
@@ -27,6 +28,7 @@ class TestIsValidPDBFilename(unittest.TestCase):
     """
     test _is_valid_pdb_filename() function
     """
+
     def test_valids(self):
         self.assertTrue(pdbs._is_valid_pdb_filename("2ID8.pdb"))
         self.assertTrue(pdbs._is_valid_pdb_filename("0000.PDB"))
@@ -46,18 +48,23 @@ class TestAddPdbEntry(test.TestCase):
     """
     test _add_pdb_entry() function
     """
+
     PDB_NAME = "9876.pdb"
 
     def test_duplicate_entry(self):
         lib = Library(name="JBS")
         lib.save()
 
-        proj = Project(protein="PRT", library=lib, proposal="20210102", shift="20190808")
+        proj = Project(
+            protein="PRT", library=lib, proposal="20210102", shift="20190808"
+        )
         proj.save()
 
         pdbs._add_pdb_entry(proj, self.PDB_NAME)
 
-        with self.assertRaisesRegex(pdbs.PDBAddError, "^Model file '9876.pdb' already exists in the project."):
+        with self.assertRaisesRegex(
+            pdbs.PDBAddError, "^Model file '9876.pdb' already exists in the project."
+        ):
             pdbs._add_pdb_entry(proj, self.PDB_NAME)
 
 
@@ -65,6 +72,7 @@ class TestListView(_PDBViewTester):
     """
     test 'manage PDBs' view
     """
+
     def test_no_pdbs(self):
         """
         the case when project does not have any PDBs
@@ -96,6 +104,7 @@ class TestAddView(_PDBViewTester):
     """
     test 'Add new PDB' page view
     """
+
     def test_add(self):
         resp = self.client.get("/pdb/add")
 
@@ -108,6 +117,7 @@ class TestEditView(_PDBViewTester):
     test 'PDB edit' view, that is the view that is
     used to show some PDB info and to delete PDBs
     """
+
     def test_info_page(self):
         """
         test loading the 'PDB info' page
@@ -156,6 +166,25 @@ class TestEditView(_PDBViewTester):
         remove_mock.assert_called_once_with(pdb_file)
 
 
+class TestGetView(_PDBViewTester):
+    DATA = b"orange vs kiwi"
+
+    def test_unknown_id(self):
+        resp = self.client.post("/pdb/get/42")
+        self.assert_not_found_response(resp, ".")
+
+    def test_success(self):
+        pdb = PDB(project=self.proj, filename="foo.pdb")
+        pdb.save()
+
+        with patch("fragview.views.utils.open") as open_mock:
+            open_mock.return_value = BytesIO(self.DATA)
+
+            resp = self.client.post(f"/pdb/get/{pdb.id}")
+
+        self.assert_file_response(resp, self.DATA)
+
+
 class TestNewView(_PDBViewTester):
     PDB_FILE = "1AB2.pdb"
     PDB_ID = "2ID3"
@@ -177,7 +206,9 @@ class TestNewView(_PDBViewTester):
         self.assertEqual(200, resp.status_code)
 
         # check that _save_pdb() was called with correct args
-        save_pdb_mock.assert_called_once_with(self.proj, None, self.PDB_FILE, self.PDB_DATA)
+        save_pdb_mock.assert_called_once_with(
+            self.proj, None, self.PDB_FILE, self.PDB_DATA
+        )
 
     @patch("fragview.views.pdbs._save_pdb")
     def test_fetch_online(self, save_pdb_mock):
@@ -185,7 +216,9 @@ class TestNewView(_PDBViewTester):
         test the case when PDB is fetched online from RCSB database
         """
         with patch("fragview.views.pdbs._fetch_from_rcsb") as fetch_mock:
-            resp = self.client.post("/pdb/new", dict(method="fetch_online", pdb_id=self.PDB_ID))
+            resp = self.client.post(
+                "/pdb/new", dict(method="fetch_online", pdb_id=self.PDB_ID)
+            )
 
             # check for OK response
             self.assertEqual(200, resp.status_code)
@@ -195,7 +228,8 @@ class TestNewView(_PDBViewTester):
 
             # check that _save_pdb() was called with correct args
             save_pdb_mock.assert_called_once_with(
-                self.proj, self.PDB_ID, f"{self.PDB_ID}.pdb", fetch_mock.return_value)
+                self.proj, self.PDB_ID, f"{self.PDB_ID}.pdb", fetch_mock.return_value
+            )
 
     def test_invalid_new(self):
         """
@@ -217,6 +251,7 @@ class TestFetchFromRCSB(test.TestCase):
     """
     test _fetch_from_rcsb() function
     """
+
     PDB_ID = "1XY8"
     PDB_CONTENT = "dummy-pdb-content"
 

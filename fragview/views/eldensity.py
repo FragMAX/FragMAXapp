@@ -37,7 +37,7 @@ def map(request, dataset, process, refine, type):
         _density_filename("final", type),
     )
 
-    return download_http_response(proj, mtz_path)
+    return download_http_response(mtz_path)
 
 
 def pipedream_map(request, sample, process, type):
@@ -85,7 +85,7 @@ def pandda_consensus_zmap(request, dataset, method):
         f"{dataset}-z_map.native.ccp4",
     )
 
-    return download_http_response(proj, zmap_path)
+    return download_http_response(zmap_path)
 
 
 def pandda_bdc(request, dataset, method):
@@ -98,7 +98,7 @@ def pandda_bdc(request, dataset, method):
     # TODO: potentional BDC files, is this a good way to roll?
     ccp4_path = next(dataset_dir.glob("*BDC*.ccp4"))
 
-    return download_http_response(proj, ccp4_path)
+    return download_http_response(ccp4_path)
 
 
 def pandda_average(request, dataset, method):
@@ -109,7 +109,7 @@ def pandda_average(request, dataset, method):
         f"{dataset}-ground-state-average-map.native.ccp4",
     )
 
-    return download_http_response(proj, zmap_path)
+    return download_http_response(zmap_path)
 
 
 def pandda_input(request, dataset, method):
@@ -118,4 +118,4 @@ def pandda_input(request, dataset, method):
     processed_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
     mtz_path = next(processed_dir.glob("*pandda-input.mtz"))
 
-    return download_http_response(proj, mtz_path)
+    return download_http_response(mtz_path)

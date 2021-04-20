@@ -15,6 +15,7 @@ from fragview.projects import (
     project_script,
     project_models_dir,
 )
+from fragview.views.utils import download_http_response
 from fragview.sites import SITE
 from fragview.versions import PHENIX_MOD
 from jobs.client import JobsSet
@@ -212,6 +213,11 @@ def edit(request, id):
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})
+
+
+def get(_, id):
+    pdb = get_object_or_404(PDB, pk=id)
+    return download_http_response(pdb.file_path())
 
 
 def pdb_chains(pdb_lines):

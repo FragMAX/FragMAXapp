@@ -61,6 +61,7 @@ urlpatterns = [
     path('pdb/<int:id>', pdbs.edit),
     path('pdb/add', pdbs.add),
     path('pdb/new', pdbs.new),
+    path('pdb/get/<int:id>', pdbs.get),
 
     # download views
     path('download/', download.page),
