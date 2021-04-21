@@ -1,6 +1,6 @@
 # Site Plugins
 
-The customization of FragMAX app for deployment to different facilities is achieved via the site-plugins architecture.
+The customization of FragMAXapp for deployment to different facilities is achieved via the site-plugins architecture.
 
 ## Architecture
 
@@ -17,10 +17,23 @@ This HPC runner object will be used for running compute heavy jobs, in the site 
 
 For full details of all classes that must be implemented, see the `fragview.sites.plugin` documentation.
 
+### Site Plugin Configuration
+
+The site-plugin that will be used by the application is configured by creating `local_site.py` file in the root of the application.
+This file must define SITE variable, which is a string representation of the site-plugin to load.
+For example, following file configures to use MAXIV site-plugin:
+
+    SITE = "MAXIV"
+
+The 'deploy/local_site.py-maxiv' file in this repository, is an example on how to select "MAXIV" site-plugin.
+
+Currently supported sites are "MAXIV" and "HZB".
+
+
 ## Loading of Site Plugins
 
 The canonical name of the site-plugin that will be used by the application is read from `local_site.SITE` variable.
-See the [Site Plugin Configuration](README.md#Site-Plugin-Configuration) on how to configure that variable.
+See the above on how to configure that variable.
 
 The canonical name is then converted to lower cases and expanded to a full python package name by prepending the "fragview.sites." string.
 The full package name then used to instantiate the `SitePlugin` class from that package.
