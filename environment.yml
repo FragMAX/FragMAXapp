@@ -4,11 +4,8 @@ channels:
 dependencies:
   - python=3.8.6
   - django=2.2.5
-  - sqlparse=0.3.0
   - natsort=6.0.0
-  - matplotlib=3.1.1
   - requests=2.22.0
-  - seaborn=0.9.0
   - gemmi=0.4.5
   - rdkit=2019.09.3
   - fabio=0.10.2
@@ -17,9 +14,10 @@ dependencies:
   - redis-py=3.3.11
   - pip=20.0.2
   - pycryptodomex=3.9.7
+  - xmltodict=0.12.0
   - pip:
     - django-static-jquery==2.1.4
-    - pypdb==1.300
+    - pypdb==2.0
     - redlock==1.2.0
     - zipstream-new==1.1.7
     - asyncssh==2.5.0
