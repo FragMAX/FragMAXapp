@@ -1,4 +1,3 @@
-import os
 import time
 from os import path
 from django.shortcuts import render
@@ -152,9 +151,6 @@ def run_xdsapp(proj, filters, options):
         batch.purge_modules()
         batch.load_modules(softwares)
 
-        os.makedirs(outdir, mode=0o760, exist_ok=True)
-        os.makedirs(outdir + "/xdsapp", mode=0o760, exist_ok=True)
-
         batch.add_commands(
             f"mkdir -p {outdir}/xdsapp",
             f"cd {outdir}/xdsapp",
@@ -190,8 +186,6 @@ def run_autoproc(proj, filters, options):
         batch.load_modules(softwares)
 
         outdir, h5master, sample, num_images = _get_dataset_params(proj, dset)
-
-        os.makedirs(outdir, mode=0o760, exist_ok=True)
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
@@ -262,9 +256,6 @@ def run_xds(proj, filters, options):
 
     for num, dset in enumerate(get_proc_datasets(proj, filters)):
         outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
-
-        os.makedirs(outdir, mode=0o760, exist_ok=True)
-        os.makedirs(outdir + "/xdsxscale", mode=0o760, exist_ok=True)
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
@@ -346,9 +337,6 @@ def run_dials(proj, filters, options):
 
     for num, dset in enumerate(get_proc_datasets(proj, filters)):
         outdir, image_file, sample, num_images = _get_dataset_params(proj, dset)
-
-        os.makedirs(outdir, mode=0o760, exist_ok=True)
-        os.makedirs(outdir + "/dials", mode=0o760, exist_ok=True)
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
