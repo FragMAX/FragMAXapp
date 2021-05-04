@@ -62,7 +62,7 @@
 <div class="card" style="min-width: 1020px;">
   <div class="card-content">
     <div class="card-title">
-      <a href="/jobhistory" target="_blank">Job History</a>
+      <a href="/jobs/history" target="_blank">Job History</a>
     </div>
     <br>
     <table class="table bordered">
@@ -98,12 +98,12 @@
             {% endwith %}
           </td>
           <td>
-            <a href="/logs/show/fragmax/logs/{{job.stdout}}" target="blank">
+            <a href="/logs/show/logs/{{job.stdout}}" target="blank">
               {{job.stdout}}
             </a>
           </td>
           <td>
-            <a href="/logs/show/fragmax/logs/{{job.stderr}}" target="blank">
+            <a href="/logs/show/logs/{{job.stderr}}" target="blank">
               {{job.stderr}}
             </a>
           </td>

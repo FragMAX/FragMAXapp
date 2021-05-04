@@ -1,3 +1,5 @@
+from typing import Tuple
+from datetime import datetime, timedelta, timezone
 from os import path
 from Cryptodome import Random
 from Cryptodome.Cipher import AES
@@ -5,8 +7,11 @@ from Cryptodome.Cipher import AES
 # encryption key size, in bytes
 KEY_SIZE = 16
 
-# access token size
+# access token size, in bytes
 TOKEN_SIZE = 32
+# number of minutes a token is valid
+# (~3 hours is probably enough for any job to finish)
+TOKEN_VALID_FOR = 60 * 3
 
 
 class CryptoErr(Exception):
@@ -39,11 +44,16 @@ class EncryptedFile:
         self.file.close()
 
 
-def generate_token():
-    return Random.get_random_bytes(TOKEN_SIZE)
+def now_utc():
+    return datetime.now(tz=timezone.utc)
 
 
-def generate_key():
+def generate_token() -> Tuple[bytes, datetime]:
+    valid_until = now_utc() + timedelta(minutes=TOKEN_VALID_FOR)
+    return Random.get_random_bytes(TOKEN_SIZE), valid_until
+
+
+def generate_key() -> bytes:
     """
     generate a new random encryption key, suitable
     for AES encryption we are using

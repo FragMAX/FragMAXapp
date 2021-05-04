@@ -1,14 +1,22 @@
+from typing import Iterator
 from django.shortcuts import render
 from fragview.projects import current_project
-from fragview.dsets import get_datasets
-from fragview.sites import SITE
+from fragview.projects import Project
+from fragview.views.wrap import DatasetInfo
+
+
+def _get_dataset_info(project: Project) -> Iterator[DatasetInfo]:
+    for dataset in project.get_datasets():
+        yield DatasetInfo(dataset)
 
 
 def show_all(request):
-    proj = current_project(request)
+    project = current_project(request)
 
     return render(
         request,
         "fragview/datasets.html",
-        {"pipelines": SITE.get_supported_pipelines(), "datasets": get_datasets(proj)},
+        {
+            "datasets": _get_dataset_info(project),
+        },
     )

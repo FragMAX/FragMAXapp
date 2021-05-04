@@ -1,93 +1,59 @@
 import pandas
-import csv
-from typing import Dict, Union
-from pathlib import Path
+from typing import Iterator, Dict, List
 from django.http import HttpResponse
 from django.shortcuts import render
-from fragview.projects import current_project, project_results_file
+from fragview.projects import current_project, Project
+from fragview.views.wrap import RefineInfo, wrap_refine_results
 
 
-NUMERICAL_COLUMNS = [
-    "resolution",
-    "ISa",
-    "r_work",
-    "r_free",
-    "bonds",
-    "angles",
-    "a",
-    "b",
-    "c",
-    "alpha",
-    "beta",
-    "gamma",
-    "rhofitscore",
-    "ligfitscore",
-]
-
-
-def _load_results(results_file: Path):
-    def _as_float(row: Dict, name: str):
-        """
-        convert specified cell into float value,
-        for cases when value is 'unknown' or not specified,
-        return None
-        """
-        val = row[name]
-        if val in {"unknown", ""}:
-            return None
-
-        return float(val)
-
-    if results_file is None:
-        return []
-
-    results_data = []
-    with results_file.open() as readFile:
-        for row in csv.DictReader(readFile):
-            # convert all numerical values to floats,
-            # so that the template can render them with
-            # desired number of decimals
-            for col_name in NUMERICAL_COLUMNS:
-                row[col_name] = _as_float(row, col_name)
-
-            results_data.append(row)
-
-    return results_data
-
-
-def _get_results_file(request) -> Union[None, Path]:
-    proj = current_project(request)
-    results_file = Path(project_results_file(proj))
-
-    if not results_file.is_file():
-        return None
-
-    return results_file
-
-
-def _load_results_data(request):
-    """
-    load results CSV in pandas suitable format
-
-    return None if results.csv does not exists or is empty
-    """
-    results_file = _get_results_file(request)
-    if results_file is None:
-        return None
-
-    data = pandas.read_csv(results_file)
-    if data.empty:
-        return None
-
-    return data
+def _get_refine_info(project: Project) -> Iterator[RefineInfo]:
+    for res in project.get_refine_results():
+        yield RefineInfo(res)
 
 
 def show(request):
+    project = current_project(request)
     return render(
         request,
         "fragview/results.html",
-        {"results": _load_results(_get_results_file(request))},
+        {"refine_results": wrap_refine_results(project.get_refine_results())},
     )
+
+
+def _get_results_data(project, columns: List[str]) -> pandas.DataFrame:
+    """
+    put refine result statistics data into a pandas data frame
+
+    'columns' specifies the RefineResult attribute names to include into the data frame
+
+    The dataframe will also include refine result's symbolic name column 'dset_tools'
+    and dataset's symbolic name column 'dataset'.
+
+    For example, if 'r_work' and 'r_free' attributes are requested, the data frame will look like:
+
+        r_work   r_free               dset_tools  dataset
+    0  0.14723  0.16015      Apo01_1_edna_dimple  Apo01_1
+    1  0.15019  0.16336  Apo01_1_autoproc_dimple  Apo01_1
+    2  0.15636  0.17151      Apo27_1_edna_dimple  Apo27_1
+    3  0.17733  0.19371  Apo27_1_autoproc_dimple  Apo27_1
+    4  0.15231  0.16726      B08a2_1_edna_dimple  B08a2_1
+    5  0.15676  0.17284  B08a2_1_autoproc_dimple  B08a2_1
+    """
+    names = []
+    datasets = []
+    vals: Dict[str, List] = {col_name: [] for col_name in columns}
+
+    for ref_res in project.get_refine_results():
+        names.append(ref_res.name)
+        datasets.append(ref_res.dataset.name)
+        for col_name in columns:
+            vals[col_name].append(getattr(ref_res, col_name))
+
+    data = {col_name: vals[col_name] for col_name in columns}
+    data["dset_tools"] = names
+    data["dataset"] = datasets
+
+    return pandas.DataFrame(data)
 
 
 def isa(request):
@@ -95,21 +61,15 @@ def isa(request):
     return ISa statistics for datasets in the results,
     in Json format, suitable for drawing interactive plots
     """
-    data = _load_results_data(request)
-    if data is None:
-        return HttpResponse("")
-
-    # ignore data row when isa is unknown
-    data = data[data["ISa"] != "unknown"]
-    data["ISa"] = pandas.to_numeric(data["ISa"])
+    data = _get_results_data(current_project(request), ["isa"])
 
     # group data by dataset name and calculate mean and standard error
     isa_mean_by_dataset = (
-        data.groupby("dataset")["ISa"].mean().to_frame(name="mean").reset_index()
+        data.groupby("dataset")["isa"].mean().to_frame(name="mean").reset_index()
     )
     isa_mean_by_dataset["mean"] = isa_mean_by_dataset["mean"].round(2)
     std_err_by_dataset = (
-        data.groupby("dataset")["ISa"].std().round(2).to_frame(name="std").reset_index()
+        data.groupby("dataset")["isa"].std().round(2).to_frame(name="std").reset_index()
     )
 
     result = isa_mean_by_dataset.merge(std_err_by_dataset)
@@ -122,11 +82,8 @@ def resolution(request):
     return resolution statistics for datasets in the results,
     in Json format, suitable for drawing interactive plots
     """
-    data = _load_results_data(request)
-    if data is None:
-        return HttpResponse("")
+    data = _get_results_data(current_project(request), ["resolution"])
 
-    data["resolution"] = pandas.to_numeric(data["resolution"])
     # group data by dataset name and calculate mean and standard error
     res_mean_by_dataset = (
         data.groupby("dataset")["resolution"].mean().to_frame(name="mean").reset_index()
@@ -150,11 +107,9 @@ def rfactor(request):
     return rfactors statistics for datasets in the results,
     in Json format, suitable for drawing interactive plots
     """
-    data = _load_results_data(request)
-    if data is None:
-        return HttpResponse("")
-
     r_factors = ["r_work", "r_free"]
+    data = _get_results_data(current_project(request), r_factors)
+
     r_factors_values = []
     for r_factor in r_factors:
         data[r_factor] = pandas.to_numeric(data[r_factor])
@@ -187,13 +142,23 @@ def cellparams(request):
     return cell parameters statistics for datasets in the results,
     in Json format, suitable for drawing interactive plots
     """
-    data = _load_results_data(request)
-    if data is None:
-        return HttpResponse("")
 
-    params = ["a", "b", "c", "alpha", "beta", "gamma"]
+    # rename the database column names to shorter unit cell value names,
+    # for a nice UIs sake
+    columns_map = {
+        "unit_cell_a": "a",
+        "unit_cell_b": "b",
+        "unit_cell_c": "c",
+        "unit_cell_alpha": "alpha",
+        "unit_cell_beta": "beta",
+        "unit_cell_gamma": "gamma",
+    }
+
+    data = _get_results_data(current_project(request), list(columns_map.keys()))
+    data.rename(columns=columns_map, inplace=True)
+
     params_mean_values = []
-    for param in params:
+    for param in columns_map.values():
         data[param] = pandas.to_numeric(data[param])
         mean_by_dataset = (
             data.groupby("dataset")[param]

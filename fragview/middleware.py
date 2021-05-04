@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django import urls
 from django.conf import settings
 from fragview import projects
+from fragview.proposals import get_proposals
 
 
 def _open_urls():
@@ -40,6 +41,7 @@ def no_projects_redirect(get_response):
         new_proj_url,
         manage_projects_url,
         urls.reverse("logout"),
+        urls.reverse("commit"),
     ] + _open_urls()
 
     def _get_redirect_url(request):
@@ -47,9 +49,29 @@ def no_projects_redirect(get_response):
             return manage_projects_url
         return new_proj_url
 
+    def _is_excluded_url(url):
+        if url in excluded_urls:
+            return True
+
+        # allows to browse fragment libraries before creating a project
+        if url.startswith("/libraries") or url.startswith("/fragment"):
+            return True
+
+        # allows to delete failed projects, in cases
+        # when user have only one pending project,
+        # that have failed during set-up
+        if url.startswith("/project/"):
+            return True
+
+        return False
+
     def check_current_project(request):
-        if request.path_info not in excluded_urls and \
-                projects.current_project(request) is None:
+        if _is_excluded_url(request.path_info):
+            return get_response(request)
+
+        proposals = get_proposals(request)
+        current_project = request.user.get_current_project(proposals)
+        if current_project is None:
             return redirect(_get_redirect_url(request))
 
         return get_response(request)
@@ -67,7 +89,10 @@ def key_required_redirect(get_response):
         excluded_prefixes = [
             "/encryption/",          # avoid redirection loop
             settings.LOGIN_URL,      # no user thus no current project
+            "/libraries",            # makes possible to browse libraries without existing project
+            "/fragment",
             urls.reverse("logout"),  # no current project when logging out
+            urls.reverse("commit"),
             "/project",              # exclude all project management URLs
             "/crypt/"                # crypt I/O use tokens rather then user authentication
         ]
@@ -79,11 +104,13 @@ def key_required_redirect(get_response):
         return False
 
     def _key_needed(request):
-        proj = projects.current_project(request)
-        if not proj.encrypted:
+        proposals = get_proposals(request)
+        project = request.user.get_current_project(proposals)
+
+        if not project.encrypted:
             return False
 
-        return not proj.has_encryption_key()
+        return not project.has_encryption_key()
 
     def check_encryption_key(request):
         if _is_excluded_url(request.path_info) or not _key_needed(request):

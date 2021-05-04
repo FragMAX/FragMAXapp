@@ -1,9 +1,10 @@
 from os import path
+from typing import List
 from datetime import datetime
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.maxiv.project import ProjectLayout
-from fragview.sites.maxiv.diffractions import DiffractionImageMaker
+from fragview.sites.maxiv.diffractions import get_diffraction_pic_command
 from fragview.sites.maxiv.pipelines import PipelineCommands
 from fragview.sites.maxiv.beamline import BeamlineInfo
 from fragview.sites.maxiv.hpc import HPC
@@ -15,7 +16,7 @@ class SitePlugin(plugin.SitePlugin):
     DISABLED_FEATURES = ["soaking_plan"]
     ACCOUNT_STYLE = "DUO"
     AUTH_BACKEND = "fragview.auth.ISPyBBackend"
-    PROPOSALS_DIR = "/data/visitors/biomax"
+    RAW_DATA_DIR = "/data/visitors/biomax"
     HPC_JOBS_RUNNER = "slurm"
 
     def get_project_experiment_date(self, project):
@@ -34,8 +35,10 @@ class SitePlugin(plugin.SitePlugin):
     def get_project_layout(self):
         return ProjectLayout()
 
-    def get_diffraction_img_maker(self):
-        return DiffractionImageMaker()
+    def get_diffraction_picture_command(
+        self, project, dataset, angle: int, dest_pic_file
+    ) -> List[str]:
+        return get_diffraction_pic_command(project, dataset, angle, dest_pic_file)
 
     def get_beamline_info(self):
         return BeamlineInfo()
@@ -93,7 +96,7 @@ class SitePlugin(plugin.SitePlugin):
     def get_pandda_inspect_commands(self, pandda_path) -> str:
         return (
             f"module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO;"
-            f" cd {pandda_path}; pandda.inspect"
+            f" cd {pandda_path}/pandda; pandda.inspect"
         )
 
 

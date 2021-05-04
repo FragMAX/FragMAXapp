@@ -12,8 +12,11 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from typing import Optional
+import conf
 from fragview.sites import SITE
 from conf import REDIS_URL, DATABASE_DIR
+# expose these configs below as django settings
+from conf import PROJECTS_DB_DIR, PROJECTS_ROOT_DIR  # noqa F401
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,8 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'xcra)=3kh9#*39o=cj-bdw^rfukhgemgo^hh(k%uvu_@g3dcs#'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = conf.DEBUG
 
 ALLOWED_HOSTS = ["*"]
 
@@ -170,9 +172,3 @@ HPC_FRONT_END = "clu0-fe-0"
 # must be set in site local settings 'site_settings.py'
 #
 CRYPT_URL: Optional[str] = None
-
-# load site specific settings override, if any
-try:
-    from site_settings import *  # noqa F403, F401
-except ModuleNotFoundError:
-    print("NOTE: no site settings found")

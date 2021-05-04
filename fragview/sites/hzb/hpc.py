@@ -26,8 +26,10 @@ class BatchFile(plugin.BatchFile):
 
     def load_modules(self, *_):
         """
+        no modules on HZB
         """
 
     def purge_modules(self):
         """
+        no modules on HZB
         """

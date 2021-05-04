@@ -1,13 +1,8 @@
-*.pyc
-*~
+.coverage
 __pycache__
 myvenv
-dump.rdb
 .DS_Store
 *.DS_Store
-static/libs/._uglymol.js
-static/libs/._.DS_Store
-static/libs/._uglymol.js
 .vscode
 .idea
 

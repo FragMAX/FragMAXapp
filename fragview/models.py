@@ -1,131 +1,224 @@
-import base64
+from typing import Iterable, Optional
 import binascii
-from django.db import models
+from base64 import b64encode, b64decode
 from django.contrib.auth.models import AbstractBaseUser
-from .projects import shift_dir, project_model_file
-from . import encryption
+from django.conf import settings
+from fragview import encryption
+from fragview.projects import Project, get_project
+from fragview.encryption import generate_token, now_utc
+from django.db.models import (
+    Model,
+    CharField,
+    TextField,
+    ForeignKey,
+    BooleanField,
+    BinaryField,
+    DateTimeField,
+    OneToOneField,
+    UniqueConstraint,
+    SET_NULL,
+    CASCADE,
+)
 
 
-class Library(models.Model):
+class Library(Model):
     """
     Fragments Library
     """
+
     # public libraries are available to all projects
-    name = models.TextField()
+    name = TextField(unique=True)
+
+    def get_fragments(self):
+        return self.fragment_set.all()
 
     @staticmethod
-    def get(lib_id):
-        """
-        get library by ID
-        """
-        return Library.objects.get(id=lib_id)
+    def get(library_name: str) -> "Library":
+        return Library.objects.get(name=library_name)
 
-    def get_fragment(self, fragment_name):
-        fragment = self.fragment_set.filter(name=fragment_name)
-        if not fragment.exists():
-            return None
+    @staticmethod
+    def get_by_id(library_id: str) -> "Library":
+        return Library.objects.get(id=library_id)
 
-        return fragment.first()
+    @staticmethod
+    def get_all():
+        return Library.objects.all()
 
 
-class Fragment(models.Model):
-    library = models.ForeignKey(Library, on_delete=models.CASCADE)
-    name = models.TextField()
+class Fragment(Model):
+    class Meta:
+        constraints = [
+            # enforce unique fragment codes inside same library
+            UniqueConstraint(fields=["library", "code"], name="unique_codes")
+        ]
+
+    library = ForeignKey(Library, on_delete=CASCADE)
+    code = TextField()
+
     # chemical structure of the fragment, in SMILES format
-    smiles = models.TextField()
-
-
-class Project(models.Model):
-    # number of unique project icons available
-    PROJ_ICONS_NUMBER = 10
-
-    protein = models.TextField()
-    library = models.ForeignKey(Library, on_delete=models.CASCADE)
-    proposal = models.TextField()
-    # 'main' shift, where we store fragmax generated data
-    shift = models.TextField()
-    shift_list = models.TextField(blank=True)
-    # 'encrypted mode' for data processing is enabled
-    encrypted = models.BooleanField(default=False)
+    smiles = TextField()
 
     @staticmethod
-    def get(proj_id):
+    def get(library_name: str, fragment_code: str) -> "Fragment":
+        return Fragment.objects.get(
+            library=Library.get(library_name), code=fragment_code
+        )
+
+    @staticmethod
+    def get_by_id(fragment_id: str) -> "Fragment":
+        return Fragment.objects.get(id=fragment_id)
+
+
+class UserProject(Model):
+    proposal = CharField(max_length=32)
+
+    # 'encrypted mode' for data processing is enabled
+    encrypted = BooleanField(default=False)
+
+    @staticmethod
+    def get(project_id) -> "UserProject":
         """
         get project by ID
         """
-        return Project.objects.get(id=proj_id)
+        return UserProject.objects.get(id=project_id)
+
+    @staticmethod
+    def get_project(user_proposals, project_id):
+        return UserProject.objects.filter(
+            proposal__in=user_proposals, id=project_id
+        ).first()
 
     @staticmethod
     def user_projects(user_proposals):
         pending_ids = PendingProject.get_project_ids()
-        return Project.objects.filter(proposal__in=user_proposals).exclude(id__in=pending_ids)
+        for user_proj in UserProject.objects.filter(
+            proposal__in=user_proposals
+        ).exclude(id__in=pending_ids):
+            yield get_project(settings.PROJECTS_DB_DIR, user_proj.id)
 
     @staticmethod
-    def get_project(user_proposals, project_id):
-        usr_proj = Project.user_projects(user_proposals)
-        return usr_proj.filter(id=project_id).first()
+    def create_new(protein: str, proposal: str) -> "UserProject":
+        """
+        create new project, and set it in 'pending' state
+        """
+        proj = UserProject(proposal=proposal)
+        proj.save()
+
+        PendingProject(project=proj, protein=protein).save()
+
+        return proj
 
     def set_ready(self):
         PendingProject.remove_pending(self)
 
-    def set_pending(self):
-        PendingProject(project=self).save()
+    def set_failed(self, error_message: str):
+        self.pendingproject.set_failed(error_message)
 
-    def icon_num(self):
-        return self.id % self.PROJ_ICONS_NUMBER
 
-    def data_path(self):
-        return shift_dir(self.proposal, self.shift)
+class AccessToken(Model):
+    class ParseError(Exception):
+        pass
 
-    def shifts(self):
+    # project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_id = TextField()
+    token = BinaryField(max_length=encryption.TOKEN_SIZE)
+    valid_until = DateTimeField()
+
+    def is_valid(self, now=None) -> bool:
+        if now is None:
+            now = now_utc()
+
+        return self.valid_until > now
+
+    @staticmethod
+    def _token_by_proj_id(project_id: str):
+        return AccessToken.objects.filter(project_id=project_id)
+
+    @staticmethod
+    def _purge_old_tokens(project_id: str):
+        now = now_utc()
+
+        for token in AccessToken._token_by_proj_id(project_id):
+            if not token.is_valid(now):
+                token.delete()
+
+    @staticmethod
+    def get_project_token(project_id: str) -> Optional["AccessToken"]:
+        AccessToken._purge_old_tokens(project_id)
+        return AccessToken._token_by_proj_id(project_id).first()
+
+    @staticmethod
+    def create_new(project_id: str) -> "AccessToken":
+        tok, valid_until = generate_token()
+        return AccessToken.objects.create(
+            project_id=project_id, token=tok, valid_until=valid_until
+        )
+
+    @staticmethod
+    def get_from_base64(b64_token):
+        try:
+            tok = b64decode(b64_token)
+        except (binascii.Error, ValueError):
+            # could not parse base64 string
+            raise AccessToken.ParseError()
+
+        token = AccessToken.objects.get(token=tok)
+        if token is None or not token.is_valid():
+            return None
+
+        return token
+
+    def as_base64(self):
         """
-        get all shifts for this project, both the 'main' shift
-        and any additional shifts if specified
+        get this token as base64 encoded string
         """
+        return b64encode(self.token).decode()
 
-        # split the shift list on ',' and filter our any
-        # potentially empty string that split generates
-        aditional_shifts = [s for s in self.shift_list.split(",") if s]
 
-        # create a union set between main shift and additional shifts,
-        # to handle the case where same shift is listed multiple times
-        all_shifts = set(aditional_shifts).union([self.shift])
+class PendingProject(Model):
+    project = OneToOneField(UserProject, on_delete=CASCADE, primary_key=True)
 
-        return list(all_shifts)
+    # temporary store protein name here, as the project's
+    # backing database for the project will not exist
+    # right away for new pending project
+    protein = TextField()
 
-    def has_encryption_key(self):
+    #
+    # if set, then the set-up of the project have failed
+    #
+    error_message = TextField(null=True)
+
+    def set_failed(self, error_message: str):
+        self.error_message = error_message
+        self.save()
+
+    def failed(self) -> bool:
+        return self.error_message is not None
+
+    def name(self) -> str:
         """
-        convenience wrapper to check if this project have an encryption key uploaded
+        return a short name of the project, used in UI
         """
-        return self.encryption_key is not None
-
-    @property
-    def encryption_key(self):
-        """
-        convenience wrapper to get project's encryption key,
-        if no key is uploaded, None is returned
-        """
-        return getattr(self, "encryptionkey", None)
-
-
-class PendingProject(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+        return f"{self.protein} ({self.project.proposal})"
 
     @staticmethod
     def remove_pending(project):
         pend = PendingProject.objects.filter(project=project.id)
         if not pend.exists():
-            print(f"warning: project {project.id} not pending, ignoring request to remove pending state")
+            print(
+                f"warning: project {project.id} not pending, ignoring request to remove pending state"
+            )
             return
 
         pend.first().delete()
 
     @staticmethod
-    def get_projects():
-        """
-        get pending projects, a list of Project objects
-        """
+    def get_projects() -> Iterable[UserProject]:
         return [pend.project for pend in PendingProject.objects.all()]
+
+    @staticmethod
+    def get_all() -> Iterable["PendingProject"]:
+        return PendingProject.objects.all()
 
     @staticmethod
     def get_project_ids():
@@ -136,22 +229,12 @@ class PendingProject(models.Model):
 
 
 class User(AbstractBaseUser):
-    username = models.CharField(
-        max_length=150,
-        unique=True)
-
-    current_project = models.ForeignKey(
-        Project,
-        null=True,
-        on_delete=models.SET_NULL)
+    username = CharField(max_length=150, unique=True)
+    current_project = ForeignKey(UserProject, null=True, on_delete=SET_NULL)
 
     USERNAME_FIELD = "username"
 
-    def set_current_project(self, new_current_proj):
-        self.current_project = new_current_proj
-        self.save()
-
-    def get_current_project(self, proposals):
+    def get_current_project(self, proposals) -> Optional[Project]:
         """
         get user's currently selected project
 
@@ -169,12 +252,16 @@ class User(AbstractBaseUser):
         #
 
         if self.current_project is not None:
-            cur_proj = Project.get_project(proposals, self.current_project.id)
+            cur_proj = UserProject.get_project(proposals, self.current_project.id)
 
         if cur_proj is None:
-            cur_proj = Project.user_projects(proposals).first()
+            return next(UserProject.user_projects(proposals), None)
 
-        return cur_proj
+        return get_project(settings.PROJECTS_DB_DIR, cur_proj.id)
+
+    def set_current_project(self, new_current_proj: UserProject):
+        self.current_project = new_current_proj
+        self.save()
 
     def have_pending_projects(self, proposals):
         for proj in PendingProject.get_projects():
@@ -183,91 +270,3 @@ class User(AbstractBaseUser):
 
         # no pending project for the user found
         return False
-
-
-class PDB(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    filename = models.TextField()
-    # the official PDB ID, as assigned by Protein Data Bank organization
-    pdb_id = models.CharField(max_length=4)
-
-    class Meta:
-        unique_together = (("project", "filename"),)
-
-    @staticmethod
-    def get(id):
-        """
-        get PDB by our internal database ID
-        """
-        return PDB.objects.get(id=id)
-
-    @staticmethod
-    def project_pdbs(project):
-        """
-        fetch PDBs for the specified project
-        """
-        return PDB.objects.filter(project=project)
-
-    def file_path(self):
-        """
-        returns full path to the PDB file in the 'fragmax' project directory
-        """
-        return project_model_file(self.project, self.filename)
-
-
-class EncryptionKey(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
-    key = models.BinaryField(max_length=encryption.KEY_SIZE)
-
-    def as_base64(self):
-        """
-        get this encryption key as base64 encoded string
-        """
-        return base64.b64encode(self.key).decode()
-
-    @staticmethod
-    def from_base64(proj, b64_key):
-        """
-        create EncryptionKey model object from base64 encoded key
-        """
-        bin_key = base64.b64decode(b64_key)
-        return EncryptionKey(project=proj, key=bin_key)
-
-
-class AccessToken(models.Model):
-    class ParseError(Exception):
-        pass
-
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    token = models.BinaryField(max_length=encryption.TOKEN_SIZE)
-    # TODO: add 'expiration time', e.g. time after which the token is no longer valid
-
-    @staticmethod
-    def add_token(project, token):
-        tok = AccessToken(project=project, token=token)
-        tok.save()
-
-        return tok
-
-    @staticmethod
-    def get_from_base64(b64_token):
-        try:
-            tok = base64.b64decode(b64_token)
-        except (binascii.Error, ValueError):
-            # could not parse base64 string
-            raise AccessToken.ParseError()
-
-        return AccessToken.objects.get(token=tok)
-
-    def as_base64(self):
-        """
-        get this token as base64 encoded string
-        """
-        return base64.b64encode(self.token).decode()
-
-
-class ProjectDetails(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    protein_name = models.TextField()
-    # the official PDB ID, as assigned by Protein Data Bank organization
-    group_dep_id = models.TextField()

@@ -45,12 +45,12 @@ th {
     <div class="card-content">
         <div class="card-title">Job submission for user: {{user}}</div>
         <br>
-        <p>You will be redirected to jobs status page in 15 seconds automatically. If not, <a href="/hpcstatus/">click here</a></p>
+        <p>You will be redirected to jobs status page in 15 seconds automatically. If not, <a href="/jobs/status">click here</a></p>
     </div>
 </div>
 
 <script>
-setTimeout(function() { window.location.href = "/hpcstatus/"; }, 15000);
+setTimeout(function() { window.location.href = "/jobs/status"; }, 15000);
 </script>
 
 {% endblock %}

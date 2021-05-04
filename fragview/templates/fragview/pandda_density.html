@@ -161,7 +161,7 @@
   <div id="left-controlpanel">
     <div style="padding-left:15px !important;">
       <div>
-        <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>
+        <h6><a href="/logs/show/{{summary}}" target="_blank">Analysis summary</a></h6>
         <h6>Structure navigation</h6>
       </div>
       <div style="display:flex">
@@ -229,18 +229,6 @@
       </table>
     </div>
 
-    <div style="padding-top: 30px; padding-left:15px !important;">
-
-      <h6>Load dataset or mtz</h6>
-
-      <div style="display:flex">
-        <div style="padding-top:10px"><input class="btn-small" type="button" value="Input mtz "
-            onclick="show_input_mtz()"></input> </div>
-        <div style="padding-top:10px;padding-left:5px"><input class="btn-small" type="button" value="Unfitted"
-            disabled></input> </div>
-      </div>
-    </div>
-
     <div style="padding-left:15px !important; padding-top:30px !important;">
       <div class="col s12 required inline" id="event_marker">
         <div class="radio" id="event_mark"><label>
@@ -292,9 +280,9 @@
     </div>
     <div class="ligandSVG">
       <div>
-        <h5 style="text-align: center;">{{ligand}}</h5>
+        <h5 style="text-align: center;">{{fragment.code}}</h5>
       </div>
-      <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
     </div>
   </div>
 
@@ -306,7 +294,7 @@
         <h6>{{dataset}}</h6>
       </b>
 
-      <header id="hud">PanDDA event and average map for ligand {{ligand}}. Click on the ligand image to center view.
+      <header id="hud">PanDDA event and average map for ligand {{fragment.code}}. Click on the ligand image to center view.
         Press H for help.</header>
     </div>
   </div>
@@ -406,18 +394,6 @@
         if (charCode == 88) centerligand();
       });
     });
-    function show_input_mtz() {
-
-      mtz = "{{data_path}}/fragmax/results/pandda/{{project.protein}}/{{method}}/{{dataset}}/final.mtz"
-      map_name = "inputMTZ"
-      if (search_maps(map_name, V1.map_bags) === undefined) {
-        GemmiMtz().then(function (Module) {
-          UM.load_maps_from_mtz(Module, V1, mtz, null, function () {
-            V1.map_bags[V1.map_bags.length - 1].name = map_name
-          });
-        });
-      }
-    }
 
     function search_maps(nameKey, myArray) {
       for (var i = 0; i < myArray.length; i++) {

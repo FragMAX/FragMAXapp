@@ -1,16 +1,14 @@
-from fragview.encryption import generate_token
+from fragview.projects import Project
 from fragview.models import AccessToken
 
 
-def get_valid_token(project):
+def get_valid_token(project: Project):
     """
     get an currently valid access token for specified project,
     or if project does not have one currently, create a new token
     """
-    # TODO: take into account 'expiration time' somehow
-    toks = AccessToken.objects.filter(project=project)
-    if toks.exists():
-        return toks.first()
+    token = AccessToken.get_project_token(project.id)
+    if token is not None:
+        return token
 
-    # no tokens exists, add new
-    return AccessToken.add_token(project, generate_token())
+    return AccessToken.create_new(project.id)

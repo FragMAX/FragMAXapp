@@ -18,6 +18,8 @@ install:
 
   # for now, tests assume we are deployed at MAXIV
   - cp deploy/local_site.py-maxiv local_site.py
+  # set-up 'local config' for tests
+  - cp local_conf.py-test local_conf.py
 
 script:
   - make

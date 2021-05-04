@@ -1,17 +1,22 @@
-import os
+import itertools
 from pathlib import Path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import versions
 from fragview.forms import LigfitForm
-from fragview.projects import current_project, project_script, project_log_path, parse_dataset_name
-from fragview.projects import project_fragment_cif, project_fragment_pdb
-from fragview.filters import get_ligfit_datasets, get_ligfit_pdbs
+from fragview.projects import (
+    current_project,
+    project_script,
+    project_log_path,
+    Project,
+)
+from fragview.filters import get_ligfit_datasets
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration
-from fragview.views.utils import start_thread
+from fragview.views.utils import start_thread, get_crystals_fragment
 from fragview.views.update_jobs import add_update_job
 from jobs.client import JobsSet
+from projects.database import db_session
 
 
 def datasets(request):
@@ -35,45 +40,56 @@ def datasets(request):
     return render(request, "fragview/jobs_submitted.html")
 
 
-def get_fragment_smiles(proj, dset):
-    """
-    figure out fragment ID and fragment SMILES for a dataset
-    """
-    _, sample = dset.rsplit("-", 1)
+def _get_refine_results(
+    project: Project, filters: str, use_ligandfit: bool, use_rhofit: bool
+):
+    datasets = []
 
-    fragID, _ = parse_dataset_name(sample)
-    frag = proj.library.get_fragment(fragID)
+    if filters == "NEW":
+        if use_ligandfit:
+            datasets.append(get_ligfit_datasets(project, filters, "ligandfit"))
 
-    if frag is None:
-        return fragID, "none"
+        if use_rhofit:
+            datasets.append(get_ligfit_datasets(project, filters, "rhofit"))
+    else:
+        datasets.append(get_ligfit_datasets(project, filters, None))
 
-    return fragID, frag.smiles
+    for dataset in itertools.chain(*datasets):
+        for result in project.get_datasets_refine_results(dataset):
+            yield result
 
 
-def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfit, custom_rhofit):
-    def _refine_tool(pdb_path):
-        return Path(pdb_path).parent.name
-
+@db_session
+def auto_ligand_fit(
+    project, useLigFit, useRhoFit, filters, cifMethod, custom_ligfit, custom_rhofit
+):
     # Modules for HPC env
     softwares = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
     jobs = JobsSet("Ligand Fit")
     hpc = SITE.get_hpc_runner()
 
-    datasets = get_ligfit_datasets(proj, filters, useLigFit, useRhoFit)
-    for num, (sample, pdb) in enumerate(get_ligfit_pdbs(proj, datasets)):
-        fragID, smiles = get_fragment_smiles(proj, sample)
+    refine_results = _get_refine_results(project, filters, useLigFit, useRhoFit)
+
+    for num, result in enumerate(refine_results):
+        dataset = result.dataset
+        fragment = get_crystals_fragment(dataset.crystal)
+        result_dir = project.get_refine_result_dir(result)
+
+        pdb = Path(result_dir, "final.pdb")
+
         clear_tmp_cmd = ""
-        cif_out = pdb.replace("final.pdb", fragID)
+        cif_out = Path(result_dir, fragment.code)
+
         if cifMethod == "elbow":
-            cif_cmd = f"phenix.elbow --smiles='{smiles}' --output={cif_out}\n"
+            cif_cmd = f"phenix.elbow --smiles='{fragment.smiles}' --output={cif_out}\n"
         elif cifMethod == "acedrg":
-            cif_cmd = f"acedrg -i '{smiles}' -o {cif_out}\n"
+            cif_cmd = f"acedrg -i '{fragment.smiles}' -o {cif_out}\n"
             clear_tmp_cmd = f"rm -rf {cif_out}_TMP/\n"
         elif cifMethod == "grade":
             cif_cmd = (
-                f"rm {cif_out}.cif {cif_out}.pdb\n"
-                f"grade '{smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
+                f"rm -f {cif_out}.cif {cif_out}.pdb\n"
+                f"grade '{fragment.smiles}' -ocif {cif_out}.cif -opdb {cif_out}.pdb -nomogul\n"
             )
         else:
             cif_cmd = ""
@@ -82,32 +98,32 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
 
         ligCIF = f"{cif_out}.cif"
         ligPDB = f"{cif_out}.pdb"
-        projCIF = project_fragment_cif(proj, fragID)
-        projPDB = project_fragment_pdb(proj, fragID)
-        move_cif_cmd = f"cp {ligCIF} {projCIF}\ncp {ligPDB} {projPDB}\n"
-        rhofit_outdir = pdb.replace("final.pdb", "rhofit/")
-        ligfit_outdir = pdb.replace("final.pdb", "ligfit/")
-        mtz_input = pdb.replace(".pdb", ".mtz")
+
+        rhofit_outdir = Path(result_dir, "rhofit")
+        ligfit_outdir = Path(result_dir, "ligfit")
+        mtz_input = Path(result_dir, "final.mtz")
 
         if useRhoFit:
-            if os.path.exists(rhofit_outdir):
+            if rhofit_outdir.exists():
                 rhofit_cmd += f"rm -rf {rhofit_outdir}\n"
             rhofit_cmd += f"rhofit -l {ligCIF} -m {mtz_input} -p {pdb} -d {rhofit_outdir} {custom_rhofit}\n"
 
         if useLigFit:
-            if os.path.exists(ligfit_outdir):
+            if ligfit_outdir.exists():
                 ligfit_cmd += f"rm -rf {ligfit_outdir}\n"
             ligfit_cmd += f"mkdir -p {ligfit_outdir}\n"
             ligfit_cmd += f"cd {ligfit_outdir} \n"
-            ligfit_cmd += f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} " \
-                          f"fill=True clean_up=True {custom_ligfit}\n"
+            ligfit_cmd += (
+                f"phenix.ligandfit data={mtz_input} model={pdb} ligand={ligPDB} "
+                f"fill=True clean_up=True {custom_ligfit}\n"
+            )
 
         batch = hpc.new_batch_file(
             "autoLigfit",
-            project_script(proj, f"autoligand_{sample}_{num}.sh"),
-            project_log_path(proj, "auto_ligfit_%j_out.txt"),
-            project_log_path(proj, "auto_ligfit_%j_err.txt"),
-            cpus=1
+            project_script(project, f"autoligand_{dataset.name}_{num}.sh"),
+            project_log_path(project, "auto_ligfit_%j_out.txt"),
+            project_log_path(project, "auto_ligfit_%j_err.txt"),
+            cpus=1,
         )
 
         batch.set_options(time=Duration(hours=1))
@@ -117,27 +133,15 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
 
         batch.add_commands(
             cif_cmd,
-            move_cif_cmd,
             rhofit_cmd,
             ligfit_cmd,
         )
 
-        batch.add_commands(
-            clear_tmp_cmd
-        )
+        batch.add_commands(clear_tmp_cmd)
 
         batch.save()
         jobs.add_job(batch)
 
-        #
-        # first run update command for refine tool, to include ligand fitting scores into results.csv
-        #
-        update_batch = add_update_job(jobs, hpc, proj, _refine_tool(pdb), sample, batch)
-
-        #
-        # run the update command for each ligand fitting tool, to update allstatus.csv
-        # success/fail cell for the tool-dataset combination
-        #
         # NOTE: all the update commands needs to be chained to run after each other,
         # due to limitations (bugs!) in jobsd handling of 'run_after' dependencies.
         # Currently it does not work to specify that multiple jobs should be run after
@@ -145,9 +149,9 @@ def auto_ligand_fit(proj, useLigFit, useRhoFit, filters, cifMethod, custom_ligfi
         #
 
         if useRhoFit:
-            update_batch = add_update_job(jobs, hpc, proj, "rhofit", sample, update_batch)
+            batch = add_update_job(jobs, hpc, project, "rhofit", dataset, batch)
 
         if useLigFit:
-            add_update_job(jobs, hpc, proj, "ligandfit", sample, update_batch)
+            add_update_job(jobs, hpc, project, "ligandfit", dataset, batch)
 
     jobs.submit()

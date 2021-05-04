@@ -1,7 +1,7 @@
 import re
 from fragview.sites import SITE
-from fragview.models import Project
-from .proposals import get_proposals
+from fragview.models import UserProject
+from fragview.proposals import get_proposals
 
 
 def site(request):
@@ -37,8 +37,8 @@ def projects(request):
     proposals = get_proposals(request)
 
     return {
-        # list of all projects that are accessable to the user
-        "projects": Project.user_projects(proposals),
+        # list of all projects that are accessible to the user
+        "projects": list(UserProject.user_projects(proposals)),
         # user's currently selected project
         "project": request.user.get_current_project(proposals),
     }
@@ -53,7 +53,7 @@ class ActiveMenuCtx:
     """
 
     URL_REGEXP = (
-        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/library_view|^/encryption|^/$)|"
+        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/fragments/show|^/encryption|^/$)|"
         + r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$)"
     )
     # URLs 'project' submenus

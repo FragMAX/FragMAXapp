@@ -1,49 +1,68 @@
+from typing import Union
 import os
 import csv
 import stat
 from os import path
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
+from fragview.projects import Project
 from .encryption import EncryptedFile, decrypt
 
 
-def open_proj_file(proj, file_path):
+def open_proj_file(project: Project, file_path):
     """
     open project file for writing
     """
-    if proj.encrypted:
-        key = proj.encryptionkey.key
-        return EncryptedFile(key, file_path)
+    if project.encrypted:
+        return EncryptedFile(project.encryption_key, file_path)
 
     # no encryption, use normal file
     return open(file_path, "wb")
 
 
-def read_proj_file(proj, file_path):
+def is_relative_to(child: Path, root: Path):
+    """
+    poor man's 'backport' of python 3.9 Path.is_relative_to() method
+    """
+    return str(child).startswith(str(root))
+
+
+def read_proj_file(project: Project, file_path: Union[Path, str]):
     """
     read project file, decrypting it if needed
 
+    NOTE: the we support specifying 'file_path' as both
+    string and Path-object, for backward compatibility.
+    The 'str' style is deprecated, and should be dropped
+    in the future.
+
     return contents of the file
     """
+
     def _is_encrypted():
-        if not proj.encrypted:
+        if not project.encrypted:
             return False
 
-        # make string path, to support cases when
-        # file_path is specified as pathlib.Path
-        str_path = str(file_path)
+        #
+        # convert file path to 'Path' object, so
+        # that we handle 'file_path as string' calls
+        #
+        fpath = Path(file_path)
 
-        from fragview.projects import project_logs_dir, project_process_dir
-
-        # HPC logs and 'data processing' file are not encrypted
-        if str_path.startswith(project_logs_dir(proj)) or \
-           str_path.startswith(project_process_dir(proj)):
+        if not is_relative_to(fpath, project.project_dir):
+            # only files inside project directory can be encrypted
             return False
+
+        # HPC logs and 'data processing' files are not encrypted
+        for plaintext_dir in [project.logs_dir, project.process_dir]:
+            if is_relative_to(fpath, plaintext_dir):
+                return False
 
         return True
 
     if _is_encrypted():
-        return decrypt(proj.encryptionkey.key, file_path)
+        return decrypt(project.encryption_key, file_path)
 
     # no encryption, read as normal
     with open(file_path, "rb") as f:

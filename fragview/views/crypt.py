@@ -1,10 +1,11 @@
-import os
-from os import path
+from pathlib import Path
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from fragview.models import AccessToken
+from fragview.fileio import is_relative_to
+from fragview.projects import Project, get_project
 from fragview.encryption import decrypt, encrypt, CryptoErr
-from fragview.projects import project_fragmax_dir
 
 
 class InvalidRequest(Exception):
@@ -20,7 +21,7 @@ class Args:
         self.file = None
 
 
-def _validate_auth_token(auth_token):
+def _validate_auth_token(auth_token) -> Project:
     try:
         tok = AccessToken.get_from_base64(auth_token)
     except AccessToken.ParseError:
@@ -28,18 +29,22 @@ def _validate_auth_token(auth_token):
     except AccessToken.DoesNotExist:
         raise InvalidRequest("invalid auth token")
 
-    return tok.project
+    return get_project(settings.PROJECTS_DB_DIR, tok.project_id)
 
 
-def _validate_file_path(proj, filepath):
+def _validate_file_path(proj: Project, filepath: str) -> Path:
     """
     we only allow access to files inside project's FragMAX directory
     """
-    abs_path = path.abspath(filepath)
-    fragmax_dir = project_fragmax_dir(proj)
+    if filepath is None:
+        raise InvalidRequest("no 'filepath' specified")
 
-    if not abs_path.startswith(fragmax_dir):
+    fpath = Path(filepath).resolve()
+
+    if not is_relative_to(fpath, proj.project_dir):
         raise InvalidRequest(f"invalid file path '{filepath}'")
+
+    return fpath
 
 
 def _get_request_args(request):
@@ -71,10 +76,7 @@ def _get_request_args(request):
     #
     # validate 'filepath' argument
     #
-    args.filepath = post.get("filepath")
-    if args.filepath is None:
-        raise InvalidRequest("no 'filepath' specified")
-    _validate_file_path(args.project, args.filepath)
+    args.filepath = _validate_file_path(args.project, post.get("filepath"))
 
     #
     # if 'write' operation, check that an uploaded file is provided
@@ -87,16 +89,15 @@ def _get_request_args(request):
     return args
 
 
-def _get_key(proj):
-    encryption_key = proj.encryption_key
-    if encryption_key is None:
+def _get_key(project: Project):
+    if project.encryption_key is None:
         raise InvalidRequest("project's encryption key is missing")
 
-    return proj.encryptionkey.key
+    return project.encryption_key
 
 
-def _read_file(key, filepath):
-    if not path.isfile(filepath):
+def _read_file(key, filepath: Path):
+    if not filepath.is_file():
         raise InvalidRequest(f"{filepath}: no such file")
 
     try:
@@ -109,8 +110,8 @@ def _read_file(key, filepath):
                         content_type="application/octet-stream")
 
 
-def _write_file(key, filepath, file):
-    os.makedirs(path.dirname(filepath), exist_ok=True)
+def _write_file(key: bytes, filepath: Path, file):
+    filepath.parent.mkdir(exist_ok=True)
     encrypt(key, file, filepath)
 
     return HttpResponse("vtalibov4president")

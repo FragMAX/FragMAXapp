@@ -1,6 +1,4 @@
-
 {% extends 'fragview/base.html' %}
-
 {% block title %}FragMAX - Density viewer{% endblock %}
 {% block content %}
 
@@ -64,48 +62,67 @@
 </head>
 
 <body>
-  <div id="viewer1" ><b>RhoFit<br>
-    <img src="/fragment/{{lig}}/image" width="116" height="116" onclick="movetorhofitblob()"></b>
+  <div id="viewer1"><b>RhoFit<br>
+    <img src="/fragment/{{fragment.id}}/image" width="116" height="116" onclick="movetorhofitblob()"></b>
   </div>
-  <div id="viewer2" ><b>LigandFit<br>
-    <img src="/fragment/{{lig}}/image" width="116" height="116" onclick="movetoligfitblob()"></b>
+  <div id="viewer2"><b>LigandFit<br>
+    <img src="/fragment/{{fragment.id}}/image" width="116" height="116" onclick="movetoligfitblob()"></b>
   </div>
   <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center view. Press H for help.</header>
   <footer id="help"></footer>
   <script>
 
+    V1 = new UM.Viewer({viewer: "viewer1", focusable: true, hud: "hud", help: "help"});
+    V1.load_pdb("/pdbs/refined/{{result.id}}");
 
-
-    V1 = new UM.Viewer({viewer: "viewer1", focusable: true,hud: "hud", help: "help"});
-    V1.load_pdb("/pdbs/final/{{ l_dataset }}/{{ process }}/{{ refine }}")
     V2 = new UM.Viewer({viewer: "viewer2", focusable: true, share_view: V1});
-    V2.load_pdb("/pdbs/final/{{ l_dataset }}/{{ process }}/{{ refine }}")
-    GemmiMtz().then(function(Module) {
-        UM.load_maps_from_mtz(Module, V1, "/density_map/{{l_dataset}}/{{process}}/{{refine}}/mtz");
-        UM.load_maps_from_mtz(Module, V2, "/density_map/{{l_dataset}}/{{process}}/{{refine}}/mtz");
-      });
-    V1.load_pdb("{{rhofit}}");
-    
-    V2.load_pdb("{{ligfit}}");
+    V2.load_pdb("/pdbs/refined/{{result.id}}");
+
+    GemmiMtz().then(function(Module)
+    {
+        UM.load_maps_from_mtz(Module, V1, "/density_map/refined/{{result.id}}/mtz");
+        UM.load_maps_from_mtz(Module, V2, "/density_map/refined/{{result.id}}/mtz");
+    });
+
+    V1.load_pdb("/pdbs/ligand/{{rhofit_result.id}}", null, function()
+    {
+      this.V1.model_bags[V1.model_bags.length - 1].label = "rhofit";
+    });
+
+    V2.load_pdb("/pdbs/ligand/{{ligandfit_result.id}}", null, function()
+    {
+      this.V2.model_bags[V2.model_bags.length - 1].label = "ligfit";
+    });
 
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);
 
+    function search(nameKey, myArray)
+    {
+      for (var i = 0; i < myArray.length; i++)
+      {
+        if (myArray[i].label === nameKey)
+        {
+          return i;
+        }
+      }
+    }
 
-
-    function movetorhofitblob(){
-      V1.recenter({{rhofitcenter}}, null, 25);
-      V1.renderer.domElement.focus();
+    function movetorhofitblob()
+    {
+      var rpos = search("rhofit", V1.model_bags);
+      var rfcenter = V1.model_bags[rpos].model.atoms[0].xyz;
+      V1.recenter(rfcenter, null, 25);
       V1.request_render();
     }
-    function movetoligfitblob(){
-      V2.recenter({{ligandfitcenter}}, null, 25);
-      V2.renderer.domElement.focus();
+
+    function movetoligfitblob()
+    {
+      var rpos = search("ligfit", V2.model_bags);
+      var rfcenter = V2.model_bags[rpos].model.atoms[0].xyz;
+      V2.recenter(rfcenter, null, 25);
       V2.request_render();
-
     }
-
-
   </script>
 </body>
 </html>

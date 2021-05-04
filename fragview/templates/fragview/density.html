@@ -142,23 +142,32 @@
   <div id="left-controlpanel">
 
     <div style="padding-left:30px !important;padding-top: 10px;">
-
       <div>
-        <!--          <h6>Results navigation</h6>-->
       </div>
     </div>
     <div style="padding-left:15px !important; display:inline-flex">
-      <div><input class="btn navbt" type="button" value="Prev Blob" onclick="return previousblob()"></input></div>
-      <div style="padding-left: 8px;"><input class="btn navbt" type="button" value="Next Blob"
-          onclick="return nextblob()"></input></div>
+      <div>
+        <input class="btn navbt" type="button" value="Prev Blob" onclick="return previousblob()"/>
+      </div>
+      <div style="padding-left: 8px;">
+        <input class="btn navbt" type="button" value="Next Blob" onclick="return nextblob()"/>
+      </div>
     </div>
     <div style="padding-left:15px !important; padding-top:8px !important;">
       <div style="display:inline-flex">
-        <a href="/density/{{prevstr}}">
-          <button class="btn navbt">Prev Model</button>
+        <a href="/density/{{previous_result.id}}">
+          <button class="btn navbt"
+          {% if not previous_result %}disabled{% endif %}
+          >
+            Prev Model
+          </button>
         </a>
-        <a href="/density/{{nextstr}}" style="padding-left: 8px">
-          <button class="btn navbt">Next Model</button>
+        <a href="/density/{{next_result.id}}" style="padding-left: 8px">
+          <button class="btn navbt"
+          {% if not next_result %}disabled{% endif %}
+          >
+            Next Model
+          </button>
         </a>
       </div>
     </div>
@@ -167,73 +176,43 @@
         <tr>
           <th>Resolution
           </th>
-          <td>{{resolution|floatformat:2}} Å
+          <td>{{result.resolution|floatformat:2}} Å
           </td>
         </tr>
         <tr>
           <th>Rwork
           </th>
-          <td>{{rwork}}
+          <td>{{result.r_work|floatformat:2}}
           </td>
         </tr>
         <tr>
           <th>Rfree
           </th>
-          <td>{{rfree}}
+          <td>{{result.r_free|floatformat:2}}
           </td>
         </tr>
+        {% if rhofit_result %}
         <tr>
-          <th>RhoFit score
-          </th>
-          <td>{{rscore}}
-          </td>
+          <th>RhoFit score</th>
+          <td>{{rhofit_result.score|floatformat:3}}</td>
         </tr>
+        {% endif %}
         <tr>
           <th>LigFit score
           </th>
-          <td>{{lscore}}
-          </td>
+          <td>{{ligandfit_result.score|floatformat:3}}</td>
         </tr>
         <tr>
           <th>Spacegroup
           </th>
-          <td>{{spg}}
+          <td>{{result.space_group}}
           </td>
         </tr>
         <tr>
-          {% if ligand %}
-          <td colspan="2"><b>Download</b>
-            <a href="/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}" download="{{name}}.pdb" style="padding-left: 10px;">PDB</a> |
-            <a href="/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz" download="{{name}}.mtz">MTZ</a> |
-            <a href="/static/biomax/{{project.proposal}}/{{project.shift}}/fragmax/fragments/{{ligand}}.cif"
-              download="{{ligand}}.cif"> CIF</a>
-          </td>
-
-          {% else %}
-
           <th>Download</th>
-          <td><a href="/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}" download="{{name}}.pdb">PDB</a> |
-            <a href="/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz" download="{{name}}.mtz">MTZ</a>
-          </td>
-          {% endif %}
-        </tr>
-        <tr style="border-bottom: 0;">
-          <th>
-            <p>Logs</p>
-            <form action="/logs/show/{{refineLog}}"
-              method="get" style="padding-top:9px; height: 10px;" target="_blank">
-              <button class="link" type="submit" size="1">
-                {{refineName}}
-              </button>
-            </form>
-          </th>
-          <td style="vertical-align: bottom !important;">
-            <form action="/logs/show/{{pipelineLog}}"
-              method="get" style="padding-top:9px; height: 10px;" target="_blank">
-              <button class="link" type="submit" size="1">
-                {{pipelineName}}
-              </button>
-            </form>
+          <td>
+            <a href="/pdbs/refined/{{result.id}}">PDB</a> |
+            <a href="/density_map/refined/{{result.id}}/mtz">MTZ</a>
           </td>
         </tr>
       </table>
@@ -242,17 +221,14 @@
     <div>
     </div>
 
-    <div style="display:{{ligbox}};">
-      {% if show_rhofit %}
+    {% if rhofit_result %}
+    <div style="display:block;">
       <div style="padding-left:30px !important;">
         <div>
-          <form action="/logs/show/{{rhofitlog}}" method="get" target="_blank">
-            <h6> RhoFit - <button class="link" type="submit" size="1">Log</button>
-            </h6>
-          </form>
+          <h6>RhoFit</h6>
         </div>
-        <input id="showhiderhofit" class="btn navbt" type="button" value="HIDE" onclick="showrhofit();"></input>
-        <input class="btn " type="button" value="Go" onclick="centerrhofit();"></input>
+        <input id="showhiderhofit" class="btn navbt" type="button" value="HIDE" onclick="showrhofit();"/>
+        <input class="btn " type="button" value="Go" onclick="centerrhofit();"/>
         <div style="display: inline-block;vertical-align: middle;">
           <label>
             <input class="with-gap" id="rhofit_radio" name="rhofit_radio" type="radio" checked>
@@ -263,16 +239,13 @@
       {% endif %}
 
 
-      {% if show_ligfit %}
+      {% if ligandfit_result %}
       <div style="padding-left:30px !important">
         <div>
-          <form action="/logs/show/{{ligandfitlog}}" method="get" target="_blank">
-            <h6> LigandFit - <button class="link" type="submit" size="1">Log</button>
-            </h6>
-          </form>
+          <h6>LigandFit</h6>
         </div>
-        <input id="showhideligandfit" class="btn navbt" type="button" value="HIDE" onclick="showligfit();"></input>
-        <input class="btn" type="button" value="Go" onclick="centerligfit();"></input>
+        <input id="showhideligandfit" class="btn navbt" type="button" value="HIDE" onclick="showligfit();"/>
+        <input class="btn" type="button" value="Go" onclick="centerligfit();"/>
         <div style="display: inline-block;vertical-align: middle;">
           <label>
             <input class="with-gap" id="ligfit_radio" name="lifgit:radio" type="radio" checked>
@@ -282,50 +255,28 @@
       </div>
       {% endif %}
 
-      {% if show_rhofit or show_ligfit %}
+      {% if rhofit_result and ligandfit_result %}
       <div style="padding-top: 18px;padding-left:30px !important">
-        <form action="/dual_density/" method="get" id="dual_viewer_form" target="_blank">
-          <button class="btn navbt2" type="submit" value="{{name}};{{rhofitcenter}}" name="ligfit_dataset" size="1">Open
-            Dual Viewer</button>
-        </form>
+        <a href="/dual_density/{{result.id}}" target="_blank">
+          <button class="btn navbt2">Open Dual Viewer</button>
+        </a>
       </div>
       {% endif %}
 
-    </div>
-    <div style="padding-left:30px !important;padding-top: 8px">
-      <h6>Structure rating</h6>
-      <div class="col s12 required inline" id="model_confidence">
-        <div class="radio" id="conf_level"><label>
-            <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high">
-            <span class="item-label" for="high_conf_radio">High confidence</span>
-          </label></div>
-        <div class="radio" id="conf_level"><label>
-            <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
-            <span class="item-label" for="medium_conf_radio">Medium confidence</span>
-          </label></div>
-        <div class="radio" id="conf_level"><label>
-            <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
-            <span class="item-label" for="low_conf_radio">Low confidence</span>
-          </label></div>
-        <div class="radio" id="conf_level"><label>
-            <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
-            <span class="item-label" for="low_conf_radio">Undefined</span>
-          </label></div>
-      </div>
-      {% if ligand %}
       <div class="ligandSVG">
         <div>
-          <p style="text-align: center;">{{ligand}}</p>
+          <p style="text-align: center;">{{fragment.code}}</p>
         </div>
-        <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+        <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
       </div>
-      {% endif %}
+
     </div>
+
   </div>
   <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
       <b>
-        <h6>{{name}} as</h6>
+        <h6>{{result.name}}</h6>
       </b>
       <header id="hud">Electron density viewer. Press H for help.</header>
     </div>
@@ -342,27 +293,34 @@
       hud: "hud",
       help: "help"
     });
-    V.load_pdb("/pdbs/final/{{ligfit_dataset}}/{{process}}/{{refine}}", null, function () {
+
+    V.load_pdb("/pdbs/refined/{{result.id}}", null, function ()
+    {
       this.V.model_bags[V.model_bags.length - 1].label = "protein"
-    })
-    GemmiMtz().then(function (Module) {
-      UM.load_maps_from_mtz(Module, V, "/density_map/{{ligfit_dataset}}/{{process}}/{{refine}}/mtz");
     });
 
-    {% if show_ligfit %}
-    V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/ligfit", null, function () {
+    GemmiMtz().then(function (Module)
+    {
+      UM.load_maps_from_mtz(Module,
+                            V,
+                            "/density_map/refined/{{result.id}}/mtz");
+    });
+
+    {% if ligandfit_result %}
+    V.load_pdb("/pdbs/ligand/{{ligandfit_result.id}}", null, function ()
+    {
       this.V.model_bags[V.model_bags.length - 1].label = "ligfit"
     });
     {% endif %}
 
-    {% if show_rhofit %}
-    V.load_pdb("/pdbs/ligand/{{ligfit_dataset}}/{{process}}/{{refine}}/rhofit", null, function () {
+    {% if rhofit_result %}
+    V.load_pdb("/pdbs/ligand/{{rhofit_result.id}}", null, function ()
+    {
       this.V.model_bags[V.model_bags.length - 1].label = "rhofit"
     });
     {% endif %}
 
-    var blobs = {{xyzlist}};
-
+    var blobs = {{result.blobs}};
 
     var index = 0;
     var numblobs = blobs.length;

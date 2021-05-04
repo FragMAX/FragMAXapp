@@ -1,8 +1,8 @@
+import base64
 from django import urls
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
-from fragview.projects import current_project
-from fragview.models import Project, EncryptionKey
+from fragview.projects import current_project, Project
 
 
 ENCRYPTION_DISABLED_MSG = "encrypted mode disabled for current project"
@@ -13,16 +13,20 @@ class CryptoKeyError(Exception):
         return self.args[0]
 
 
-def _get_key(request):
-    proj = current_project(request)
+def _get_key(project: Project) -> str:
+    """
+    get project's encryption key in BASE64 format
 
-    if not proj.encrypted:
+    raises CryptoKeyError if encryption key is not uploaded
+    or of project is not encrypted
+    """
+    if not project.encrypted:
         raise CryptoKeyError(ENCRYPTION_DISABLED_MSG)
 
-    try:
-        return proj.encryptionkey
-    except Project.encryptionkey.RelatedObjectDoesNotExist:
+    if not project.has_encryption_key():
         raise CryptoKeyError("no key uploaded")
+
+    return base64.b64encode(project.encryption_key).decode()
 
 
 def _redirect_to_encryption():
@@ -30,48 +34,46 @@ def _redirect_to_encryption():
 
 
 def download_key(request):
+    project = current_project(request)
+
     try:
-        key = _get_key(request)
+        key = _get_key(project)
     except CryptoKeyError as e:
         return HttpResponseBadRequest(e.error_message())
 
-    b64_key = key.as_base64()
-    key_filename = f"{key.project.protein}{key.project.library.name}_key"
+    key_filename = f"{project.protein}_{project.proposal}_key"
 
-    response = HttpResponse(b64_key, content_type="application/force-download")
-    response["Content-Disposition"] = f"attachment; filename=\"{key_filename}\""
+    response = HttpResponse(key, content_type="application/force-download")
+    response["Content-Disposition"] = f'attachment; filename="{key_filename}"'
 
     return response
 
 
 def upload_key(request):
-    proj = current_project(request)
-    if not proj.encrypted:
+    project = current_project(request)
+    if not project.encrypted:
         return HttpResponseBadRequest(ENCRYPTION_DISABLED_MSG)
 
     key_file = request.FILES.get("key")
     if key_file is None:
         return HttpResponseBadRequest("no encryption key file provided")
 
-    # TODO what happens if the key is already uploaded?
-
     # TODO give BadRequest response if
     #  1) invalid base64 content
     #  2) decoded key != 16 bytes
 
-    key = EncryptionKey.from_base64(proj, key_file.file.read())
-    key.save()
+    key = base64.b64decode(key_file.file.read())
+    project.encryption_key = key
 
     return _redirect_to_encryption()
 
 
 def forget_key(request):
-    try:
-        key = _get_key(request)
-    except CryptoKeyError as e:
-        return HttpResponseBadRequest(e.error_message())
+    project = current_project(request)
+    if not project.encrypted:
+        return HttpResponseBadRequest(ENCRYPTION_DISABLED_MSG)
 
-    key.delete()
+    project.forget_key()
 
     return _redirect_to_encryption()
 

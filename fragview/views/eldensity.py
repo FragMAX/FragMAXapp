@@ -2,14 +2,11 @@ import re
 from os import path
 from pathlib import Path
 from django.shortcuts import redirect
-from fragview.views.utils import download_http_response
+from fragview.views.utils import download_http_response, get_refine_result_by_id
 from fragview.projects import (
     current_project,
     project_static_url,
-    project_results_dir,
     project_process_protein_dir,
-    project_pandda_results_dir,
-    project_pandda_processed_dataset_dir,
 )
 from worker.ccp4 import mtz_to_map
 
@@ -23,21 +20,14 @@ def _density_filename(name, type):
     return f"{name}_mFo-DFc.ccp4"
 
 
-def map(request, dataset, process, refine, type):
-    """
-    load MTZ data, decrypting it if needed
-    """
-    proj = current_project(request)
-
-    mtz_path = path.join(
-        project_results_dir(proj),
-        dataset,
-        process,
-        refine,
-        _density_filename("final", type),
+def refined_map(request, result_id, type):
+    project = current_project(request)
+    result = get_refine_result_by_id(project, result_id)
+    mtz_path = Path(
+        project.get_refine_result_dir(result), _density_filename("final", type)
     )
 
-    return download_http_response(mtz_path)
+    return download_http_response(mtz_path, f"{result.name}{mtz_path.suffix}")
 
 
 def pipedream_map(request, sample, process, type):
@@ -74,14 +64,10 @@ def pipedream_map(request, sample, process, type):
 
 
 def pandda_consensus_zmap(request, dataset, method):
-    proj = current_project(request)
+    project = current_project(request)
 
     zmap_path = Path(
-        project_pandda_results_dir(proj),
-        method,
-        "pandda",
-        "processed_datasets",
-        dataset,
+        project.pandda_processed_dataset_dir(method, dataset),
         f"{dataset}-z_map.native.ccp4",
     )
 
@@ -89,9 +75,9 @@ def pandda_consensus_zmap(request, dataset, method):
 
 
 def pandda_bdc(request, dataset, method):
-    proj = current_project(request)
+    project = current_project(request)
 
-    dataset_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
+    dataset_dir = project.pandda_processed_dataset_dir(method, dataset)
 
     # pick one of the matching .ccp4 files,
     # TODO: this gives us random ccp4 file of any
@@ -102,10 +88,10 @@ def pandda_bdc(request, dataset, method):
 
 
 def pandda_average(request, dataset, method):
-    proj = current_project(request)
+    project = current_project(request)
 
     zmap_path = Path(
-        project_pandda_processed_dataset_dir(proj, method, dataset),
+        project.pandda_processed_dataset_dir(method, dataset),
         f"{dataset}-ground-state-average-map.native.ccp4",
     )
 
@@ -113,9 +99,9 @@ def pandda_average(request, dataset, method):
 
 
 def pandda_input(request, dataset, method):
-    proj = current_project(request)
+    project = current_project(request)
 
-    processed_dir = project_pandda_processed_dataset_dir(proj, method, dataset)
+    processed_dir = project.pandda_processed_dataset_dir(method, dataset)
     mtz_path = next(processed_dir.glob("*pandda-input.mtz"))
 
     return download_http_response(mtz_path)

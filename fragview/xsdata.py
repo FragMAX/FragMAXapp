@@ -1,4 +1,6 @@
 import xmltodict
+from dateutil import parser as date_parser
+from datetime import datetime, timezone
 
 
 class XSDataCollection:
@@ -7,7 +9,6 @@ class XSDataCollection:
             doc = xmltodict.parse(f)
 
         self.node = doc["XSDataResultRetrieveDataCollection"]["dataCollection"]
-        self._snapshots = None
 
     def _float_tag(self, tag_name):
         return float(self.node[tag_name])
@@ -15,21 +16,30 @@ class XSDataCollection:
     def _int_tag(self, tag_name):
         return int(self.node[tag_name])
 
-    def _get_snapshots(self):
+    def _datetime_tag(self, tag_name):
+        dt = date_parser.parse(self.node[tag_name])
+
+        # convert to UTC time zone
+        utc_dt = dt.astimezone(timezone.utc)
+
+        #
+        # remove time zone info, as pony ORM does not support time zones
+        # see this issue: https://github.com/ponyorm/pony/issues/434
+        #
+        # we store datetime in database without explicit time zone, and
+        # always assume UTC time zone as a work-around
+        #
+        return utc_dt.replace(tzinfo=None)
+
+    @property
+    def snapshot_indexes(self):
         for i in range(1, 5):
             snap = self.node.get(f"xtalSnapshotFullPath{i}")
             if snap is None or snap == "None":
-                # no snapshot for this index specified
+                # no snapshot for this index available
                 continue
 
-            yield snap
-
-    @property
-    def snapshots(self):
-        if self._snapshots is None:
-            self._snapshots = list(self._get_snapshots())
-
-        return self._snapshots
+            yield i
 
     @property
     def imagePrefix(self):
@@ -108,7 +118,7 @@ class XSDataCollection:
         return self._float_tag("slitGapHorizontal") * 1000
 
     @property
-    def numberOfImages(self):
+    def num_images(self):
         return self._int_tag("numberOfImages")
 
     @property
@@ -120,12 +130,12 @@ class XSDataCollection:
         return self.node["beamShape"]
 
     @property
-    def startTime(self):
-        return self.node["startTime"]
+    def start_time(self) -> datetime:
+        return self._datetime_tag("startTime")
 
     @property
-    def endTime(self):
-        return self.node["endTime"]
+    def end_time(self) -> datetime:
+        return self._datetime_tag("endTime")
 
     @property
     def synchrotronMode(self):

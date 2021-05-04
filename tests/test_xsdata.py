@@ -31,7 +31,7 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertAlmostEqual(xsdata.transmission, 1.000000e02)
         self.assertAlmostEqual(xsdata.slitGapVertical, 5.000000e01)
         self.assertAlmostEqual(xsdata.slitGapHorizontal, 5.000000e01)
-        self.assertEqual(xsdata.numberOfImages, 3600)
+        self.assertEqual(xsdata.num_images, 3600)
         self.assertEqual(xsdata.dataCollectionNumber, 1)
         self.assertEqual(xsdata.imagePrefix, "100037-SiBiL-x556")
         self.assertEqual(xsdata.imageDirectory, "/img/dir/")

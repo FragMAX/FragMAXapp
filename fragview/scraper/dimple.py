@@ -1,12 +1,10 @@
+from typing import Iterator, Iterable, Optional
 from pathlib import Path
 from gemmi import read_pdb
-from fragview.projects import project_results_dataset_dir
-from fragview.dsets import ToolStatus
+from fragview.projects import Project
 from fragview.fileio import read_text_lines
-from fragview.scraper import rhofit, ligandfit
-from fragview.scraper.proc_logs import scrape_isa
-from fragview.scraper.utils import get_final_pdbs
-
+from fragview.scraper import ToolStatus, RefineResult
+from fragview.scraper.utils import get_files_by_suffixes
 
 #
 # PDB remark line prefixes we use for parsing
@@ -20,20 +18,6 @@ ANGLES_LINE = "REMARK   3   BOND ANGLES REFINED ATOMS   (DEGREES):"
 # dimple log line prefix we use for parsing
 #
 BLOBS_LINE = "blobs:"
-
-
-def scrape_outcome(project, dataset) -> ToolStatus:
-    res_dir = project_results_dataset_dir(project, dataset)
-
-    for sdir in res_dir.glob("*/dimple"):
-        if Path(sdir, "final.pdb").is_file():
-            return ToolStatus.SUCCESS
-
-    res_subdirs = list(res_dir.glob("*/dimple"))
-    if res_subdirs:
-        return ToolStatus.FAILURE
-
-    return ToolStatus.UNKNOWN
 
 
 def _cut_prefix_strip(prefix, line):
@@ -80,45 +64,41 @@ def _scrape_blobs(project, logs_dir):
             return _cut_prefix_strip(BLOBS_LINE, line)
 
 
-def _get_results(project, dataset, final_pdb: Path):
-    parent_dir = final_pdb.parent
+def _get_results(project: Project, dataset, results_dir: Path) -> RefineResult:
+    proc_tool = results_dir.parent.name
+    final_pdb = Path(results_dir, "final.pdb")
 
-    proc_tool = parent_dir.parent.name
-    isa = scrape_isa(project, proc_tool, dataset)
+    if not final_pdb.is_file():
+        # looks like refine job failed
+        return RefineResult(proc_tool, "dimple", ToolStatus.FAILURE)
 
-    dif_map = Path(parent_dir, "final_2mFo-DFc.ccp4")
-    nat_map = Path(parent_dir, "final_mFo-DFc.ccp4")
+    result = RefineResult(proc_tool, "dimple", ToolStatus.SUCCESS)
 
-    spacegroup, resolution, r_work, r_free, bonds, angles, cell = _parse_pdb(final_pdb)
+    (
+        result.space_group,
+        result.resolution,
+        result.r_work,
+        result.r_free,
+        result.rms_bonds,
+        result.rms_angles,
+        result.cell,
+    ) = _parse_pdb(final_pdb)
 
-    blobs = _scrape_blobs(project, parent_dir)
-    rhofit_score = rhofit.scrape_score(parent_dir)
-    ligfit_score, ligblob = ligandfit.scrape_score_blob(parent_dir)
+    result.blobs = _scrape_blobs(project, results_dir)
 
-    return (
-        proc_tool,
-        str(dif_map),
-        str(nat_map),
-        spacegroup,
-        resolution,
-        isa,
-        r_work,
-        r_free,
-        bonds,
-        angles,
-        cell.a,
-        cell.b,
-        cell.c,
-        cell.alpha,
-        cell.beta,
-        cell.gamma,
-        blobs,
-        rhofit_score,
-        ligfit_score,
-        ligblob,
-    )
+    return result
 
 
-def scrape_results(project, dataset):
-    for final_pdb in get_final_pdbs(project, dataset, "dimple"):
-        yield _get_results(project, dataset, final_pdb)
+def scrape_results(project: Project, dataset) -> Iterator[RefineResult]:
+    res_dir = project.get_dataset_results_dir(dataset)
+
+    for sdir in res_dir.glob("*/dimple"):
+        yield _get_results(project, dataset, sdir)
+
+
+def get_refine_log_files(
+    project: Project, dataset, processing_tool
+) -> Optional[Iterable[Path]]:
+    res_dir = Path(project.get_dataset_results_dir(dataset), processing_tool, "dimple")
+
+    return get_files_by_suffixes(res_dir, ["log"])
