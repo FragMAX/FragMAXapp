@@ -7,15 +7,7 @@ from fragview.scraper import autoproc
 from fragview.sites import SITE
 
 
-def _get_file_path(proj, file_path):
-    """
-    convert the path relative to the project's data directory,
-    to absolute path on the file system
-    """
-    return Path(proj.data_path(), file_path)
-
-
-def _is_html(log_path):
+def _is_html(log_path: Path) -> bool:
     suffix = log_path.suffix.lower()
     return ".html" == suffix
 
@@ -28,23 +20,22 @@ def _log_not_found_resp(log_file):
 
 
 def htmldata(request, data_file):
-    proj = current_project(request)
+    project = current_project(request)
 
-    log_path = _get_file_path(proj, data_file)
+    log_path = Path(project.project_dir, data_file)
 
     if not log_path.is_file():
         return HttpResponseNotFound()
 
-    return HttpResponse(read_proj_file(proj, log_path))
+    return HttpResponse(read_proj_file(project, log_path))
 
 
 def _show_html_log(request, html_file_url):
     """
     render a HTML log
     """
-    proj = current_project(request)
-
-    rel_path = html_file_url.relative_to(proj.data_path())
+    project = current_project(request)
+    rel_path = html_file_url.relative_to(project.project_dir)
     html_file_url = f"/logs/htmldata/{rel_path}"
 
     return render(request, "fragview/html_log.html", {"html_url": html_file_url})
@@ -66,8 +57,8 @@ def _show_text_log(request, proj, download_url, log_path):
 
 
 def show(request, log_file):
-    proj = current_project(request)
-    log_path = _get_file_path(proj, log_file)
+    project = current_project(request)
+    log_path = Path(project.project_dir, log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)
@@ -75,25 +66,26 @@ def show(request, log_file):
     if _is_html(log_path):
         return _show_html_log(request, log_path)
 
-    return _show_text_log(request, proj, log_file, log_path)
+    return _show_text_log(request, project, log_file, log_path)
 
 
 def download(request, log_file):
-    proj = current_project(request)
-    log_path = _get_file_path(proj, log_file)
+    project = current_project(request)
+    log_path = project.get_log_path(log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)
 
     return HttpResponse(
-        read_proj_file(proj, log_path), content_type="application/octet-stream",
+        read_proj_file(project, log_path), content_type="application/octet-stream",
     )
 
 
 def imported_htmldata(request, data_file):
     proj = current_project(request)
 
-    log_path = Path(SITE.PROPOSALS_DIR, proj.proposal, data_file)
+    log_path = Path(SITE.RAW_DATA_DIR, proj.proposal, data_file)
+
     if not log_path.is_file():
         return HttpResponseNotFound()
 
@@ -110,7 +102,7 @@ def _show_imported_html_log(request, log_file):
     """
     proj = current_project(request)
 
-    rel_path = log_file.relative_to(Path(SITE.PROPOSALS_DIR, proj.proposal))
+    rel_path = log_file.relative_to(Path(SITE.RAW_DATA_DIR, proj.proposal))
     print(rel_path)
 
     html_file_url = f"/logs/imported/htmldata/{rel_path}"

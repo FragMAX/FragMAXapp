@@ -50,7 +50,7 @@ class LigfitForm(_ProcJobForm):
 
 class ProcessForm(_ProcJobForm):
     useDials = forms.BooleanField(required=False)
-    useXdsxscale = forms.BooleanField(required=False)
+    useXds = forms.BooleanField(required=False)
     useXdsapp = forms.BooleanField(required=False)
     useAutoproc = forms.BooleanField(required=False)
     spaceGroup = forms.CharField(required=False)
@@ -68,8 +68,8 @@ class ProcessForm(_ProcJobForm):
         return self._get_field("useDials")
 
     @property
-    def use_xdsxscale(self):
-        return self._get_field("useXdsxscale")
+    def use_xds(self):
+        return self._get_field("useXds")
 
     @property
     def use_xdsapp(self):

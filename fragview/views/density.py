@@ -1,213 +1,44 @@
-import shutil
 from os import path
 from glob import glob
 from pathlib import Path
 from ast import literal_eval
-
 from django.shortcuts import render
-
-from fragview.projects import current_project, project_results_file, project_static_url, project_results_dir
+from fragview.projects import (
+    current_project,
+    project_static_url,
+    project_results_dir,
+)
 from fragview.projects import project_process_protein_dir
-from fragview.versions import base_static
+from fragview.models import Fragment
+from fragview.pandda import (
+    PanddaAnalyseEvents,
+    PanddaAnalyseSites,
+    PanddaAllDatasetInfo,
+)
 from fragview.fileio import read_csv_lines
+from fragview.views.wrap import Wrapper
+from fragview.views.utils import (
+    get_refine_result_by_id,
+    get_dataset_by_name,
+    get_crystals_fragment,
+)
 
 
-def show(request, structure):
-    proj = current_project(request)
-
-    lines = read_csv_lines(project_results_file(proj))[1:]
-
-    result_info = list(filter(lambda x: x[0] == structure, lines))[0]
-    if len(result_info) == 23:
-        (
-            usracr,
-            pdbout,
-            nat_map,
-            dif_map,
-            spg,
-            resolution,
-            isa,
-            r_work,
-            r_free,
-            bonds,
-            angles,
-            a,
-            b,
-            c,
-            alpha,
-            beta,
-            gamma,
-            blist,
-            ligfit_dataset,
-            pipeline,
-            rhofitscore,
-            ligfitscore,
-            ligblob,
-        ) = result_info
-    else:
-        (
-            usracr,
-            pdbout,
-            nat_map,
-            dif_map,
-            spg,
-            resolution,
-            isa,
-            r_work,
-            r_free,
-            bonds,
-            angles,
-            a,
-            b,
-            c,
-            alpha,
-            beta,
-            gamma,
-            blist,
-            ligfit_dataset,
-            pipeline,
-            rhofitscore,
-            ligfitscore,
-            ligblob,
-            modelscore,
-        ) = result_info
-
-    proj_dir = proj.data_path()
-    res_dir = path.join(project_results_dir(proj), "_".join(usracr.split("_")[:-2]), *pipeline.split("_"))
-    mtzfd = path.join(res_dir, "final.mtz")
-
-    refineLog, pipelineLog = find_refinement_log(proj_dir, res_dir)
-    rhofitlog, ligandfitlog = find_ligandfitting_log(proj_dir, res_dir)
-
-    if path.exists(path.join(res_dir, "final.pdb")):
-        if not path.exists(mtzfd):
-            final_glob = f"{res_dir}/final*.mtz"
-            if glob(final_glob):
-                mtzf = glob(final_glob)[0]
-                shutil.copyfile(mtzf, mtzfd)
-
-    processM = pipeline.split("_")[0]
-    refineM = pipeline.split("_")[1]
-
-    ligand = None
-
-    if "apo" not in usracr.lower():
-        ligbox = "block"
-        show_ligfit = True
-        show_rhofit = True
-        rhofitbox = "block"
-        rpos = 0
-        lpos = 0
-        ligand = usracr.split("-")[-1].split("_")[0]
-
-        fitres_dir = path.join(proj.data_path(), "fragmax", "results", ligfit_dataset, processM, refineM)
-        rhofit = path.join(fitres_dir, "rhofit", "best.pdb")
-
-        if path.exists(rhofit):
-            lpos = 1
-            with open(rhofit, "r") as rhofitfile:
-                for line in rhofitfile.readlines():
-                    if line.startswith("HETATM"):
-                        coords = line[32:54].split()
-                        coords = list(map(float, coords))
-                        coords = list(map(str, coords))
-                        rhocenter = "[" + ",".join(coords) + "]"
-                        break
-        else:
-            rhocenter = "[0,0,0]"
-            show_rhofit = False
-            rhofitbox = "none"
-        try:
-            ligfit = sorted(glob(f"{fitres_dir}/ligfit/LigandFit_run_*/ligand*.pdb"))[-1]
-            with open(ligfit, "r") as ligfitfile:
-                for line in ligfitfile.readlines():
-                    if line.startswith("HETATM"):
-                        coords = line[32:54].split()
-                        coords = list(map(float, coords))
-                        coords = list(map(str, coords))
-                        ligcenter = "[" + ",".join(coords) + "]"
-                        break
-        except Exception:
-            ligcenter = "[0,0,0]"
-            show_ligfit = False
-    else:
-        rhofitscore = "-"
-        ligfitscore = "-"
-        ligcenter = "[]"
-        rhocenter = "[]"
-        ligbox = "none"
-        rhofitbox = "none"
-        show_ligfit = False
-        show_rhofit = False
-        rpos = 0
-        lpos = 0
-
-    try:
-        currentpos = [n for n, line in enumerate(lines) if usracr in line[0]][0]
-        if currentpos == len(lines) - 1:
-            prevstr = lines[currentpos - 1][0]
-            nextstr = lines[0][0]
-        elif currentpos == 0:
-            prevstr = lines[-1][0]
-            nextstr = lines[currentpos + 1][0]
-
-        else:
-            prevstr = lines[currentpos - 1][0]
-            nextstr = lines[currentpos + 1][0]
-
-    except Exception:
-        prevstr = usracr
-        nextstr = usracr
-
-    # get xyz for ligands
-    blist = blist.replace(" ", "")
-
-    center = blist[1 : blist.index("]") + 1]  # noqa E203
-
-    if refineM == "dimple":
-        refineName = "Refmac"
-        pipelineName = "DIMPLE"
-    elif refineM == "fspipeline":
-        refineName = "Phenix.refine"
-        pipelineName = "fspipeline"
-    else:
-        refineName = "BUSTER"
-        pipelineName = ""
+def show(request, result_id):
+    project = current_project(request)
+    result = get_refine_result_by_id(project, result_id)
 
     return render(
         request,
         "fragview/density.html",
         {
-            "name": usracr,
-            "xyzlist": blist,
-            "center": center,
-            "ligand": ligand,
-            "rscore": rhofitscore,
-            "lscore": ligfitscore,
-            "rwork": r_work,
-            "rfree": r_free,
-            "resolution": resolution,
-            "spg": spg,
-            "ligfit_dataset": ligfit_dataset,
-            "process": processM,
-            "refine": refineM,
-            "blob": ligblob,
-            "rhofitcenter": rhocenter,
-            "ligfitcenter": ligcenter,
-            "ligbox": ligbox,
-            "prevstr": prevstr,
-            "nextstr": nextstr,
-            "show_ligfit": show_ligfit,
-            "show_rhofit": show_rhofit,
-            "rhofitbox": rhofitbox,
-            "lpos": lpos,
-            "rpos": rpos,
-            "refineLog": refineLog,
-            "pipelineLog": pipelineLog,
-            "rhofitlog": rhofitlog,
-            "ligandfitlog": ligandfitlog,
-            "pipelineName": pipelineName,
-            "refineName": refineName,
+            "result": result,
+            "rhofit_result": result.get_ligfit_result("rhofit"),
+            "ligandfit_result": result.get_ligfit_result("ligandfit"),
+            "fragment": get_crystals_fragment(result.dataset.crystal),
+            "rhofitcenter": None,  # rhocenter,
+            "previous_result": result.previous(),
+            "next_result": result.next(),
         },
     )
 
@@ -221,10 +52,19 @@ def compare_poses(request):
     blob = ligfit_dataset.split(";")[1]
     ligand = data.split("-")[-1].split("_")[0]
 
-    entry_dir = path.join("_".join(data.split("_")[:2]), data.split("_")[2], data.split("_")[3])
+    entry_dir = path.join(
+        "_".join(data.split("_")[:2]), data.split("_")[2], data.split("_")[3]
+    )
 
     rhofit = proj.data_path() + "/fragmax/results/" + entry_dir + "/rhofit/best.pdb"
-    ligfit = sorted(glob(proj.data_path() + "/fragmax/results/" + entry_dir + "/ligfit/LigandFit*/ligand_fit*pdb"))[-1]
+    ligfit = sorted(
+        glob(
+            proj.data_path()
+            + "/fragmax/results/"
+            + entry_dir
+            + "/ligfit/LigandFit*/ligand_fit*pdb"
+        )
+    )[-1]
     pdb = static_url + "/fragmax/results/" + entry_dir + "/final.pdb"
     mtz = static_url + "/fragmax/results/" + entry_dir + "/final.mtz"
     nat = static_url + "/fragmax/results/" + entry_dir + "/final_mFo-DFc.ccp4"
@@ -280,7 +120,9 @@ def show_pipedream(request):
 
     sample = str(request.GET.get("structure"))
 
-    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "results.csv"))[1:]
+    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "results.csv"))[
+        1:
+    ]
 
     for n, line in enumerate(lines):
         if line[0] == f"{sample}":
@@ -351,143 +193,68 @@ def show_pipedream(request):
     )
 
 
-def pandda_analyse(request):
-    proj = current_project(request)
+class PanddaDataset(Wrapper):
+    """
+    wrap pandda dataset description object, so that we
+    can remap a couple of attributes for template consumption
+    """
 
-    panddaInput = str(request.GET.get("structure"))
-    if len(panddaInput.split(";")) == 5:
-        method, dataset, event, site, nav = panddaInput.split(";")
-    if len(panddaInput.split(";")) == 3:
-        method, dataset, nav = panddaInput.split(";")
+    def name(self):
+        return self.orig.dtag
 
-    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
-    datasets_dir = path.join(pandda_res_dir, "processed_datasets")
-    mdl = [x.split("/")[-2] for x in sorted(glob(f"{datasets_dir}/*/*pandda-input.pdb"))]
-    if len(mdl) != 0:
-        indices = [i for i, s in enumerate(mdl) if dataset in s][0]
+    def resolution(self):
+        return self.orig.high_resolution
 
-        if "prev" in nav:
 
-            try:
-                dataset = mdl[indices - 1]
-            except IndexError:
-                dataset = mdl[-1]
+class PanddaEvent(Wrapper):
+    """
+    wrap pandda event object, to give access to '1-BDC' value to template
+    """
 
-        if "next" in nav:
-            try:
-                dataset = mdl[indices + 1]
-            except IndexError:
-                dataset = mdl[0]
+    def bdc(self):
+        return self.orig["1-BDC"]
 
-        ligand = dataset.split("-")[-1].split("_")[0]
 
-        with open(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"), "r") as inp:
-            inspect_events = inp.readlines()
+def pandda_analyse(request, method: str, dataset_name: str):
+    project = current_project(request)
 
-        for i in inspect_events:
-            if dataset in i:
-                k = i.split(",")
-                break
-            else:
-                k = False
-        if k:
-            bdc = k[2]
-            site_idx = k[11]
-            center = "[" + k[12] + "," + k[13] + "," + k[14] + "]"
-            resolution = k[18]
-            rfree = k[20]
-            rwork = k[21]
-            spg = k[35]
+    analysis_dir = Path(project.pandda_method_dir(method), "pandda", "analyses")
 
-            if len(panddaInput.split(";")) == 3:
-                event = k[1]
+    # load analyse events
+    events = PanddaAnalyseEvents(Path(analysis_dir, "pandda_analyse_events.csv"))
+    event = events.get_first_event(dataset_name)
 
-            is_apo = False
-        else:
-            with open(path.join(pandda_res_dir, "analyses", "all_datasets_info.csv"), "r") as inp:
-                inspect_events = inp.readlines()
+    # load analyse sites
+    sites = PanddaAnalyseSites(Path(analysis_dir, "pandda_analyse_sites.csv"))
 
-            for i in inspect_events:
-                if dataset in i:
-                    k = i.split(",")
-                    break
-            bdc = k[0]
-            site_idx = 0
-            center = "['','','']"
-            resolution = k[2]
-            rfree = 0
-            rwork = 0
-            spg = k[19]
+    # load pandda dataset description
+    all_datasets = PanddaAllDatasetInfo(Path(analysis_dir, "all_datasets_info.csv"))
+    dataset = PanddaDataset(all_datasets.get_dataset(dataset_name))
 
-            if len(panddaInput.split(";")) == 3:
-                event = k[1]
+    # fetch fragment object from the database
+    db_dataset = get_dataset_by_name(project, dataset_name)
+    fragment = db_dataset.crystal.fragment
 
-            is_apo = True
+    # derive path to analysis summary report
+    summary_path = Path(
+        project.pandda_processed_dataset_dir(method, dataset_name),
+        "html",
+        f"{dataset_name}.html",
+    )
 
-        summarypath = (
-            proj.data_path()
-            + "/fragmax/results/pandda/"
-            + proj.protein
-            + "/"
-            + method
-            + "/pandda/processed_datasets/"
-            + dataset
-            + "/html/"
-            + dataset
-            + ".html"
-        )
-        summarypath = summarypath.replace(base_static, "")
-
-        _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
-        centroids = find_site_centroids(_sites)
-
-        lines = read_csv_lines(path.join(pandda_res_dir, "analyses", "pandda_analyse_events.csv"))[1:]
-
-        prevstr = ""
-        nextstr = ""
-        for n, i in enumerate(lines):
-            if panddaInput.split(";") == i[:-1]:
-                if n == len(lines) - 1:
-                    prevstr = ";".join(lines[n - 1][:-1])
-                    nextstr = ";".join(lines[0][:-1])
-                elif n == 0:
-                    prevstr = ";".join(lines[-1][:-1])
-                    nextstr = ";".join(lines[n + 1][:-1])
-                else:
-                    prevstr = ";".join(lines[n - 1][:-1])
-                    nextstr = ";".join(lines[n + 1][:-1])
-
-        return render(
-            request,
-            "fragview/pandda_densityA.html",
-            {
-                "siten": site_idx,
-                "event": event,
-                "method": method,
-                "rwork": rwork,
-                "rfree": rfree,
-                "resolution": resolution,
-                "spg": spg,
-                "dataset": dataset,
-                "ligand": ligand,
-                "center": center,
-                "centroids": centroids,
-                "bdc": bdc,
-                "summary": summarypath,
-                "is_apo": is_apo,
-                "library": proj.library,
-                "prevstr": prevstr,
-                "nextstr": nextstr,
-                "panddatype": "analyses",
-            },
-        )
-
-    else:
-        return render(
-            request,
-            "fragview/error.html",
-            {"issue": "No modelled structure for " + method + "_" + dataset + " was found."},
-        )
+    return render(
+        request,
+        "fragview/pandda_densityA.html",
+        {
+            "event": PanddaEvent(event),
+            "method": method,
+            "dataset": dataset,
+            "fragment": fragment,
+            "ground_model": event is None,
+            "centroids": list(sites.get_native_centroids()),
+            "summary": summary_path.relative_to(project.project_dir),
+        },
+    )
 
 
 def pandda(request):
@@ -500,10 +267,15 @@ def pandda(request):
     if len(panddaInput.split(";")) == 3:
         method, dataset, nav = panddaInput.split(";")
 
-    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    pandda_res_dir = path.join(
+        project_results_dir(proj), "pandda", proj.protein, method, "pandda"
+    )
     datasets_dir = path.join(pandda_res_dir, "processed_datasets")
 
-    mdl = [x.split("/")[-3] for x in sorted(glob(f"{datasets_dir}/*/modelled_structures/*model.pdb"))]
+    mdl = [
+        x.split("/")[-3]
+        for x in sorted(glob(f"{datasets_dir}/*/modelled_structures/*model.pdb"))
+    ]
 
     if len(mdl) != 0:
         indices = [i for i, s in enumerate(mdl) if dataset in s][0]
@@ -523,11 +295,15 @@ def pandda(request):
 
         ligand = dataset.split("-")[-1].split("_")[0]
 
-        pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+        pandda_res_dir = path.join(
+            project_results_dir(proj), "pandda", proj.protein, method, "pandda"
+        )
         _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
         centroids = find_site_centroids(_sites)
 
-        with open(path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r") as inp:
+        with open(
+            path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv"), "r"
+        ) as inp:
             inspect_events = inp.readlines()
 
         for i in inspect_events:
@@ -614,7 +390,13 @@ def pandda(request):
         return render(
             request,
             "fragview/error.html",
-            {"issue": "No modelled structure for " + method + "_" + dataset + " was found."},
+            {
+                "issue": "No modelled structure for "
+                + method
+                + "_"
+                + dataset
+                + " was found."
+            },
         )
 
 
@@ -649,7 +431,9 @@ def pandda_consensus(request):
 
     ligand = dataset.split("-")[-1].split("_")[0] + ddtag
 
-    pandda_res_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, "pandda")
+    pandda_res_dir = path.join(
+        project_results_dir(proj), "pandda", proj.protein, method, "pandda"
+    )
     _sites = path.join(pandda_res_dir, "analyses", "pandda_analyse_sites.csv")
     centroids = find_site_centroids(_sites)
     events_csv = path.join(pandda_res_dir, "analyses", "pandda_inspect_events.csv")
@@ -659,7 +443,11 @@ def pandda_consensus(request):
     for i in inspect_events:
         if dataset + ddtag + "_" + run in i:
             line = i.split(",")
-            if dataset + ddtag + "_" + run == line[0] and event_idx == line[1] and site_idx == line[11]:
+            if (
+                dataset + ddtag + "_" + run == line[0]
+                and event_idx == line[1]
+                and site_idx == line[11]
+            ):
                 k = line
 
     headers = inspect_events[0].split(",")
@@ -693,7 +481,9 @@ def pandda_consensus(request):
     else:
         ligconfid = "low_conf_radio"
 
-    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "panddainspects.csv"))[1:]
+    lines = read_csv_lines(
+        path.join(project_process_protein_dir(proj), "panddainspects.csv")
+    )[1:]
 
     for n, i in enumerate(lines):
         if panddaInput.split(";") == i[:-1]:
@@ -753,7 +543,9 @@ def find_refinement_log(proj_dir, res_dir):
         logSearch = sorted(glob(f"{res_dir}/*/*-*log"))
         if logSearch:
             logFile = logSearch[-1]
-            pipelineLog = path.join(path.dirname(path.dirname(logFile)), "fspipeline.log")
+            pipelineLog = path.join(
+                path.dirname(path.dirname(logFile)), "fspipeline.log"
+            )
 
     if "buster" in res_dir:
         logSearch = sorted(glob(f"{res_dir}/*BUSTER/Cycle*/*html"))

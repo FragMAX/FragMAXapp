@@ -8,7 +8,7 @@ class SitePlugin:
     ACCOUNT_STYLE: Optional[str] = None
     AUTH_BACKEND: str
     # root path to where proposals data is stored
-    PROPOSALS_DIR: str
+    RAW_DATA_DIR: str
     # runner used for HPC jobs,
     # should be either 'local' or 'slurm'
     HPC_JOBS_RUNNER: str
@@ -22,7 +22,7 @@ class SitePlugin:
     def get_project_layout(self):
         raise NotImplementedError()
 
-    def get_diffraction_img_maker(self):
+    def get_diffraction_picture_command(self, project, dataset, angle: int, dest_pic_file) -> List[str]:
         raise NotImplementedError()
 
     def get_beamline_info(self):
@@ -120,27 +120,6 @@ class ProjectLayout:
         raise NotImplementedError()
 
 
-class DiffractionImageMaker:
-    class SourceImageNotFound(Exception):
-        pass
-
-    def get_file_names(self, project, dataset, run, image_num):
-        """
-        return tuple of (source_file, pic_file_name)
-
-        where:
-          source_file - is the full path to use as source file for generating the diffraction picture
-          pic_file_name - the picture file name to use
-        """
-        raise NotImplementedError()
-
-    def get_command(self, source_file, dest_pic_file):
-        """
-        return command to create diffraction picture from the source file
-        """
-        raise NotImplementedError()
-
-
 class BeamlineInfo:
     # beamline's name
     name: str
@@ -157,7 +136,7 @@ class PipelineCommands:
     def get_xia_dials_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
         raise NotImplementedError()
 
-    def get_xia_xdsxscale_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xia_xds_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
         raise NotImplementedError()
 
     def get_xdsapp_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):

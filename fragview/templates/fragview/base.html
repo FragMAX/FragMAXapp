@@ -187,7 +187,7 @@
                     <a class="dropdown-button" href="#!" data-target="pick-project-menu">
                         <img class="circle" src="/static/projIcons/{{project.icon_num}}.svg">
                         <span class="white-text name" style="font-size: 20px; font-weight: bold;">
-                            {{project.protein}} - {{project.library.name}}
+                            {{project.name}}
                             <i class="material-icons right">arrow_drop_down</i>
                         </span>
                     </a>
@@ -209,8 +209,8 @@
                                 <img class="circle" src="/static/projIcons/{{proj.icon_num}}.svg">
                             </div>
                             <div class="project-cell">
-                                <div style="font-size: 20px; font-weight: bold;">{{ proj.protein }}</div>
-                                <div>{{proj.library.name}}</div>
+                                <div style="font-size: 20px; font-weight: bold;">{{proj.protein}}</div>
+                                <div>({{proj.proposal}})</div>
                             </div>
                         </div>
                     </a>
@@ -238,8 +238,8 @@
                 </a>
             </li>
             <li>
-                <a href="/library_view" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
-                    Library view<i class="material-icons" style="font-size:22px;color:white">timeline</i>
+                <a href="/fragments/show" class="collapsible-header sub-sidenav-links" data-turbolinks="false">
+                    Fragments<i class="material-icons" style="font-size:22px;color:white">timeline</i>
                 </a>
             </li>
             <li>
@@ -304,6 +304,13 @@
                 </a>
             </li>
 
+            <li>
+                <a href="/libraries/show" class="collapsible-header sidenav-links" data-turbolinks="false">
+                    Libraries<i class="material-icons" style="font-size:22px;color:white">book</i>
+                </a>
+            </li>
+
+
             {% if not disabled.download %}
             <li>
                 <a href="/download" class="collapsible-header sidenav-links" data-turbolinks="false">
@@ -317,7 +324,7 @@
                 </a>
             </li>
             <li>
-                <a href="/hpcstatus" class="collapsible-header sidenav-links" data-turbolinks="false">
+                <a href="/jobs/status" class="collapsible-header sidenav-links" data-turbolinks="false">
                     Jobs Status<i class="material-icons" style="font-size:22px;color:white">memory</i>
                 </a>
             </li>

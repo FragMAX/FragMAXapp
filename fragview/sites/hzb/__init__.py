@@ -6,7 +6,7 @@ from fragview.fileio import makedirs
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
 from fragview.sites.hzb.project import ProjectLayout
-from fragview.sites.hzb.diffractions import DiffractionImageMaker
+from fragview.sites.hzb.diffractions import get_diffraction_pic_command
 from fragview.sites.hzb.pipelines import PipelineCommands
 from fragview.sites.hzb.beamline import BeamlineInfo
 from fragview.sites.hzb.hpc import HPC
@@ -20,7 +20,7 @@ class SitePlugin(plugin.SitePlugin):
     LOGO = "hzb.png"
     DISABLED_FEATURES = ["soaking_plan", "download"]
     AUTH_BACKEND = "fragview.auth.LocalBackend"
-    PROPOSALS_DIR = "/data/fragmaxrpc/user"
+    RAW_DATA_DIR = "/data/fragmaxrpc/user"
     HPC_JOBS_RUNNER = "local"
 
     def get_project_experiment_date(self, project):
@@ -32,8 +32,10 @@ class SitePlugin(plugin.SitePlugin):
     def get_project_layout(self):
         return ProjectLayout()
 
-    def get_diffraction_img_maker(self):
-        return DiffractionImageMaker()
+    def get_diffraction_picture_command(
+        self, project, dataset, angle: int, dest_pic_file
+    ) -> List[str]:
+        return get_diffraction_pic_command(project, dataset, angle, dest_pic_file)
 
     def get_beamline_info(self):
         return BeamlineInfo()

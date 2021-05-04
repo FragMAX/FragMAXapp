@@ -65,26 +65,35 @@ tr {
         <table class="table bordered">
             <thead>
                 <tr style="background-color: white;">
-                    <th>Protein - Library</th>
-                    <th>Proposal</th>
-                    <th>Shift</th>
+                    <th>Project</th>
+                    <th>Fragment Libraries</th>
+                    <th>Collection Dates</th>
                 </tr>
             </thead>
 
             <tbody>
 
-            {% for proj in projects %}
+            {% for proj in project_entries %}
             <tr>
                 <td>
                     <a href="/project/{{ proj.id }}" class="project-desc">
                         <div class="project-elm">
                             <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
                         </div>
-                        <div class="project-elm">{{ proj.protein }} - {{ proj.library.name }}</div>
+                        <div class="project-elm">{{ proj.protein }} ({{proj.proposal}})</div>
                     </a>
                 </td>
-                <td>{{ proj.proposal }}</td>
-                <td>{{ proj.shift }}</td>
+                <td>
+                    {% for library in proj.get_libraries %}
+                    <div>{{library.name}}</div>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% with dates=proj.get_data_collection_dates %}
+                        <div>{{dates.0|date:"Y-m-d"}}</div>
+                        <div>{{dates.1|date:"Y-m-d"}}</div>
+                    {% endwith %}
+                </td>
             </tr>
             {% endfor %}
 
@@ -103,15 +112,11 @@ tr {
                 {% for proj in pending_projects %}
                 <tr>
                     <td>
-                        <a href="/project/{{ proj.id }}" class="project-desc">
-                            <div class="project-elm">
-                                <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
-                            </div>
-                            <div class="project-elm">{{ proj.protein }} - {{ proj.library.name }}</div>
-                        </a>
+                        <div class="project-elm">
+                            <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
+                        </div>
+                        <div class="project-elm">{{ proj.protein }} ({{proj.proposal}})</div>
                     </td>
-                    <td>{{ proj.proposal }}</td>
-                    <td>{{ proj.shift }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

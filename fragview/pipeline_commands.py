@@ -13,10 +13,10 @@ def get_xia_dials_commands(
     )
 
 
-def get_xia_xdsxscale_commands(
+def get_xia_xds_commands(
     space_group, unit_cell, custom_parameters, friedel, image_file, num_images
 ):
-    return _get_pipe_cmds().get_xia_xdsxscale_commands(
+    return _get_pipe_cmds().get_xia_xds_commands(
         space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     )
 

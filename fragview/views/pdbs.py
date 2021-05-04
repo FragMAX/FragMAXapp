@@ -1,19 +1,16 @@
-import os
 import re
 import pypdb
 from os import path
 from django import urls
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.db import transaction
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db.utils import IntegrityError
 from fragview.fileio import open_proj_file
-from fragview.models import PDB
 from fragview.projects import (
     current_project,
     project_syslog_path,
     project_script,
-    project_models_dir,
+    Project,
 )
 from fragview.views.utils import download_http_response
 from fragview.sites import SITE
@@ -41,8 +38,7 @@ def list(request):
     """
     protein models list page, aka 'manage pdbs' page
     """
-    proj = current_project(request)
-    return render(request, "fragview/pdbs.html", {"pdbs": PDB.project_pdbs(proj)})
+    return render(request, "fragview/pdbs.html")
 
 
 def _is_valid_pdb_filename(filename):
@@ -57,13 +53,12 @@ def _add_pdb_entry(project, filename, pdb_id=None):
     if not _is_valid_pdb_filename(filename):
         raise PDBAddError("Invalid PDB filename, only letters and number are allowed.")
 
-    args = dict(project=project, filename=filename)
+    args = dict(filename=filename)
     if pdb_id is not None:
         args["pdb_id"] = pdb_id
 
     try:
-        pdb = PDB(**args)
-        pdb.save()
+        pdb = project.db.PDB(**args)
     except IntegrityError:
         # here we assume that 'unique filename per project' constrain is violated,
         # as we don't have any other constrains for the PDB table
@@ -88,34 +83,34 @@ def _assemble_chunks(upload_file):
     return data
 
 
-def _save_pdb(proj, pdb_id, filename, pdb_data):
+def _save_pdb(project: Project, pdb_id, filename, pdb_data):
     name = path.splitext(filename)[0]
     nohet_filename = f"{name}_noHETATM.pdb"
     noanisou_filename = f"{name}_noANISOU.pdb"
     nohetanisou_filename = f"{name}_noANISOU_noHETATM.pdb"
     txc_filename = f"{name}_txc.pdb"
 
-    orig_pdb = _add_pdb_entry(proj, filename, pdb_id)
-    nohet_pdb = _add_pdb_entry(proj, nohet_filename, pdb_id)
-    noanisou_pdb = _add_pdb_entry(proj, noanisou_filename, pdb_id)
-    nohetnoanisou_pdb = _add_pdb_entry(proj, nohetanisou_filename, pdb_id)
+    orig_pdb = _add_pdb_entry(project, filename, pdb_id)
+    nohet_pdb = _add_pdb_entry(project, nohet_filename, pdb_id)
+    noanisou_pdb = _add_pdb_entry(project, noanisou_filename, pdb_id)
+    nohetnoanisou_pdb = _add_pdb_entry(project, nohetanisou_filename, pdb_id)
 
     # write original pdb file 'as-is' to models folder
-    with open_proj_file(proj, orig_pdb.file_path()) as dest:
+    with open_proj_file(project, project.get_pdb_file(orig_pdb)) as dest:
         dest.write(pdb_data)
 
     # filter out all non-ATOM entries from pdb and write it as *_noHETATM.pdb
-    with open_proj_file(proj, nohetnoanisou_pdb.file_path()) as dest:
+    with open_proj_file(project, project.get_pdb_file(nohetnoanisou_pdb)) as dest:
         for line in pdb_data.splitlines(keepends=True):
             if not line.startswith(b"HETATM") or not line.startswith(b"ANISOU"):
                 dest.write(line)
 
-    with open_proj_file(proj, nohet_pdb.file_path()) as dest:
+    with open_proj_file(project, project.get_pdb_file(nohet_pdb)) as dest:
         for line in pdb_data.splitlines(keepends=True):
             if not line.startswith(b"HETATM"):
                 dest.write(line)
 
-    with open_proj_file(proj, noanisou_pdb.file_path()) as dest:
+    with open_proj_file(project, project.get_pdb_file(noanisou_pdb)) as dest:
         for line in pdb_data.splitlines(keepends=True):
             if not line.startswith(b"ANISOU"):
                 dest.write(line)
@@ -123,23 +118,22 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
     n_chains = pdb_chains(pdb_data.splitlines(keepends=True))
 
     if n_chains > 1:
-        txc_pdb = _add_pdb_entry(proj, txc_filename, pdb_id)
+        txc_pdb = _add_pdb_entry(project, txc_filename, pdb_id)
 
-        models_path = project_models_dir(proj)
-        input_pdb_name = path.join(models_path, f"{name}.pdb")
+        input_pdb_name = path.join(project.models_dir, f"{name}.pdb")
 
         jobs = JobsSet("phenix ensembler")
         batch = SITE.get_hpc_runner().new_batch_file(
             "phenix ensembler",
-            project_script(proj, "phenix_ensembler.sh"),
-            project_syslog_path(proj, "phenix_ensembler_%j.out"),
-            project_syslog_path(proj, "phenix_ensembler_%j.err"),
+            project_script(project, "phenix_ensembler.sh"),
+            project_syslog_path(project, "phenix_ensembler_%j.out"),
+            project_syslog_path(project, "phenix_ensembler_%j.err"),
         )
         batch.load_modules(["gopresto", PHENIX_MOD])
         batch.add_commands(
-            f"cd {models_path}",
-            f"phenix.ensembler {input_pdb_name} trim=TRUE output.location='{models_path}'",
-            f"mv {models_path}/ensemble_merged.pdb {txc_pdb.file_path()}",
+            f"cd {project.models_dir}",
+            f"phenix.ensembler {input_pdb_name} trim=TRUE output.location='{project.models_dir}'",
+            f"mv {project.models_dir}/ensemble_merged.pdb {project.get_pdb_file(txc_pdb)}",
         )
         batch.save()
         jobs.add_job(batch)
@@ -147,13 +141,11 @@ def _save_pdb(proj, pdb_id, filename, pdb_data):
 
 
 #
-# Wrap the database operation of adding a new PDB entry into
-# a transaction.
+# This function is wrapped into a DB session, with an implicit transaction.
 #
-# This way if we fail to write the PDB file to disk, the new
-# PDB entry will not be committed to the database.
+# Ff we fail to write the PDB file to disk, the new
+# PDB entries will not be committed to the database.
 #
-@transaction.atomic
 def _process_add_request(request):
     proj = current_project(request)
     method = request.POST["method"]
@@ -196,8 +188,8 @@ def new(request):
         return HttpResponseBadRequest(err.error_message())
 
 
-def _delete_pdb(pdb):
-    os.remove(pdb.file_path())
+def _delete_pdb(project: Project, pdb):
+    project.get_pdb_file(pdb).unlink()
     pdb.delete()
 
 
@@ -206,10 +198,13 @@ def edit(request, id):
     GET request shows the 'PDB info' page
     POST request will delete the PDB
     """
-    pdb = get_object_or_404(PDB, pk=id)
+    project = current_project(request)
+    pdb = project.get_pdb(id)
+    if pdb is None:
+        return Http404(f"no PDB with id {id} found")
 
     if request.method == "POST":
-        _delete_pdb(pdb)
+        _delete_pdb(project, pdb)
         return redirect(urls.reverse("manage_pdbs"))
 
     return render(request, "fragview/pdb.html", {"pdb": pdb})

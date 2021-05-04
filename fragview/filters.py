@@ -1,27 +1,19 @@
-from pathlib import Path
-from fragview.projects import (
-    project_results_dir,
-    project_datasets,
-)
-from fragview.fileio import subdirs
-from fragview.dsets import get_datasets
+from fragview.projects import Project
 
 
-def _dsets_with_tool_status(proj, tools, status):
-    """
-    get all datasets with specified tool processing status
-    """
-    for dset in get_datasets(proj):
-        for tool in tools:
-            tool_stat = getattr(dset.status, tool)
-            if tool_stat == status:
-                yield f"{dset.image_prefix}_{dset.run}"
-                # handle the cases where request status matches multiple tools,
-                # skip the test of the tools statuses
-                break
+def _no_results_datasets(project: Project, tool: str):
+    for dataset in project.get_datasets():
+        res = dataset.result.select(tool=tool).first()
+        if res is None:
+            yield dataset
 
 
-def get_proc_datasets(proj, filter):
+def _dataset_by_ids(project: Project, dataset_ids: str):
+    for dset_id in dataset_ids.split(","):
+        yield project.get_dataset(dset_id)
+
+
+def get_proc_datasets(project: Project, filter: str, tool: str):
     """
     perform datasets filtering for 'data processing' jobs
 
@@ -29,34 +21,20 @@ def get_proc_datasets(proj, filter):
 
     'ALL' - all of the project's datasets
 
-    'NEW' - datasets that have not been processes yet,
-            that is, datasets that don't have a 'results' dir
+    'NEW' - datasets that have not been processes yet with specified tool
 
-    otherwise the filter is expected to be a comma separated list of dataset names
+    otherwise the filter is expected to be a comma separated list of dataset IDs
     """
-
-    def _new_datasets():
-        results_dir = project_results_dir(proj)
-        for dset in project_datasets(proj):
-            if Path(results_dir, dset).is_dir():
-                continue
-
-            yield dset
-
-    def _selected_datasets():
-        for dset in filter.split(","):
-            yield dset
-
     if filter == "ALL":
-        return project_datasets(proj)
+        return project.get_datasets()
 
     if filter == "NEW":
-        return _new_datasets()
+        return _no_results_datasets(project, tool)
 
-    return _selected_datasets()
+    return _dataset_by_ids(project, filter)
 
 
-def get_refine_datasets(proj, filter, refine_tool):
+def get_refine_datasets(project: Project, filter: str, refine_tool: str):
     """
     perform datasets filtering for 'structure refinement' jobs
 
@@ -64,31 +42,20 @@ def get_refine_datasets(proj, filter, refine_tool):
 
     'ALL' - all of the project's datasets
 
-    'NEW' - datasets that have not been processes with refinement tool yet
+    'NEW' - datasets that have not been processes with specified refinement tool yet
 
     otherwise the filter is expected to be a comma separated list of dataset names
-
-    'refine_tool' argument is used with 'NEW' filter and is used to
-    specify the tool for which the processing status will be checked
     """
-
-    def _new_datasets():
-        return _dsets_with_tool_status(proj, [refine_tool], "unknown")
-
-    def _selected_datasets():
-        for dset in filter.split(","):
-            yield dset
-
     if filter == "ALL":
-        return project_datasets(proj)
+        return project.get_datasets()
 
     if filter == "NEW":
-        return _new_datasets()
+        return _no_results_datasets(project, refine_tool)
 
-    return _selected_datasets()
+    return _dataset_by_ids(project, filter)
 
 
-def get_ligfit_datasets(proj, filter, use_ligand_fit, use_rho_fit):
+def get_ligfit_datasets(project: Project, filter: str, ligfit_tool: str):
     """
     perform datasets filtering for 'ligand fitting' jobs
 
@@ -96,62 +63,14 @@ def get_ligfit_datasets(proj, filter, use_ligand_fit, use_rho_fit):
 
     'ALL' - all of the project's datasets
 
-    'NEW' - datasets that have not been processes with ligand fitting tools yet
+    'NEW' - datasets that have not been processes with specified ligand fitting tools yet
 
     otherwise the filter is expected to be a comma separated list of dataset names
-
-    use_ligand_fit and use_rho_fit flags are used with 'NEW' filter, and specify
-    the tools for which the processing status will be checked
     """
-
-    def _exclude_apo(dsets):
-        for dset in dsets:
-            if "apo" in dset.lower():
-                continue
-            yield dset
-
-    def _new_datasets():
-        def _get_tools():
-            # at least one tool must be used
-            assert use_ligand_fit or use_rho_fit
-
-            tools = []
-
-            if use_ligand_fit:
-                tools.append("ligand_fit")
-
-            if use_rho_fit:
-                tools.append("rho_fit")
-
-            return tools
-
-        return _dsets_with_tool_status(proj, _get_tools(), "unknown")
-
-    def _selected_datasets():
-        for dset in filter.split(","):
-            yield dset
-
     if filter == "ALL":
-        datasets = project_datasets(proj)
-    elif filter == "NEW":
-        datasets = _new_datasets()
-    else:
-        datasets = _selected_datasets()
+        return project.get_datasets()
 
-    return _exclude_apo(datasets)
+    if filter == "NEW":
+        return _no_results_datasets(project, ligfit_tool)
 
-
-def get_ligfit_pdbs(proj, datasets):
-    """
-    get all 'final' PDBs for specified datasets
-
-    returns list of (<data set>, <pdb path>) tuples
-    """
-    results_dir = project_results_dir(proj)
-
-    for dset in datasets:
-        dset_res_dir = Path(results_dir, dset)
-        for sdir in subdirs(dset_res_dir, 2):
-            pdb_path = Path(sdir, "final.pdb")
-            if pdb_path.is_file():
-                yield dset, str(pdb_path)
+    return _dataset_by_ids(project, filter)

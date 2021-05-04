@@ -4,7 +4,6 @@ import grp
 import csv
 import stat
 from glob import glob
-import shutil
 import celery
 from celery.utils.log import get_task_logger
 from fragview import dist_lock
@@ -17,7 +16,6 @@ from fragview.status import set_imported_autoproc_status
 from fragview.projects import project_xml_files, project_process_protein_dir
 from fragview.projects import project_data_collections_file, project_fragmax_dir
 from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
-from fragview.projects import PANDDA_WORKER
 from fragview.projects import shifts_xml_files, project_scripts_dir
 
 logger = get_task_logger(__name__)
@@ -112,25 +110,6 @@ def _create_fragmax_folders(proj):
     makedirs(path.join(fragmax_dir, "results"))
     makedirs(project_fragments_dir(proj))
     makedirs(project_process_protein_dir(proj))
-
-
-def _copy_script_files(proj, script_files):
-    data_dir = path.join(path.dirname(__file__), "data")
-    dest_dir = project_scripts_dir(proj)
-
-    for file in script_files:
-        src_file = path.join(data_dir, file)
-        dst_file = path.join(dest_dir, file)
-        print(f"{src_file} -> {dst_file}")
-        shutil.copy(src_file, dst_file)
-
-
-def _copy_scripts(proj):
-    script_files = [PANDDA_WORKER]
-    if proj.encrypted:
-        script_files += ["crypt_files.py", "crypt_files.sh"]
-
-    _copy_script_files(proj, script_files)
 
 
 def _parse_metafile(metafile):

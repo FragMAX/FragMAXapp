@@ -162,33 +162,17 @@
 </head>
 
 <body style="background-color: white">
-
-
-
-
   <div id="left-controlpanel">
-
-
     <div style="padding-left:15px !important;">
       <div>
-        <h6><a href="/static/{{summary}}" target="_blank">Analysis summary</a></h6>
+        <h6><a href="/logs/show/{{summary}}" target="_blank">Analysis summary</a></h6>
+      </div>
 
-        <h6>Structure navigation</h6>
-      </div>
-      <div style="padding-left:30px !important;">
-
-      </div>
-      <div style="display:flex;">
-        <form action="/pandda_densityA/" method="get" id="pandda_form"><button class="btn navbt" type="submit"
-            value="{{method}};{{dataset}};prev" name="structure" size="1">Prev Event</button></form>
-        <form action="/pandda_densityA/" method="get" id="pandda_form" style="padding-left:5px"><button
-            class="btn navbt" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next
-            Event</button></form>
-      </div>
       <div style="display:block; ">
-        <input class="btn navbt" type="button" value="Prev site" onclick="return previoussite()"></input>
-        <input class="btn navbt" type="button" value="Next site" onclick="return nextsite()"></input>
+        <input class="btn navbt" type="button" value="Prev site" onclick="return previoussite()"/>
+        <input class="btn navbt" type="button" value="Next site" onclick="return nextsite()"/>
       </div>
+
     </div>
     <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
       <table>
@@ -196,54 +180,44 @@
         <tr>
           <th>Resolution
           </th>
-          <td>{{resolution}} Å
+          <td>{{dataset.resolution}} Å
           </td>
         </tr>
-        {% if not is_apo %}
+
+        {% if not ground_model %}
         <tr>
-          <th>Rwork
-          </th>
-          <td>{{rwork}}
-          </td>
+          <th>Rwork</th>
+          <td>{{dataset.r_work}}</td>
         </tr>
         <tr>
           <th>Rfree
           </th>
-          <td>{{rfree}}
+          <td>{{dataset.r_free}}
           </td>
         </tr>
         {% endif %}
+
         <tr>
           <th>Spacegroup
           </th>
-          <td>{{spg}}
+          <td>{{dataset.space_group}}
           </td>
         </tr>
-        {% if not is_apo %}
+
+        {% if not ground_model %}
 
         <tr>
-          <th>1-BDC
-          </th>
-          <td>{{bdc}}
-          </td>
+          <th>1-BDC</th>
+          <td>{{event.bdc}}</td>
+        </tr>
+
+        <tr>
+          <th>Site</th>
+          <td id="tdsite">1</td>
         </tr>
         <tr>
-          <th>Comments
-          </th>
-          <td>{{comment}}
-          </td>
-        </tr>
-        <tr>
-          <th>Site
-          </th>
-          <td id="tdsite">{{siten}}
-          </td>
-        </tr>
-        <tr>
-          <th>Event
-          </th>
-          <td>{{event}}
-          </td>
+          <th>Event</th>
+          <td>{{event.event_idx}}</td>
         </tr>
         {% endif %}
       </table>
@@ -319,8 +293,8 @@
       <div>
         <h5 style="text-align: center;">{{ligand}}</h5>
       </div>
-      {% if not is_apo %}
-      <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{ligand}}/image">
+      {% if not ground_model %}
+      <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
       {% endif %}
     </div>
 
@@ -330,15 +304,15 @@
   <div style="display:flex;">
     <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
       <b>
-        <h6>{{dataset}}</h6>
+        <h6>{{dataset.name}}</h6>
       </b>
 
-      <header id="hud">Automated ligand fit comparison for fragment {{ligand}}. Click on the ligand image to center
+      <header id="hud">Automated ligand fit comparison for fragment {{fragment.code}}. Click on the ligand image to center
         view. Press H for help.</header>
     </div>
   </div>
 
-  {% if is_apo %}
+  {% if ground_model %}
   <div id="viewer1" class="viewer-single">
     <b>Dataset used to create Ground State Model<br></b>
   </div>
@@ -357,42 +331,44 @@
   <script>
     V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
 
-    {% if is_apo %}
+    {% if ground_model %}
 
-    V1.load_pdb("/pdbs/pandda/input/{{dataset}}/{{method}}");
+    V1.load_pdb("/pdbs/pandda/input/{{dataset.name}}/{{method}}");
 
     GemmiMtz().then(
       function (Module)
       {
-        UM.load_maps_from_mtz(Module, V1, "/density_map/pandda/{{dataset}}/{{method}}/input");
+        UM.load_maps_from_mtz(Module, V1, "/density_map/pandda/{{dataset.name}}/{{method}}/input");
       });
 
     {% else %}
 
+    const center = [{{event.x}}, {{event.y}}, {{event.z}}];
+
     V1.load_pdb_and_ccp4_maps(
-      "/pdbs/pandda/input/{{dataset}}/{{method}}",
-      "/density_map/pandda/{{dataset}}/{{method}}/bdc",
-      "/density_map/pandda/{{dataset}}/{{method}}/zmap");
+      "/pdbs/pandda/input/{{dataset.name}}/{{method}}",
+      "/density_map/pandda/{{dataset.name}}/{{method}}/bdc",
+      "/density_map/pandda/{{dataset.name}}/{{method}}/zmap");
 
     V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
 
     V2.load_pdb(
-      "/pdbs/pandda/input/{{dataset}}/{{method}}",
+      "/pdbs/pandda/input/{{dataset.name}}/{{method}}",
       null,
       function ()
       {
-        V2.recenter({{ center }}, null, 25);
+        V2.recenter(center, null, 25);
       });
 
-    V2.load_ccp4_maps("/density_map/pandda/{{dataset}}/{{method}}/average");
-    V1.recenter({{ center }}, null, 25)
+    V2.load_ccp4_maps("/density_map/pandda/{{dataset.name}}/{{method}}/average");
+    V1.recenter(center, null, 25)
 
     {% endif %}
 
     V1.renderer.domElement.focus();
     V1.change_zoom_by_factor(3.5);
 
-    {% if is_apo %}
+    {% if ground_model %}
 
     var centroid = {{ centroids }};
     var centroidL = centroid.length
@@ -406,10 +382,11 @@
     var centroidL = centroid.length
     var sites = ligcenter.concat(centroid);
     var site_idxs = [{{ siten }}].concat(range(1, centroidL));
-    function centerligand() {
-      V1.recenter({{ center }}, null, 25)
-    V1.request_render()
-        }
+    function centerligand()
+    {
+      V1.recenter(center, null, 25)
+      V1.request_render()
+    }
     $(document).ready(function () {
       $(document).bind("keydown", function (e) {
         e = e || window.event;

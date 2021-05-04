@@ -1,7 +1,5 @@
 {% extends 'fragview/base.html' %}
-
 {% block title %}FragMAX - PanDDA results{% endblock %}
-
 
 {% block content %}
 {% load static %}
@@ -41,12 +39,9 @@
     text-align: center !important;
   }
 
-
-
   th {
     cursor: pointer;
   }
-
 
   .container {
     max-width: 100% !important;
@@ -141,97 +136,114 @@
     max-width: 100%;
   }
 </style>
+
 <div class="top-bar">
-  <select class="selectbox input-sm" name="dropdownDataset" onchange="GetSelectedTextValue(this)">
-    <option disabled selected value> -- select an option -- </option>
-    {% for method in proc_methods %}
-    <option value='{{method}}'>{{method}}</option>
+  <select class="selectbox input-sm" name="dropdownDataset" onchange="method_changed(this)">
+    {% for meth in available_methods %}
+    <option value='{{meth}}' {% if method == meth %}selected{% endif %}>
+      {{meth}}
+    </option>
     {% endfor %}
+
   </select>
-  <form class="selectbutton" action="/pandda_analyse/" method="get" id="opentest" name="opentest" size="1" hidden>
-    <button class="btn-small selectbutton " id="change_report" type="submit" onsubmit="return select_pandda()"
-      value="panddaSelect" name="methods" size="1">Load</button>
-  </form>
-
 </div>
-<div class="card tab">
-  {% for analyses_date, analyses_path in alternatives.items %}
-  <button class="tablinks" onclick="openMethod(event, 'html-{{analyses_date}}')" id="{{analyses_date}}"
-    name="analysis-tabs">{{analyses_date}}</button>
+
+<div id="analysis_tabs" class="card tab">
+  {% for date in reports.report_dates %}
+  <button class="tablinks" onclick="load_analysis(this, '{{method}}', '{{date}}')">
+    {{date}}
+  </button>
   {% endfor %}
-  <button class="tablinks" onclick="openMethod(event, 'html-selected-datasets')">Selected
-    datasets</button>
+  <button class="tablinks" onclick="load_selected_datasets(this)">
+    Selected datasets
+  </button>
 </div>
-{% for analyses_date, opencmd, Report in reports %}
-<div id="html-{{analyses_date}}" class="card tabcontent ">
 
-  {% if not Report == "noreport" %}
-  {% if opencmd != "initial" %}
+<div id="html-analyses" class="card tabcontent">
   <div class="alert alert-info" style="margin-top: 6px;">
     <h4>Copy and paste this command line in your terminal to start inspection in coot:</h4>
-    <h5>{{opencmd}}</h5>
-    <form action="/logs/show/{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log"
-          method="get" id="logFileform" target="_blank">
-      <button class="btn" type="submit" value="{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log" name="logFile"
-        size="1">Open analyses log</button>
-    </form>
+    <h5 id="method-command">{{reports.coot_command}}</h5>
   </div>
-  {% endif %}
-  {{Report |safe}}
-  {% else %}
-  <div class="alert alert-info">
-    <h4>No results for this method</h4>
-  </div>
-  {% endif %}
-  <form action="/pandda_analyse/" method="get" id="delete-analyses">
-    <button class="btn" type="submit" value="{{pandda_res}}/pandda/logs/pandda-{{analyses_date}}.log"
-      name="delete-analyses" size="1">Delete analyses</button>
+
+  {# placeholder for analysis report HTML, fetched dynamically #}
+  <div id="html-analysis-report"></div>
+
+  <form method="get" id="delete-analyses">
+    <button class="btn" type="submit" size="1">
+      Delete analyses
+    </button>
   </form>
 </div>
-{% endfor %}
 
-<div id="html-selected-datasets" class="card tabcontent ">
+<div id="html-selected-datasets" class="card tabcontent">
   <div class="card dendrograms">
-    {% for cluster in clusters %}
+    {% for dendogram in reports.dendograms %}
       <figure style="max-width: 50%;">
-        <img src="/pandda/cluster/{{method}}/{{cluster}}/image">
-        <figcaption>{{cluster}}</figcaption>
+        <img src="/pandda/cluster/{{method}}/{{dendogram}}/image">
+        <figcaption>{{dendogram}}</figcaption>
       </figure>
     {% endfor %}
   </div>
-  {{selection_table|safe}}
 
+  <div>
+  {% for dataset, pdb in reports.selected_datasets %}
+  <table>
+    <tr>
+      <td>{{dataset}}</td>
+      <td>{{pdb}}</td>
+    </tr>
+  </table>
+  {% endfor %}
+  </div>
 </div>
 
-
-
 <script>
-  function GetSelectedTextValue(dropdownDataset) {
-    var selectedText = dropdownDataset.options[dropdownDataset.selectedIndex].innerHTML;
-    var selectedValue = dropdownDataset.value;
-    document.getElementsByName("methods")[0].value = selectedValue;
-    document.getElementById("change_report").click();
-  }
-</script>
-<script>
-  function openMethod(evt, methodName) {
-    if (document.getElementById(methodName).style.display == "block") {
-      document.getElementById(methodName).style.display = "none"
-      evt.currentTarget.className = evt.currentTarget.className.replace(" active", '');
-    } else {
-      var i, tabcontent, tablinks;
-      tabcontent = document.getElementsByClassName("tabcontent");
-      for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-      }
-      tablinks = document.getElementsByClassName("tablinks");
-      for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-      }
-      document.getElementById(methodName).style.display = "block";
-      evt.currentTarget.className += " active";
-    }
-  }
-  document.getElementsByName("analysis-tabs")[0].click();
+
+function method_changed(dropdown)
+{
+    let selected = dropdown.selectedOptions[0];
+    window.location.href = `/pandda_analyse/${selected.value}`;
+}
+
+function show_tab(tab_button, tab_id)
+{
+    $(".tablinks").removeClass("active");
+    tab_button.classList.add("active");
+
+    $(".tabcontent").hide();
+    $(`#${tab_id}`).show();
+}
+
+function load_analysis(tab, method, date)
+{
+    $.ajax(`/pandda/analysis/report/${method}/${date}`)
+    .done(function(reply)
+    {
+        $("#html-analysis-report").html(reply);
+        $("#delete-analyses").attr("action", `/pandda/analysis/delete/${method}/${date}`);
+        show_tab(tab, "html-analyses");
+    })
+    .fail(function(reply)
+    {
+        alert(`error loading analysis: ${reply.responseText}`);
+    });
+}
+
+function load_selected_datasets(tab)
+{
+    show_tab(tab, "html-selected-datasets");
+}
+
+function load_most_recent_analysis()
+{
+    /* simulate a click on the fist analysis tab button */
+    let first_tab = $("#analysis_tabs").children()[0];
+    first_tab.click();
+}
+
+$(document).ready(function()
+{
+    load_most_recent_analysis();
+});
 </script>
 {% endblock %}

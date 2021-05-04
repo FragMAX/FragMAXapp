@@ -1,7 +1,12 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from fragview.management.commands.utils import get_project
-from fragview.scraper import REFINE_TOOLS
-from fragview.status import update_tool_status, update_refine_results
+from fragview.scraper import PROC_TOOLS, REFINE_TOOLS, LIGFIT_TOOLS
+from fragview.status import (
+    update_proc_tool_status,
+    update_refine_tool_status,
+    update_ligfit_tool_status,
+)
+from projects.database import db_session
 
 
 class Command(BaseCommand):
@@ -10,13 +15,30 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("project_id", type=int)
         parser.add_argument("tool", type=str)
-        parser.add_argument("dataset", type=str)
+        parser.add_argument("dataset_id", type=str)
 
+    @db_session
     def handle(self, *args, **options):
         project = get_project(options["project_id"])
         tool = options["tool"]
-        dataset = options["dataset"]
+        dataset_id = options["dataset_id"]
 
-        update_tool_status(project, tool, dataset)
+        # look-up data set object
+        dataset = project.get_dataset(dataset_id)
+        if dataset is None:
+            raise CommandError(f"no dataset with ID '{dataset_id}' exist")
+
+        if tool in PROC_TOOLS:
+            update_proc_tool_status(project, tool, dataset)
+            return
+
         if tool in REFINE_TOOLS:
-            update_refine_results(project, tool, dataset)
+            update_refine_tool_status(project, tool, dataset)
+            return
+
+        if tool in LIGFIT_TOOLS:
+            update_ligfit_tool_status(project, tool, dataset)
+            return
+
+        # unexpected tool specified
+        raise CommandError(f"unknown tool '{tool}'")
