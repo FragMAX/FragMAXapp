@@ -2,6 +2,7 @@ version: "3"
 services:
   fragmax:
     image: docker.maxiv.lu.se/fragmax
+    container_name: fragmax
     networks:
       - fragmax
     ports:
