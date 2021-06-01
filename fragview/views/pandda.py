@@ -19,10 +19,20 @@ from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.projects import project_pandda_results_dir
 from fragview.sites import SITE
-from fragview.fileio import open_proj_file, read_text_lines, read_proj_text_file, write_script
+from fragview.fileio import open_proj_file, read_text_lines, read_proj_text_file
 from fragview.views.utils import png_http_response
-from fragview.projects import current_project, project_results_dir, project_script, project_process_protein_dir
-from fragview.projects import project_process_dir, project_log_path, PANDDA_WORKER, project_fragments_dir
+from fragview.projects import (
+    current_project,
+    project_results_dir,
+    project_script,
+    project_process_protein_dir,
+)
+from fragview.projects import (
+    project_process_dir,
+    project_log_path,
+    PANDDA_WORKER,
+    project_fragments_dir,
+)
 from fragview.sites.plugin import Duration, DataSize
 from jobs.client import JobsSet
 
@@ -74,7 +84,13 @@ def inspect(request):
             filters.append("dimple") if DP == "true" else ""
             filters.append("fspipeline") if FS == "true" else ""
         else:
-            flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
+            flat_filters = set(
+                [
+                    j
+                    for sub in [x.split("/")[10].split("_") for x in eventscsv]
+                    for j in sub
+                ]
+            )
             xdsapp = 1 if "xdsapp" in flat_filters else 0
             autoproc = 1 if "autoproc" in flat_filters else 0
             dials = 1 if "dials" in flat_filters else 0
@@ -84,7 +100,9 @@ def inspect(request):
             fspipeline = 1 if "fspipeline" in flat_filters else 0
 
     else:
-        flat_filters = set([j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub])
+        flat_filters = set(
+            [j for sub in [x.split("/")[10].split("_") for x in eventscsv] for j in sub]
+        )
         xdsapp = 1 if "xdsapp" in flat_filters else 0
         autoproc = 1 if "autoproc" in flat_filters else 0
         dials = 1 if "dials" in flat_filters else 0
@@ -107,7 +125,9 @@ def inspect(request):
                 filters.append("xdsxscale") if XD == "true" else ""
                 filters.append("dimple") if DP == "true" else ""
                 filters.append("fspipeline") if FS == "true" else ""
-            allEventDict, eventDict, low_conf, medium_conf, high_conf = pandda_events(proj, filters)
+            allEventDict, eventDict, low_conf, medium_conf, high_conf = pandda_events(
+                proj, filters
+            )
 
             sitesL = list()
             for k, v in eventDict.items():
@@ -122,9 +142,22 @@ def inspect(request):
             totalEvents = high_conf + medium_conf + low_conf
             uniqueEvents = str(len(allEventDict.items()))
 
-            with open(os.path.join(project_process_protein_dir(proj), "panddainspects.csv"), "w") as csvFile:
+            with open(
+                os.path.join(project_process_protein_dir(proj), "panddainspects.csv"),
+                "w",
+            ) as csvFile:
                 writer = csv.writer(csvFile)
-                writer.writerow(["dataset", "site_idx", "event_idx", "proc_method", "ddtag", "run", "bdc"])
+                writer.writerow(
+                    [
+                        "dataset",
+                        "site_idx",
+                        "event_idx",
+                        "proc_method",
+                        "ddtag",
+                        "run",
+                        "bdc",
+                    ]
+                )
                 for k, v in natsort.natsorted(eventDict.items()):
                     for k1, v1 in v.items():
                         dataset = k
@@ -134,7 +167,9 @@ def inspect(request):
                         ddtag = v1[0].split("_")[2]
                         run = v1[0].split("_")[-1]
                         bdc = v1[1]
-                        writer.writerow([dataset, site_idx, event_idx, proc_method, ddtag, run, bdc])
+                        writer.writerow(
+                            [dataset, site_idx, event_idx, proc_method, ddtag, run, bdc]
+                        )
 
             html = ""
             # HTML Head
@@ -168,7 +203,11 @@ def inspect(request):
             html += "</head>\n"
             html += "<body>\n"
             html += '    <div class="container">\n'
-            html += "      <h1>Consensus of PANDDA Inspect Summaries " + "_".join(filters) + "</h1>\n"
+            html += (
+                "      <h1>Consensus of PANDDA Inspect Summaries "
+                + "_".join(filters)
+                + "</h1>\n"
+            )
             html += "      <h2>Summary of Inspection of Datasets</h2>\n"
             html += "      \n"
 
@@ -190,8 +229,16 @@ def inspect(request):
             html += "          <p>Fitting Progress</p>\n"
             html += '          <div class="progress">\n'
             html += '            <div class="progress-bar progress-bar-success" style="width:100%">\n'
-            html += '              <span class="sr-only">Fitted - ' + str(ligEvents) + " Events</span>\n"
-            html += "              <strong>Fitted - " + str(ligEvents) + " Events (100%)</strong>\n"
+            html += (
+                '              <span class="sr-only">Fitted - '
+                + str(ligEvents)
+                + " Events</span>\n"
+            )
+            html += (
+                "              <strong>Fitted - "
+                + str(ligEvents)
+                + " Events (100%)</strong>\n"
+            )
             html += "            </div>\n"
             html += '            <div class="progress-bar progress-bar-warning" style="width:0.0%">\n'
             html += '              <span class="sr-only">Unviewed - 0 Events</span>\n'
@@ -199,7 +246,9 @@ def inspect(request):
             html += "            </div>\n"
             html += '            <div class="progress-bar progress-bar-danger" style="width:0.0%">\n'
             html += '              <span class="sr-only">No Ligand Fitted - 10 Events</span>\n'
-            html += "              <strong>No Ligand Fitted - 10 Events (16%)</strong>\n"
+            html += (
+                "              <strong>No Ligand Fitted - 10 Events (16%)</strong>\n"
+            )
             html += "            </div>\n"
             html += "            </div>\n"
             html += "        </div>\n"
@@ -212,10 +261,28 @@ def inspect(request):
             for k, v1 in siteP.items():
 
                 v = siteN[k]
-                html += '            <div class="progress-bar ' + colour + '" style="width:' + str(siteP[k]) + '%">\n'
-                html += '              <span class="sr-only">S' + k + ": " + str(v) + " hits</span>\n"
                 html += (
-                    "              <strong>S" + k + ": " + str(v) + " hits (" + str(int(siteP[k])) + "%)</strong>\n"
+                    '            <div class="progress-bar '
+                    + colour
+                    + '" style="width:'
+                    + str(siteP[k])
+                    + '%">\n'
+                )
+                html += (
+                    '              <span class="sr-only">S'
+                    + k
+                    + ": "
+                    + str(v)
+                    + " hits</span>\n"
+                )
+                html += (
+                    "              <strong>S"
+                    + k
+                    + ": "
+                    + str(v)
+                    + " hits ("
+                    + str(int(siteP[k]))
+                    + "%)</strong>\n"
                 )
                 html += "            </div>\n"
                 if colour == "progress-bar-info":
@@ -233,11 +300,15 @@ def inspect(request):
             html += '      <div class="row">\n'
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">'
-                "<strong>Datasets w. ligands: " + str(ligEvents) + " (of #dataset collected)</strong></div></div>\n"
+                "<strong>Datasets w. ligands: "
+                + str(ligEvents)
+                + " (of #dataset collected)</strong></div></div>\n"
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-success" role="alert">'
-                "<strong>Sites w. ligands: " + str(len(siteP)) + " (of 10)</strong></div></div>\n"
+                "<strong>Sites w. ligands: "
+                + str(len(siteP))
+                + " (of 10)</strong></div></div>\n"
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-4"><div class="alert alert-info" role="alert">'
@@ -245,19 +316,27 @@ def inspect(request):
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-info" role="alert">'
-                "<strong>Total number of events: " + str(totalEvents) + "</strong></div></div>\n"
+                "<strong>Total number of events: "
+                + str(totalEvents)
+                + "</strong></div></div>\n"
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-success" role="alert">'
-                "<strong>High confidence hits:   " + str(high_conf) + "</strong></div></div>\n"
+                "<strong>High confidence hits:   "
+                + str(high_conf)
+                + "</strong></div></div>\n"
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-warning" role="alert">'
-                "<strong>Medium confidence hits: " + str(medium_conf) + "</strong></div></div>\n"
+                "<strong>Medium confidence hits: "
+                + str(medium_conf)
+                + "</strong></div></div>\n"
             )
             html += (
                 '        <div class="col-xs-12 col-sm-12 col-md-3"><div class="alert alert-danger" role="alert">'
-                "<strong>Low confidence hits:    " + str(low_conf) + "</strong></div></div>\n"
+                "<strong>Low confidence hits:    "
+                + str(low_conf)
+                + "</strong></div></div>\n"
             )
             html += "        </div>\n"
             html += "      \n"
@@ -301,7 +380,19 @@ def inspect(request):
                     ddtag = v1[0].split("_")[2]
                     run = v1[0].split("_")[-1]
 
-                    ds = dataset + ";" + site_idx + ";" + event_idx + ";" + proc_method + ";" + ddtag + ";" + run
+                    ds = (
+                        dataset
+                        + ";"
+                        + site_idx
+                        + ";"
+                        + event_idx
+                        + ";"
+                        + proc_method
+                        + ";"
+                        + ddtag
+                        + ";"
+                        + run
+                    )
 
                     if (
                         detailsDict["viewed"] == "False\n"
@@ -315,10 +406,17 @@ def inspect(request):
                     html += (
                         '          <th class="text-nowrap" scope="row" style="text-align: center;">'
                         '<form action="/pandda_densityC/" method="get" id="pandda_form" target="_blank">'
-                        '<button class="btn" type="submit" value="' + ds + '" name="structure" size="1">'
+                        '<button class="btn" type="submit" value="'
+                        + ds
+                        + '" name="structure" size="1">'
                         "Open</button></form></th>\n"
                     )
-                    html += '          <th class="text-nowrap" scope="row">' + k + v1[0][-3:] + "</th>\n"
+                    html += (
+                        '          <th class="text-nowrap" scope="row">'
+                        + k
+                        + v1[0][-3:]
+                        + "</th>\n"
+                    )
                     html += (
                         '          <td class="text-nowrap "><span class="glyphicon " aria-hidden="true"></span>'
                         + v1[0][:-4]
@@ -391,7 +489,14 @@ def inspect(request):
             )
 
     else:
-        inspect_file = os.path.join(res_dir, method, "pandda", "analyses", "html_summaries", "pandda_inspect.html")
+        inspect_file = os.path.join(
+            res_dir,
+            method,
+            "pandda",
+            "analyses",
+            "html_summaries",
+            "pandda_inspect.html",
+        )
 
         if os.path.exists(inspect_file):
             with open(inspect_file, "r") as inp:
@@ -400,13 +505,33 @@ def inspect(request):
                 for n, line in enumerate(inspectfile):
                     if '<th class="text-nowrap" scope="row">' in line:
 
-                        event = inspectfile[n + 4].split("/span>")[-1].split("</td>")[0].replace(" ", "")
-                        site = inspectfile[n + 5].split("/span>")[-1].split("</td>")[0].replace(" ", "")
-                        ds = method + ";" + line.split('row">')[-1].split("</th")[0] + ";" + event + ";" + site
+                        event = (
+                            inspectfile[n + 4]
+                            .split("/span>")[-1]
+                            .split("</td>")[0]
+                            .replace(" ", "")
+                        )
+                        site = (
+                            inspectfile[n + 5]
+                            .split("/span>")[-1]
+                            .split("</td>")[0]
+                            .replace(" ", "")
+                        )
+                        ds = (
+                            method
+                            + ";"
+                            + line.split('row">')[-1].split("</th")[0]
+                            + ";"
+                            + event
+                            + ";"
+                            + site
+                        )
 
                         html += (
                             '<td><form action="/pandda_density/" method="get" id="pandda_form" target="_blank">'
-                            '<button class="btn" type="submit" value="' + ds + ';stay" name="structure" size="1">'
+                            '<button class="btn" type="submit" value="'
+                            + ds
+                            + ';stay" name="structure" size="1">'
                             "Open</button></form>"
                         )
                         html += line
@@ -432,7 +557,10 @@ def inspect(request):
                     "fragview/pandda_inspect.html",
                     {
                         "proc_methods": proc_methods,
-                        "Report": html.replace("PANDDA Inspect Summary", "PANDDA Inspect Summary for " + method),
+                        "Report": html.replace(
+                            "PANDDA Inspect Summary",
+                            "PANDDA Inspect Summary for " + method,
+                        ),
                         "xdsapp": xdsapp,
                         "autoproc": autoproc,
                         "dials": dials,
@@ -447,7 +575,9 @@ def inspect(request):
 
 
 def pandda_events(proj, filters):
-    eventscsv = glob(f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/analyses/pandda_inspect_events.csv")
+    eventscsv = glob(
+        f"{project_results_dir(proj)}/pandda/{proj.protein}/*/pandda/analyses/pandda_inspect_events.csv"
+    )
 
     if len(filters) != 0:
         eventscsv = [x for x in eventscsv if any(xs in x for xs in filters)]
@@ -483,16 +613,36 @@ def pandda_events(proj, filters):
 
                 if dtag not in eventDict:
 
-                    eventDict[dtag] = {site_idx + "_" + event_idx: {method + "_" + line[0][-3:]: bdc}}
-                    allEventDict[dtag] = {site_idx + "_" + event_idx: {method + "_" + line[0][-3:]: bdc}}
+                    eventDict[dtag] = {
+                        site_idx + "_" + event_idx: {method + "_" + line[0][-3:]: bdc}
+                    }
+                    allEventDict[dtag] = {
+                        site_idx + "_" + event_idx: {method + "_" + line[0][-3:]: bdc}
+                    }
                 else:
 
                     if site_idx not in eventDict[dtag]:
-                        eventDict[dtag].update({site_idx + "_" + event_idx: {method + "_" + line[0][-3:]: bdc}})
-                        allEventDict[dtag].update({site_idx + "_" + event_idx: {method + "_" + line[0][-3]: bdc}})
+                        eventDict[dtag].update(
+                            {
+                                site_idx
+                                + "_"
+                                + event_idx: {method + "_" + line[0][-3:]: bdc}
+                            }
+                        )
+                        allEventDict[dtag].update(
+                            {
+                                site_idx
+                                + "_"
+                                + event_idx: {method + "_" + line[0][-3]: bdc}
+                            }
+                        )
                     else:
-                        eventDict[dtag][site_idx + "_" + event_idx].update({method + "_" + line[0][-3:]: bdc})
-                        allEventDict[dtag][site_idx + "_" + event_idx].update({method + "_" + line[0][-3:]: bdc})
+                        eventDict[dtag][site_idx + "_" + event_idx].update(
+                            {method + "_" + line[0][-3:]: bdc}
+                        )
+                        allEventDict[dtag][site_idx + "_" + event_idx].update(
+                            {method + "_" + line[0][-3:]: bdc}
+                        )
 
     for k, v in eventDict.items():
         for k1, v1 in v.items():
@@ -505,7 +655,13 @@ def dataset_details(proj, dataset, site_idx, method):
     detailsDict = dict()
 
     events_csv = os.path.join(
-        project_results_dir(proj), "pandda", proj.protein, method, "pandda", "analyses", "pandda_inspect_events.csv"
+        project_results_dir(proj),
+        "pandda",
+        proj.protein,
+        method,
+        "pandda",
+        "analyses",
+        "pandda_inspect_events.csv",
     )
 
     with open(events_csv, "r") as inp:
@@ -538,34 +694,15 @@ def dataset_details(proj, dataset, site_idx, method):
     return detailsDict
 
 
-def giant(request):
-    proj = current_project(request)
-
-    available_scores = glob(
-        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/*/pandda-scores/residue_scores.html"
-    )
-
-    if not available_scores:
-        # no panda scores files found
-        return render(request, "fragview/pandda_notready.html")
-    else:
-        scoreDict = dict()
-        for score in available_scores:
-            with open(score, "r") as readFile:
-                htmlcontent = "".join(readFile.readlines())
-
-            htmlcontent = htmlcontent.replace(
-                'src="./residue_plots', 'src="/static/' + "/".join(score.split("/")[3:-1]) + "/residue_plots"
-            )
-            scoreDict[score.split("/")[-3]] = htmlcontent
-
-        return render(request, "fragview/pandda_export.html", {"scores_plots": scoreDict})
-
-
 def cluster_image(request, method, cluster):
     proj = current_project(request)
-    png_path = path.join(project_pandda_results_dir(proj), method,
-                         "clustered-datasets", "dendrograms", f"{cluster}.png")
+    png_path = path.join(
+        project_pandda_results_dir(proj),
+        method,
+        "clustered-datasets",
+        "dendrograms",
+        f"{cluster}.png",
+    )
 
     if not path.isfile(png_path):
         return HttpResponseNotFound(f"no dendrogram image for {method}/{cluster} found")
@@ -587,36 +724,47 @@ def analyse(request):
     delete_analyses = request.GET.get("delete-analyses")
     if delete_analyses is not None:
         to_delete_dir = path.dirname(path.dirname(delete_analyses))
-        to_delete_analyses = path.splitext(path.basename(delete_analyses))[0].replace("pandda-", "analyses-")
+        to_delete_analyses = path.splitext(path.basename(delete_analyses))[0].replace(
+            "pandda-", "analyses-"
+        )
         selected_analyses = path.join(to_delete_dir, to_delete_analyses)
         if path.exists(selected_analyses):
             shutil.rmtree(selected_analyses)
 
     pandda_runs = {
-        path.basename(x): sorted(glob(f"{x}/pandda/analyses-*"), reverse=True) for x in glob(f"{panda_results_path}/*")
+        path.basename(x): sorted(glob(f"{x}/pandda/analyses-*"), reverse=True)
+        for x in glob(f"{panda_results_path}/*")
     }
 
-    pandda_dates = {path.basename(x): x for x in glob(f"{panda_results_path}/*/pandda/analyses-*")}
+    pandda_dates = {
+        path.basename(x): x for x in glob(f"{panda_results_path}/*/pandda/analyses-*")
+    }
 
     if not pandda_dates:
         localcmd = f"none"
         return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
     else:
         newestpath = pandda_dates[sorted(pandda_dates)[-1]]
-        newestmethod = path.basename(path.dirname(path.dirname(pandda_dates[sorted(pandda_dates)[-1]])))
+        newestmethod = path.basename(
+            path.dirname(path.dirname(pandda_dates[sorted(pandda_dates)[-1]]))
+        )
         available_methods = [path.basename(x) for x in glob(f"{panda_results_path}/*")]
         method = request.GET.get("methods")
 
     if method is None or "panddaSelect" in method:
         reports = list()
-        localcmd, pandda_html = pandda_to_fragmax_html(proj, newestpath, pandda_runs[newestmethod])
+        localcmd, pandda_html = pandda_to_fragmax_html(
+            proj, newestpath, pandda_runs[newestmethod]
+        )
 
         analyses_date = path.basename(newestpath).replace("analyses-", "")
         method = newestmethod
         reports.append([analyses_date, localcmd, pandda_html])
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(proj, pandda_analyses_path, pandda_runs[method])
+            localcmd, pandda_html = pandda_to_fragmax_html(
+                proj, pandda_analyses_path, pandda_runs[method]
+            )
             if [analyses_date, localcmd, pandda_html] not in reports:
                 reports.append([analyses_date, localcmd, pandda_html])
 
@@ -624,7 +772,9 @@ def analyse(request):
         reports = list()
         for pandda_analyses_path in pandda_runs[method]:
             analyses_date = path.basename(pandda_analyses_path).replace("analyses-", "")
-            localcmd, pandda_html = pandda_to_fragmax_html(proj, pandda_analyses_path, pandda_runs[method])
+            localcmd, pandda_html = pandda_to_fragmax_html(
+                proj, pandda_analyses_path, pandda_runs[method]
+            )
             reports.append([analyses_date, localcmd, pandda_html])
 
     method_dir = path.join(panda_results_path, method)
@@ -647,7 +797,10 @@ def analyse(request):
             "reports": reports,
             "pandda_res": f"{panda_results_path}/{method}",
             "proc_methods": available_methods,
-            "alternatives": {path.basename(x).replace("analyses-", ""): x for x in pandda_runs[method]},
+            "alternatives": {
+                path.basename(x).replace("analyses-", ""): x
+                for x in pandda_runs[method]
+            },
             "selection_table": log,
             "method": method,
             "clusters": _clusters(method_dir),
@@ -657,7 +810,9 @@ def analyse(request):
 
 def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
     method = path.basename(path.dirname(path.dirname(pandda_path)))
-    pandda_analyse_html = path.join(pandda_path, "html_summaries", "pandda_analyse.html")
+    pandda_analyse_html = path.join(
+        pandda_path, "html_summaries", "pandda_analyse.html"
+    )
 
     localcmd = SITE.get_pandda_inspect_commands(path.dirname(pandda_path))
 
@@ -666,12 +821,13 @@ def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
         for line in read_text_lines(proj, pandda_analyse_html):
             if '<th class="text-nowrap" scope="row">' in line:
                 dt = line.split('scope="row">')[-1].split("<")[0]
-                line = \
-                    f'<td class="sorting_1" style="text-align: center;" >' \
-                    f'<form action="/pandda_densityA/" method="get" ' \
-                    f'target="_blank"><button class="btn" type="submit" ' \
-                    f'value="{method};{dt};1;1;stay" ' \
+                line = (
+                    f'<td class="sorting_1" style="text-align: center;" >'
+                    f'<form action="/pandda_densityA/" method="get" '
+                    f'target="_blank"><button class="btn" type="submit" '
+                    f'value="{method};{dt};1;1;stay" '
                     f'name="structure" size="1">Open</button></form></td>{line}'
+                )
 
             pandda_html += f"{line}\n"
 
@@ -683,15 +839,21 @@ def pandda_to_fragmax_html(proj, pandda_path, pandda_runs):
             'class="table table-bordered table-striped"',
             'class="table table-bordered table-striped" data-page-length="50"',
         )
-        pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
+        pandda_html = pandda_html.replace(
+            "PANDDA Processing Output", "PANDDA Processing Output for " + method
+        )
 
     elif path.exists(pandda_analyse_html) and pandda_path != pandda_runs[0]:
         pandda_html = read_proj_text_file(proj, pandda_analyse_html)
 
     elif os.path.exists(pandda_path + "/html_summaries/pandda_initial.html"):
-        with open(pandda_path + "/html_summaries/pandda_initial.html", "r", encoding="utf-8") as inp:
+        with open(
+            pandda_path + "/html_summaries/pandda_initial.html", "r", encoding="utf-8"
+        ) as inp:
             pandda_html = "".join(inp.readlines())
-            pandda_html = pandda_html.replace("PANDDA Processing Output", "PANDDA Processing Output for " + method)
+            pandda_html = pandda_html.replace(
+                "PANDDA Processing Output", "PANDDA Processing Output for " + method
+            )
             localcmd = "initial"
     else:
         localcmd = "notready"
@@ -704,14 +866,6 @@ def submit(request):
     proj = current_project(request)
 
     panddaCMD = str(request.GET.get("panddaform"))
-    giantCMD = str(request.GET.get("giantform"))
-
-    if "giantscore" in giantCMD:
-        function, method = giantCMD.split(";")
-        t2 = threading.Thread(target=giant_score, args=(proj, method))
-        t2.daemon = True
-        t2.start()
-        return render(request, "fragview/jobs_submitted.html", {"command": giantCMD})
 
     if "analyse" in panddaCMD:
         (
@@ -771,14 +925,20 @@ def submit(request):
             methodshort = "best"
 
         if not options["reprocessZmap"] and path.exists(res_dir):
-            t1 = threading.Thread(target=pandda_worker, args=(proj, method, methodshort, options, cifMethod))
+            t1 = threading.Thread(
+                target=pandda_worker,
+                args=(proj, method, methodshort, options, cifMethod),
+            )
             t1.daemon = True
             t1.start()
         elif options["reprocessZmap"]:
             script = project_script(proj, f"panddaRUN_{proj.protein}{method}.sh")
             hpc.run_sbatch(script)
         else:
-            t1 = threading.Thread(target=pandda_worker, args=(proj, method, methodshort, options, cifMethod))
+            t1 = threading.Thread(
+                target=pandda_worker,
+                args=(proj, method, methodshort, options, cifMethod),
+            )
             t1.daemon = True
             t1.start()
         return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
@@ -803,7 +963,9 @@ def _write_main_script(proj, method, methodshort, options):
     data_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method)
 
     pandda_script = project_script(proj, PANDDA_WORKER)
-    pandda_method_dir = f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
+    pandda_method_dir = (
+        f"{proj.data_path()}/fragmax/results/pandda/{proj.protein}/{method}"
+    )
     pandda_res_dir = path.join(project_results_dir(proj), "pandda")
     pandda_proto_res_dir = path.join(pandda_res_dir, proj.protein)
 
@@ -814,30 +976,36 @@ def _write_main_script(proj, method, methodshort, options):
         pandda_cluster = f"{giant_cluster} ./*/final.pdb pdb_label=foldername"
 
     hpc = SITE.get_hpc_runner()
-    batch = hpc.new_batch_file(f"PDD{methodshort}",
-                               script,
-                               f"{log_prefix}out.txt",
-                               f"{log_prefix}err.txt")
+    batch = hpc.new_batch_file(
+        f"PDD{methodshort}", script, f"{log_prefix}out.txt", f"{log_prefix}err.txt"
+    )
     partition, memory, cpus_per_task = _hpc_options()
-    batch.set_options(time=Duration(hours=99), exclusive=True, nodes=1,
-                      partition=partition, cpus_per_task=cpus_per_task, memory=memory)
+    batch.set_options(
+        time=Duration(hours=99),
+        exclusive=True,
+        nodes=1,
+        partition=partition,
+        cpus_per_task=cpus_per_task,
+        memory=memory,
+    )
 
     if proj.encrypted:
         batch.add_command(crypt_shell.crypt_cmd(proj))
         batch.assign_variable("WORK_DIR", "`mktemp -d`")
-        batch.add_commands(
-            "cd $WORK_DIR",
-            crypt_shell.fetch_dir(proj, data_dir, ".")
-        )
+        batch.add_commands("cd $WORK_DIR", crypt_shell.fetch_dir(proj, data_dir, "."))
 
         batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
         batch.add_commands(
             pandda_cluster,
-            f"python {pandda_script} . {proj.protein} \"{options}\"",
-            crypt_shell.upload_dir(proj, "$WORK_DIR/pandda", path.join(data_dir, "pandda")),
-            crypt_shell.upload_dir(proj,
-                                   "$WORK_DIR/clustered-datasets",
-                                   path.join(data_dir, "clustered-datasets"))
+            f'python {pandda_script} . {proj.protein} "{options}"',
+            crypt_shell.upload_dir(
+                proj, "$WORK_DIR/pandda", path.join(data_dir, "pandda")
+            ),
+            crypt_shell.upload_dir(
+                proj,
+                "$WORK_DIR/clustered-datasets",
+                path.join(data_dir, "clustered-datasets"),
+            ),
         )
     else:
         batch.add_command(f"cd {pandda_method_dir}")
@@ -845,142 +1013,19 @@ def _write_main_script(proj, method, methodshort, options):
 
         batch.add_commands(
             pandda_cluster,
-            f"python {pandda_script} {pandda_method_dir} {proj.protein} \"{options}\"",
-            f"chmod -R 777 {pandda_res_dir}")
+            f'python {pandda_script} {pandda_method_dir} {proj.protein} "{options}"',
+            f"chmod -R 777 {pandda_res_dir}",
+        )
 
         # add commands to fix symlinks
         ln_command = '\'ln -f "$(readlink -m "$0")" "$0"\' {} \\;'
         batch.add_commands(
             f"cd {pandda_proto_res_dir}; find -type l -iname *-pandda-input.* -exec bash -c {ln_command}",
-            f"cd {pandda_proto_res_dir}; find -type l -iname *pandda-model.pdb -exec bash -c {ln_command}"
+            f"cd {pandda_proto_res_dir}; find -type l -iname *pandda-model.pdb -exec bash -c {ln_command}",
         )
 
     batch.save()
     return batch
-
-
-def giant_score(proj, method):
-    res_dir = os.path.join(project_results_dir(proj), "pandda", proj.protein, method)
-    pandda_dir = os.path.join(res_dir, "pandda")
-    export_dir = os.path.join(res_dir, "pandda-export")
-
-    rn = str(randint(10000, 99999))
-    jname = "Gnt" + rn
-    header = """#!/bin/bash\n"""
-    header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 02:00:00\n"""
-    header += """#SBATCH -J """ + jname + """\n"""
-    header += """#SBATCH --cpus-per-task=2\n"""
-    header += """#SBATCH --mem=10000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_export_%j_err.txt\n\n"""
-    header += """module purge\n"""
-    header += f"""module load gopresto {versions.CCP4_MOD} {versions.PHENIX_MOD}\n"""
-
-    exports_list = glob(f"{pandda_dir}/processed_datasets/*/modelled_structures/fitted-v000*.pdb")
-    exports_list = [x.split("processed_datasets/")[-1].split("/")[0] for x in exports_list]
-
-    panddaExport = [
-        f"pandda.export pandda_dir='{pandda_dir}' export_dir='{export_dir}' verbose=True select_datasets={d}"
-        for d in exports_list
-    ]
-    panddaExport = "\n".join(panddaExport)
-
-    export_script = project_script(proj, "pandda-export.sh")
-    write_script(export_script, header + panddaExport)
-    # hpc.run_sbatch(export_script)
-
-    header = """#!/bin/bash\n"""
-    header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 02:00:00\n"""
-    header += """#SBATCH -J """ + jname + """\n"""
-    header += """#SBATCH --nice=25\n"""
-    header += """#SBATCH --cpus-per-task=1\n"""
-    header += """#SBATCH --mem=5000\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_giant_%j_err.txt\n\n"""
-    header += """module purge\n"""
-    header += f"""module load gopresto {versions.CCP4_MOD} {versions.PHENIX_MOD}\n"""
-
-    _dirs = glob(f"{export_dir}/*")
-    line = "#! /bin/bash"
-    line += f"\njid1=$(sbatch {export_script})"
-    line += "\njid1=`echo $jid1|cut -d ' ' -f4`"
-
-    for dataset in exports_list:
-
-        src = os.path.join(res_dir, dataset, "final_original.mtz")
-        dst = os.path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
-
-        cpcmd3 = "cp -f " + src + " " + dst
-        make_restraints = ""
-        quick_refine = ""
-        frag = ""
-        _dir = path.join(export_dir, dataset)
-        frag = dataset.split("-")[-1].split("_")[0]
-        if "Apo" not in dataset:
-            frag = dataset.split("-")[-1].split("_")[0]
-            run = dataset.split("_")[-1]
-
-            ens = path.join(export_dir, dataset, f"{dataset}-ensemble-model.pdb")
-            frag_path = path.join(export_dir, dataset, f"{frag}.pdb")
-            resn = """resN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_path} | head -1`"""
-            make_restraints = f"giant.make_restraints {ens} all=True resname=$resN"
-            inp_mtz = ens.replace("-ensemble-model.pdb", "-pandda-input.mtz")
-            params = "params=$(ls *.restraints-refmac.params)"
-            quick_refine = f"giant.quick_refine {ens} {inp_mtz} {frag}.cif $params resname=$resN"
-            script = project_script(proj, f"giant_pandda_{frag}_{run}.sh")
-            write_script(script, f"{header}\ncd {_dir}\n{resn}\n{cpcmd3}\n{make_restraints}\n{params}\n{quick_refine}")
-            line += "\nsbatch  --dependency=afterany:$jid1 " + script
-            line += "\nsleep 0.05"
-
-        else:
-            resn = ""
-
-    pandda_score_script = project_script(proj, "pandda-score.sh")
-    giant_worker_script = project_script(proj, "giant_worker.sh")
-
-    write_script(
-        giant_worker_script, f"{line}\n\n" f"sbatch --dependency=singleton --job-name={jname} {pandda_score_script}",
-    )
-
-    header = """#!/bin/bash\n"""
-    header += """#!/bin/bash\n"""
-    header += """#SBATCH -t 04:00:00\n"""
-    header += """#SBATCH -J """ + jname + """\n"""
-    header += """#SBATCH --exclusive\n"""
-    header += """#SBATCH -N1\n"""
-    header += """#SBATCH -p fujitsu\n"""
-    header += """#SBATCH --cpus-per-task=64\n"""
-    header += """#SBATCH --mem=310G\n"""
-    header += """#SBATCH -o """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_out.txt\n"""
-    header += """#SBATCH -e """ + proj.data_path() + """/fragmax/logs/pandda_score_%j_err.txt\n"""
-    header += """module purge\n"""
-    header += f"""module load gopresto {versions.CCP4_MOD}\n\n"""
-
-    scores_dir = os.path.join(res_dir, "pandda-scores")
-    score_multi_bin = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.score_model_multiple"
-    scoreModel = f"{score_multi_bin} out_dir='{scores_dir}' {export_dir}/* res_names=$resN cpu=6"
-
-    body = ""
-    for _dir in _dirs:
-        dataset = _dir.split("/")[-1]
-
-        src = path.join(res_dir, dataset, "final_original.mtz")
-        dst = path.join(export_dir, dataset, f"{dataset}-pandda-input.mtz")
-
-        body += "\ncp -f " + src + " " + dst
-        if "Apo" not in _dir:
-            frag = dataset.split("-")[-1].split("_")[0]
-            frag_loc = path.join(export_dir, dataset, frag)
-            resn = """\nresN=`awk -F" " '/HETATM/{print $4}'""" + f""" {frag_loc}.pdb | head -1`"""
-        else:
-            resn = ""
-    scorecmd = f"""\n{scoreModel} """
-
-    write_script(pandda_score_script, f"{header}{body}{resn}{scorecmd}")
-
-    hpc.frontend_run(giant_worker_script)
 
 
 def pandda_worker(proj, method, methodshort, options, cifMethod):
@@ -995,18 +1040,32 @@ def pandda_worker(proj, method, methodshort, options, cifMethod):
     if "frag_plex" in method:
         selectedDict = {
             x.split("/")[-4]: x
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"))
+            for x in sorted(
+                glob(
+                    f"{proj.data_path()}/fragmax/results/{proj.protein}*/*/*/final.pdb"
+                )
+            )
         }
         for dataset in selectedDict.keys():
             selectedDict[dataset] = get_best_alt_dataset(proj, dataset, options)
     else:
         method_dir = method.replace("_", "/")
         datasetList = set(
-            [x.split("/")[-4] for x in glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*" f"/*/*/final.pdb")]
+            [
+                x.split("/")[-4]
+                for x in glob(
+                    f"{proj.data_path()}/fragmax/results/{proj.protein}*"
+                    f"/*/*/final.pdb"
+                )
+            ]
         )
         selectedDict = {
             x.split("/")[-4]: x
-            for x in sorted(glob(f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/*/final.pdb"))
+            for x in sorted(
+                glob(
+                    f"{proj.data_path()}/fragmax/results/{proj.protein}*/{method_dir}/*/final.pdb"
+                )
+            )
         }
         missingDict = set(datasetList) - set(selectedDict)
 
@@ -1020,8 +1079,18 @@ def pandda_worker(proj, method, methodshort, options, cifMethod):
         if path.exists(pdb):
             hklin = pdb.replace(".pdb", ".mtz")
             res_high, free_r_flag, native_f, sigma_fp = read_info(proj, hklin)
-            script = _write_prepare_script(proj, rn, method, dataset, pdb, res_high,
-                                           free_r_flag, native_f, sigma_fp, cifMethod)
+            script = _write_prepare_script(
+                proj,
+                rn,
+                method,
+                dataset,
+                pdb,
+                res_high,
+                free_r_flag,
+                native_f,
+                sigma_fp,
+                cifMethod,
+            )
 
             prepare_scripts.append(script)
 
@@ -1046,7 +1115,9 @@ def pandda_worker(proj, method, methodshort, options, cifMethod):
     jobs.submit()
 
 
-def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, native_f, sigma_fp, cif_method):
+def _write_prepare_script(
+    proj, rn, method, dataset, pdb, resHigh, free_r_flag, native_f, sigma_fp, cif_method
+):
     if "pipedream" in pdb or "buster" in pdb:
         mtz = path.join(path.dirname(pdb), "refine.mtz")
     else:
@@ -1054,7 +1125,9 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
 
     fset = dataset.split("-")[-1]
     epoch = round(time.time())
-    output_dir = path.join(project_results_dir(proj), "pandda", proj.protein, method, dataset)
+    output_dir = path.join(
+        project_results_dir(proj), "pandda", proj.protein, method, dataset
+    )
     lib = proj.library
 
     copy_frags_cmd = ""
@@ -1082,11 +1155,15 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
                 copy_frags_cmd = f"cp {frag_cif} $WORK_DIR\ncp {frag_pdb} $WORK_DIR"
 
     hpc = SITE.get_hpc_runner()
-    batch = hpc.new_batch_file(f"PnD{rn}",
-                               project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh"),
-                               project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
-                               project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"))
-    batch.set_options(time=Duration(minutes=15), cpus_per_task=1, memory=DataSize(gigabyte=5))
+    batch = hpc.new_batch_file(
+        f"PnD{rn}",
+        project_script(proj, f"pandda_prepare_{proj.protein}{fset}.sh"),
+        project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_out.txt"),
+        project_log_path(proj, f"{fset}_PanDDA_{epoch}_%j_err.txt"),
+    )
+    batch.set_options(
+        time=Duration(minutes=15), cpus_per_task=1, memory=DataSize(gigabyte=5)
+    )
 
     batch.add_command(crypt_shell.crypt_cmd(proj))
     batch.assign_variable("DEST_DIR", output_dir)
@@ -1094,25 +1171,27 @@ def _write_prepare_script(proj, rn, method, dataset, pdb, resHigh, free_r_flag, 
     batch.add_commands(
         "cd $WORK_DIR",
         crypt_shell.fetch_file(proj, pdb, "final.pdb"),
-        crypt_shell.fetch_file(proj, mtz, "final.mtz")
+        crypt_shell.fetch_file(proj, mtz, "final.mtz"),
     )
 
     batch.purge_modules()
-    batch.load_modules(["gopresto", versions.PHENIX_MOD, versions.CCP4_MOD, versions.BUSTER_MOD])
+    batch.load_modules(
+        ["gopresto", versions.PHENIX_MOD, versions.CCP4_MOD, versions.BUSTER_MOD]
+    )
 
     batch.add_commands(
         copy_frags_cmd,
         f'echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\\n'
-        '    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz',
+        "    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz",
         "uniqueify -f FreeR_flag $WORK_DIR/final.mtz $WORK_DIR/final.mtz",
         f'echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\\n'
-        '    freerflag hklin $WORK_DIR/final.mtz hklout $WORK_DIR/final_rfill.mtz',
+        "    freerflag hklin $WORK_DIR/final.mtz hklout $WORK_DIR/final_rfill.mtz",
         f"phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'",
         "mv final.mtz final_original.mtz",
         "mv final_map_coeffs.mtz final.mtz",
         "rm -rf $DEST_DIR",
         crypt_shell.upload_dir(proj, "$WORK_DIR", "$DEST_DIR"),
-        "rm -rf $WORK_DIR"
+        "rm -rf $WORK_DIR",
     )
 
     batch.save()
@@ -1167,27 +1246,35 @@ def _get_pdb_data(proj, pdb_file):
 
 def get_best_alt_dataset(proj, dataset, options):
     if options["method"] == "frag_plex":
-        optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
-            f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
-        )
+        optionList = glob(
+            f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb"
+        ) + glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb")
 
     elif options["complete_results"]:
         proc, ref = options["method"].split("_")
         if proc == "pipedream":
-            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb")
-        else:
-            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
-        if not optionList:
-            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb") + glob(
-                f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb"
+            optionList = glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb"
             )
+        else:
+            optionList = glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb"
+            )
+        if not optionList:
+            optionList = glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/*/*/final.pdb"
+            ) + glob(f"{proj.data_path()}/fragmax/results/{dataset}/*/*/refine.pdb")
 
     else:
         proc, ref = options["method"].split("_")
         if proc == "pipedream":
-            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb")
+            optionList = glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/refine.pdb"
+            )
         else:
-            optionList = glob(f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb")
+            optionList = glob(
+                f"{proj.data_path()}/fragmax/results/{dataset}/{proc}/{ref}/final.pdb"
+            )
 
     # remove_blacklisted_options() does not work properlyt
     # optionList = remove_blacklisted_options(optionList, options["blacklist"])

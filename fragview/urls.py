@@ -30,7 +30,6 @@ urlpatterns = [
 
     path('pandda_analyse/', pandda.analyse, name='pandda_analyse'),
     path('pandda_inspect/', pandda.inspect, name='pandda_inspect'),
-    path('pandda_export/', pandda.giant, name='pandda_export'),
     path('submit_pandda/', pandda.submit, name='submit_pandda'),
 
     # pandda cluster dendrogram images

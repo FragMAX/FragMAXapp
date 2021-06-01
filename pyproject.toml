@@ -56,7 +56,6 @@ exclude = '''
   worker/data/crypt_files.py |
   worker/project.py |
   fragview/views/density.py |
-  fragview/views/pandda.py |
   worker/data/update_results.py
 )
 '''

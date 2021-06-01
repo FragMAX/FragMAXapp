@@ -1356,160 +1356,6 @@
                 </div>
             </div>
         </div>
-        <hr>
-        <div class="card-title">PanDDA Export (Giant scripts)</div>
-        <div class="flexdiv_options  ">
-            <div class="flex-left">
-                <div>
-                    <div class="card-content card-content-left">
-                        <table class="optionstable">
-                            <col width="8%">
-                            <col width="17%">
-                            <tbody>
-                                <tr>
-                                    <th class=" top-options">Available inspects</th>
-                                    <td class=" top-options">
-                                        <select class="selectbox" id="inspects" name="inspects">
-                                            <option disabled selected value="yes"> -- select an option -- </option>
-                                            {% for method in methods %}
-                                            <option value="{{method}}">{{method}}</option>
-                                            {% endfor %}
-
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class=" top-options">Make restraints
-                                        </sup>
-                                    </th>
-                                    <td class=" top-options">
-                                        <form id="groundstate">
-                                            <div class="checkbox" id="makerestraints">
-                                                <label>
-                                                    <input checked class="filled-in dt-checkboxes" id="allRestraint"
-                                                        name="allRestraint" type="checkbox" value="allRestraint">
-                                                    <span for="allRestraint">Create all restraints</span>
-                                                </label>
-                                            </div>
-                                            <div class="checkbox" id="resnames">
-                                                <label>
-                                                    <input class="selectbox" name="resnames"
-                                                        placeholder="default: XXX"></input>
-                                                </label>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class=" top-options">Quick refine
-                                        </sup>
-                                    </th>
-                                    <td class=" top-options">
-                                        <div style="display:flex">
-                                            <select class="selectbox" disabled name="compdatasets">
-                                                <option disabled selected value="true"> -- PDB1 -- </option>
-                                                <option value="true">pdbmodel</option>
-                                                <option value="false">None</option>
-                                            </select>
-                                            <select class="selectbox" disabled name="compdatasets">
-                                                <option disabled selected value="true"> -- MTZ1 -- </option>
-                                                <option value="true">mtzfile</option>
-                                                <option value="false">No</option>
-                                            </select>
-                                        </div>
-                                        <div style="display:flex">
-                                            <select class="selectbox" disabled name="compdatasets">
-                                                <option disabled selected value="true"> -- PDB2 -- </option>
-                                                <option value="true">pdbmodel</option>
-                                                <option value="false">No</option>
-                                            </select>
-                                            <select class="selectbox" disabled name="compdatasets">
-                                                <option disabled selected value="true"> -- MTZ2 -- </option>
-                                                <option value="true">mtzfile</option>
-                                                <option value="false">No</option>
-                                            </select>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="flex-center">
-                <div>
-                    <div class="card-content card-content-left">
-                        <table class="optionstable">
-                            <col width="8%">
-                            <col width="17%">
-                            <tbody>
-                                <tr>
-                                    <th class=" top-options">Split conformations</th>
-                                    <td class=" top-options">
-                                        <div class="col s12 required inline" id="splitConfs">
-                                            <div class="radio" id="confref_type">
-                                                <label>
-                                                    <input class="with-gap" id="refmacradio" name="confproc_type"
-                                                        type="radio" value="refmac">
-                                                    <span class="item-label" for="refmacradio">Refmac refine</span>
-                                                </label>
-                                            </div>
-                                            <div class="radio" id="confref_type">
-                                                <label>
-                                                    <input class="with-gap" id="phenixradio" name="confproc_type"
-                                                        type="radio" value="phenix">
-                                                    <span class="item-label" for="phenixradio">Phenix refine</span>
-                                                </label>
-                                            </div>
-                                            <div class="radio" id="confref_type">
-                                                <label>
-                                                    <input class="with-gap" id="manualradio" name="confproc_type"
-                                                        type="radio" value="manual">
-                                                    <span class="item-label" for="manualradio">Manual refine</span>
-                                                </label>
-                                            </div>
-                                            <div class="radio" id="confref_type">
-                                                <label>
-                                                    <input checked="checked" class="with-gap" id="norefineradio"
-                                                        name="confproc_type" type="radio" value="none">
-                                                    <span class="item-label" for="norefineradio">No refine</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class=" top-options">Dataset cluster</th>
-                                    <td class=" top-options">
-                                        <select class="selectbox" disabled id="datasetCluster" name="datasetCluster">
-                                            <option disabled selected value="no"> -- select an option -- </option>
-                                            <option value="Yes">Yes</option>
-                                            <option value="no">No</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class=" top-options">Score models</th>
-                                    <td class=" top-options">
-                                        <select class="selectbox" name="giantscore">
-                                            <option selected value="Yes">Yes</option>
-                                            <option value="No">No</option>
-                                        </select>
-                                    </td>
-                                <tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="bottom-right">
-                        <form action="/submit_pandda/" id="sendgiant" method="get" name="sendgiant" size="1"
-                            target="_blank">
-                            <button class="btn-large maxivorange" name="giantform" onsubmit="return panddasetup()"
-                                size="1" type="submit" value="giantinput">Run Giant PanDDA</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     {% endif %}
 
@@ -2169,16 +2015,6 @@
         }
     }
 
-    function setup_giant_submit()
-    {
-        document.getElementById("sendgiant").onsubmit = function()
-        {
-            var method = document.getElementById("inspects").value;
-            var out = "giantscore;" + method
-            document.getElementsByName("giantform")[0].value = out
-        }
-    }
-
     function setup_pipedream_submit()
     {
         const fpipedream = document.getElementById("sendpipedreamBtn");
@@ -2284,7 +2120,6 @@
         setup_refine_submit();
         setup_ligproc_submit();
         setup_pandda_submit();
-        setup_giant_submit();
         setup_pipedream_submit();
     });
 </script>
