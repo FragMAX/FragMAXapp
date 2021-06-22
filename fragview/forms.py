@@ -2,7 +2,7 @@ import re
 from os import path
 from django import forms
 from fragview import projects, fraglib, encryption
-from fragview.models import Project, EncryptionKey
+#from fragview.models import Project, EncryptionKey
 from fragview.sites import SITE
 from fragview.sites.plugin import ProjectLayout
 
@@ -371,7 +371,9 @@ class ProjectForm(forms.Form):
         return proj
 
 
-class NewLibraryForm(forms.Form):
+
+# TODO: remove me!
+class NewLibraryForm(Form):
     model = None
 
-    fragments_file = forms.FileField(required=False)
+    fragments_file = FileField(required=False)

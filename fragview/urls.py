@@ -62,6 +62,7 @@ urlpatterns = [
     path("pandda/cluster/<method>/<cluster>/image", pandda.cluster_image),
     # pandda HTML report for a specific analysis run
     path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
+    path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
     path("ugly/", misc.ugly, name="ugly"),
     path(
         "reciprocal_lattice/<sample>/<run>", reciprocal.show, name="reciprocal_lattice"
@@ -127,10 +128,11 @@ urlpatterns = [
     path("fragment/<fragment_id>/image", fragment.svg, name="fragment_svg"),
     path("crypt/", crypt.index),
     # tools specific logs
+    # TODO: remove tool specific logs views?
     path("logs/autoproc/show/<dataset>/<log_file>", logs.show_autoproc),
     re_path("logs/imported/htmldata/(?P<data_file>.*)$", logs.imported_htmldata),
     # generic logs
-    re_path("logs/show/(?P<log_file>.*)$", logs.show),
+    re_path("^logs/show/(?P<log_file>.*)$", logs.show),
     re_path("logs/download/(?P<log_file>.*)$", logs.download),
     re_path("logs/htmldata/(?P<data_file>.*)$", logs.htmldata),
     # running commit, for tracking and trouble shooting

@@ -12,6 +12,7 @@ from fragview.views.utils import (
 )
 
 
+# TODO: remove me?
 def _refine_dir(proj, dataset, process, refine):
     return path.join(project_results_dir(proj), dataset, process, refine)
 
@@ -24,6 +25,7 @@ def refined(request, result_id):
     return download_http_response(pdb_path, f"{result.name}.pdb")
 
 
+# TODO: remove me ?
 def final(request, dataset, process, refine):
     proj = current_project(request)
     pdb_path = path.join(_refine_dir(proj, dataset, process, refine), "final.pdb")

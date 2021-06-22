@@ -17,4 +17,5 @@ PYMOL_MOD = "PyMOL/2.1.0-2-PReSTO"
 # Site specific information
 #
 
+# TODO: remove me?
 base_static = "/data/visitors/"

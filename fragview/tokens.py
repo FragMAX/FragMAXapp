@@ -1,5 +1,6 @@
 from fragview.encryption import generate_token
-from fragview.models import AccessToken
+
+# from fragview.models import AccessToken
 
 
 def get_valid_token(project):

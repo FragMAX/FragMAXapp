@@ -10,12 +10,17 @@ from fragview import dist_lock
 from worker.xsdata import copy_collection_metadata_files
 from fragview.sites import SITE
 from fragview.fileio import makedirs
-from fragview.models import Project
+
+# from fragview.models import Project
 from fragview.xsdata import XSDataCollection
 from fragview.status import set_imported_autoproc_status
 from fragview.projects import project_xml_files, project_process_protein_dir
 from fragview.projects import project_data_collections_file, project_fragmax_dir
-from fragview.projects import project_shift_dirs, project_all_status_file, project_fragments_dir
+from fragview.projects import (
+    project_shift_dirs,
+    project_all_status_file,
+    project_fragments_dir,
+)
 from fragview.projects import shifts_xml_files, project_scripts_dir
 
 logger = get_task_logger(__name__)
@@ -26,7 +31,9 @@ def setup_project_files(proj_id):
     try:
         proj = Project.get(proj_id)
     except Project.DoesNotExist:
-        logger.warning(f"warning: no project with ID {proj_id}, will not setup it's files")
+        logger.warning(
+            f"warning: no project with ID {proj_id}, will not setup it's files"
+        )
         return
 
     with dist_lock.acquire(f"setup_project_files|{proj_id}"):
@@ -44,7 +51,9 @@ def add_new_shifts(proj_id, shifts):
         return
 
     with dist_lock.acquire(f"add_new_shifts|{proj_id}"):
-        logger.info(f"import new shifts {shifts} to {proj.protein}-{proj.library.name} ({proj.id})")
+        logger.info(
+            f"import new shifts {shifts} to {proj.protein}-{proj.library.name} ({proj.id})"
+        )
         _add_new_shifts_files(proj, shifts)
         proj.set_ready()
 
@@ -65,6 +74,7 @@ def _setup_project_files(proj):
     _write_project_status(proj)
 
 
+# TODO: remove me
 def _make_fragmax_dir(proj):
     """
     create the 'fragmax' directory and make sure it:
@@ -90,13 +100,21 @@ def _make_fragmax_dir(proj):
     # set owner group
     os.chown(fragmax_dir, -1, proposal_group.gr_gid)
     # make sure SETGID bit is set
-    os.chmod(fragmax_dir,
-             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
-             stat.S_ISGID | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+    os.chmod(
+        fragmax_dir,
+        stat.S_IRUSR
+        | stat.S_IWUSR
+        | stat.S_IXUSR
+        | stat.S_ISGID
+        | stat.S_IRGRP
+        | stat.S_IWGRP
+        | stat.S_IXGRP,
+    )
 
     return fragmax_dir
 
 
+# TODO: remove me
 def _create_fragmax_folders(proj):
     """
     create folders that fragmax will use for dataprocessing
@@ -119,12 +137,19 @@ def _parse_metafile(metafile):
     resolution = f"{xsdata.resolution:.2f}"
 
     snapshots = xsdata.snapshots
-    snapshots = ",".join(snapshots) \
-        if len(snapshots) > 0 \
-        else "noSnapshots"  # TODO drop this, use empty string as 'no snapshots' value
+    snapshots = (
+        ",".join(snapshots) if len(snapshots) > 0 else "noSnapshots"
+    )  # TODO drop this, use empty string as 'no snapshots' value
 
-    return xsdata.imagePrefix, sample, xsdata.imageDirectory, xsdata.dataCollectionNumber, \
-        xsdata.numberOfImages, resolution, snapshots
+    return (
+        xsdata.imagePrefix,
+        sample,
+        xsdata.imageDirectory,
+        xsdata.dataCollectionNumber,
+        xsdata.num_images,
+        resolution,
+        snapshots,
+    )
 
 
 def _write_data_collections_file(proj, meta_files):
@@ -133,13 +158,41 @@ def _write_data_collections_file(proj, meta_files):
 
     with open(dc_file, "w") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "imagePrefix", "SampleName", "dataCollectionPath", "Acronym", "dataCollectionNumber",
-            "numberOfImages", "resolution", "snapshot"])
+        writer.writerow(
+            [
+                "imagePrefix",
+                "SampleName",
+                "dataCollectionPath",
+                "Acronym",
+                "dataCollectionNumber",
+                "numberOfImages",
+                "resolution",
+                "snapshot",
+            ]
+        )
 
         for mfile in meta_files:
-            dataset, sample, col_path, run, img_num, resolution, snaps = _parse_metafile(mfile)
-            writer.writerow([dataset, sample, col_path, proj.protein, run, img_num, resolution, snaps])
+            (
+                dataset,
+                sample,
+                col_path,
+                run,
+                img_num,
+                resolution,
+                snaps,
+            ) = _parse_metafile(mfile)
+            writer.writerow(
+                [
+                    dataset,
+                    sample,
+                    col_path,
+                    proj.protein,
+                    run,
+                    img_num,
+                    resolution,
+                    snaps,
+                ]
+            )
 
 
 def _write_project_status(proj):
@@ -150,8 +203,9 @@ def _write_project_status(proj):
 
     for shift_dir in project_shift_dirs(proj):
         procList += [
-            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/" for x in
-            glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")]
+            "/".join(x.split("/")[:8]) + "/" + x.split("/")[-2] + "/"
+            for x in glob(f"{shift_dir}/fragmax/process/{proj.protein}/*/*/")
+        ]
 
     for i in procList:
         dataset_run = i.split("/")[-2]
@@ -171,8 +225,22 @@ def _write_project_status(proj):
 
     with open(project_all_status_file(proj), "w") as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerow(["dataset_run", "autoproc", "dials", "EDNA", "fastdp", "xdsapp",
-                         "xdsxscale", "dimple", "fspipeline", "buster", "ligfit", "rhofit"])
+        writer.writerow(
+            [
+                "dataset_run",
+                "autoproc",
+                "dials",
+                "EDNA",
+                "fastdp",
+                "xdsapp",
+                "xdsxscale",
+                "dimple",
+                "fspipeline",
+                "buster",
+                "ligfit",
+                "rhofit",
+            ]
+        )
         for dataset_run, status in statusDict.items():
             writer.writerow([dataset_run] + list(status.values()))
 

@@ -35,6 +35,11 @@ class Project:
         self._protein = None
         self._proposal = None
 
+    @property
+    def encrypted(self):
+        # TODO implement encryption
+        return False
+
     #
     # Database access
     #
@@ -369,6 +374,7 @@ def project_results_dir(project):
     return path.join(project_fragmax_dir(project), "results")
 
 
+# TODO: remove me?
 def project_results_dataset_dir(project, dataset) -> Path:
     return Path(project_results_dir(project), dataset)
 
@@ -387,10 +393,12 @@ def project_logs_dir(project):
     return path.join(project_fragmax_dir(project), "logs")
 
 
+# TODO: remove me?
 def project_pandda_results_dir(project):
     return path.join(project_fragmax_dir(project), "results", "pandda", project.protein)
 
 
+# TODO: remove me?
 def project_pandda_processed_dataset_dir(project, method, dataset):
     return Path(
         project_pandda_results_dir(project),
@@ -465,6 +473,7 @@ def project_raw_master_h5_files(project):
     return shifts_raw_master_h5_files(project, project.shifts())
 
 
+# TODO: drop this?
 def project_datasets(project):
     return SITE.get_project_datasets(project)
 
@@ -489,10 +498,12 @@ def project_xml_files(project):
     return shifts_xml_files(project, project.shifts())
 
 
+# TODO: remove me
 def project_fragment_cif(project, fragment):
     return path.join(project_fragments_dir(project), f"{fragment}.cif")
 
 
+# TODO: remove me
 def project_fragment_pdb(project, fragment):
     return path.join(project_fragments_dir(project), f"{fragment}.pdb")
 

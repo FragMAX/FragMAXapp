@@ -2,7 +2,7 @@ from django import urls
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from fragview.projects import current_project
-from fragview.models import Project, EncryptionKey
+#from fragview.models import Project, EncryptionKey
 
 
 ENCRYPTION_DISABLED_MSG = "encrypted mode disabled for current project"

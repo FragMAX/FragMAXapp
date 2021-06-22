@@ -108,6 +108,7 @@ def new(request):
     return redirect("/projects/")
 
 
+# TODO: remove me!
 def update_library(request):
     """
     GET requests show the 'Create new Project' page

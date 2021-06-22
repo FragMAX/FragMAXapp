@@ -13,12 +13,14 @@ class SitePlugin:
     # should be either 'local' or 'slurm'
     HPC_JOBS_RUNNER: str
 
+    # TODO: remove me!
     def get_project_experiment_date(self, project):
         raise NotImplementedError()
 
     def get_project_datasets(self, project):
         raise NotImplementedError()
 
+    # TODO: redo this system
     def get_project_layout(self):
         raise NotImplementedError()
 

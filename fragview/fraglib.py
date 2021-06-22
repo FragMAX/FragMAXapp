@@ -1,6 +1,7 @@
+# TODO: drop this module?
 import csv
 from fragview import smiles
-from fragview.models import Library, Fragment
+#from fragview.models import Library, Fragment
 
 
 class FraglibError(Exception):
