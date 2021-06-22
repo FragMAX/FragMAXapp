@@ -66,7 +66,7 @@ urlpatterns = [
     path("pandda/cluster/<method>/<cluster>/image", pandda.cluster_image),
     # pandda HTML report for a specific analysis run
     path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
-    path("ugly/", misc.ugly, name="ugly"),
+    path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
     path(
         "reciprocal_lattice/<sample>/<run>", reciprocal.show, name="reciprocal_lattice"
     ),
@@ -80,7 +80,6 @@ urlpatterns = [
     path("projects/", projects.show, name="manage_projects"),
     path("project/new", projects.new, name="new_project"),
     path("project/<int:id>", projects.delete),
-    path("project/update_library", projects.update_library, name="update_library"),
     path("project/current/<int:id>/", projects.set_current),
     # encryption key management views
     path("encryption/", encryption.show, name="encryption"),
@@ -98,8 +97,6 @@ urlpatterns = [
     path("download/pandda", download.pandda),
     # generated PDB access views
     path("pdbs/refined/<result_id>", result_pdbs.refined),
-    # TODO: remove url below?
-    path("pdbs/final/<dataset>/<process>/<refine>", result_pdbs.final),
     path("pdbs/ligand/<result_id>", result_pdbs.ligand),
     path("pdbs/pandda/fitted/<dataset>/<method>", result_pdbs.pandda_fitted),
     path("pdbs/pandda/input/<dataset>/<method>", result_pdbs.pandda_input),
@@ -133,10 +130,11 @@ urlpatterns = [
     path("fragment/<fragment_id>/image", fragment.svg, name="fragment_svg"),
     path("crypt/", crypt.index),
     # tools specific logs
+    # TODO: remove tool specific logs views?
     path("logs/autoproc/show/<dataset>/<log_file>", logs.show_autoproc),
     re_path("logs/imported/htmldata/(?P<data_file>.*)$", logs.imported_htmldata),
     # generic logs
-    re_path("logs/show/(?P<log_file>.*)$", logs.show),
+    re_path("^logs/show/(?P<log_file>.*)$", logs.show),
     re_path("logs/download/(?P<log_file>.*)$", logs.download),
     re_path("logs/htmldata/(?P<data_file>.*)$", logs.htmldata),
     # running commit, for tracking and trouble shooting

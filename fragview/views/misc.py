@@ -9,9 +9,5 @@ def download_options(request):
     return render(request, "fragview/download_options.html")
 
 
-def ugly(request):
-    return render(request, "fragview/ugly.html")
-
-
 def perc2float(v):
     return str("{:.3f}".format(float(v.replace("%", "")) / 100.0))

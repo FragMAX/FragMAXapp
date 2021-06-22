@@ -1,12 +1,9 @@
 from typing import List
 from os import path, walk
-from pathlib import Path
 from datetime import datetime
-from fragview.fileio import subdirs
 from fragview.fileio import makedirs
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
-from fragview.sites.hzb.project import ProjectLayout
 from fragview.sites.hzb.diffractions import get_diffraction_pic_command
 from fragview.sites.hzb.pipelines import PipelineCommands
 from fragview.sites.hzb.beamline import BeamlineInfo
@@ -27,12 +24,6 @@ class SitePlugin(plugin.SitePlugin):
     def get_project_experiment_date(self, project):
         return _get_experiment_timestamp(project)
 
-    def get_project_datasets(self, project):
-        return _get_datasets(project)
-
-    def get_project_layout(self):
-        return ProjectLayout()
-
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
     ) -> List[str]:
@@ -46,11 +37,6 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_group_name(self, project):
         return project.proposal
-
-    def create_meta_files(self, project):
-        from fragview.cbf import generate_meta_xml_files
-
-        return list(generate_meta_xml_files(project))
 
     def prepare_project_folders(self, project, shifts):
         from fragview.projects import project_process_protein_dir
@@ -108,26 +94,3 @@ def _get_experiment_timestamp(project):
 
     timestamp = path.getmtime(_find_path())
     return datetime.fromtimestamp(timestamp)
-
-
-def _get_datasets(project):
-    def _file_to_dataset_name(file):
-        # to get dataset name, chop off the
-        # _0001.cbf suffix
-        return file.name[: -len(MASTER_IMG_SUFFIX)]
-
-    from fragview.projects import project_raw_protein_dir
-
-    #
-    # for each subdirectory in 'raw' directory,
-    # look for dataset master image files, i.e. files
-    # with names like <protein>..._0001.cbf,
-    # derive dataset name from master image file name
-    #
-
-    raw = Path(project_raw_protein_dir(project))
-    glob_exp = f"{project.protein}*{MASTER_IMG_SUFFIX}"
-
-    for dset_dir in subdirs(raw, 1):
-        for img_file in dset_dir.glob(glob_exp):
-            yield _file_to_dataset_name(img_file)

@@ -207,9 +207,3 @@ class ProjectForm(Form):
             cdata["autoproc"],
             cdata["encrypted"],
         )
-
-
-class NewLibraryForm(Form):
-    model = None
-
-    fragments_file = FileField(required=False)

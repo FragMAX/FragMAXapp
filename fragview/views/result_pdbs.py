@@ -1,18 +1,10 @@
-from os import path
 from pathlib import Path
-from fragview.projects import (
-    current_project,
-    project_results_dir,
-)
+from fragview.projects import current_project
 from fragview.views.utils import (
     download_http_response,
     get_refine_result_by_id,
     get_ligfit_result_by_id,
 )
-
-
-def _refine_dir(proj, dataset, process, refine):
-    return path.join(project_results_dir(proj), dataset, process, refine)
 
 
 def refined(request, result_id):
@@ -21,13 +13,6 @@ def refined(request, result_id):
     pdb_path = Path(project.get_refine_result_dir(result), "final.pdb")
 
     return download_http_response(pdb_path, f"{result.name}.pdb")
-
-
-def final(request, dataset, process, refine):
-    proj = current_project(request)
-    pdb_path = path.join(_refine_dir(proj, dataset, process, refine), "final.pdb")
-
-    return download_http_response(pdb_path)
 
 
 def ligand(request, result_id):

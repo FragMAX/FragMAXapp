@@ -17,7 +17,7 @@ class UnknownToolException(Exception):
 
 
 class ToolStatus(Enum):
-    UNKNOWN = "unknown"
+    UNKNOWN = "unknown"  # TODO: remove, unused, None is the new 'unknown'
     SUCCESS = "success"
     FAILURE = "failure"
 

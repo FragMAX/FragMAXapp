@@ -13,13 +13,7 @@ class SitePlugin:
     # should be either 'local' or 'slurm'
     HPC_JOBS_RUNNER: str
 
-    def get_project_experiment_date(self, project):
-        raise NotImplementedError()
-
     def get_project_datasets(self, project):
-        raise NotImplementedError()
-
-    def get_project_layout(self):
         raise NotImplementedError()
 
     def get_diffraction_picture_command(self, project, dataset, angle: int, dest_pic_file) -> List[str]:
@@ -36,9 +30,6 @@ class SitePlugin:
         get the name of the filesystem group, which
         should own the files in the project's directory
         """
-        raise NotImplementedError()
-
-    def create_meta_files(self, project):
         raise NotImplementedError()
 
     def prepare_project_folders(self, project, shifts):
@@ -100,24 +91,6 @@ class LigandTool:
     GRADE = "grade"
     ACEDRG = "acedrg"
     ELBOW = "elbow"
-
-
-class ProjectLayout:
-    class ValidationError(Exception):
-        def __init__(self, message):
-            super().__init__(message)
-
-    def root(self):
-        raise NotImplementedError()
-
-    def check_root(self, root):
-        raise NotImplementedError()
-
-    def subdirs(self):
-        raise NotImplementedError()
-
-    def check_subdirs(self, subdirs):
-        raise NotImplementedError()
 
 
 class BeamlineInfo:

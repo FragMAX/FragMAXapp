@@ -2,6 +2,11 @@
 # module versions used on HPC
 #
 
+#
+# TODO: move this inside fragview.sites.maxiv (?)
+# all these PReSTO modules version are MAXIV specific
+#
+
 DIALS_MOD = "DIALS/2.2.5-3-PReSTO"
 AUTOPROC_MOD = "autoPROC/20200520-3-PReSTO"
 BUSTER_MOD = "BUSTER/20190607-3-PReSTO"
@@ -12,9 +17,3 @@ CCP4_PANDDA_MOD = "CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO"
 XDS_MOD = "XDS/20210205-1-PReSTO"
 DURIN_MOD = "Durin/2019v1-4-PReSTO"
 PYMOL_MOD = "PyMOL/2.1.0-2-PReSTO"
-
-#
-# Site specific information
-#
-
-base_static = "/data/visitors/"

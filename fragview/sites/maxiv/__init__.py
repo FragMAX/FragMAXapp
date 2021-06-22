@@ -1,9 +1,7 @@
 from os import path
 from typing import List
-from datetime import datetime
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool
-from fragview.sites.maxiv.project import ProjectLayout
 from fragview.sites.maxiv.diffractions import get_diffraction_pic_command
 from fragview.sites.maxiv.pipelines import PipelineCommands
 from fragview.sites.maxiv.beamline import BeamlineInfo
@@ -19,10 +17,6 @@ class SitePlugin(plugin.SitePlugin):
     RAW_DATA_DIR = "/data/visitors/biomax"
     HPC_JOBS_RUNNER = "slurm"
 
-    def get_project_experiment_date(self, project):
-        # use main shift's date as somewhat random experiment data
-        return datetime.strptime(project.shift, "%Y%m%d")
-
     def get_project_datasets(self, project):
         from fragview.projects import project_raw_master_h5_files
 
@@ -31,9 +25,6 @@ class SitePlugin(plugin.SitePlugin):
             # chopping of the '_master.h5' from the file name
             # gives us the data set name in the format we are using
             yield file_name[: -len("_master.h5")]
-
-    def get_project_layout(self):
-        return ProjectLayout()
 
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
@@ -48,9 +39,6 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_group_name(self, project):
         return f"{project.proposal}-group"
-
-    def create_meta_files(self, project):
-        return _copy_xmls_from_raw(project)
 
     def prepare_project_folders(self, project, shifts):
         # NOP
@@ -98,13 +86,3 @@ class SitePlugin(plugin.SitePlugin):
             f"module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO;"
             f" cd {pandda_path}/pandda; pandda.inspect"
         )
-
-
-def _copy_xmls_from_raw(project):
-    from worker.xsdata import copy_collection_metadata_files
-    from fragview.projects import project_xml_files
-
-    xml_files = list(project_xml_files(project))
-    copy_collection_metadata_files(project, xml_files)
-
-    return xml_files

@@ -16,7 +16,6 @@ exclude = '''
   fragview/auth/ispyb.py |
   fragview/autoproc.py |
   fragview/fileio.py |
-  fragview/fraglib.py |
   fragview/middleware.py |
   fragview/cbf.py |
   fragview/views/crypt.py |
@@ -27,7 +26,6 @@ exclude = '''
   fragview/views/soaking.py |
   manage.py |
   fragview/views/pipedream.py |
-  tests/test_fraglib.py |
   tests/test_auth_ispyb.py |
   tests/test_views_fragment.py |
   tests/test_worker_cpp4.py |

@@ -2,7 +2,7 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from fragview.models import UserProject, PendingProject
-from fragview.forms import ProjectForm, NewLibraryForm
+from fragview.forms import ProjectForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project
 from fragview.views.utils import get_project_libraries
@@ -95,23 +95,6 @@ def delete(_, id):
     proj.delete()
 
     return HttpResponse(f"ok")
-
-
-def update_library(request):
-    """
-    GET requests show the 'Create new Project' page
-    POST requests will try to create a new project
-    """
-    # proj = current_project(request)
-
-    if request.method == "GET":
-        return render(request, "fragview/library_view.html")
-
-    form = NewLibraryForm(request.POST, request.FILES)
-    if not form.is_valid():
-        return render(request, "fragview/library_view.html", {"form": "form"})
-
-    return render(request, "fragview/library_view.html", {"form": "form"})
 
 
 def set_current(request, id):

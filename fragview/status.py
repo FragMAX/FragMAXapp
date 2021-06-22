@@ -29,25 +29,6 @@ def _supported_autoproc_tools():
     return supported_tools
 
 
-# TODO remove me
-def set_imported_autoproc_status(project):
-    tools = _supported_autoproc_tools()
-
-    if not tools:
-        # this site does not support importing
-        # any auto-processed data, nothing to do here
-        return
-
-    for dataset in get_datasets(project):
-        dset_name = f"{dataset.image_prefix}_{dataset.run}"
-        for tool in tools:
-            print(f"scrape {dset_name} for {tool}")
-            # TODO: re-structure code so we don't rewrite
-            # TODO: allstatus.csv for each dataset/tool combination,
-            # TODO: which is, ehhh, somewhat un-optimal
-            update_proc_tool_status(project, tool, dset_name)
-
-
 def _tool_status_to_result(status: ToolStatus) -> Optional[str]:
     if status == ToolStatus.SUCCESS:
         return "ok"
