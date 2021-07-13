@@ -95,9 +95,19 @@ class SitePlugin(plugin.SitePlugin):
         return PipelineCommands()
 
     def get_pandda_inspect_commands(self, pandda_path) -> str:
+        #
+        # generate a pandda path relative to the user's home directory
+        #
+        # we can't use pandda_path as-is for launching pandda.inspect,
+        # as fragmax directory is mounted differently on other computers
+        #
+        pandda_path = Path(pandda_path)
+        parent = pandda_path.parents[len(pandda_path.parents) - 5]
+        cd_path = Path("~", pandda_path.relative_to(parent), "pandda")
+
         return (
             f"source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh; "
-            f"cd {pandda_path}; pandda.inspect"
+            f"cd {cd_path}; pandda.inspect"
         )
 
 
