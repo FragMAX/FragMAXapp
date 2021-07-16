@@ -18,9 +18,12 @@ def _define_entities(db):
         fragment_id = Required(str)
         # move these to it's own table?
         solvent = Required(str)
-        # as fraction of procent, i.e. 5% stored as 0.05
-        solvent_concentration = Required(float)
+
         datasets = Set(lambda: DataSet)
+        #
+        # crystal's origin data, as track in the wet-lab
+        #
+        solvent_concentration = Required(str)
 
     class DataSet(db.Entity):
         id = PrimaryKey(int, auto=True)

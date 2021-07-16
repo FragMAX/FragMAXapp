@@ -1,14 +1,13 @@
 from django.urls import reverse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseNotFound, HttpResponseBadRequest
-from fragview.sites import SITE
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from fragview.models import UserProject, PendingProject
 from fragview.forms import ProjectForm, NewLibraryForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project
 from fragview.views.utils import get_project_libraries
 from fragview.views.wrap import Wrapper
-from worker import setup_project_files, add_new_shifts
+from worker import setup_project
 
 
 class ProjectEntry(Wrapper):
@@ -29,56 +28,25 @@ def show(request):
     """
     projects list page, aka 'manage projects' page
     """
+    #
+    # divide pending projects into failed and (still) pending lists
+    #
+    failed = []
+    pending = []
+    for proj in PendingProject.get_all():
+        if proj.failed():
+            failed.append(proj)
+        else:
+            pending.append(proj)
 
     return render(
         request,
         "fragview/projects.html",
         {
             "project_entries": _wrap_projects(request),
-            "pending_projects": PendingProject.get_projects(),
+            "failed_projects": failed,
+            "pending_projects": pending,
         },
-    )
-
-
-def _update_project(form):
-    old_shifts = set(form.model.shifts())
-
-    form.update()
-    new_shifts = set(form.model.shifts())
-
-    added = new_shifts - old_shifts
-
-    if len(added) > 0:  # new shift added
-        # put the project into 'pending' state
-        form.model.set_pending()
-        # start importing datasets from the new shift(s)
-        add_new_shifts.delay(form.model.id, list(added))
-
-
-def edit(request, id):
-    """
-    GET requests show the 'Edit Project' page
-    POST requests will update or delete the project
-    """
-    proj = get_object_or_404(Project, pk=id)
-    form = ProjectForm(request.POST or None, request.FILES or None, model=proj)
-
-    if request.method == "POST":
-        action = request.POST["action"]
-        if action == "modify":
-            if form.is_valid():
-                _update_project(form)
-                return redirect("/projects/")
-        elif action == "delete":
-            proj.delete()
-            return redirect("/projects/")
-        else:
-            return HttpResponseBadRequest(f"unexpected action '{action}'")
-
-    return render(
-        request,
-        "fragview/project.html",
-        {"form": form, "project_id": proj.id, "proj_layout": SITE.get_project_layout()},
     )
 
 
@@ -87,25 +55,43 @@ def new(request):
     GET requests show the 'Create new Project' page
     POST requests will try to create a new project
     """
+
+    proposals = sorted(get_proposals(request), reverse=True)
+
     if request.method == "GET":
-        return render(
-            request, "fragview/project.html", {"proj_layout": SITE.get_project_layout()}
-        )
+        return render(request, "fragview/project_new.html", {"proposals": proposals},)
 
     form = ProjectForm(request.POST, request.FILES)
-
     if not form.is_valid():
-        return render(
-            request,
-            "fragview/project.html",
-            {"form": form, "proj_layout": SITE.get_project_layout()},
-        )
+        return HttpResponseBadRequest(form.get_error_message())
 
-    proj = form.save()
-    proj.set_pending()
-    setup_project_files.delay(proj.id)
+    protein, proposal, crystals, import_autoproc, encrypt = form.get_values()
+    proj = UserProject.create_new(protein, proposal)
 
-    return redirect("/projects/")
+    setup_project.delay(
+        str(proj.id), protein, proposal, crystals.as_list(), import_autoproc
+    )
+
+    return HttpResponse("ok")
+
+
+def delete(_, id):
+    try:
+        proj = UserProject.get(id)
+    except UserProject.DoesNotExist:
+        return HttpResponseNotFound(f"project {id} not found")
+
+    #
+    # Do a 'cosmetic' delete,
+    # only delete the project from the list of existing projects.
+    # leave all data files will be left in-place.
+    #
+    # This way it's should be possible to 'recover' a project,
+    # deleted by mistake.
+    #
+    proj.delete()
+
+    return HttpResponse(f"ok")
 
 
 # TODO: remove me!

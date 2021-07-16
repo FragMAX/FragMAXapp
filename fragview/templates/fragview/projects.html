@@ -50,7 +50,43 @@ tr {
     width: 48px;
 }
 </style>
+<script>
+function show_delete_error(error_message)
+{
+    alert(`Failed to delete: ${error_message}`);
+}
 
+function delete_project(project_id, project_name)
+{
+    let doit = confirm(`Are you sure you want\n` +
+                       `to delete '${project_name}' project?`);
+    if (!doit)
+    {
+        /* user canceled delete request, bail out */
+        return;
+    }
+
+    fetch(`/project/${project_id}`,
+        {
+            method: "DELETE",
+            headers: new Headers({"X-CSRFToken": "{{csrf_token}}"}),
+        })
+    .then(function(response)
+    {
+        if (!response.ok)
+        {
+            response.text().then(text => show_delete_error(text));
+            return;
+        }
+        /* project successfully deleted, refresh projects listing */
+        document.location.reload(true);
+    })
+    .catch(function(error)
+    {
+        show_delete_error(error.message);
+    });
+}
+</script>
 <h4>FragMAX Projects</h4><br>
 
 <div class="card">
@@ -68,6 +104,7 @@ tr {
                     <th>Project</th>
                     <th>Fragment Libraries</th>
                     <th>Collection Dates</th>
+                    <th></th>
                 </tr>
             </thead>
 
@@ -76,12 +113,10 @@ tr {
             {% for proj in project_entries %}
             <tr>
                 <td>
-                    <a href="/project/{{ proj.id }}" class="project-desc">
-                        <div class="project-elm">
-                            <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
-                        </div>
-                        <div class="project-elm">{{ proj.protein }} ({{proj.proposal}})</div>
-                    </a>
+                    <div class="project-elm">
+                        <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
+                    </div>
+                    <div class="project-elm">{{ proj.protein }} ({{proj.proposal}})</div>
                 </td>
                 <td>
                     {% for library in proj.get_libraries %}
@@ -94,11 +129,42 @@ tr {
                         <div>{{dates.1|date:"Y-m-d"}}</div>
                     {% endwith %}
                 </td>
+                <td>
+                    <button class="btn" size="1"
+                            onclick="delete_project({{proj.id}}, '{{proj.name}}')">
+                    delete
+                    </button>
+                </td>
             </tr>
             {% endfor %}
 
             </tbody>
-         </table>
+        </table>
+        {% if failed_projects %}
+            <br/>
+            <table class="table bordered">
+                <thead>
+                    <tr style="background-color: white;">
+                        <th colspan="3">Failed to Create</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for proj in failed_projects %}
+                <tr>
+                    <td>
+                        <div class="project-elm">{{proj.name}}: {{proj.error_message}}</div>
+                    </td>
+                    <td>
+                        <button class="btn" size="1"
+                                onclick="delete_project({{proj.project.id}}, '{{proj.name}}')">
+                        delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
         {% if pending_projects %}
             <br/>
             <table class="table bordered">
@@ -112,10 +178,7 @@ tr {
                 {% for proj in pending_projects %}
                 <tr>
                     <td>
-                        <div class="project-elm">
-                            <img class="project-icon" src="/static/projIcons/{{proj.icon_num}}.svg">
-                        </div>
-                        <div class="project-elm">{{ proj.protein }} ({{proj.proposal}})</div>
+                        <div class="project-elm">{{proj.name}}</div>
                     </td>
                 </tr>
                 {% endfor %}

@@ -56,6 +56,12 @@ def no_projects_redirect(get_response):
         if url.startswith("/libraries") or url.startswith("/fragment"):
             return True
 
+        # allows to delete failed projects, in cases
+        # when user have only one pending project,
+        # that have failed during set-up
+        if url.startswith("/project/"):
+            return True
+
         return False
 
     def check_current_project(request):
