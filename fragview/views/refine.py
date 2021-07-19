@@ -5,40 +5,44 @@ from django.http import HttpResponseBadRequest
 from fragview import versions
 from fragview.views import crypt_shell
 from fragview.views.utils import start_thread
-from fragview.projects import project_process_dataset_dir, project_results_dataset_dir
-from fragview.projects import current_project, project_script, project_log_path
+from fragview.projects import (
+    current_project,
+    project_script,
+    project_log_path,
+    Project,
+)
 from fragview.filters import get_refine_datasets
 from fragview.pipeline_commands import (
     get_dimple_command,
     get_fspipeline_commands,
 )
-from fragview.models import PDB
 from fragview.forms import RefineForm
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.views.update_jobs import add_update_job
-from fragview.scraper import edna, autoproc
+from fragview.scraper import dials, xds, xdsapp, edna, autoproc
 from jobs.client import JobsSet
+from projects.database import db_session
 
 
 HPC_MODULES = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 
 
 def datasets(request):
-    proj = current_project(request)
+    project = current_project(request)
 
     form = RefineForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 
-    pdbmodel = PDB.get(form.pdb_model)
-    pdb_file = pdbmodel.file_path()
+    pdb = project.get_pdb(form.pdb_model)
+    pdb_file = project.get_pdb_file(pdb)
 
     if form.use_dimple:
         cmd, cpus = get_dimple_command("input.mtz", form.custom_dimple)
         start_thread(
             launch_refine_jobs,
-            proj,
+            project,
             form.datasets_filter,
             pdb_file,
             form.ref_space_group,
@@ -52,9 +56,9 @@ def datasets(request):
         cmds, cpus = get_fspipeline_commands(pdb_file, form.custom_fspipe)
         start_thread(
             launch_refine_jobs,
-            proj,
+            project,
             form.datasets_filter,
-            pdbmodel.file_path(),
+            pdb_file,
             form.ref_space_group,
             form.run_aimless,
             "fspipeline",
@@ -65,8 +69,9 @@ def datasets(request):
     return render(request, "fragview/jobs_submitted.html")
 
 
+@db_session
 def launch_refine_jobs(
-    proj,
+    project: Project,
     filters,
     pdb_file,
     space_group,
@@ -79,28 +84,30 @@ def launch_refine_jobs(
     jobs = JobsSet("Refine")
     hpc = SITE.get_hpc_runner()
 
-    for dset in get_refine_datasets(proj, filters, refine_tool):
-        for tool, input_mtz in _find_input_mtzs(proj, dset):
-            dset_results_dir = project_results_dataset_dir(proj, dset)
-
+    for dset in get_refine_datasets(project, filters, refine_tool):
+        for tool, input_mtz in _find_input_mtzs(project, dset):
             batch = hpc.new_batch_file(
-                f"refine {tool} {dset}",
-                project_script(proj, f"refine_{tool}_{refine_tool}_{dset}.sh"),
-                project_log_path(proj, f"refine_{tool}_{dset}_{epoch}_%j_out.txt"),
-                project_log_path(proj, f"refine_{tool}_{dset}_{epoch}_%j_err.txt"),
+                f"refine {tool} {dset.name}",
+                project_script(project, f"refine_{tool}_{refine_tool}_{dset.name}.sh"),
+                project_log_path(
+                    project, f"refine_{tool}_{dset.name}_{epoch}_%j_out.txt"
+                ),
+                project_log_path(
+                    project, f"refine_{tool}_{dset.name}_{epoch}_%j_err.txt"
+                ),
                 cpus,
             )
             batch.set_options(
                 time=Duration(hours=12), nodes=1, mem_per_cpu=DataSize(gigabyte=5),
             )
 
-            batch.add_commands(crypt_shell.crypt_cmd(proj))
+            batch.add_commands(crypt_shell.crypt_cmd(project))
 
             batch.assign_variable("WORK_DIR", "`mktemp -d`")
             batch.add_commands(
                 "cd $WORK_DIR",
-                crypt_shell.fetch_file(proj, pdb_file, "model.pdb"),
-                crypt_shell.fetch_file(proj, input_mtz, "input.mtz"),
+                crypt_shell.fetch_file(project, pdb_file, "model.pdb"),
+                crypt_shell.fetch_file(project, input_mtz, "input.mtz"),
             )
 
             # TODO: load tool specific modules?
@@ -109,9 +116,11 @@ def launch_refine_jobs(
             if run_aimless:
                 batch.add_commands(_aimless_cmd(space_group, "input.mtz"))
 
+            results_dir = Path(project.get_dataset_results_dir(dset), tool)
+
             batch.add_commands(
                 *refine_tool_commands,
-                _upload_result_cmd(proj, Path(dset_results_dir, tool)),
+                _upload_result_cmd(project, results_dir),
                 "cd",
                 "rm -rf $WORK_DIR",
             )
@@ -119,39 +128,26 @@ def launch_refine_jobs(
             batch.save()
             jobs.add_job(batch)
 
-            add_update_job(jobs, hpc, proj, refine_tool, dset, batch)
+            add_update_job(jobs, hpc, project, refine_tool, dset, batch)
 
     jobs.submit()
 
 
-def _find_input_mtzs(proj, dataset):
-    mtz_map = [
-        ("xdsapp", "*F.mtz"),
-        ("dials", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),
-        ("xdsxscale", "DEFAULT/scale/AUTOMATIC_DEFAULT_scaled.mtz"),
-    ]
+def _find_input_mtzs(project: Project, dataset):
+    if dataset.processed_successfully("dials"):
+        yield "dials", dials.get_result_mtz(project, dataset)
 
-    dset_dir = project_process_dataset_dir(proj, dataset)
+    if dataset.processed_successfully("xds"):
+        yield "xds", xds.get_result_mtz(project, dataset)
 
-    for tool, mtz_glob in mtz_map:
-        tool_dir = Path(dset_dir, tool)
-        mtz = next(tool_dir.glob(mtz_glob), None)
-        if mtz is not None:
-            yield tool, mtz
+    if dataset.processed_successfully("xdsapp"):
+        yield "xdsapp", xdsapp.get_result_mtz(project, dataset)
 
-    #
-    # handle ENDA mtz
-    #
-    mtz = edna.get_result_mtz(proj, dataset)
-    if mtz is not None:
-        yield "edna", mtz
+    if dataset.processed_successfully("autoproc"):
+        yield "autoproc", autoproc.get_result_mtz(project, dataset)
 
-    #
-    # handle autoPROC
-    #
-    mtz = autoproc.get_result_mtz(proj, dataset)
-    if mtz is not None:
-        yield "autoproc", mtz
+    if dataset.processed_successfully("edna"):
+        yield "edna", edna.get_result_mtz(project, dataset)
 
 
 def _aimless_cmd(spacegroup, dstmtz):

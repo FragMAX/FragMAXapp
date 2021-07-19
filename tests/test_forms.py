@@ -127,7 +127,7 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
         self.assertTrue(valid)
 
         self.assertTrue(form.use_dials)
-        self.assertFalse(form.use_xdsxscale)
+        self.assertFalse(form.use_xds)
         self.assertTrue(form.use_xdsapp)
         self.assertFalse(form.use_autoproc)
 
@@ -242,14 +242,14 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
 
             isdir.assert_has_calls(
                 [
-                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL)),
-                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1)),
+                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL)),
+                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_1)),
                     mock.call(
-                        path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)
+                        path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)
                     ),
-                    mock.call(path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2)),
+                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_2)),
                     mock.call(
-                        path.join(SITE.PROPOSALS_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)
+                        path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)
                     ),
                 ]
             )

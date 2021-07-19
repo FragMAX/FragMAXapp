@@ -1,0 +1,172 @@
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - Fragment Libraries{% endblock %}
+{% block content %}
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+
+.ligimg
+{
+    height: 96px;
+    width: 96px;
+}
+
+th
+{
+    cursor: pointer;
+    text-align: center;
+}
+
+td, th
+{
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+    text-align: center;
+}
+
+tr:nth-child(even)
+{
+    background-color: #dddddd;
+}
+
+.selected_library
+{
+    display: flex;
+    padding: 15px;
+    font-size: 15px;
+    align-items: center;
+}
+
+select
+{
+    display: block;
+    width: auto;
+    min-width: 120px;
+    margin: 10px;
+}
+</style>
+
+<div>
+    <h4>Fragment Libraries</h4>
+</div>
+
+<div class="selected_library">
+    <select id="libraries" onchange="show_library(this);">
+        {% for library in libraries %}
+            <option value="{{library.id}}">{{library.name}}</option>
+        {% endfor %}
+    </select>
+    <a id="library_csv"
+       href="/libraries/{{libraries.0.id}}/csv"
+       download="{{libraries.0.name}}.csv"
+    >
+        {{libraries.0.name}}.csv
+    </a>
+</div>
+
+<table id="fragments_list">
+    <thead>
+        <tr>
+            <th>Fragment Code</th>
+            <th>SMILES</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+function overwrite_table(fragments)
+{
+    function remove_tbody(table)
+    {
+        let old_tbody = table.tBodies.item(0);
+        table.removeChild(old_tbody);
+    }
+
+    function frag_code_html(fragment)
+    {
+        return document.createTextNode(fragment.code);
+    }
+
+    function frag_smiles_html(fragment)
+    {
+        return document.createTextNode(fragment.smiles);
+    }
+
+    function frag_image_html(fragment)
+    {
+        let img = document.createElement("img");
+        img.className = "ligimg";
+        img.src = `/fragment/${fragment.id}/image`;
+        return img;
+    }
+
+    let table = document.getElementById("fragments_list");
+    remove_tbody(table);
+    const tbody = table.createTBody();
+
+    for (let fragment of fragments)
+    {
+        let row = tbody.insertRow(-1);
+
+        row.insertCell(0).appendChild(frag_code_html(fragment));
+        row.insertCell(1).appendChild(frag_smiles_html(fragment));
+        row.insertCell(2).appendChild(frag_image_html(fragment));
+    }
+}
+
+function overwrite_csv_link(library_id, library_name)
+{
+    let csv_link = document.getElementById("library_csv");
+
+    csv_link.href = `/libraries/${library_id}/csv`;
+    csv_link.textContent = `${library_name}.csv`;
+    csv_link.download = `${library_name}.csv`;
+}
+
+function show_library(selection)
+{
+    let library_id = selection.value;
+    let library_name = selection.item(selection.selectedIndex).text;
+
+    fetch(`/libraries/${library_id}/json`).then(
+        function(response)
+        {
+            if (response.status !== 200)
+            {
+                response.text().then(function (text)
+                {
+                    alert(`error loading fragments:\n${text}`);
+                });
+                return;
+            }
+
+            response.json().then(
+                function(data)
+                {
+                    overwrite_table(data.fragments);
+                    overwrite_csv_link(library_id, library_name);
+                });
+        }
+   ).catch(
+       function(err)
+       {
+           alert(`Fetch Error ${err}`);
+       });
+}
+
+document.addEventListener("DOMContentLoaded", (event) =>
+{
+    /* load 'first' library */
+    let selection = document.getElementById("libraries");
+    show_library(selection);
+});
+</script>
+
+{% endblock %}

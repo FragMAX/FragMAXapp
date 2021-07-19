@@ -2,6 +2,7 @@ version: "3"
 services:
   fragmax:
     image: docker.maxiv.lu.se/fragmax
+    container_name: fragmax
     networks:
       - fragmax
     ports:
@@ -12,8 +13,11 @@ services:
       - /etc/nslcd.conf:/etc/nslcd.conf
       - /mxn/home:/mxn/home
       - /mxn/groups/biomax:/mxn/groups/biomax
-      - /data/staff/ispybstorage/pyarch/:/app/static/pyarch
       - /data/visitors/biomax:/data/visitors/biomax
+      # for testing
+      - /data/staff/biomax:/data/staff/biomax
+      # crystal snapshot pictures
+      - /data/staff/ispybstorage/pyarch/visitors:/data/staff/ispybstorage/pyarch/visitors
       - fragmax:/volume
 
 volumes:

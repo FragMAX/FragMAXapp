@@ -62,6 +62,7 @@ RUN mkdir /app
 WORKDIR /app
 COPY fragview fragview/
 COPY fragmax fragmax/
+COPY projects projects/
 COPY jobs jobs/
 COPY worker worker/
 COPY static static/
@@ -72,7 +73,7 @@ COPY deploy/local_site.py-maxiv local_site.py
 RUN ln -s /opt/conda/envs/FragMAX/lib/python3.8/site-packages/material/static/material static/material
 # the django database and site settings file are stored in a volume which is mounted at '/volume' at
 RUN ln -s /volume/db .
-RUN ln -s /volume/site_settings.py .
+RUN ln -s /volume/local_conf.py .
 
 # change owernershop of all app files to biomax-service:MAX-Lab
 # use hardcoded UID/GID as we don't have access to symbolic names

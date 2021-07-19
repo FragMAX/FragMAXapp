@@ -155,13 +155,6 @@
         background-color: #f0f0f0;
     }
 
-    .ligpng {
-        height: 25%;
-        left: 53%;
-        position: absolute;
-        bottom: 3%;
-    }
-
     .card-title {
         display: inline-flex !important;
     }
@@ -323,13 +316,9 @@
 </style>
 
 <body>
-
     <div>
-        <h5 style="padding-left:310px;"> {{imgprf}}_{{run}} Dataset information </h5>
-
-
+        <h5 style="padding-left:310px;">{{dataset.name}} Dataset information</h5>
     </div>
-
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -348,11 +337,11 @@
                 <thead>
                     <tr>
                         <td class="resultsHeader" style="height: 60px;"></td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                         <td class="resultsHeader">
-                            <a class="btn-small" href="/logs/show/{{entry.report}}" target="_blank">
-                                {{entry.tool}}
-                            </a>
+                            <div class="btn-small">
+                                {{entry.tool_name}}
+                            </div>
                         </td>
                         {% endfor %}
                     </tr>
@@ -361,36 +350,36 @@
                     <tr></tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Spacegroup</td>
-                        {% for entry in data_processing %}
-                        <td style="text-align:center">{{entry.spg}}</td>
+                        {% for entry in processing_stats %}
+                        <td style="text-align:center">{{entry.space_group}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Unit cell parameters</td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                         <td style="text-align:center">
                             <div>
-                            {% for v in entry.unit_cell.dim %}
-                                {{v}}&nbsp;
-                            {% endfor %}
+                                {{entry.unit_cell_a|floatformat:2}}
+                                {{entry.unit_cell_b|floatformat:2}}
+                                {{entry.unit_cell_c|floatformat:2}}
                             </div>
                             <div>
-                            {% for v in entry.unit_cell.ang %}
-                                {{v}}&nbsp;
-                            {% endfor %}
+                                {{entry.unit_cell_alpha|floatformat:2}}
+                                {{entry.unit_cell_beta|floatformat:2}}
+                                {{entry.unit_cell_gamma|floatformat:2}}
                             </div>
                         </td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Resolution limit</td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                         <td style="text-align:center">
                             <div>
-                                {{entry.low_res_avg}} - {{entry.high_res_avg}}
+                                {{entry.low_resolution_average|floatformat:2}} - {{entry.high_resolution_average|floatformat:2}}
                             </div>
                             <div>
-                                ({{entry.low_res_out}} - {{entry.high_res_out}})
+                                ({{entry.low_resolution_out|floatformat:2}} - {{entry.high_resolution_out|floatformat:2}})
                             </div>
                         </td>
                         {% endfor %}
@@ -399,39 +388,39 @@
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
                             Number of reflections
                         </td>
-                        {% for entry in data_processing %}
-                            <td style="text-align:center">{{entry.total_observations}}</td>
+                        {% for entry in processing_stats %}
+                            <td style="text-align:center">{{entry.reflections}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
-                            Number of uniques
+                            Unique reflections
                         </td>
-                        {% for entry in data_processing %}
-                            <td style="text-align:center">{{entry.unique_rflns}}</td>
+                        {% for entry in processing_stats %}
+                            <td style="text-align:center">{{entry.unique_reflections}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
                             Multiplicity
                         </td>
-                        {% for entry in data_processing %}
-                            <td style="text-align:center">{{entry.multiplicity}}</td>
+                        {% for entry in processing_stats %}
+                            <td style="text-align:center">{{entry.multiplicity|floatformat:1}}</td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">I/sigI</td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                             <td style="text-align:center">
-                                {{entry.isig_avg}} ({{entry.isig_out}})
+                                {{entry.i_sig_average|floatformat:1}} ({{entry.i_sig_out|floatformat:1}})
                             </td>
                         {% endfor %}
                     </tr>
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">R_meas</td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                             <td style="text-align:center">
-                                {{entry.rmeas_avg}} ({{entry.rmeas_out}})
+                                {{entry.r_meas_average|floatformat:3}} ({{entry.r_meas_out|floatformat:3}})
                             </td>
                         {% endfor %}
                     </tr>
@@ -439,9 +428,9 @@
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
                             Completeness [%]
                         </td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                             <td style="text-align:center">
-                                {{entry.completeness_avg}} ({{entry.completeness_out}})
+                                {{entry.completeness_average|floatformat:1}} ({{entry.completeness_out|floatformat:1}})
                             </td>
                         {% endfor %}
                     </tr>
@@ -449,9 +438,9 @@
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
                             Mosaicity [°]
                         </td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                             <td style="text-align:center">
-                                {{entry.mosaicity}}
+                                {{entry.mosaicity|floatformat:3}}
                             </td>
                         {% endfor %}
                     </tr>
@@ -459,9 +448,11 @@
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">
                             ISa
                         </td>
-                        {% for entry in data_processing %}
+                        {% for entry in processing_stats %}
                             <td style="text-align:center">
-                                {{entry.ISa}}
+                                {% if entry.isa %}
+                                {{entry.isa|floatformat:2}}
+                                {% endif %}
                             </td>
                         {% endfor %}
                     </tr>
@@ -494,45 +485,30 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for refine in refine_results %}
                         <tr>
-                        </tr>
-                        {% for usracr,pdbout,dif_map,nat_map,spg,resolution,isa,r_work,r_free,bonds,angles,a,b,c,alpha,beta,gamma,blist,dataset,pipeline,rhofitscore,ligfitscore,ligblob, modelscore in csvfile %}
-
-                        <tr>
-
                             <td style="text-align:center;padding-top: 10px;">
-                                {% if "pipedream" not in usracr %}
-                                <a href="/density/{{usracr}}" target="_blank">
+                                <a href="/density/{{refine.id}}" target="_blank">
                                     <button class="btn" style="height: 48px; margin-top: 15px;">
                                         <i class="material-icons"style="font-size:28px; padding-top: 6px;">3d_rotation</i>
                                     </button>
                                 </a>
-                                {% else %}
-                                <form action="/pipedream_density/" method="get" target="_blank">
-                                    <button class="btn" type="submit" value="{{usracr}}" name="structure" size="1"
-                                        style="height: 48px">
-                                        <i class="material-icons" style="font-size:28px; padding-top: 6px;">3d_rotation</i>
-                                    </button>
-                                </form>
-                                {% endif %}
-
                             </td>
-                            <td>{{usracr}}</td>
-                            <td style="text-align:center">{{spg}}</td>
-                            <td style="text-align:center">{{resolution}}</td>
-                            <td style="text-align:center">{{r_work}}</td>
-                            <td style="text-align:center">{{r_free}}</td>
-                            <td style="text-align:center">{{bonds}}</td>
-                            <td class="rms" style="text-align:center">{{angles}}</td>
-                            <td style="text-align:center">{{a}}</td>
-                            <td style="text-align:center">{{b}}</td>
-                            <td style="text-align:center">{{c}}</td>
-                            <td style="text-align:center">{{alpha}}</td>
-                            <td style="text-align:center">{{beta}}</td>
-                            <td style="text-align:center">{{gamma}}</td>
-                            <td style="text-align:center">{{rhofitscore}}</td>
-                            <td style="text-align:center">{{ligfitscore}}</td>
-
+                            <td>{{refine.name}}</td>
+                            <td style="text-align:center">{{refine.space_group}}</td>
+                            <td style="text-align:center">{{refine.resolution|floatformat:2}}</td>
+                            <td style="text-align:center">{{refine.r_work|floatformat:2}}</td>
+                            <td style="text-align:center">{{refine.r_free|floatformat:2}}</td>
+                            <td style="text-align:center">{{refine.rms_bonds|floatformat:3}}</td>
+                            <td class="rms" style="text-align:center">{{refine.rms_angles|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_a|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_b|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_c|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_alpha|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_beta|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.unit_cell_gamma|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.rhofit_score|floatformat:3}}</td>
+                            <td style="text-align:center">{{refine.ligandfit_score|floatformat:3}}</td>
                         </tr>
                         {% endfor %}
 
@@ -548,15 +524,21 @@
 
     <div class="flexdiv">
         <div id="snaps">
-            {% if dialsreport %}
+            {% if proc_logs.dials %}
             <form action="/reciprocal_lattice/{{imgprf}}/{{run}}" method="get" size="1" style="padding-left:25%;"
                 target="_blank">
-                <button class="btn-large" type="submit" size="1">Open Reciprocal Lattice Viewer</button>
+                <button class="btn-large" type="submit" size="1">Reciprocal Lattice</button>
             </form>
             {% endif %}
 
-            <img class="myImg diffsnap" id="diff1" src="/diffraction/{{imgprf}}/{{run}}/1">
-            <img class="myImg diffsnap" id="diff2" src="/diffraction/{{imgprf}}/{{run}}/{{diffraction_half}}">
+            <img class="myImg diffsnap" id="diff1" src="/diffraction/{{dataset.id}}/0">
+            <img class="myImg diffsnap" id="diff2" src="/diffraction/{{dataset.id}}/90">
+
+            {% for snapshot in dataset.snapshots %}
+            <img class="myImg crystalsnap"
+                 id="snap{{snapshot.index}}"
+                 src="/dataset/{{dataset.id}}/snapshot/{{snapshot.index}}"/>
+            {% endfor %}
 
             {% if snapshots %}
             <img class="myImg crystalsnap" id="snap1" src="{{snapshots.0}}"
@@ -564,7 +546,7 @@
             <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             {% endif %}
-
+            <img src="/fragment/{{dataset.fragment.id}}/image">
         </div>
         <div class="flex-left">
             <div class="card" style="min-height:700px">
@@ -575,32 +557,20 @@
                         <col width="450">
                         <tbody>
                             <tr>
-                                <td style="font-weight: bold;">Img directory</td>
-                                <td name="imgdirNAME" id="imgdirID">
-                                    <p style="word-break: break-all;">
-                                        {{xsdata.imageDirectory}}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: bold;">Img prefix</td>
-                                <td>{{project.protein}}</td>
-                            </tr>
-                            <tr>
                                 <td style="font-weight: bold;">Run number</td>
-                                <td>{{run}}</td>
+                                <td>{{dataset.run}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;"># of images</td>
-                                <td>{{xsdata.numberOfImages}}</td>
+                                <td>{{dataset.images}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Start time</td>
-                                <td>{{xsdata.startTime}} </td>
+                                <td>{{dataset.start_time|date:"Y-m-d H:i:s"}} (UTC)</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">End time</td>
-                                <td>{{xsdata.endTime}}</td>
+                                <td>{{dataset.end_time|date:"Y-m-d H:i:s"}} (UTC)</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Type of experiment</td>
@@ -608,67 +578,53 @@
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Wavelength</td>
-                                <td>{{xsdata.wavelength|floatformat:6}} Å</td>
+                                <td>{{dataset.wavelength|floatformat:6}} Å</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Energy</td>
-                                <td>{{energy}} keV</td>
+                                <td>{{energy|floatformat:2}} keV</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Phi Start</td>
-                                <td>{{xsdata.axisStart}}°</td>
+                                <td>{{dataset.phi_start|floatformat:1}}°</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Oscillation range</td>
-                                <td>{{xsdata.axisRange}}°</td>
+                                <td>{{dataset.oscillation_range|floatformat:1}}°</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Overlap</td>
-                                <td>{{xsdata.overlap|floatformat:1}}°</td>
+                                <td>{{dataset.overlap|floatformat:1}}°</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Exposure time</td>
-                                <td>{{xsdata.exposureTime|floatformat:3}} s</td>
+                                <td>{{dataset.exposure_time|floatformat:3}} s</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Total Exposure time</td>
-                                <td>{{totalExposure}} s</td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: bold;">Estimated dose</td>
-                                <td>Not defined</td>
+                                <td>{{total_exposure|floatformat:2}} s</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Detector distance</td>
-                                <td>{{xsdata.detectorDistance|floatformat:2}} mm</td>
+                                <td>{{dataset.detector_distance|floatformat:2}} mm</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Resolution at edge</td>
-                                <td>{{xsdata.resolution|floatformat:2}} Å</td>
+                                <td>{{dataset.resolution|floatformat:2}} Å</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Resolution at corner</td>
-                                <td>{{edgeResolution}} Å</td>
+                                <td>{{corner_resolution|floatformat:2}} Å</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Xbeam</td>
-                                <td>{{xsdata.xbeam}} mm</td>
+                                <td>{{dataset.xbeam|floatformat:2}} mm</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Ybeam</td>
-                                <td>{{xsdata.ybeam}} mm</td>
+                                <td>{{dataset.ybeam|floatformat:2}} mm</td>
                             </tr>
-                            <tr>
-                                <td style="font-weight: bold;">Kappa</td>
-                                <td>0</td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: bold;">Phi</td>
-                                <td>0</td>
-                            </tr>
-
                         </tbody>
-
                     </table>
                 </div>
 
@@ -723,27 +679,27 @@
                             {% endif %}
                             <tr>
                                 <td style="font-weight: bold;">Beam shape</td>
-                                <td>{{xsdata.beamShape}}</td>
+                                <td>{{dataset.beam_shape}}</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Beam transmission</td>
-                                <td>{{xsdata.transmission|floatformat:3}}%</td>
+                                <td>{{dataset.transmission|floatformat:3}}%</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Slit gap hor</td>
-                                <td>{{xsdata.slitGapHorizontal|floatformat:1}} μm</td>
+                                <td>{{dataset.slit_gap_horizontal|floatformat:1}} μm</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Slit gap ver</td>
-                                <td>{{xsdata.slitGapVertical|floatformat:1}} μm</td>
+                                <td>{{dataset.slit_gap_vertical|floatformat:1}} μm</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Flux (estimated)</td>
-                                <td>{{xsdata.flux|stringformat:".3e" }} ph/s</td>
+                                <td>{{dataset.flux|stringformat:".3e"}} ph/s</td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">Beam size at sample (HxV)</td>
-                                <td>{{xsdata.beamSizeSampleX}} μm x {{xsdata.beamSizeSampleY}} μm</td>
+                                <td>{{dataset.beam_size_at_sample_x|floatformat:1}} μm x {{dataset.beam_size_at_sample_y|floatformat:1}} μm</td>
                             </tr>
                             {% if beamline.beam_divergence %}
                             <tr>
@@ -759,40 +715,6 @@
                             {% endif %}
                         </tbody>
                     </table>
-                    <br>
-                    {% if soakTime == "Soaking not performed" %}
-                    <div hidden>
-                        {% else %}
-                        <div>
-                            {% endif %}
-                            <div class="card-title">Soaking parameters</div>
-                            <div>
-                                <table class="tableSoak">
-                                    <col width="320">
-                                    <col width="300">
-                                    <col width="450">
-                                    <tbody>
-                                        <tr>
-                                            <td style="font-weight: bold;">Soaking time</td>
-                                            <td>{{soakTime}} </td>
-
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight: bold;">Fragment Concentration</td>
-                                            <td>{{fragConc}}</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight: bold;">DMSO Concentration (final)</td>
-                                            <td>{{solventConc}}</td>
-                                            <td></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <img class="ligpng" id="ligand" src="/fragment/{{ligand}}/image"
-                                    onerror="if (this.src != '/static/img/nolig.png') this.src='/static/img/nolig.png';">
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -802,74 +724,79 @@
 
         <div class=" card_options">
             <div class="card tab">
-                {% if "edna_proc" in pipelines %}
+                {% if proc_logs.edna %}
                     <button class="tablinks" onclick="openMethod(event, 'EDNA')">EDNA_proc</button>
                 {% endif %}
-                {% if "xia2_dials" in pipelines %}
+                {% if proc_logs.dials %}
                     <button class="tablinks" onclick="openMethod(event, 'DIALS')">XIA2/DIALS</button>
                 {% endif %}
-                {% if "xia2_xds" in pipelines %}
+                {% if proc_logs.xds %}
                     <button class="tablinks" onclick="openMethod(event, 'XDS')">XIA2/XDS</button>
                 {% endif %}
-                {% if "xdsapp" in pipelines %}
+                {% if proc_logs.xdsapp %}
                     <button class="tablinks" onclick="openMethod(event, 'XDSAPP')">XDSAPP</button>
                 {% endif %}
-                {% if "auto_proc" in pipelines %}
+                {% if proc_logs.autoproc %}
                     <button class="tablinks" onclick="openMethod(event, 'autoPROC')">autoPROC</button>
                 {% endif %}
-                {% if "dimple" in pipelines %}
+                {% if refine_logs.dimple %}
                     <button class="tablinks" onclick="openMethod(event, 'DIMPLE')">DIMPLE</button>
                 {% endif %}
-                {% if "fspipeline" in pipelines %}
+                {% if refine_logs.fspipeline %}
                     <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
                 {% endif %}
                 {% if "pipedream_refine" in pipelines %}
                     <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
                 {% endif %}
             </div>
-            <div id="EDNA" class="card tabcontent ">
+            <div id="EDNA" class="card tabcontent">
                 <div class="card-title logtab">EDNA_proc Logs</div>
-                {% for log in ednaLogs %}
-                <div>
-                    <a href="/logs/show/{{log}}" class="log-name" target="_blank">
-                        {{log.name}}
-                    </a>
-                </div>
+                {% for log_file in proc_logs.edna %}
+                    <div>
+                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                            {{log_file.name}}
+                        </a>
+                    </div>
                 {% endfor %}
             </div>
-            <div id="DIALS" class="card tabcontent ">
+            <div id="DIALS" class="card tabcontent">
                 <div class="card-title logtab">XIA2/DIALS Logs</div>
-                {% for logName, logPath in dialsLogs %}
-                <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                </div>
+                {% for log_file in proc_logs.dials %}
+                    <div>
+                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                            {{log_file.name}}
+                        </a>
+                    </div>
                 {% endfor %}
             </div>
             <div id="XDS" class="card tabcontent">
                 <div class="card-title logtab">XIA2/XDS Logs</div>
-                {% for logName, logPath in xdsLogs %}
-                <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                </div>
+                {% for log_file in proc_logs.xds %}
+                    <div>
+                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                            {{log_file.name}}
+                        </a>
+                    </div>
                 {% endfor %}
             </div>
             <div id="XDSAPP" class="card tabcontent ">
                 <div class="card-title logtab">XDSAPP Logs</div>
-                {% for logName, logPath in xdsappLogs %}
-                <div>
-                    <a href="/logs/show/{{logPath}}" class="log-name" target="_blank">{{logName}}</a>
-                </div>
+                {% for log_file in proc_logs.xdsapp %}
+                    <div>
+                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                            {{log_file.name}}
+                        </a>
+                    </div>
                 {% endfor %}
             </div>
             <div id="autoPROC" class="card tabcontent ">
                 <div class="card-title logtab">autoPROC Logs</div>
-                {% for log in autoprocLogs %}
-                <div>
-                    <a href="/logs/autoproc/show/{{imgprf}}_{{run}}/{{log.name}}"
-                       class="log-name" target="_blank">
-                        {{log.name}}
-                    </a>
-                </div>
+                {% for log_file in proc_logs.autoproc %}
+                    <div>
+                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                            {{log_file.name}}
+                        </a>
+                    </div>
                 {% endfor %}
             </div>
             <div id="Pipedream" class="card tabcontent">
@@ -930,81 +857,70 @@
                 <div class="card-title">DIMPLE Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
-                        {% if "auto_proc" in pipelines %}
+                        {% if refine_logs.dimple.autoproc %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-dimple-v')">autoPROC</button>
                         {% endif %}
-                        {% if "edna_proc" in pipelines %}
+                        {% if refine_logs.dimple.edna %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-dimple-v')">EDNA_proc</button>
                         {% endif %}
-                        {% if "xia2_dials" in pipelines %}
+                        {% if refine_logs.dimple.dials %}
                         <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2dials-dimple-v')">XIA2/DIALS</button>
+                            onclick="openMethodV(event, 'dials-dimple-v')">XIA2/DIALS</button>
                         {% endif %}
-                        {% if "xia2_xds" in pipelines %}
+                        {% if refine_logs.dimple.xds %}
                         <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2xds-dimple-v')">XIA2/XDS</button>
+                            onclick="openMethodV(event, 'xds-dimple-v')">XIA2/XDS</button>
                         {% endif %}
-                        {% if "xdsapp" in pipelines %}
+                        {% if refine_logs.dimple.xdsapp %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xdsapp-dimple-v')">XDSAPP</button>
                         {% endif %}
                     </div>
                     <div id="autoproc-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "autoproc" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.dimple.autoproc %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
-
                     <div id="enda-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.dimple.edna %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
-                    <div id="xia2dials-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "dials" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                    <div id="dials-dimple-v" class="tabcontent-vertical">
+                        {% for log_file in refine_logs.dimple.dials %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
-                    <div id="xia2xds-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "xdsxscale" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                    <div id="xds-dimple-v" class="tabcontent-vertical">
+                        {% for log_file in refine_logs.dimple.xds %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                     <div id="xdsapp-dimple-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in dimple_logs.items %}
-                        {% if proc_m == "xdsapp" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.dimple.xdsapp %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -1013,81 +929,57 @@
                 <div class="card-title">fspipeline Logs</div>
                 <div class="tab-div-log">
                     <div class="tab-vertical">
-                        {% if "auto_proc" in pipelines %}
+                        {% if refine_logs.fspipeline.autoproc %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'autoproc-fspipeline-v')">autoPROC</button>
                         {% endif %}
-                        {% if "edna_proc" in pipelines %}
+                        {% if refine_logs.fspipeline.edna %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'enda-fspipeline-v')">EDNA_proc</button>
                         {% endif %}
-                        {% if "xia2_dials" in pipelines %}
+                        {% if refine_logs.fspipeline.xds %}
                         <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2dials-fspipeline-v')">XIA2/DIALS</button>
+                            onclick="openMethodV(event, 'xds-fspipeline-v')">XIA2/XDS</button>
                         {% endif %}
-                        {% if "xia2_xds" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'xia2xds-fspipeline-v')">XIA2/XDS</button>
-                        {% endif %}
-                        {% if "xdsapp" in pipelines %}
+                        {% if refine_logs.fspipeline.xdsapp %}
                         <button class="tablinks-vertical"
                             onclick="openMethodV(event, 'xdsapp-fspipeline-v')">XDSAPP</button>
                         {% endif %}
                     </div>
                     <div id="autoproc-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "autoproc" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.fspipeline.autoproc %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
-
                     <div id="enda-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "edna" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.fspipeline.edna %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
-                    <div id="xia2dials-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "dials" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="xia2xds-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "xdsxscale" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                    <div id="xds-fspipeline-v" class="tabcontent-vertical">
+                        {% for log_file in refine_logs.fspipeline.xds %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                     <div id="xdsapp-fspipeline-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in fspipeline_logs.items %}
-                        {% if proc_m == "xdsapp" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
+                        {% for log_file in refine_logs.fspipeline.xdsapp %}
+                            <div>
+                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                    {{log_file.name}}
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -1096,42 +988,41 @@
 </body>
 
 <script>
-    // Get the modal
+function setup()
+{
+    function setup_modal_image(element_id)
+    {
+        const img = document.getElementById(element_id);
+        if (img === null)
+        {
+            return;
+        }
+
+        /* insert image inside the modal */
+        img.onclick = function()
+        {
+            modal.style.display = "block";
+            modalImg.src = this.src;
+        }
+    }
+
+    /* get the modal */
     var modal = document.getElementById('myModal');
-
-    // Get the image and insert it inside the modal - use its "alt" text as a caption
-    var img = document.getElementById('diff1');
-    var img2 = document.getElementById('diff2');
-    var img3 = document.getElementById('snap1');
-    var img4 = document.getElementById('snap2');
-
     var modalImg = document.getElementById("img01");
 
-    img.onclick = function () {
-        modal.style.display = "block";
-        modalImg.src = this.src;
-        captionText.innerHTML = this.alt;
-    }
-    img2.onclick = function () {
-        modal.style.display = "block";
-        modalImg.src = this.src;
-        captionText.innerHTML = this.alt;
-    }
-    img3.onclick = function () {
-        modal.style.display = "block";
-        modalImg.src = this.src;
-        captionText.innerHTML = this.alt;
-    }
-    img4.onclick = function () {
-        modal.style.display = "block";
-        modalImg.src = this.src;
-        captionText.innerHTML = this.alt;
-    }
-    window.onclick = function (event) {
-        if (event.target == modal) {
+    window.onclick = function(event)
+    {
+        if (event.target == modal)
+        {
             modal.style.display = "none";
         }
     }
+
+    setup_modal_image("diff1");
+    setup_modal_image("diff2");
+    setup_modal_image("snap1");
+    setup_modal_image("snap2");
+}
 
     const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
@@ -1146,6 +1037,8 @@
             .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
             .forEach(tr => table.appendChild(tr));
     })));
+
+$(document).ready(setup);
 </script>
 
 

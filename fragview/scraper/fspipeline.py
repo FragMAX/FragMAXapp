@@ -1,13 +1,11 @@
 import re
-from typing import List
+from typing import Iterator
 from pathlib import Path
 from gemmi import read_pdb
-from fragview.dsets import ToolStatus
 from fragview.fileio import read_text_lines
-from fragview.projects import project_results_dataset_dir
-from fragview.scraper.utils import get_final_pdbs
-from fragview.scraper import rhofit, ligandfit
-from fragview.scraper.proc_logs import scrape_isa
+from fragview.projects import Project
+from fragview.scraper import ToolStatus, RefineResult
+
 
 # regexp used to extract r-work, r-free, etc values from PDB comments
 REM_FINAL_RE = re.compile(
@@ -18,20 +16,6 @@ REM_FINAL_RE = re.compile(
 CLUSTER_RE = re.compile(
     r"INFO:: cluster at xyz = \(\s*([\d\\.-]*),\s*([\d\\.-]*),\s*([\d\\.-]*)"
 )
-
-
-def scrape_outcome(project, dataset) -> ToolStatus:
-    res_dir = project_results_dataset_dir(project, dataset)
-
-    for sdir in res_dir.glob("*/fspipeline"):
-        if Path(sdir, "final.pdb").is_file():
-            return ToolStatus.SUCCESS
-
-    res_subdirs = list(res_dir.glob("*/fspipeline"))
-    if res_subdirs:
-        return ToolStatus.FAILURE
-
-    return ToolStatus.UNKNOWN
 
 
 def _parse_pdb(pdb: Path):
@@ -69,10 +53,10 @@ def _parse_pdb(pdb: Path):
     )
 
 
-def _scrape_blobs(project, res_dir: Path) -> List[List[float]]:
-    blobs_log = Path(res_dir, "blobs.log")
+def _scrape_blobs(project, results_dir: Path) -> str:
+    blobs_log = Path(results_dir, "blobs.log")
     if not blobs_log.is_file():
-        return []
+        return "[]"
 
     blobs = []
 
@@ -88,49 +72,50 @@ def _scrape_blobs(project, res_dir: Path) -> List[List[float]]:
         x, y, z = match.groups()
         blobs.append([float(x), float(y), float(z)])
 
-    return blobs
+    return str(blobs)
 
 
-def _get_results(project, dataset, final_pdb: Path):
-    parent_dir = final_pdb.parent
+def _get_results(project, dataset, results_dir: Path) -> RefineResult:
+    proc_tool = results_dir.parent.name
+    final_pdb = Path(results_dir, "final.pdb")
+    result = RefineResult(proc_tool, "fspipeline")
 
-    proc_tool = parent_dir.parent.name
+    if final_pdb.is_file():
+        result.status = ToolStatus.SUCCESS
+    else:
+        result.status = ToolStatus.FAILURE
 
-    isa = scrape_isa(project, proc_tool, dataset)
+    if result.status == ToolStatus.FAILURE:
+        return result
 
-    dif_map = Path(parent_dir, "final_2mFo-DFc.ccp4")
-    nat_map = Path(parent_dir, "final_mFo-DFc.ccp4")
+    (
+        result.space_group,
+        result.resolution,
+        result.r_work,
+        result.r_free,
+        result.rms_bonds,
+        result.rms_angles,
+        result.cell,
+    ) = _parse_pdb(final_pdb)
 
-    spacegroup, resolution, r_work, r_free, bonds, angles, cell = _parse_pdb(final_pdb)
+    result.blobs = _scrape_blobs(project, results_dir)
 
-    blobs = _scrape_blobs(project, parent_dir)
-    rhofit_score = rhofit.scrape_score(parent_dir)
-    ligfit_score, ligblob = ligandfit.scrape_score_blob(parent_dir)
+    return result
 
-    return (
-        proc_tool,
-        str(dif_map),
-        str(nat_map),
-        spacegroup,
-        resolution,
-        isa,
-        r_work,
-        r_free,
-        bonds,
-        angles,
-        cell.a,
-        cell.b,
-        cell.c,
-        cell.alpha,
-        cell.beta,
-        cell.gamma,
-        blobs,
-        rhofit_score,
-        ligfit_score,
-        ligblob,
+
+def scrape_results(project: Project, dataset) -> Iterator[RefineResult]:
+    res_dir = project.get_dataset_results_dir(dataset)
+
+    for sdir in res_dir.glob("*/fspipeline"):
+        yield _get_results(project, dataset, sdir)
+
+
+def get_refine_log_files(project: Project, dataset, processing_tool) -> Iterator[Path]:
+    res_dir = Path(
+        project.get_dataset_results_dir(dataset), processing_tool, "fspipeline"
     )
+    project_dir = project.project_dir
 
-
-def scrape_results(project, dataset):
-    for final_pdb in get_final_pdbs(project, dataset, "fspipeline"):
-        yield _get_results(project, dataset, final_pdb)
+    for path in res_dir.glob("**/*.log"):
+        if path.is_file():
+            yield path.relative_to(project_dir)

@@ -9,10 +9,6 @@ def download_options(request):
     return render(request, "fragview/download_options.html")
 
 
-def testfunc(request):
-    return render(request, "fragview/testpage.html", {"files": "results"})
-
-
 def ugly(request):
     return render(request, "fragview/ugly.html")
 

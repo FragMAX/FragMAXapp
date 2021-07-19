@@ -14,7 +14,7 @@ class PipelineCommands(plugin.PipelineCommands):
             64,
         )
 
-    def get_xia_xdsxscale_commands(
+    def get_xia_xds_commands(
         self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
     ):
         return (

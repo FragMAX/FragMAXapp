@@ -1,18 +1,10 @@
-from typing import Iterator
+from typing import Iterator, List
 from pathlib import Path
-from fragview.projects import project_results_dataset_dir
+from fragview.projects import Project
 from fragview.fileio import subdirs
 
 
-def split_unit_cell_vals(unit_cell):
-    """
-    split unit cell values into 'dim' and 'ang' parts
-    """
-    vals = unit_cell.split(",")
-    return dict(dim=vals[:3], ang=vals[3:])
-
-
-def get_files_by_suffixes(dir: Path, file_suffixes) -> Iterator[Path]:
+def get_files_by_suffixes(dir: Path, file_suffixes: List[str]) -> Iterator[Path]:
     for child in dir.iterdir():
         if not child.is_file():
             continue
@@ -22,8 +14,9 @@ def get_files_by_suffixes(dir: Path, file_suffixes) -> Iterator[Path]:
             yield child
 
 
-def get_final_pdbs(project, dataset, refine_tool: str):
-    res_dir = project_results_dataset_dir(project, dataset)
+# TODO: remove me?
+def get_final_pdbs(project: Project, dataset, refine_tool: str):
+    res_dir = project.get_dataset_results_dir(dataset)
 
     for sdir in subdirs(res_dir, 2):
         if sdir.name != refine_tool:

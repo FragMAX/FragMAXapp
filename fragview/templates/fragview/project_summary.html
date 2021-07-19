@@ -1,4 +1,3 @@
-
 {% extends 'fragview/base.html' %}
 
 {% load static %}
@@ -6,77 +5,74 @@
 {% block content %}
 
 <style>
-  table {
+table
+{
     font-family: arial, sans-serif;
     border-collapse: collapse;
-
-  }
-  th {
-    text-align: center;
-
-  }
-
-  td, th {
-    border: 1px solid #f0f0f0;
-    padding: 8px;
-      height: 60px;
-
-  }
-
-  tr:nth-child(even) {
-    background-color: #e2e2e2;
-  }
-
-  .container {
-    padding-left: 250px;
-    max-width: 1280 !important;
-    width: calc(100% - 75px) !important;
 }
+
+th
+{
+  text-align: center;
+}
+
+td, th
+{
+  padding: 8px;
+  height: 60px;
+}
+
+tr:nth-child(even)
+{
+  background-color: #e2e2e2;
+}
+
+.container
+{
+  padding-left: 250px;
+  max-width: 1280 !important;
+  width: calc(100% - 75px) !important;
+}
+
 </style>
-<h4>Project Summary</h4>
-        
+<h4>Project {{project.name}}</h4>
 
 <div class="card">
-        <div class="card-content">
-            
-            <div class="card-title">Proposal name: Fragment screening of {{project.protein}}</div><br>
-            <table class="table bordered">
-                <tbody>
-                <tr>
-                    <th>Proposal Number</th>
-                    <td>{{project.proposal}}</td>
-                </tr>
-                <tr>
-                    <th>Shift</th>
-                    <td>{{project.shift}}</td>
-                </tr>
-                <tr>
-                    <th>Related Data Collections</th>
-                    <td>
-                        {% for shift in project.shifts %}
-                            {{shift}}<br>
-                        {% endfor %}
-                    </td>
-                </tr>
+    <div class="card-content">
+        <table class="table">
+            <tbody>
                 <tr>
                     <th>Protein</th>
                     <td>{{project.protein}}</td>
                 </tr>
                 <tr>
-                    <th>Datasets collected (combined)</th>
-                    <td>{{num_dataset}} ({{totaldata}}) datasets</td>                    
+                    <th>Proposal Number</th>
+                    <td>{{project.proposal}}</td>
                 </tr>
                 <tr>
-                    <th>Known Apo datasets (combined)</th>
-                    <td>{{known_apo}} ({{totalapo}}) datasets</td>                    
+                    <th>Crystals</th>
+                    <td>{{project.get_crystals.count}}</td>
+                </tr>
+                <tr>
+                    <th>Data sets</th>
+                    <td>{{project.get_datasets.count}}</td>
                 </tr>
                 <tr>
                     <th>Fragment Libraries</th>
-                    <td>{{fraglib}}</td>                    
+                    <td>
+                        {% for library in libraries %}
+                        <div>{{library.name}}</div>
+                        {% endfor %}
+                    </td>
                 </tr>
                 <tr>
-                    <th>Experiment date</th>
-                    <td>{{experiment_date|date:"Y-m-d"}}</td>
+                    <th>Collection Dates</th>
+                    <td>
+                        {% with dates=project.get_data_collection_dates %}
+                            <div>{{dates.0|date:"Y-m-d"}}</div>
+                            <div>{{dates.1|date:"Y-m-d"}}</div>
+                        {% endwith %}
+                    </td>
                 </tr>
                 {% if project.encrypted %}
                     <tr>
@@ -85,8 +81,9 @@
                     </tr>
                 {% endif %}
                 </tbody>
-            </table>
-        </div>
+        </table>
     </div>
+</div>
+
 {% endblock %}
 

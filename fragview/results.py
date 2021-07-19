@@ -1,3 +1,4 @@
+# TODO: remove this module?
 import csv
 from typing import Dict, List
 from pathlib import Path
@@ -62,6 +63,7 @@ def _write_results(project, results: Dict[str, List]):
             writer.writerow([name, *vals])
 
 
+# TODO: remove me
 def update_dataset_results(project, dataset: str, refine_tool: str, updated_results):
     """
     NOTE: we assume the 'write results.csv' lock is held

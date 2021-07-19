@@ -16,7 +16,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="handle fragmax encrypted files")
     parser.add_argument("url")
     parser.add_argument("auth_tok")
-    parser.add_argument("command", choices=["fetch", "fetch_dir", "upload", "upload_dir"])
+    parser.add_argument(
+        "command", choices=["fetch", "fetch_dir", "upload", "upload_dir"]
+    )
     parser.add_argument("src_file")
     parser.add_argument("dest_file")
 
@@ -26,10 +28,7 @@ def parse_args():
 def _get_file(url, auth, src_file):
     print(f"get {src_file}")
 
-    r = requests.post(url,
-                      data=dict(auth=auth,
-                                operation="read",
-                                filepath=src_file))
+    r = requests.post(url, data=dict(auth=auth, operation="read", filepath=src_file))
     if r.status_code != 200:
         _err_exit(f"error fetching {src_file}: {r.text}")
 
@@ -40,11 +39,11 @@ def _upload_file(url, auth, src_file, dest_file):
     print(f"upload {src_file} -> {dest_file}")
 
     with open(src_file, "rb") as f:
-        r = requests.post(url,
-                          data=dict(auth=auth,
-                                    operation="write",
-                                    filepath=dest_file),
-                          files=dict(file=f))
+        r = requests.post(
+            url,
+            data=dict(auth=auth, operation="write", filepath=dest_file),
+            files=dict(file=f),
+        )
 
     if r.status_code != 200:
         _err_exit(f"error uploading {src_file}: {r.text}")
@@ -62,7 +61,7 @@ def _do_fetch_dir(args):
     top_dest_dir = args.dest_file
 
     for full_path in _dir_tree(top_src_dir):
-        rel_path = full_path[len(top_src_dir) + 1:]
+        rel_path = full_path[len(top_src_dir) + 1 :]
         dest_path = path.join(top_dest_dir, rel_path)
 
         os.makedirs(path.dirname(dest_path), exist_ok=True)
@@ -88,7 +87,7 @@ def _do_upload_dir(args):
     dest_dir = args.dest_file
 
     for full_path in _dir_tree(top_dir):
-        relative_path = full_path[len(top_dir) + 1:]
+        relative_path = full_path[len(top_dir) + 1 :]
         dest_path = path.join(dest_dir, relative_path)
         _upload_file(args.url, args.auth_tok, full_path, dest_path)
 

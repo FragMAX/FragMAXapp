@@ -113,7 +113,7 @@ class TestProject(test.TestCase):
         #
 
         # should start with the configured 'proposals dir
-        self.assertTrue(dpath.startswith(SITE.PROPOSALS_DIR))
+        self.assertTrue(dpath.startswith(SITE.RAW_DATA_DIR))
 
         # proposal and main shift should be parts in the data path
         self.assertIn(PROPOSAL, dpath)

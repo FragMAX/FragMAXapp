@@ -12,7 +12,6 @@ from fragview.filters import (
     get_proc_datasets,
     get_refine_datasets,
     get_ligfit_datasets,
-    get_ligfit_pdbs,
 )
 from tests.utils import data_file_path, TempDirMixin
 
@@ -238,44 +237,3 @@ class TestGetLigfitDatasets(_FiltersTester):
         )
 
         self.assertListEqual(["PrtK-JBS-F3a_1", "PrtK-JBS-D10a_1"], list(dsets))
-
-
-class TestGetLigfitPdbs(_FiltersTester):
-    """
-    test get_ligfit_pdbs() function
-    """
-
-    def test_func(self):
-        data_sets = [
-            "PrtK-Apo14_1",
-            "PrtK-JBS-F3a_1",
-            "PrtK-JBS-G8a_1",
-            "PrtK-JBS-D12a_1",
-        ]
-
-        #
-        # get the PDBs
-        #
-        res = get_ligfit_pdbs(self.proj, data_sets)
-
-        # convert the returned absolute PDB paths to paths
-        # relative to project's results dir,
-        # to make it easier to compare to expected set of paths
-        res_dir = project_results_dir(self.proj)
-
-        relative_res = set()
-        for dset, pdb in res:
-            rel_pdb = str(Path(pdb).relative_to(res_dir))
-            relative_res.add((dset, rel_pdb))
-
-        # check that we got expected dataset and PDB tupels
-        self.assertSetEqual(
-            relative_res,
-            {
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/fspipeline/final.pdb"),
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/dials/dimple/final.pdb"),
-                ("PrtK-Apo14_1", "PrtK-Apo14_1/xdsapp/dimple/final.pdb"),
-                ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/autoproc/dimple/final.pdb"),
-                ("PrtK-JBS-F3a_1", "PrtK-JBS-F3a_1/dials/dimple/final.pdb"),
-            },
-        )

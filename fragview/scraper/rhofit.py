@@ -1,11 +1,11 @@
-from typing import Union
+from typing import Union, Iterator
 from pathlib import Path
-from fragview.dsets import ToolStatus
+from fragview.scraper import ToolStatus, LigfitResult
 from fragview.fileio import subdirs
-from fragview.projects import project_results_dataset_dir
+from fragview.projects import Project
 
 
-def scrape_score(result_dir: Path) -> Union[None, str]:
+def _scrape_score(result_dir: Path) -> Union[None, str]:
     rho_dir = Path(result_dir, "rhofit")
     if not rho_dir.is_dir():
         # no rhofit directory found, no score available
@@ -24,15 +24,15 @@ def scrape_score(result_dir: Path) -> Union[None, str]:
     return score
 
 
-def scrape_outcome(project, dataset: str) -> ToolStatus:
-    res_dir = project_results_dataset_dir(project, dataset)
+def scrape_results(project: Project, dataset) -> Iterator[LigfitResult]:
+    res_dir = project.get_dataset_results_dir(dataset)
 
     for ref_dir in subdirs(res_dir, 2):
-        score = scrape_score(ref_dir)
-        if score is not None:
-            return ToolStatus.SUCCESS
-
-        if Path(ref_dir, "rhofit").is_dir():
-            return ToolStatus.FAILURE
-
-    return ToolStatus.UNKNOWN
+        score = _scrape_score(ref_dir)
+        proc_tool = ref_dir.parent.name
+        refine_tool = ref_dir.name
+        if score is None:
+            status = ToolStatus.FAILURE
+        else:
+            status = ToolStatus.SUCCESS
+        yield LigfitResult(proc_tool, refine_tool, "rhofit", status, score)

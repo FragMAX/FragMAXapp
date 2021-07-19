@@ -1,11 +1,10 @@
 """
 scrape PHENIX ligandfit logs
 """
-from typing import Union, Tuple, TextIO
+from typing import Union, Tuple, TextIO, Iterator
 from pathlib import Path
-from fragview.dsets import ToolStatus
 from fragview.fileio import subdirs
-from fragview.projects import project_results_dataset_dir
+from fragview.scraper import ToolStatus, LigfitResult
 
 SECTION_LINE = "This fit is the new best one..."
 SCORE_LINE = " cc_overall "
@@ -60,15 +59,16 @@ def scrape_score_blob(result_dir: Path) -> Union[Tuple[None, None]]:
         return _parse_ligfit_log(f)
 
 
-def scrape_outcome(project, dataset: str) -> ToolStatus:
-    res_dir = project_results_dataset_dir(project, dataset)
+def scrape_results(project, dataset: str) -> Iterator[LigfitResult]:
+    res_dir = project.get_dataset_results_dir(dataset)
 
     for ref_dir in subdirs(res_dir, 2):
-        score, _ = scrape_score_blob(ref_dir)
-        if score is not None:
-            return ToolStatus.SUCCESS
+        score, blobs = scrape_score_blob(ref_dir)
+        proc_tool = ref_dir.parent.name
+        refine_tool = ref_dir.name
+        if score is None:
+            status = ToolStatus.FAILURE
+        else:
+            status = ToolStatus.SUCCESS
 
-        if Path(ref_dir, "ligfit", "LigandFit_run_1_").is_dir():
-            return ToolStatus.FAILURE
-
-    return ToolStatus.UNKNOWN
+        yield LigfitResult(proc_tool, refine_tool, "ligandfit", status, score, blobs)

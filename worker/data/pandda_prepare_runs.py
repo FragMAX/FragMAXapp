@@ -27,14 +27,19 @@ def dataset_exists(dataset_list):
     def pdb_e(dataset):
         return os.path.exists(path + "/" + dataset + "/final.pdb")
 
-    existing_datasets = [dataset for dataset in datasets if all([pdb_e(dataset), mtz_e(dataset)])]
+    existing_datasets = [
+        dataset for dataset in datasets if all([pdb_e(dataset), mtz_e(dataset)])
+    ]
 
     return ",".join(existing_datasets)
 
 
 def ground_state_entries(options):
     # process user input and find models for ground state
-    if any([options["useApos"], options["useSelected"]]) and not options["reprocessZmap"]:
+    if (
+        any([options["useApos"], options["useSelected"]])
+        and not options["reprocessZmap"]
+    ):
         apo_datasets = ",".join([x.split("/")[-1] for x in glob(path + "/*Apo*")])
 
         dtsfilter = options["dtsfilter"]
@@ -42,15 +47,21 @@ def ground_state_entries(options):
         if all([options["useApos"], options["useSelected"]]):
             total_ground_datasets = user_defined_gs + "," + apo_datasets
             total_ground_datasets = dataset_exists(total_ground_datasets)
-            ground_state_parameter = "ground_state_datasets='" + total_ground_datasets + "'"
+            ground_state_parameter = (
+                "ground_state_datasets='" + total_ground_datasets + "'"
+            )
         elif options["useApos"]:
             total_ground_datasets = apo_datasets
             total_ground_datasets = dataset_exists(total_ground_datasets)
-            ground_state_parameter = "ground_state_datasets='" + total_ground_datasets + "'"
+            ground_state_parameter = (
+                "ground_state_datasets='" + total_ground_datasets + "'"
+            )
         elif options["useSelected"]:
             total_ground_datasets = user_defined_gs
             total_ground_datasets = dataset_exists(total_ground_datasets)
-            ground_state_parameter = "ground_state_datasets='" + total_ground_datasets + "'"
+            ground_state_parameter = (
+                "ground_state_datasets='" + total_ground_datasets + "'"
+            )
 
         if total_ground_datasets.count(",") < (options["min_datasets"] - 1):
             ground_state_parameter = ""
@@ -58,7 +69,9 @@ def ground_state_entries(options):
             print("Not enough datasets to build ground state model from selection")
             print("ignoring declared apo datasets for this run")
         else:
-            ground_state_parameter = "ground_state_datasets='" + total_ground_datasets + "'"
+            ground_state_parameter = (
+                "ground_state_datasets='" + total_ground_datasets + "'"
+            )
 
     elif options["reprocessZmap"]:
         print("---FragMAXapp Log---")
@@ -72,12 +85,18 @@ def ground_state_entries(options):
                 log = logfile.readlines()
             for line in log:
                 if "Writing PanDDA End-of-Analysis Summary":
-                    with open(path + "/pandda/analyses/pandda_analyse_events.csv", "r",) as readFile:
+                    with open(
+                        path + "/pandda/analyses/pandda_analyse_events.csv", "r",
+                    ) as readFile:
                         events = csv.reader(readFile)
                         events = [x for x in events][1:]
                     noZmap = [x[0] for x in events]
-                    alldts = [x.split("/")[-1] for x in glob(path + "/" + protein + "*")]
-                    newGroundStates = dataset_exists(",".join(list(set(alldts) - set(noZmap))))
+                    alldts = [
+                        x.split("/")[-1] for x in glob(path + "/" + protein + "*")
+                    ]
+                    newGroundStates = dataset_exists(
+                        ",".join(list(set(alldts) - set(noZmap)))
+                    )
             ground_state_parameter = "ground_state_datasets='" + newGroundStates + "'"
         else:
             ground_state_parameter = ""
@@ -151,10 +170,18 @@ def pandda_run(method, options):
                     if os.path.exists(v[0]):
                         shutil.rmtree(v[0])
                         if os.path.exists(
-                            path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k
+                            path
+                            + "/fragmax/process/pandda/ignored_datasets/"
+                            + options["method"]
+                            + "/"
+                            + k
                         ):
                             shutil.rmtree(
-                                path + "/fragmax/process/pandda/ignored_datasets/" + options["method"] + "/" + k
+                                path
+                                + "/fragmax/process/pandda/ignored_datasets/"
+                                + options["method"]
+                                + "/"
+                                + k
                             )
                     pandda_run(method, options)
 

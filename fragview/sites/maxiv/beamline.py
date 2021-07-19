@@ -3,7 +3,7 @@ from fragview.sites import plugin
 
 class BeamlineInfo(plugin.BeamlineInfo):
     name = "BioMAX"
-    detector_name = "EIGER 16M"
+    detector_model = "EIGER 16M"
     detector_type = "Hybrid pixel direct counting device"
     detector_pixel_size = "0.075 mm x 0.075 mm"
     focusing_optics = "KB Mirrors"

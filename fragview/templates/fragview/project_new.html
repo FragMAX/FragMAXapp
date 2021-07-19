@@ -1,0 +1,174 @@
+{% extends 'fragview/base.html' %}
+{% block title %}FragMAX - New Project{% endblock %}
+{% block content %}
+<style>
+table
+{
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+}
+
+th
+{
+    text-align: center;
+}
+
+.container
+{
+    padding-left: 200px;
+    max-width: 1280 !important;
+}
+
+.prechoice
+{
+    padding-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: space-between;
+    flex-direction: row;
+}
+
+.crystal_list_file
+{
+    height: 3rem;
+    margin: 15px -120px 0 0;
+}
+</style>
+<script>
+function show_project_error(message)
+{
+    alert(`Error creating project.\n${message}`);
+}
+
+function create_project(formElement)
+{
+    /*
+     * disable 'create' button while
+     * project creation request is in flight
+     */
+    let createButton = document.getElementById("create");
+    createButton.disabled = true;
+
+    let request = new Request("/project/new",
+    {
+        method: "POST",
+        body: new FormData(formElement),
+    });
+
+    fetch(request).then(function(response)
+    {
+        if (!response.ok)
+        {
+            response.text().then(text => show_project_error(text));
+            return;
+        }
+        window.location.href = "/projects";
+    })
+    .catch(function(error)
+    {
+        show_project_error(error.message);
+    })
+    .finally(function() {
+        createButton.disabled = false;
+    });
+
+    return false;
+}
+</script>
+
+<h4>Create New Project</h4><br>
+
+<div class="card" style="max-width: 800px">
+    <div class="card-content">
+            <form onsubmit="return create_project(this)">
+                {% csrf_token %}
+                <table class="table bordered">
+                    <tbody>
+                    <tr>
+                        <th>Protein Name</th>
+                        <td>
+                            <input class="selectbox"
+                                   style="max-width: 200px"
+                                   name="protein"
+                                   required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Project Proposal</th>
+                        <td>
+                            <input class="selectbox"
+                                   maxlength="8"
+                                   list="proposals"
+                                   style="max-width: 200px"
+                                   name="proposal"
+                                   id="proposal"
+                                   required>
+                            <datalist id="proposals">
+                                {% for proposal in proposals %}
+                                    <option value="{{proposal}}">
+                                {% endfor %}
+                            </datalist>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Crystals CSV</th>
+                        <td>
+                            <input class="crystal_csv_file"
+                                   type="file"
+                                   name="crystal_csv_file"
+                                   required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Auto Processing</th>
+                        <td>
+                            <div class="checkbox">
+                            <label>
+                                <input name="autoproc"
+                                       type="checkbox"
+                                       class="filled-in dt-checkboxes"
+                                       checked>
+                                <span>Import Results</span>
+                            </label>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Data Processing</th>
+                        <td>
+                            <div class="checkbox">
+                            <label>
+                                <input name="encrypted"
+                                       type="checkbox"
+                                       class="filled-in dt-checkboxes"
+                                       disabled>
+                                <span>Encrypted Mode</span>
+                            </label>
+                            </div>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+                <div class="prechoice">
+                    <div style="padding-right: 0px;">
+                        <button class="btn-large" id="create" type="submit">
+                            create
+                        </button>
+                    </div>
+
+                    <div style="padding-left: 40px;">
+                        <button class="btn-large" type="button" onclick="location.href='/projects'">
+                            cancel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

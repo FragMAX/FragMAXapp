@@ -2,7 +2,7 @@ import os
 from os import path
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from fragview.models import AccessToken
+#from fragview.models import AccessToken
 from fragview.encryption import decrypt, encrypt, CryptoErr
 from fragview.projects import project_fragmax_dir
 

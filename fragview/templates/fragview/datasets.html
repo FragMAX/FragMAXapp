@@ -26,7 +26,7 @@
 
     .crystalsnap {
         max-width: 100%;
-        max-height: 180px;
+        max-height: 100px;
     }
 
     .ligimg {
@@ -117,37 +117,29 @@
         }
     }
 
-    .success {
+    .ok {
         color: #82be00;
     }
 
-    .failure {
+    .error {
         color: #f44336;
     }
 
-    .unknown {
-        color: #fdd835;
-    }
 </style>
 <div id="myModal" class="modal">
     <img class="modal-content" id="SnapshotModal">
     <img class="modal-content" id="SnapshotModal2">
-
 </div>
 <div>
     <h4>Data Collection Overview</h4>
     <div class="color-legend" style="display:flex">
         <p align="left">
-            <font size="6" class="success">&#9679;</font>
-            <font size="4"> Successful</font>
+            <font size="6" class="ok">&#9679;</font>
+            <font size="4">Successful</font>
         </p>
         <p align="left">
-            <font size="6" class="unknown">&#9679;</font>
-            <font size="4"> Not started</font>
-        </p>
-        <p align="left">
-            <font size="6" class="failure">&#9679;</font>
-            <font size="4"> Failed</font>
+            <font size="6" class="error">&#9679;</font>
+            <font size="4">Failed</font>
         </p>
     </div>
 </div>
@@ -162,15 +154,12 @@
 <table id="datasetTable">
     <thead>
         <tr>
-            <th>Info/Process</th>
-            <th>Protein</th>
-            <th onclick="sort_alpha(this);">Sample name</th>
+            <th>Info</th>
+            <th onclick="sort_alpha(this);">Crystal</th>
             <th onclick="sort_alpha(this);">Run</th>
-
-            <th onclick="sort_score(this);">Proc Status</th>
-            <th onclick="sort_score(this);">Ref Status</th>
-            <th onclick="sort_score(this);">Lig Status</th>
-
+            <th onclick="sort_score(this);">Processing</th>
+            <th onclick="sort_score(this);">Refinement</th>
+            <th onclick="sort_score(this);">Ligand Fit</th>
             <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
             <th onclick="sort_alpha(this);">Frames</th>
             <th>Crystal Picture</th>
@@ -187,82 +176,65 @@
         <tr>
             <td>
                 <button class="btn" size="1"
-                    onclick="window.open('/dataset_info/{{dataset.image_prefix}}/{{dataset.num_images}}/{{dataset.run}}', '_blank')">
+                    onclick="window.open('/dataset_info/{{dataset.id}}', '_blank')">
                     Info
                 </button>
             </td>
 
             <td>
-                <p>{{dataset.acronym}}</p>
-            </td>
-            <td>
-                <p>{{dataset.sample_name}}</p>
+                <p>{{dataset.crystal}}</p>
             </td>
             <td>
                 <p>{{dataset.run}}</p>
             </td>
             <td>
-                {% if "pipedream_proc" in pipelines %}
+                {% if dataset.dials_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.pipedream_proc}}">&#9679;</font>
-                    <font size="2">Pipedream</font>
-                </p>
-                {% endif %}
-
-                {% if "xia2_dials" in pipelines %}
-                <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.xia2_dials}}">&#9679;</font>
+                    <font size="4" class="{{dataset.dials_result}}">&#9679;</font>
                     <font size="2">XIA2/DIALS</font>
                 </p>
                 {% endif %}
 
-                {% if "xia2_xds" in pipelines %}
+                {% if dataset.xds_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.xia2_xds}}">&#9679;</font>
+                    <font size="4" class="{{dataset.xds_result}}">&#9679;</font>
                     <font size="2">XIA2/XDS</font>
                 </p>
                 {% endif %}
 
-                {% if "xdsapp" in pipelines %}
+                {% if dataset.xdsapp_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.xdsapp}}">&#9679;</font>
+                    <font size="4" class="{{dataset.xdsapp_result}}">&#9679;</font>
                     <font size="2">XDSAPP</font>
                 </p>
                 {% endif %}
 
-                {% if "auto_proc" in pipelines %}
+                {% if dataset.autoproc_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.auto_proc}}">&#9679;</font>
+                    <font size="4" class="{{dataset.autoproc_result}}">&#9679;</font>
                     <font size="2">autoPROC</font>
                 </p>
                 {% endif %}
 
-                {% if "edna_proc" in pipelines %}
+                {% if dataset.edna_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.edna_proc}}">&#9679;</font>
+                    <font size="4" class="{{dataset.edna_result}}">&#9679;</font>
                     <font size="2">EDNA_proc</font>
                 </p>
                 {% endif %}
             </td>
 
             <td>
-                {% if "pipedream_refine" in pipelines %}
+                {% if dataset.dimple_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.pipedream_refine}}">&#9679;</font>
-                    <font size="2">Pipedream</font>
-                </p>
-                {% endif %}
-
-                {% if "dimple" in pipelines %}
-                <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.dimple}}">&#9679;</font>
+                    <font size="4" class="{{dataset.dimple_result}}">&#9679;</font>
                     <font size="2">DIMPLE</font>
                 </p>
                 {% endif %}
 
-                {% if "fspipeline" in pipelines %}
+                {% if dataset.fspipeline_result %}
                 <p align="left" style="white-space: nowrap;">
-                    <font size="4" class="{{dataset.status.fspipeline}}">&#9679;</font>
+                    <font size="4" class="{{dataset.fspipeline_result}}">&#9679;</font>
                     <font size="2">fspipeline</font>
                 </p>
                 {% endif %}
@@ -270,27 +242,18 @@
             </td>
 
             <td>
-                {% if "Apo" not in dataset.image_prefix %}
-                    {% if "pipedream_ligand" in pipelines %}
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.pipedream_ligand}}">&#9679;</font>
-                        <font size="2">Pipedream</font>
-                    </p>
-                    {% endif %}
+                {% if dataset.rhofit_result %}
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.rhofit_result}}">&#9679;</font>
+                    <font size="2">RhoFit</font>
+                </p>
+                {% endif %}
 
-                    {% if "rho_fit" in pipelines %}
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.rho_fit}}">&#9679;</font>
-                        <font size="2">RhoFit</font>
-                    </p>
-                    {% endif %}
-
-                    {% if "ligand_fit" in pipelines %}
-                    <p align="left" style="white-space: nowrap;">
-                        <font size="4" class="{{dataset.status.ligand_fit}}">&#9679;</font>
-                        <font size="2">LigandFit</font>
-                    </p>
-                    {% endif %}
+                {% if dataset.ligandfit_result %}
+                <p align="left" style="white-space: nowrap;">
+                    <font size="4" class="{{dataset.ligandfit_result}}">&#9679;</font>
+                    <font size="2">LigandFit</font>
+                </p>
                 {% endif %}
             </td>
 
@@ -298,30 +261,21 @@
                 <p>{{dataset.resolution}}</p>
             </td>
             <td>
-                <p>{{dataset.num_images}}</p>
+                <p>{{dataset.images}}</p>
             </td>
 
             <td class="snapshot_cell">
-
-                {% if dataset.snapshots.0 %}
-                <input type="hidden" value="{% static dataset.snapshots.0 %}">
-                <img class="crystalsnap" id="snap0-{{dataset.sample_name}}_{{dataset.run}}" onerror="hide_image(this)"
-                    onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
-                {% endif %}
-
-                {% if dataset.snapshots.1 %}
-                <input type="hidden" value="{% static dataset.snapshots.1 %}">
-                <img class="crystalsnap" id="snap1-{{dataset.sample_name}}_{{dataset.run}}" onerror="hide_image(this)"
-                    onclick="show_snapshots('{{dataset.sample_name}}_{{dataset.run}}');">
-                {% endif %}
+                {% for snapshot in dataset.snapshots %}
+                <input type="hidden" value="/dataset/{{dataset.id}}/snapshot/{{snapshot.index}}">
+                <img class="crystalsnap" id="snap-{{dataset.id}}_{{snapshot.index}}" onerror="hide_image(this)"
+                    onclick="show_snapshots('{{dataset.id}}');">
+                {% endfor %}
             </td>
 
             <td>
-                {% if dataset.is_apo is not True %}
-                <a href="/fragment/{{dataset.sample_name}}/image" target="_blank">
+                <a href="/fragment/{{dataset.fragment.id}}/image" target="_blank">
                     <img class="ligimg">
                 </a>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}
@@ -365,7 +319,7 @@
          * i.e. number of green circles in the table cell
          */
         Array.from(cell.children).forEach((p) => {
-            if (p.children[0].className == "success") {
+            if (p.children[0].className == "ok") {
                 score += 1;
             }
         });
@@ -435,7 +389,7 @@
     var modalImg = document.getElementById("SnapshotModal");
     var modalImg2 = document.getElementById("SnapshotModal2");
 
-    function show_snapshots(msg) {
+    function show_snapshots(dataset_id) {
         function get_img_src(img_id) {
             const img = document.getElementById(img_id);
             if (img == null) {
@@ -446,11 +400,21 @@
             return img.src;
         }
 
+        function show_snapshot_image(element, img) {
+           if (img === null) {
+               /* snapshot image not available, hide the modal image element */
+               element.style.display = "none";
+               return;
+           }
+           element.src = img;
+           element.style.display = "flex";
+        }
+
         /* get the image and insert it inside the modal */
         modal.style.display = "flex";
 
-        modalImg.src = get_img_src("snap0-" + msg);
-        modalImg2.src = get_img_src("snap1-" + msg);
+        show_snapshot_image(modalImg, get_img_src("snap-" + dataset_id + "_1"));
+        show_snapshot_image(modalImg2, get_img_src("snap-" + dataset_id + "_2"));
     }
 
     // Get the <span> element that closes the modal

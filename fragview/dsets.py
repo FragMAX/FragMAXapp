@@ -1,3 +1,4 @@
+# TODO: remove this module
 import csv
 from typing import Dict, Iterator
 from enum import Enum
@@ -189,6 +190,7 @@ def update_dataset_status(proj, tool: str, dataset: str, status: ToolStatus):
     _write_dataset_status(proj, all_status)
 
 
+# TODO: remove me!
 def get_datasets(proj) -> Iterator[DataSet]:
     ds_status = _load_datasets_status(proj)
     lines = read_csv_lines(project_data_collections_file(proj))

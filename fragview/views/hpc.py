@@ -1,10 +1,9 @@
-from glob import glob
 from datetime import datetime
 from os import path
 from pathlib import Path
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponseBadRequest
-from fragview.projects import current_project, project_logs_dir
+from fragview.projects import current_project
 from fragview.forms import KillJobForm
 from fragview import hpc
 
@@ -25,25 +24,27 @@ def kill(request):
 
 
 def jobhistory(request):
-    proj = current_project(request)
+    project = current_project(request)
     # new logs are saved with a pattern based name
     # Dataset_software_epochTime_jobID_err.txt
     logHistory = list()
 
-    log_dir = project_logs_dir(proj)
-    relative_log_dir = Path(log_dir).relative_to(proj.data_path())
+    logs_dir = project.logs_dir
+    relative_log_dir = Path(logs_dir).relative_to(project.project_dir)
 
-    for f in glob(f"{log_dir}/*out.txt"):
-        if "_" in f:
+    for file in logs_dir.glob("*out.txt"):
+        fpath = str(file)
+
+        if "_" in fpath:
             try:
-                epoch = int(f.split("/")[-1].split("_")[-3])
+                epoch = int(fpath.split("/")[-1].split("_")[-3])
             except (IndexError, ValueError):
                 # handle old-style log files,
                 # where epoch was not included into the filename
-                epoch = path.getmtime(f)
+                epoch = path.getmtime(fpath)
 
-            jobID = f.split("_")[-2]
-            logName = f.split("/")[-1].split(f"_{jobID}")[0]
+            jobID = fpath.split("_")[-2]
+            logName = fpath.split("/")[-1].split(f"_{jobID}")[0]
             errFile = Path(relative_log_dir, f"{logName}_{jobID}_err.txt")
             outFile = Path(relative_log_dir, f"{logName}_{jobID}_out.txt")
 

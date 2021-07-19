@@ -6,11 +6,12 @@ It exposes the WSGI callable as a module-level variable named ``application``.
 For more information on this file, see
 https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 """
-
-import os
-
+from os import environ
 from django.core.wsgi import get_wsgi_application
+from pony.orm import db_session
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fragmax.settings')
+environ.setdefault('DJANGO_SETTINGS_MODULE', 'fragmax.settings')
 
-application = get_wsgi_application()
+# wrap the whole app into a pony orm database session,
+# this way we can always access database from all ports of the app
+application = db_session(get_wsgi_application())

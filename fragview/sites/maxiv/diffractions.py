@@ -1,32 +1,31 @@
-from os import path
-from fragview.sites import plugin
+from pathlib import Path
+from typing import List
 
 
-class DiffractionImageMaker(plugin.DiffractionImageMaker):
-    def get_file_names(self, project, dataset, run, image_num):
-        h5_data_num = f"{image_num:06d}"
-        h5_file = _find_h5_file(project, dataset, run, h5_data_num)
-        jpeg_name = f"diffraction_{run}_{h5_data_num}.jpeg"
-
-        return h5_file, jpeg_name
-
-    def get_command(self, source_file, dest_pic_file):
-        return ["adxv", "-sa", "-slabs", "10", "-weak_data", source_file, dest_pic_file]
+# TODO: investigate if we can read this number from HDF5 files somehow
+FRAMES_PER_FILE = 100
 
 
-def _find_h5_file(proj, dataset, run, h5_data_num):
-    from fragview.projects import project_shift_dirs
+def get_diffraction_pic_command(
+    project, dataset, angle: int, dest_pic_file: Path
+) -> List[str]:
+    first_frame = int(angle / dataset.oscillation_range)
+    file_num = (first_frame // FRAMES_PER_FILE) + 1
+    slab_num = (first_frame % FRAMES_PER_FILE) + 1
 
-    for shift_dir in project_shift_dirs(proj):
-        h5_file = path.join(
-            shift_dir,
-            "raw",
-            proj.protein,
-            dataset,
-            f"{dataset}_{run}_data_{h5_data_num}.h5",
-        )
-        if path.isfile(h5_file):
-            return h5_file
+    h5_file = Path(
+        project.get_dataset_raw_dir(dataset),
+        f"{project.protein}-{dataset.name}_data_{file_num:06d}.h5",
+    )
 
-    # H5 file not found
-    raise DiffractionImageMaker.SourceImageNotFound()
+    return [
+        "adxv",
+        "-sa",
+        "-slab",
+        str(slab_num),
+        "-slabs",
+        "10",
+        "-weak_data",
+        str(h5_file),
+        str(dest_pic_file),
+    ]
