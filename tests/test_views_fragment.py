@@ -1,8 +1,8 @@
+from xml.etree import ElementTree
 from django.urls import reverse
 from django.test import TestCase
+from fragview.models import Library, Fragment
 from tests.utils import ViewTesterMixin
-from fragview.models import Fragment
-from xml.etree import ElementTree
 
 
 class TestSvg(TestCase, ViewTesterMixin):
@@ -10,8 +10,7 @@ class TestSvg(TestCase, ViewTesterMixin):
     test the view that generates SVG graphics for a fragment
     """
     def setUp(self):
-        self.setup_client()
-        self.setup_project()
+        self.setup_client([])
 
     def _assert_svg(self, svg_xml):
         """
@@ -27,17 +26,19 @@ class TestSvg(TestCase, ViewTesterMixin):
         """
         test the case when fragment is not found
         """
-        resp = self.client.get(reverse("fragment_svg", args=("None",)))
+        resp = self.client.get(reverse("fragment_svg", args=(42,)))
         self.assertEqual(404, resp.status_code)
 
     def test_frag_svg(self):
         """
         check that we can generate valid SVG for a simple fragment
         """
-        frag = Fragment(library=self.lib, name="F1", smiles="C")
+        lib = Library(name="ZeLib")
+        lib.save()
+        frag = Fragment(library=lib, code="F1", smiles="C")
         frag.save()
 
-        resp = self.client.get(reverse("fragment_svg", args=(frag.name,)))
+        resp = self.client.get(reverse("fragment_svg", args=(frag.id,)))
 
         self.assertEqual(200, resp.status_code)
         self.assertEqual(resp["Content-Type"], "image/svg+xml")

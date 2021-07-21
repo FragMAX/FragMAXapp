@@ -1,0 +1,169 @@
+from pathlib import Path
+from collections import namedtuple
+from datetime import datetime
+from fragview import models
+from fragview.projects import create_project
+from fragview.scraper import REFINE_TOOLS
+from projects.database import db_session
+
+DUMMY_START_TIME = datetime(2019, 10, 22, 12, 30)
+DUMMY_END_TIME = datetime(2019, 10, 22, 12, 31)
+
+Project = namedtuple(
+    "Project", ["protein", "proposal", "encrypted", "crystals", "datasets", "results"]
+)
+Crystal = namedtuple("Crystal", ["sample_id", "library_name", "fragment_code"])
+DataSet = namedtuple("DataSet", ["crystal_id", "run"])
+Result = namedtuple("Result", ["dataset", "tool", "input_tool", "result"])
+
+
+def _populate_fragments_db(project_desc: Project):
+    """
+    for all of project's crystals, create Library and Fragment entries
+    """
+
+    def _create_library(library_name: str) -> models.Library:
+        """
+        if no Library entry with specified name exists, create and return it
+        """
+        lib = models.Library.objects.filter(name=library_name).first()
+        if lib is None:
+            lib = models.Library(name=library_name)
+            lib.save()
+
+        return lib
+
+    def _create_fragment(library: models.Library, code: str):
+        """
+        if no Fragment with specified library and code exist, create it
+        """
+        frag = models.Fragment.objects.filter(
+            library=library,
+            code=code,
+        ).first()
+
+        if frag is None:
+            # use dummy SMILES
+            models.Fragment(library=library, code=code, smiles="CNCC1=NC=CS1").save()
+
+    for crystal in project_desc.crystals:
+        library = _create_library(crystal.library_name)
+        _create_fragment(library, crystal.fragment_code)
+
+
+@db_session
+def populate_project_db(project, project_desc: Project):
+    def find_result(dataset, tool: str):
+        # work-around for finding 'Result' with specified
+        # 'DataSet' and tool name,
+        # as normal db.Result.get() queries does not
+        # always work, for some reason
+        for res in dataset.result:
+            if res.tool == tool:
+                return res
+
+    def get_fragment_id(library_name: str, fragment_code: str) -> str:
+        frag = models.Fragment.get(library_name, fragment_code)
+        return str(frag.id)
+
+    #
+    # create 'crystals' entries
+    #
+    for crystal in project_desc.crystals:
+        project.db.Crystal(
+            id=crystal.sample_id,
+            fragment_id=get_fragment_id(crystal.library_name, crystal.fragment_code),
+            # hard-coded solvent values for now
+            solvent="DMS",
+            solvent_concentration="5%",
+        )
+
+    #
+    # create 'datasets' entries
+    #
+    for dataset in project_desc.datasets:
+        crystal = project.get_crystal(dataset.crystal_id)
+
+        project.db.DataSet(
+            crystal=crystal,
+            run=dataset.run,
+            # some hardcoded dummy values for now
+            data_root_dir="/dummy/path",
+            resolution=1.2,
+            images=1800,
+            start_time=DUMMY_START_TIME,
+            end_time=DUMMY_END_TIME,
+            wavelength=0.92,
+            phi_start=43.0,
+            oscillation_range=0.1,
+            overlap=0,
+            exposure_time=39.2,
+            detector_distance=152.44,
+            xbeam=2100.77,
+            ybeam=2120.31,
+            beam_shape="ellipse",
+            transmission=0.12,
+            slit_gap_horizontal=50.0,
+            slit_gap_vertical=50.0,
+            flux=263000000000.0,
+            beam_size_at_sample_x=50.0,
+            beam_size_at_sample_y=50.0,
+        )
+
+    #
+    # create 'results' entries
+    #
+    for result_desc in project_desc.results:
+        crystal_id, run = result_desc.dataset
+        crystal = project.get_crystal(crystal_id)
+        dataset = project.db.DataSet.get(crystal=crystal, run=run)
+
+        result = project.db.Result(
+            dataset=dataset, tool=result_desc.tool, result=result_desc.result
+        )
+
+        # if result of refine tool, and 'refine result' entry as well
+        if result_desc.tool in REFINE_TOOLS:
+            project.db.RefineResult(
+                result=result,
+                # some hardcoded dummy values for now
+                space_group="P1211",
+                resolution=1.06,
+                r_work=0.17461,
+                r_free=0.18823,
+                rms_bonds=0.015,
+                rms_angles=1.914,
+                unit_cell_a=42.38,
+                unit_cell_b=41.39,
+                unit_cell_c=72.38,
+                unit_cell_alpha=90.0,
+                unit_cell_beta=104.29,
+                unit_cell_gamma=90.0,
+                blobs="[]",
+            )
+
+            input_result = find_result(dataset, result_desc.input_tool)
+            result.input = input_result
+
+
+def create_temp_project(projects_db_dir: Path, project_desc: Project):
+    # create UserProject entry in the django database
+    user_proj = models.UserProject(proposal=project_desc.proposal)
+    user_proj.save()
+
+    # create the project database file
+    projects_db_dir.mkdir(parents=True, exist_ok=True)
+    project = create_project(
+        projects_db_dir,
+        user_proj.id,
+        project_desc.proposal,
+        project_desc.protein,
+        project_desc.encrypted,
+    )
+
+    _populate_fragments_db(project_desc)
+
+    # add entries from project description to the database
+    populate_project_db(project, project_desc)
+
+    return project

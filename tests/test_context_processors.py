@@ -1,12 +1,32 @@
 import unittest
 from unittest.mock import Mock
-from django import test
+from pathlib import Path
 from django import urls
 from fragview import context_processors
-from fragview.models import Project, Library
+from fragview.models import UserProject
+from tests.project_setup import Project
+from tests.utils import ProjectTestCase
 
 PROP1 = "2020101"
 PROP2 = "2020102"
+
+PROJECT1 = Project(
+    protein="Nsp12",
+    proposal=PROP1,
+    encrypted=False,
+    crystals=[],
+    datasets=[],
+    results=[],
+)
+
+PROJECT2 = Project(
+    protein="AR",
+    proposal=PROP2,
+    encrypted=False,
+    crystals=[],
+    datasets=[],
+    results=[],
+)
 
 
 def _get_request_mock(is_authenticated, current_project=None, session=None):
@@ -26,6 +46,7 @@ class TestSite(unittest.TestCase):
     """
     test 'site' template context processor
     """
+
     def test_logged_in(self):
         """
         check context generated when user is logged in
@@ -52,6 +73,7 @@ class TestProjectsNoUser(unittest.TestCase):
     """
     test using 'projects' template context processor when no user is logged in
     """
+
     def test_projects_ctx(self):
         ctx = context_processors.projects(_get_request_mock(False))
 
@@ -59,40 +81,46 @@ class TestProjectsNoUser(unittest.TestCase):
         self.assertEqual(ctx, {})
 
 
-class TestProjectsLoggedIn(test.TestCase):
+class TestProjectsLoggedIn(ProjectTestCase):
     """
     test using 'projects' template context processor when a user is logged in
     """
 
-    def setUp(self):
-        lib1 = Library(name="LIB1")
-        lib1.save()
-        self.proj1 = Project(protein="PRT1", library=lib1, proposal=PROP1)
-        self.proj1.save()
+    PROJECTS = [PROJECT1, PROJECT2]
 
-        lib2 = Library(name="LIB2")
-        lib2.save()
-        self.proj2 = Project(protein="PRT2", library=lib2, proposal=PROP2)
-        self.proj2.save()
+    def setUp(self):
+        super().setUp()
+
+        #
+        # set-up two dummy projects
+        #
+        self.proj_db_dir = Path(self.temp_dir, "db", "projs")
+        self.proj1 = self.projects[0]
+        self.user_proj1 = UserProject.get(self.proj1.id)
+        self.proj2 = self.projects[1]
 
         #
         # mock a request where user have access to the project created above
         # and current project is set to 'proj1' project
         #
-        self.req_mock = _get_request_mock(True,
-                                          current_project=self.proj1,
-                                          session=dict(proposals=[PROP1, PROP2]))
+        self.req_mock = _get_request_mock(
+            True,
+            current_project=self.user_proj1,
+            session=dict(proposals=[PROP1, PROP2]),
+        )
+
+    def tearDown(self):
+        self.tear_down_temp_dir()
 
     def test_projects_ctx(self):
         ctx = context_processors.projects(self.req_mock)
 
         # check that we got expected 'current project' in the context
-        self.assertEqual(ctx["project"], self.proj1)
+        self.assertEqual(ctx["project"], self.user_proj1)
 
-        # check 'user projects' list in the context
-        self.assertSetEqual(
-            {self.proj1, self.proj2},
-            set(ctx["projects"]))
+        # check 'user's projects' list in the context
+        got_proj_ids = {proj.id for proj in ctx["projects"]}
+        self.assertSetEqual({self.proj1.id, self.proj2.id}, got_proj_ids)
 
 
 class TestActiveMenu(unittest.TestCase):
@@ -100,6 +128,7 @@ class TestActiveMenu(unittest.TestCase):
     test 'active menu' template context processor, the processor
     that sets the 'active_menu' template context variable
     """
+
     def setup_req_mock(self, url):
         req_mock = Mock()
         req_mock.path_info = url

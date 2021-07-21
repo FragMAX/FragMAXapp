@@ -1,32 +1,15 @@
 import base64
 from unittest.mock import Mock
-from django import test
 from django.shortcuts import reverse
-from fragview.models import Project, Library, EncryptionKey
-from tests.utils import ViewTesterMixin
+from fragview.projects import get_project
+from projects.database import db_session
+from tests.utils import ProjectTestCase, ViewTesterMixin
+from tests.project_setup import Project
+
 
 DUMMY_KEY = b"DeadBeefCafeBabe"
 BASE64_KEY = "RGVhZEJlZWZDYWZlQmFiZQ=="
 ENCRYPTION_DISABLED = "encrypted mode disabled for current project"
-
-
-def _setup_proj(encrypted=True, key=None):
-    lib = Library(name="AVT")
-    lib.save()
-
-    proj = Project(
-        protein="PRT",
-        library=lib,
-        proposal=ViewTesterMixin.PROP1,
-        shift="20190808",
-        encrypted=encrypted,
-    )
-    proj.save()
-
-    if key is not None:
-        EncryptionKey(project=proj, key=key).save()
-
-    return proj
 
 
 def _upload_file(name, data):
@@ -37,19 +20,47 @@ def _upload_file(name, data):
     return ufile
 
 
-class TestDownloadKey(test.TestCase, ViewTesterMixin):
+class _EncryptionKeyTestCase(ProjectTestCase, ViewTesterMixin):
+    PROJECTS = [
+        # first project is encrypted
+        Project(
+            protein="Nsp5",
+            proposal="20180453",
+            encrypted=True,
+            datasets=[],
+            crystals=[],
+            results=[],
+        ),
+        # second project is in plain text
+        Project(
+            protein="Nsp5",
+            proposal="20180453",
+            encrypted=False,
+            datasets=[],
+            crystals=[],
+            results=[],
+        ),
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self.setup_client(self.proposals)
+
+
+class TestDownloadKey(_EncryptionKeyTestCase):
     """
     test download_key() view
     """
 
-    def setUp(self):
-        self.setup_client()
-
+    @db_session
     def test_unencrypted_project(self):
         """
         test downloading key for unencrypted project
         """
-        _setup_proj(encrypted=False)
+        # switch 'current project' to the second, unencrypted one
+        self.set_current_project(self.projects[1].id)
+
+        # try to get encryption key
         resp = self.client.get("/encryption/key/")
 
         # check that we got error response
@@ -59,18 +70,20 @@ class TestDownloadKey(test.TestCase, ViewTesterMixin):
         """
         test downloading key for an encrypted project with no key uploaded
         """
-        _setup_proj()
-        resp = self.client.get("/encryption/key/")
+        # drop the key
+        self.forget_key()
+
+        with db_session:
+            resp = self.client.get("/encryption/key/")
 
         # check that we got error response
-        self.assertEqual(400, resp.status_code)
-        self.assertEquals(b"no key uploaded", resp.content)
+        self.assert_response(resp, 400, "no key uploaded")
 
+    @db_session
     def test_key_exists(self):
         """
         test downloading key when project is encrypted and have key uploaded
         """
-        _setup_proj(key=DUMMY_KEY)
         resp = self.client.get("/encryption/key/")
 
         #
@@ -80,14 +93,14 @@ class TestDownloadKey(test.TestCase, ViewTesterMixin):
 
         self.assertEquals(resp["content-type"], "application/force-download")
         self.assertEquals(
-            resp["Content-Disposition"], 'attachment; filename="PRTAVT_key"'
+            resp["Content-Disposition"], 'attachment; filename="Nsp5_20180453_key"'
         )
 
         # we should get our key, base64 encoded
-        self.assertEquals(base64.b64decode(resp.content), DUMMY_KEY)
+        self.assertEquals(base64.b64decode(resp.content), self.project.encryption_key)
 
 
-class TestUploadKey(test.TestCase, ViewTesterMixin):
+class TestUploadKey(_EncryptionKeyTestCase):
     """
     test upload_key() view
     """
@@ -95,14 +108,16 @@ class TestUploadKey(test.TestCase, ViewTesterMixin):
     URL = "/encryption/key/upload/"
 
     def setUp(self):
-        self.setup_client()
+        super().setUp()
         self.upload_file = _upload_file("FooKey", BASE64_KEY)
 
+    @db_session
     def test_not_encrypted(self):
         """
         test the case where upload key for project with encryption disabled
         """
-        _setup_proj(encrypted=False)
+        # switch 'current project' to the second, unencrypted one
+        self.set_current_project(self.projects[1].id)
 
         resp = self.client.post(
             self.URL, dict(method="upload_file", key=self.upload_file)
@@ -110,11 +125,12 @@ class TestUploadKey(test.TestCase, ViewTesterMixin):
         # check that we got error message
         self.assert_bad_request(resp, ENCRYPTION_DISABLED)
 
+    @db_session
     def test_no_key_provided(self):
         """
         test making request without providing encryption key file
         """
-        _setup_proj(encrypted=True)
+        self.forget_key()
 
         resp = self.client.post(self.URL)
         # check that we got error message
@@ -124,75 +140,66 @@ class TestUploadKey(test.TestCase, ViewTesterMixin):
         """
         test happy path for uploading encryption key
         """
-        proj = _setup_proj(encrypted=True)
+        with db_session:
+            resp = self.client.post(
+                self.URL, dict(method="upload_file", key=self.upload_file)
+            )
 
-        resp = self.client.post(
-            self.URL, dict(method="upload_file", key=self.upload_file)
-        )
+        with db_session:
+            # check that key was saved to database,
+            # we need to reload project model in a new session
+            project = get_project(self.projects_db_dir, self.project.id)
+            self.assertEquals(project.encryption_key, DUMMY_KEY)
 
-        # check that key was save to database
-        enc_key = Project.get(proj.id).encryption_key
-        self.assertEquals(enc_key.key, DUMMY_KEY)
-
-        # check that we were redirected to correct view
-        self.assertRedirects(resp, reverse("encryption"))
+            # check that we were redirected to correct view
+            self.assertRedirects(resp, reverse("encryption"))
 
 
-class TestForgetKey(test.TestCase, ViewTesterMixin):
+class TestForgetKey(_EncryptionKeyTestCase):
     """
     test forget_key() view
     """
 
-    def setUp(self):
-        self.setup_client()
-
+    @db_session
     def test_not_encrypted(self):
         """
         test forgetting key for un-encrypted project
         """
-        _setup_proj(encrypted=False)
+        # switch 'current project' to the second, unencrypted one
+        self.set_current_project(self.projects[1].id)
 
         resp = self.client.get("/encryption/key/forget/")
 
         self.assert_bad_request(resp, ENCRYPTION_DISABLED)
 
-    def test_no_key(self):
-        """
-        test forgetting key for project which current have no key uploaded
-        """
-        _setup_proj(encrypted=True, key=None)
-
-        resp = self.client.get("/encryption/key/forget/")
-
-        self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, b"no key uploaded")
-
     def test_success(self):
-        proj = _setup_proj(encrypted=True, key=DUMMY_KEY)
+        with db_session:
+            resp = self.client.get("/encryption/key/forget/")
 
-        resp = self.client.get("/encryption/key/forget/")
+        with db_session:
+            # check that key was removed from the database,
+            # we need to reload project model in a new session
+            project = get_project(self.projects_db_dir, self.project.id)
+            self.assertFalse(project.has_encryption_key())
 
-        # check that key was removed from the database
-        self.assertFalse(Project.get(proj.id).has_encryption_key())
-        # check that we were redirected to correct view
-        self.assertRedirects(resp, reverse("encryption"))
+            # check that we were redirected to correct view
+            self.assertRedirects(resp, reverse("encryption"))
 
 
-class TestShow(test.TestCase, ViewTesterMixin):
+class TestShow(_EncryptionKeyTestCase):
     """
     test show() view
     """
 
     URL = reverse("encryption")
 
-    def setUp(self):
-        self.setup_client()
-
+    @db_session
     def test_not_encrypted(self):
         """
         test the case where we load view for project with encryption disabled
         """
-        _setup_proj(encrypted=False)
+        # switch 'current project' to the second, unencrypted one
+        self.set_current_project(self.projects[1].id)
 
         resp = self.client.get(self.URL)
         # check that we got error message
@@ -202,19 +209,19 @@ class TestShow(test.TestCase, ViewTesterMixin):
         """
         test case when project don't have a key
         """
-        _setup_proj(encrypted=True)
+        self.forget_key()
 
-        resp = self.client.get(self.URL)
+        with db_session:
+            resp = self.client.get(self.URL)
 
         self.assertEquals(resp.status_code, 200)
         self.assert_contains_template(resp, "fragview/upload_enc_key.html")
 
+    @db_session
     def test_has_key(self):
         """
         test case when project have a key
         """
-        _setup_proj(encrypted=True, key=DUMMY_KEY)
-
         resp = self.client.get(self.URL)
 
         self.assertEquals(resp.status_code, 200)

@@ -1,66 +1,18 @@
-from os import path
-import unittest
-from unittest import mock
 from django import test
 from django.test.client import RequestFactory
-from fragview import forms
-from fragview.sites import SITE
 from django.core.files.uploadedfile import SimpleUploadedFile
-from fragview import projects
-from fragview.models import Project
+from fragview import forms
+from fragview.crystals import Crystal
+from fragview.models import Library, Fragment
 
 
 PROPOSAL = "12345678"
 PROTEIN = "MyProt"
 LIBRARY = "JBS"
-SHIFT_1 = "00000001"
-SHIFT_2 = "00000002"
-
-
-def is_dir_mock(non_exist_dir):
-    """
-    construct an 'os.path.isdir()' mock, which returns
-    false for the 'non_exist_dir' path, and true otherwise
-    """
-
-    def _isdir(dir):
-        return dir != non_exist_dir
-
-    return _isdir
-
-
-class ProjFormTesterMixin:
-    """
-    Utility Mixin for testing Project Form class
-    """
-
-    ReqsFactory = RequestFactory()
-
-    def _request(
-        self,
-        protein=PROTEIN,
-        library_name=LIBRARY,
-        root=PROPOSAL,
-        subdirs=f"{SHIFT_1},{SHIFT_2}",
-        fragmenst_file_data="B2a,N#Cc1c(cccc1)O",
-        encrypted=False,
-    ):
-
-        req = self.ReqsFactory.post(
-            "/",  # we don't really care about the URL here
-            dict(
-                protein=protein,
-                library_name=library_name,
-                root=root,
-                subdirs=subdirs,
-                encrypted=encrypted,
-            ),
-        )
-
-        frags_file = SimpleUploadedFile("frags.csv", fragmenst_file_data.encode())
-        req.FILES["fragments_file"] = frags_file
-
-        return req
+CRYSTALS_CSV = b"""SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
+F001,JBS,j001,DMS,5%
+F002,JBS,j002,DMS,6%
+"""
 
 
 class JobsFormTesterMixin:
@@ -166,64 +118,37 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
         self.assertEqual(form.custom_fspipe, "")
 
 
-class TestProjectFormSave(test.TestCase, ProjFormTesterMixin):
-    def save_form(self, encrypted=False):
-        """
-        create project form and save it as pending project
+class TestProjectForm(test.TestCase):
+    ReqsFactory = RequestFactory()
 
-        :return: created 'Project' database model object
-        """
-        request = self._request(encrypted=encrypted)
+    def _request(
+        self,
+        protein=PROTEIN,
+        proposal=PROPOSAL,
+        crystals_csv_data=CRYSTALS_CSV,
+        autoproc=True,
+    ):
+        req = self.ReqsFactory.post(
+            "/",  # we don't really care about the URL here
+            dict(
+                protein=protein,
+                proposal=proposal,
+                autoproc=autoproc,
+            ),
+        )
 
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
+        crystals_file = SimpleUploadedFile(f"{protein}.csv", crystals_csv_data)
+        req.FILES["crystals_csv_file"] = crystals_file
 
-        with mock.patch("os.path.isdir") as isdir:
-            # mock isdir() to report that all directories exist
-            isdir.return_value = True
+        return req
 
-            # validate form to populate 'clean_data' fields
-            valid = proj_form.is_valid()
-            self.assertTrue(valid)  # sanity check that form _is_ valid
+    def setUp(self):
+        lib = Library(name="JBS")
+        lib.save()
 
-            return proj_form.save()
-
-    def test_save(self):
-        """
-        test saving project form, and check
-        that the database was updated
-        """
-        proj = self.save_form()
-
-        # check that database entry looks reasonable
-        db_proj = Project.get(proj_id=proj.id)
-        self.assertEqual(db_proj.protein, PROTEIN)
-        self.assertEqual(db_proj.proposal, PROPOSAL)
-        self.assertEqual(db_proj.library.name, LIBRARY)
-        self.assertFalse(db_proj.encrypted)
-        self.assertIsNone(db_proj.encryption_key)
-
-    def test_save_encrypted(self):
-        """
-        test saving project form, with encryption enabled, and check
-        that the database was updated
-        """
-        proj = self.save_form(encrypted=True)
-
-        # check that database entry looks reasonable
-        db_proj = Project.get(proj_id=proj.id)
-        self.assertEqual(db_proj.protein, PROTEIN)
-        self.assertEqual(db_proj.proposal, PROPOSAL)
-        self.assertEqual(db_proj.library.name, LIBRARY)
-        self.assertTrue(db_proj.encrypted)
-        self.assertIsNotNone(db_proj.encryption_key)
-
-
-class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
-    def _assertValidationError(self, form, field, expected_error_regexp):
-        self.assertFalse(form.is_valid())
-
-        err = form.errors[field].data[0]
-        self.assertRegex(err.message, expected_error_regexp)
+        for frag_code in ["j001", "j002"]:
+            frag = Fragment(library=lib, code=frag_code, smiles="C")
+            frag.save()
 
     def test_valid(self):
         """
@@ -232,134 +157,45 @@ class TestProjectForm(unittest.TestCase, ProjFormTesterMixin):
         request = self._request()
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-        with mock.patch("os.path.isdir") as isdir:
-            # mock isdir() to report that all directories exist
-            isdir.return_value = True
+        # check that form validates
+        self.assertTrue(proj_form.is_valid())
 
-            is_valid = proj_form.is_valid()
+        # check project settings derived by the form
+        protein, proposal, crystals, autoproc, encrypt = proj_form.get_values()
 
-            self.assertTrue(is_valid)
-
-            isdir.assert_has_calls(
-                [
-                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL)),
-                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_1)),
-                    mock.call(
-                        path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_1, "raw", PROTEIN)
-                    ),
-                    mock.call(path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_2)),
-                    mock.call(
-                        path.join(SITE.RAW_DATA_DIR, PROPOSAL, SHIFT_2, "raw", PROTEIN)
-                    ),
-                ]
-            )
-
-    def test_invalid_empty_subdirs_list(self):
-        """
-        test validating a valid form where subdirs list is empty
-        """
-        request = self._request(subdirs="")
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        is_valid = proj_form.is_valid()
-        self.assertFalse(is_valid)
-
-    def test_protein_invalid_exp(self):
-        """
-        check that invalid characters in protein acronym are caught
-        """
-        request = self._request(protein="../../fo")
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        self._assertValidationError(proj_form, "protein", "invalid characters,.*")
-
-    def test_no_library_file(self):
-        """
-        test the case when no fragment library file is provided
-        """
-        request = self._request()
-
-        with mock.patch("os.path.isdir") as isdir:
-            # mock isdir() to report that all directories exist
-            isdir.return_value = True
-
-            proj_form = forms.ProjectForm(request.POST, {})
-
-            self._assertValidationError(
-                proj_form, "fragments_file", "please specify fragments definitions file"
-            )
-
-    def test_library_file_parse_err(self):
-        """
-        test the case when provided fragment library file have parse errors
-        """
-        request = self._request(fragmenst_file_data="NO_COMMAS")
-
-        with mock.patch("os.path.isdir") as isdir:
-            # mock isdir() to report that all directories exist
-            isdir.return_value = True
-
-            proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-            self._assertValidationError(
-                proj_form, "fragments_file", "unexpected number of cells"
-            )
-
-    def test_proposal_invalid_exp(self):
-        """
-        check that invalid characters in proposal number are caught
-        """
-        request = self._request(root="kiwi")
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        self._assertValidationError(
-            proj_form, "root", "invalid Proposal Number 'kiwi', should be 8 digits"
+        self.assertEqual(protein, PROTEIN)
+        self.assertEqual(proposal, PROPOSAL)
+        self.assertTrue(autoproc)
+        self.assertFalse(encrypt)
+        self.assertListEqual(
+            crystals.as_list(),
+            [
+                Crystal(
+                    SampleID="F001",
+                    FragmentLibrary="JBS",
+                    FragmentCode="j001",
+                    Solvent="DMS",
+                    SolventConcentration="5%",
+                ),
+                Crystal(
+                    SampleID="F002",
+                    FragmentLibrary="JBS",
+                    FragmentCode="j002",
+                    Solvent="DMS",
+                    SolventConcentration="6%",
+                ),
+            ],
         )
 
-    def test_shift_list_invalid_exp(self):
+    def test_invalid_crystals_csv(self):
         """
-        check that invalid characters one of the shifts in the shifts list are caught
+        test validating a valid form
         """
-        request = self._request(subdirs=f"{SHIFT_1},moin")
+        request = self._request(crystals_csv_data=b"Foo, bar")
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
-        self._assertValidationError(proj_form, "subdirs", "invalid shift 'moin',.*")
+        # the form should be invalid
+        self.assertFalse(proj_form.is_valid())
 
-    def test_proposal_not_found(self):
-        """
-        test specifying non-existing proposal
-        """
-        request = self._request()
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        _isdir = is_dir_mock(projects.proposal_dir(PROPOSAL))
-        with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(proj_form, "root", "proposal '.*' not found")
-
-    def test_shift_not_found(self):
-        """
-        test specifying non-existing shift in the shifts list field
-        """
-        request = self._request()
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        _isdir = is_dir_mock(projects.shift_dir(PROPOSAL, SHIFT_2))
-        with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(
-                proj_form, "subdirs", f"shift '{SHIFT_2}' not found"
-            )
-
-    def test_protein_not_found(self):
-        """
-        test specifying protein acronym, for which no data directory exist
-        """
-        request = self._request()
-        proj_form = forms.ProjectForm(request.POST, request.FILES)
-
-        _isdir = is_dir_mock(projects.protein_dir(PROPOSAL, SHIFT_1, PROTEIN))
-        with mock.patch("os.path.isdir", _isdir):
-            self._assertValidationError(
-                proj_form,
-                "subdirs",
-                "shift '00000001' have no data for protein 'MyProt'",
-            )
+        # we should get an error about invalid CSV
+        self.assertRegex(proj_form.get_error_message(), "^Could not parse Crystals CSV")

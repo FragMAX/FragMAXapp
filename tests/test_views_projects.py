@@ -1,163 +1,71 @@
+from typing import List
+import unittest
 from unittest import mock
-from django import test
+from fragview import crystals
+from fragview.models import Library, UserProject, Fragment, User
+from tests.utils import ProjectTestCase, ViewTesterMixin
+from tests.project_setup import Project, DataSet, Crystal
+from projects.database import db_session
 
-from fragview.models import Library, Project, PendingProject, User
-from tests.utils import ViewTesterMixin
+AR_CSV = """SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
+X0001,TSLib,T0,DMS,5%
+X0002,TSLib,T1,DMS,6%
+X0003,TSLib,T2,DMS,8%
+"""
 
-PROTO = "PRTN"
-LIBRARY = "JBSD"
-SHIFT = "12345678"
-SHIFT2 = "00001111"
+PROTO = "AR"
 
 
-class _ProjectTestCase(test.TestCase, ViewTesterMixin):
+class TestListProjects(ProjectTestCase, ViewTesterMixin):
+    PROJECTS = [
+        Project(
+            protein="PRT",
+            proposal="20180453",
+            encrypted=False,
+            crystals=[
+                Crystal("X01", "TstLib", "VT0"),
+            ],
+            datasets=[
+                DataSet("X01", 1),
+            ],
+            results=[],
+        ),
+        Project(
+            protein="AST",
+            proposal="20284208",
+            encrypted=False,
+            crystals=[
+                Crystal("X02", "TstLib", "VT1"),
+            ],
+            datasets=[
+                DataSet("X02", 1),
+            ],
+            results=[],
+        ),
+    ]
+
     def setUp(self):
-        self.setup_client()
+        super().setUp()
+        self.setup_client(self.proposals)
 
-    def assert_field_required_error(self, response, field_name):
-        """
-        check that response's context contains the
-          'field is required'
-        error message for specifield field
-        """
-        form_errs = response.context["form"].errors
-        self.assertIn("This field is required", form_errs[field_name].as_text())
-
-
-class TestListProjects(_ProjectTestCase):
-    @staticmethod
-    def _save_projs(*proj_mods):
-        """
-        save projects models to database, return set of project IDs
-        """
-        ids = set()
-        for proj in proj_mods:
-            proj.save()
-            ids.add(proj.id)
-
-        return ids
-
+    @db_session
     def test_list(self):
-        lib = Library(name="JBS")
-        lib.save()
 
-        proj_ids = self._save_projs(
-            Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808"),
-            Project(protein="AST", library=lib, proposal=self.PROP1, shift="20190808"))
+        expected_proj_ids = {proj.id for proj in self.projects}
 
         resp = self.client.get("/projects/")
 
         # check listed project by comparing IDs
-        listed_proj_ids = set([p.id for p in resp.context["projects"]])
-        self.assertSetEqual(proj_ids, listed_proj_ids)
+        listed_proj_ids = {p.id for p in resp.context["projects"]}
+        self.assertSetEqual(expected_proj_ids, listed_proj_ids)
 
         self.assert_contains_template(resp, "fragview/projects.html")
 
 
-class TestEditNotFound(_ProjectTestCase):
-    """
-    testing getting/posting to a project edit page with invalid project ID
-    """
+class TestNewErrs(unittest.TestCase, ViewTesterMixin):
     def setUp(self):
-        super().setUp()
-        lib = Library(name="JBS")
-        lib.save()
-        Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808").save()
+        self.setup_client()
 
-    def test_get(self):
-        resp = self.client.get("/project/23/")
-        self.assertEqual(404, resp.status_code)
-
-    def test_post(self):
-        resp = self.client.post("/project/23/", dict(action="modify"))
-        self.assertEqual(404, resp.status_code)
-
-
-class TestEdit(_ProjectTestCase):
-    def setUp(self):
-        super().setUp()
-
-        lib = Library(name="JBS")
-        lib.save()
-
-        self.proj = Project(protein="PRT", library=lib,
-                            proposal=self.PROP1, shift=SHIFT)
-        self.proj.save()
-        self.url = f"/project/{self.proj.id}/"
-
-    def test_invalid_action(self):
-        resp = self.client.post(self.url, dict(action="oranges"))
-
-        self.assertEqual(400, resp.status_code)
-        self.assertEqual(resp.content, b"unexpected action 'oranges'")
-
-    def test_delete(self):
-        resp = self.client.post(self.url, dict(action="delete"))
-
-        # check that the project was deleted
-        self.assertFalse(Project.objects.filter(id=self.proj.id).exists())
-
-        # check that we were redirected to 'projects' page
-        self.assertEqual(302, resp.status_code)
-        self.assertEqual("/projects/", resp.url)
-
-    @mock.patch("os.path.isdir")
-    @mock.patch("fragview.views.projects.add_new_shifts")
-    def test_new_shift(self, add_task_mock, _):
-        # make sure the projects shift list is empty
-        self.assertEqual("", self.proj.shift_list)
-
-        new_shifts = f"{SHIFT},{SHIFT2}"
-
-        resp = self.client.post(self.url,
-                                dict(action="modify",
-                                     protein=self.proj.protein,
-                                     library=self.proj.library,
-                                     root=self.proj.proposal,
-                                     # we'll test setting the shift list
-                                     subdirs=new_shifts))
-
-        # check that we were redirected to 'projects' page
-        self.assertRedirects(resp, "/projects/")
-
-        # check that project's shift list was stored in the DB
-        proj = Project.objects.get(id=self.proj.id)
-        self.assertEqual(new_shifts, proj.shift_list)
-
-        # project should go into pending state
-        pend_proj = PendingProject.objects.get(project=proj.id)
-        self.assertIsNotNone(pend_proj)
-
-        # check that 'add_new_shift' task was started
-        add_task_mock.delay.assert_called_once_with(proj.id, [SHIFT2])
-
-    def test_modify_invalid(self):
-        """
-        try to modify project using invalid form data
-        """
-
-        # modify request with missing form fields
-        resp = self.client.post(self.url, dict(action="modify"))
-
-        self.assert_field_required_error(resp, "protein")
-
-        # check that we are still on the 'edit project' page
-        self.assertEqual(200, resp.status_code)
-        self.assert_contains_template(resp, "fragview/project.html")
-
-    def test_get_edit_page(self):
-        """
-        test going to the project edit page
-        """
-        # modify request with missing form fields
-        resp = self.client.get(self.url)
-
-        # check that we are still on the 'edit project' page
-        self.assertEqual(200, resp.status_code)
-        self.assert_contains_template(resp, "fragview/project.html")
-
-
-class TestNew(_ProjectTestCase):
     def test_get_new_proj_page(self):
         """
         test loading 'new project' page
@@ -165,78 +73,122 @@ class TestNew(_ProjectTestCase):
         resp = self.client.get("/project/new")
 
         self.assertEqual(200, resp.status_code)
-        self.assert_contains_template(resp, "fragview/project.html")
+        self.assert_contains_template(resp, "fragview/project_new.html")
 
     def test_new_invalid(self):
         resp = self.client.post("/project/new")
 
-        # check that we are still on 'new project' page
-        self.assertEqual(200, resp.status_code)
-        self.assert_contains_template(resp, "fragview/project.html")
-
-        # check that we at least got error message for 'protein' field
-        self.assert_field_required_error(resp, "protein")
-
-    @mock.patch("os.path.isdir")
-    @mock.patch("fragview.views.projects.setup_project_files")
-    def test_create_new(self, setup_proj_mock, isdir_mock):
-        def _frags(library):
-            return [(frag.name, frag.smiles) for frag in library.fragment_set.all()]
-
-        isdir_mock.return_value = True
-
-        # create a mocked 'file-like' object
-        frags_file = mock.Mock()
-        frags_file.name = "JBS.csv"
-        frags_file.read.return_value = "A1a,N#Cc1c(cccc1)O"
-
-        resp = self.client.post("/project/new",
-                                dict(protein=PROTO,
-                                     library_name=LIBRARY,
-                                     fragments_file=frags_file,
-                                     root=self.PROP1,
-                                     subdirs=SHIFT))
-
-        # check that we were redirected to 'projects' page
-        self.assertRedirects(resp, "/projects/")
-
-        # check that project saved in the database looks good
-        proj = Project.objects.get(protein=PROTO)
-        self.assertEqual(LIBRARY, proj.library.name)
-        self.assertListEqual(_frags(proj.library),
-                             [("A1a", "N#Cc1c(cccc1)O")])
-        self.assertEqual(self.PROP1, proj.proposal)
-        self.assertEqual(SHIFT, proj.shift)
-
-        # project should be in 'pending' state
-        self.assertTrue(PendingProject.objects.filter(project=proj.id).exists())
-
-        # check that 'set-up project files' task have been started
-        setup_proj_mock.delay.assert_called_once_with(proj.id)
+        # we normally fail on crystal CSV first
+        self.assert_bad_request(resp, "Could not parse Crystals CSV")
 
 
-class TestSetCurrent(_ProjectTestCase):
+def _crystals_csv_mock():
+    # create a mocked 'file-like' object
+    csv_file = mock.Mock()
+    csv_file.name = "AR.csv"
+    csv_file.read.return_value = AR_CSV
+
+    return csv_file
+
+
+class TestNew(ProjectTestCase, ViewTesterMixin):
+    PROJECTS: List = []
+    CRYSTALS = [
+        crystals.Crystal(  # type: ignore
+            SampleID="X0001",
+            FragmentLibrary="TSLib",
+            FragmentCode="T0",
+            Solvent="DMS",
+            SolventConcentration="5%",
+        ),
+        crystals.Crystal(  # type: ignore
+            SampleID="X0002",
+            FragmentLibrary="TSLib",
+            FragmentCode="T1",
+            Solvent="DMS",
+            SolventConcentration="6%",
+        ),
+        crystals.Crystal(  # type: ignore
+            SampleID="X0003",
+            FragmentLibrary="TSLib",
+            FragmentCode="T2",
+            Solvent="DMS",
+            SolventConcentration="8%",
+        ),
+    ]
+
+    def _setup_frags_lib(self):
+        library = Library(name="TSLib")
+        library.save()
+
+        for n in range(3):
+            Fragment(library=library, code=f"T{n}", smiles="C").save()
+
     def setUp(self):
         super().setUp()
-        lib = Library(name="JBS")
-        lib.save()
+        self.setup_client()
+        self._setup_frags_lib()
 
-        self.proj = Project(protein="PRT", library=lib, proposal=self.PROP1, shift="20190808")
-        self.proj.save()
+    @mock.patch("fragview.views.projects.setup_project.delay")
+    def test_create_new(self, setup_project_mock):
+        resp = self.client.post(
+            "/project/new",
+            dict(
+                protein=PROTO,
+                proposal=self.PROP1,
+                crystals_csv_file=_crystals_csv_mock(),
+            ),
+        )
 
+        # check that we got 'ok' response
+        self.assert_response(resp, 200, "^ok")
+
+        # check that 'create project' worker was invoked
+        # with resonable arguments
+        user_proj = UserProject.objects.get(proposal=self.PROP1)
+        setup_project_mock.assert_called_once_with(
+            str(user_proj.id), PROTO, self.PROP1, self.CRYSTALS, False, False
+        )
+
+
+class TestSetCurrent(ProjectTestCase, ViewTesterMixin):
+    PROJECTS = [
+        Project(
+            protein="PRT",
+            proposal="20180453",
+            encrypted=False,
+            crystals=[],
+            datasets=[],
+            results=[],
+        ),
+        Project(
+            protein="AST",
+            proposal="20284208",
+            encrypted=False,
+            crystals=[],
+            datasets=[],
+            results=[],
+        ),
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self.setup_client(self.proposals)
+
+    @db_session
     def test_set(self):
-        resp = self.client.post(f"/project/current/{self.proj.id}/")
+        resp = self.client.post(f"/project/current/{self.project.id}/")
 
         # we expected to be redirected to site's root page
-        self.assertRedirects(resp, "/")
+        self.assertRedirects(resp, "/", fetch_redirect_response=False)
 
         # check that current project was stored in the DB
         usr = User.objects.get(id=self.user.id)
-        self.assertEqual(usr.current_project.id, self.proj.id)
+        self.assertEqual(usr.current_project.id, self.project.id)
 
     def test_set_invalid(self):
         invalid_id = 1234
-        self.assertFalse(Project.objects.filter(id=invalid_id).exists())
+        self.assertFalse(UserProject.objects.filter(id=invalid_id).exists())
 
         # we should got '404 not found' reply
         resp = self.client.post(f"/project/current/{invalid_id}/")

@@ -9,7 +9,6 @@ TEST_COMMIT_DESC = "0cafe00 (tag: maxiv_r99) fixed them all"
 class TestCommit(TestCase, ViewTesterMixin):
     def setUp(self):
         self.setup_client()
-        self.setup_project()
 
     @patch("pathlib.Path.is_file")
     @patch("pathlib.Path.read_text")

@@ -1,27 +1,18 @@
 import unittest
 from io import BytesIO
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, ANY
 from django import test
 from django.urls import reverse
 from fragview.views import pdbs
-from fragview.models import Project, Library, PDB
+from projects.database import db_session, commit
 from tests.utils import ViewTesterMixin
+from tests.utils import ProjectTestCase
 
 
-def _add_pdbs(project):
-    pdb1 = PDB(project=project, filename="foo.pdb")
-    pdb1.save()
-
-    pdb2 = PDB(project=project, filename="bar.pdb")
-    pdb2.save()
-
-    return [pdb1, pdb2]
-
-
-class _PDBViewTester(test.TestCase, ViewTesterMixin):
+class _PDBViewTester(ProjectTestCase, ViewTesterMixin):
     def setUp(self):
-        self.setup_client()
-        self.setup_project()
+        super().setUp()
+        self.setup_client(self.proposals)
 
 
 class TestIsValidPDBFilename(unittest.TestCase):
@@ -44,7 +35,7 @@ class TestIsValidPDBFilename(unittest.TestCase):
         self.assertFalse(pdbs._is_valid_pdb_filename("No_or-please.pdb"))
 
 
-class TestAddPdbEntry(test.TestCase):
+class TestAddPdbEntry(_PDBViewTester):
     """
     test _add_pdb_entry() function
     """
@@ -52,20 +43,15 @@ class TestAddPdbEntry(test.TestCase):
     PDB_NAME = "9876.pdb"
 
     def test_duplicate_entry(self):
-        lib = Library(name="JBS")
-        lib.save()
+        with db_session:
+            pdbs._add_pdb_entry(self.project, self.PDB_NAME)
 
-        proj = Project(
-            protein="PRT", library=lib, proposal="20210102", shift="20190808"
-        )
-        proj.save()
-
-        pdbs._add_pdb_entry(proj, self.PDB_NAME)
-
-        with self.assertRaisesRegex(
-            pdbs.PDBAddError, "^Model file '9876.pdb' already exists in the project."
-        ):
-            pdbs._add_pdb_entry(proj, self.PDB_NAME)
+        with db_session:
+            with self.assertRaisesRegex(
+                pdbs.PDBAddError,
+                "^Model file '9876.pdb' already exists in the project.",
+            ):
+                pdbs._add_pdb_entry(self.project, self.PDB_NAME)
 
 
 class TestListView(_PDBViewTester):
@@ -73,6 +59,7 @@ class TestListView(_PDBViewTester):
     test 'manage PDBs' view
     """
 
+    @db_session
     def test_no_pdbs(self):
         """
         the case when project does not have any PDBs
@@ -82,29 +69,13 @@ class TestListView(_PDBViewTester):
         # check template used
         self.assert_contains_template(resp, "fragview/pdbs.html")
 
-        # check that PDBs list is empty
-        self.assertEqual(resp.context["pdbs"].count(), 0)
-
-    def test_have_pdbs(self):
-        """
-        the case when project have a couple of PDBs
-        """
-        pdbs = _add_pdbs(self.proj)
-
-        resp = self.client.get(reverse("manage_pdbs"))
-
-        # check template used
-        self.assert_contains_template(resp, "fragview/pdbs.html")
-
-        # check that we get the expected PDBs listed
-        self.assertSetEqual(set(resp.context["pdbs"]), set(pdbs))
-
 
 class TestAddView(_PDBViewTester):
     """
     test 'Add new PDB' page view
     """
 
+    @db_session
     def test_add(self):
         resp = self.client.get("/pdb/add")
 
@@ -122,17 +93,18 @@ class TestEditView(_PDBViewTester):
         """
         test loading the 'PDB info' page
         """
-        pdb = PDB(project=self.proj, filename="moin.pdb")
-        pdb.save()
+        pdb = self.add_pdb("moin.pdb")
 
-        resp = self.client.get(f"/pdb/{pdb.id}")
+        with db_session:
+            resp = self.client.get(f"/pdb/{pdb.id}")
 
-        # check template used
-        self.assert_contains_template(resp, "fragview/pdb.html")
+            # check template used
+            self.assert_contains_template(resp, "fragview/pdb.html")
 
-        # check that PDB in the context is correct one
-        self.assertEqual(resp.context["pdb"].id, pdb.id)
+            # check that PDB in the context is correct one
+            self.assertEqual(resp.context["pdb"].id, pdb.id)
 
+    @db_session
     def test_pdb_not_found(self):
         """
         test loading 'PDB info' page for unknown PDB
@@ -141,46 +113,46 @@ class TestEditView(_PDBViewTester):
 
         self.assertEqual(404, resp.status_code)
 
-    @patch("os.remove")
-    def test_delete(self, remove_mock):
+    @patch("pathlib.Path.unlink")
+    def test_delete(self, unlink_mock):
         """
         test deleting PDB
         """
         # add PDB to our project
-        pdb = PDB(project=self.proj, filename="moin.pdb")
-        pdb.save()
-        pdb_file = pdb.file_path()
+        pdb = self.add_pdb("main.pdb")
 
-        # make the 'delete' request
-        resp = self.client.post(f"/pdb/{pdb.id}")
+        with db_session:
+            # make the 'delete' request
+            resp = self.client.post(f"/pdb/{pdb.id}")
+            commit()
 
-        # check that PDB is removed from the database,
-        # e.g. that our project does not have any PDBs
-        self.assertEqual(PDB.project_pdbs(self.proj).count(), 0)
+            # check that PDB is removed from the database,
+            # e.g. that our project does not have any PDBs
+            self.assertIsNone(self.project.get_pdb(pdb.id))
 
-        # check redirect response
-        self.assertEqual(302, resp.status_code)
-        self.assertEqual(reverse("manage_pdbs"), resp.url)
+            # check redirect response
+            self.assertEqual(302, resp.status_code)
+            self.assertEqual(reverse("manage_pdbs"), resp.url)
 
-        # check call to mock
-        remove_mock.assert_called_once_with(pdb_file)
+            # check call to mock
+            unlink_mock.assert_called()
 
 
 class TestGetView(_PDBViewTester):
     DATA = b"orange vs kiwi"
 
+    @db_session
     def test_unknown_id(self):
         resp = self.client.post("/pdb/get/42")
         self.assert_not_found_response(resp, ".")
 
     def test_success(self):
-        pdb = PDB(project=self.proj, filename="foo.pdb")
-        pdb.save()
+        pdb = self.add_pdb("foo.pdb")
 
-        with patch("fragview.views.utils.open") as open_mock:
-            open_mock.return_value = BytesIO(self.DATA)
-
-            resp = self.client.post(f"/pdb/get/{pdb.id}")
+        with db_session:
+            with patch("fragview.views.utils.open") as open_mock:
+                open_mock.return_value = BytesIO(self.DATA)
+                resp = self.client.post(f"/pdb/get/{pdb.id}")
 
         self.assert_file_response(resp, self.DATA)
 
@@ -190,6 +162,7 @@ class TestNewView(_PDBViewTester):
     PDB_ID = "2ID3"
     PDB_DATA = b"fake-mews"
 
+    @db_session
     @patch("fragview.views.pdbs._save_pdb")
     def test_upload_file(self, save_pdb_mock):
         """
@@ -206,10 +179,11 @@ class TestNewView(_PDBViewTester):
         self.assertEqual(200, resp.status_code)
 
         # check that _save_pdb() was called with correct args
-        save_pdb_mock.assert_called_once_with(
-            self.proj, None, self.PDB_FILE, self.PDB_DATA
-        )
+        save_pdb_mock.assert_called_once_with(ANY, None, self.PDB_FILE, self.PDB_DATA)
+        proj_arg = save_pdb_mock.call_args[0][0]
+        self.assertEqual(proj_arg.id, self.project.id)
 
+    @db_session
     @patch("fragview.views.pdbs._save_pdb")
     def test_fetch_online(self, save_pdb_mock):
         """
@@ -228,9 +202,12 @@ class TestNewView(_PDBViewTester):
 
             # check that _save_pdb() was called with correct args
             save_pdb_mock.assert_called_once_with(
-                self.proj, self.PDB_ID, f"{self.PDB_ID}.pdb", fetch_mock.return_value
+                ANY, self.PDB_ID, f"{self.PDB_ID}.pdb", fetch_mock.return_value
             )
+            proj_arg = save_pdb_mock.call_args[0][0]
+            self.assertEqual(proj_arg.id, self.project.id)
 
+    @db_session
     def test_invalid_new(self):
         """
         test the case of uploading PDB file with invalid file name

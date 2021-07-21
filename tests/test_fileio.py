@@ -1,15 +1,23 @@
 import os
 import stat
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 from os import path
 from tempfile import TemporaryDirectory
 from tests.utils import TempDirMixin
 from fragview import encryption
-from fragview.fileio import open_proj_file, read_proj_file, read_text_lines, write_script, read_csv_lines
+from fragview.fileio import (
+    open_proj_file,
+    read_proj_file,
+    read_text_lines,
+    write_script,
+    read_csv_lines,
+)
+from tests.utils import ProjectTestCase, Project
+from projects.database import db_session
 
-
-FILE_NAME = "some.log"
+FILE_NAME = "some.file"
 DUMMY_DATA = b"""
 Preheat oven to 425 degrees F. Whisk pumpkin, sweetened condensed milk,
 eggs, spices and salt in medium bowl until smooth. Pour into crust.
@@ -48,45 +56,64 @@ class _IOTester(unittest.TestCase):
         self.temp_dir.cleanup()
 
 
-class EncryptedTest(_IOTester):
+class EncryptedTest(ProjectTestCase):
     """
     test file I/O utility functions on a encrypted project
     """
-    ENCRYPTED = True
 
+    PROJECTS = [
+        Project(
+            protein="AR",
+            proposal="2020102",
+            encrypted=True,
+            crystals=[],
+            datasets=[],
+            results=[],
+        )
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+        self.project.project_dir.mkdir()
+        self.file_path = Path(self.project.project_dir, FILE_NAME)
+
+    @db_session
     def test_open_proj_file(self):
         """
         test open_proj_file() on encrypted project
         """
-        with open_proj_file(self.proj, self.file_path) as f:
+        with open_proj_file(self.project, self.file_path) as f:
             f.write(DUMMY_DATA)
 
         # check that it was correctly written, encrypted
-        data = encryption.decrypt(self.key, self.file_path)
+        data = encryption.decrypt(self.project.encryption_key, self.file_path)
         self.assertEqual(data, DUMMY_DATA)
 
+    @db_session
     def test_read_proj_file(self):
         """
         test open_proj_file() on encrypted project
         """
         # write test file
-        with encryption.EncryptedFile(self.key, self.file_path) as f:
+        with encryption.EncryptedFile(self.project.encryption_key, self.file_path) as f:
             f.write(DUMMY_DATA)
 
         # check that encrypted file is decrypted correctly
-        data = read_proj_file(self.proj, self.file_path)
+        data = read_proj_file(self.project, self.file_path)
         self.assertEqual(data, DUMMY_DATA)
 
+    @db_session
     def test_read_text_lines(self):
         """
         test read_text_lines() on encrypted project
         """
         # write test file
-        with encryption.EncryptedFile(self.key, self.file_path) as f:
+        with encryption.EncryptedFile(self.project.encryption_key, self.file_path) as f:
             f.write(DUMMY_DATA)
 
         # read file's lines
-        lines = read_text_lines(self.proj, self.file_path)
+        lines = read_text_lines(self.project, self.file_path)
 
         # check that we get expected lines
         self.assertListEqual(list(lines), _expected_lines())
@@ -96,6 +123,7 @@ class PlaintextTest(_IOTester):
     """
     test file I/O utility functions on a un-encrypted (plaintext) project
     """
+
     ENCRYPTED = False
 
     def test_open_proj_file(self):
@@ -137,6 +165,7 @@ class TestReadCSVLines(unittest.TestCase):
     """
     test read_csv_lines()
     """
+
     def test_func(self):
         filename = path.join(path.dirname(__file__), "data", "test.csv")
         lines = read_csv_lines(filename)
@@ -145,7 +174,7 @@ class TestReadCSVLines(unittest.TestCase):
             ["line_no", "short", "long", "score"],
             ["1", "foo1", "line 1", "1.0"],
             ["2", "foo2", "line 2", "2.2"],
-            ["3", "foo3", "line 3", "3.3"]
+            ["3", "foo3", "line 3", "3.3"],
         ]
 
         self.assertListEqual(lines, expected)
@@ -156,6 +185,7 @@ class TestWriteScript(unittest.TestCase, TempDirMixin):
     """
     test the write_script() function
     """
+
     SCRIPT_BODY = "some-dummy-script"
     SCRIPT_LONG_BODY = "some-dummy-long-body-script"
 
@@ -175,13 +205,15 @@ class TestWriteScript(unittest.TestCase, TempDirMixin):
 
         # check access mode
         mode = os.stat(self.script_path).st_mode
-        self.assertEqual(mode,
-                         # regular file
-                         stat.S_IFREG |
-                         # readable, writeable, executable by the owner
-                         stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
-                         # readable and writeable by the group
-                         stat.S_IRGRP | stat.S_IWGRP)
+        self.assertEqual(
+            mode,
+            # regular file
+            stat.S_IFREG |
+            # readable, writeable, executable by the owner
+            stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
+            # readable and writeable by the group
+            stat.S_IRGRP | stat.S_IWGRP,
+        )
 
         # check the 'log' message
         print_mock.assert_called_once_with(f"writing script file {self.script_path}")

@@ -1,239 +1,212 @@
-import shutil
+from typing import List, Tuple, Set, Iterable
 from pathlib import Path
-from unittest import TestCase
-from unittest.mock import Mock, patch
-from fragview.projects import (
-    project_results_dir,
-    project_all_status_file,
-    project_data_collections_file,
-    shift_dir,
+from django.test import TestCase
+from projects.database import db_session
+from fragview.filters import get_proc_datasets, get_refine_datasets, get_ligfit_datasets
+from tests.utils import TempDirMixin
+from tests.project_setup import create_temp_project, Project, Crystal, DataSet, Result
+
+
+PROJECT = Project(
+    protein="Nsp12",
+    proposal="20301299",
+    encrypted=False,
+    crystals=[
+        Crystal("X01", "VTL", "VT0"),
+        Crystal("X02", "FTL", "FL0"),
+        Crystal("X03", "FTL", "FL1"),
+        Crystal("X04", "FTL", "FL2"),
+        Crystal("X05", "FTL", "FL2"),
+    ],
+    datasets=[
+        DataSet("X01", 1),
+        DataSet("X01", 2),
+        DataSet("X02", 1),
+        DataSet("X03", 1),
+        DataSet("X04", 1),
+        DataSet("X05", 1),
+    ],
+    results=[
+        Result(dataset=("X01", 1), tool="edna", input_tool=None, result="ok"),
+        Result(dataset=("X02", 1), tool="edna", input_tool=None, result="ok"),
+        Result(dataset=("X03", 1), tool="dimple", input_tool=None, result="ok"),
+        Result(dataset=("X03", 1), tool="rhofit", input_tool=None, result="ok"),
+        Result(dataset=("X04", 1), tool="ligandfit", input_tool=None, result="ok"),
+    ],
 )
-from fragview.filters import (
-    get_proc_datasets,
-    get_refine_datasets,
-    get_ligfit_datasets,
-)
-from tests.utils import data_file_path, TempDirMixin
 
 
-PROTEIN = "PrtK"
-PROPOSAL = "20180479"
-SHIFTS = ["20191022", "20191023"]
-DATASETS = [
-    "PrtK-Apo14_1",
-    "PrtK-Apo9_1",
-    "PrtK-JBS-G8a_1",
-    "PrtK-JBS-F3a_1",
-    "PrtK-JBS-D10a_1",
-    "PrtK-JBS-D12a_1",
-]
+class _FilterTestCase(TestCase, TempDirMixin):
+    ALL_DATASETS = [
+        DataSet("X01", 1),
+        DataSet("X01", 2),
+        DataSet("X02", 1),
+        DataSet("X03", 1),
+        DataSet("X04", 1),
+        DataSet("X05", 1),
+    ]
 
-Site = Mock()
-Site.get_project_datasets.return_value = DATASETS
-
-
-def _copy_csv_files(proj):
-    all_stat = Path(project_all_status_file(proj))
-    all_stat.parent.mkdir(parents=True)
-
-    shutil.copy(data_file_path("allstatus.csv"), all_stat)
-    shutil.copy(
-        data_file_path("datacollections.csv"), project_data_collections_file(proj)
-    )
-
-
-def _create_result_dirs(proj):
-    #
-    # create results dirs for some datasets
-    #
-    res_dir = project_results_dir(proj)
-
-    # dataset #0 (PrtK-Apo14_1)
-    apo14_res_dir = Path(res_dir, DATASETS[0])
-    apo14_res_dir.mkdir(parents=True)
-
-    # dataset #2 (PrtK-JBS-G8a_1)
-    g8a_res_dir = Path(res_dir, DATASETS[2])
-    g8a_res_dir.mkdir(parents=True)
-
-    # dataset #3 (PrtK-JBS-F3a_1)
-    f3a_res_dir = Path(res_dir, DATASETS[3])
-    f3a_res_dir.mkdir(parents=True)
-
-    # dataset #5 (PrtK-JBS-D12a_1)
-    d12a_res_dir = Path(res_dir, DATASETS[5])
-    d12a_res_dir.mkdir(parents=True)
-
-
-def _create_pdbs(proj):
-    #
-    # create some (dummy) final.pdb files inside result dirs
-    # for a couple of datasets
-    #
-
-    def _touch(file_path):
-        file_path.parent.mkdir(parents=True)
-        file_path.touch()
-
-    res_dir = project_results_dir(proj)
-
-    # dataset #0 (PrtK-Apo14_1)
-    apo14_res_dir = Path(res_dir, DATASETS[0])
-    _touch(Path(apo14_res_dir, "dials", "fspipeline", "final.pdb"))
-    _touch(Path(apo14_res_dir, "dials", "dimple", "final.pdb"))
-    _touch(Path(apo14_res_dir, "xdsapp", "dimple", "final.pdb"))
-
-    # dataset #3 (PrtK-JBS-F3a_1)
-    f3a_res_dir = Path(res_dir, DATASETS[3])
-    _touch(Path(f3a_res_dir, "autoproc", "dimple", "final.pdb"))
-    _touch(Path(f3a_res_dir, "dials", "dimple", "final.pdb"))
-
-    # create one folder named 'final.pdb', to check that we only find
-    # PDB _files_ when listing final PDBs for ligfit tools
-    d12a_res_dir = Path(res_dir, DATASETS[5])
-    Path(d12a_res_dir, "dials", "dimple", "final.pdb").mkdir(parents=True)
-
-
-class _FiltersTester(TestCase, TempDirMixin):
     def setUp(self):
         self.setup_temp_dir()
-        Site.PROPOSALS_DIR = self.temp_dir
-
-        with patch("fragview.projects.SITE", Site):
-            self.proj = Mock()
-            self.proj.protein = PROTEIN
-            self.proj.proposal = PROPOSAL
-            self.proj.shifts.return_value = SHIFTS
-            self.proj.data_path.return_value = shift_dir(PROPOSAL, SHIFTS[0])
-
-            _create_result_dirs(self.proj)
-
-        _copy_csv_files(self.proj)
-        _create_pdbs(self.proj)
+        self.project = create_temp_project(Path(self.temp_dir, "db", "projs"), PROJECT)
 
     def tearDown(self):
         self.tear_down_temp_dir()
 
+    def assert_datasets(self, expected: List[DataSet], got):
+        got_list = []
+        for dataset in got:
+            got_list.append(DataSet(dataset.crystal.id, dataset.run))
 
-@patch("fragview.projects.SITE", Site)
-class TestGetProcDatasets(_FiltersTester):
+        self.assertListEqual(expected, got_list)
+
+    def get_dataset_ids(self, first: int, last: int) -> Tuple[Set[str], str]:
+        datasets = self.project.get_datasets()
+        ids = {str(dataset.id) for dataset in datasets[first:last]}
+        ids_string = ",".join(ids)
+
+        return ids, ids_string
+
+    def as_dataset_ids(self, datasets: Iterable) -> Set[str]:
+        return {str(dataset.id) for dataset in datasets}
+
+
+class TestGetProcDatasets(_FilterTestCase):
     """
     test get_proc_datasets(), the dataset filtering for 'data processing' jobs
     """
 
+    NEW_DATASET = [
+        DataSet("X01", 2),
+        DataSet("X03", 1),
+        DataSet("X04", 1),
+        DataSet("X05", 1),
+    ]
+
+    @db_session
     def test_all(self):
         """
         test the 'ALL' filter
         """
-        dsets = get_proc_datasets(self.proj, "ALL")
+        datasets = get_proc_datasets(self.project, "ALL", None)
+        self.assert_datasets(self.ALL_DATASETS, datasets)
 
-        self.assertListEqual(DATASETS, dsets)
-
+    @db_session
     def test_new(self):
         """
         test 'NEW' filter
         """
-        dsets = get_proc_datasets(self.proj, "NEW")
+        datasets = get_proc_datasets(self.project, "NEW", "edna")
+        self.assert_datasets(self.NEW_DATASET, datasets)
 
-        self.assertListEqual(["PrtK-Apo9_1", "PrtK-JBS-D10a_1"], list(dsets))
-
+    @db_session
     def test_selected(self):
         """
         test the filter where datasets are explicitly specified
         """
-        dsets = get_proc_datasets(self.proj, "PrtK-Apo9_1,PrtK-JBS-G8a_1")
+        ids, ids_string = self.get_dataset_ids(0, 3)
 
-        self.assertListEqual(["PrtK-Apo9_1", "PrtK-JBS-G8a_1"], list(dsets))
+        datasets = get_proc_datasets(self.project, ids_string, None)
+        got_ids = self.as_dataset_ids(datasets)
+
+        self.assertSetEqual(ids, got_ids)
 
 
-@patch("fragview.projects.SITE", Site)
-class TestGetRefineDatasets(_FiltersTester):
+class TestGetRefineDatasets(_FilterTestCase):
     """
     test get_refine_datasets()
     """
 
+    NEW_DATASET = [
+        DataSet("X01", 1),
+        DataSet("X01", 2),
+        DataSet("X02", 1),
+        DataSet("X04", 1),
+        DataSet("X05", 1),
+    ]
+
+    @db_session
     def test_all(self):
         """
         test the 'ALL' filter
         """
-        dsets = get_refine_datasets(self.proj, "ALL", None)
+        datasets = get_refine_datasets(self.project, "ALL", None)
+        self.assert_datasets(self.ALL_DATASETS, datasets)
 
-        self.assertListEqual(DATASETS, dsets)
-
-    def test_new_fspipeline(self):
-        """
-        test 'NEW' filter, with fspipeline selected
-        """
-        dsets = get_refine_datasets(self.proj, "NEW", "fspipeline")
-
-        self.assertListEqual(["PrtK-JBS-H8a_1", "PrtK-JBS-B7a_1"], list(dsets))
-
+    @db_session
     def test_new_dimple(self):
         """
         test 'NEW' filter, with dimple selected
         """
-        dsets = get_refine_datasets(self.proj, "NEW", "dimple")
+        datasets = get_refine_datasets(self.project, "NEW", "dimple")
+        self.assert_datasets(self.NEW_DATASET, datasets)
 
-        self.assertListEqual(["PrtK-JBS-G8a_1", "PrtK-JBS-B8a_1"], list(dsets))
-
+    @db_session
     def test_selected(self):
         """
         test the filter where datasets are explicitly specified
         """
-        dsets = get_refine_datasets(self.proj, "PrtK-Apo9_1,PrtK-JBS-G8a_1", "dimple")
+        ids, ids_string = self.get_dataset_ids(1, 4)
 
-        self.assertListEqual(["PrtK-Apo9_1", "PrtK-JBS-G8a_1"], list(dsets))
+        datasets = get_refine_datasets(self.project, ids_string, None)
+        got_ids = self.as_dataset_ids(datasets)
+
+        self.assertSetEqual(ids, got_ids)
 
 
-@patch("fragview.projects.SITE", Site)
-class TestGetLigfitDatasets(_FiltersTester):
+class TestGetLigfitDatasets(_FilterTestCase):
     """
     test get_ligfit_datasets()
     """
 
+    NEW_LIGANDFIT_DATASET = [
+        DataSet("X01", 1),
+        DataSet("X01", 2),
+        DataSet("X02", 1),
+        DataSet("X03", 1),
+        DataSet("X05", 1),
+    ]
+
+    NEW_RHOFIT_DATASET = [
+        DataSet("X01", 1),
+        DataSet("X01", 2),
+        DataSet("X02", 1),
+        DataSet("X04", 1),
+        DataSet("X05", 1),
+    ]
+
+    @db_session
     def test_all(self):
         """
         test the 'ALL' filter
         """
-        dsets = get_ligfit_datasets(self.proj, "ALL", True, True)
+        datasets = get_ligfit_datasets(self.project, "ALL", None)
+        self.assert_datasets(self.ALL_DATASETS, datasets)
 
-        self.assertListEqual(
-            ["PrtK-JBS-G8a_1", "PrtK-JBS-F3a_1", "PrtK-JBS-D10a_1", "PrtK-JBS-D12a_1"],
-            list(dsets),
-        )
-
-    def test_new_all_tools(self):
-        """
-        test 'NEW' filter with both rhfit and ligandfit tools selected
-        """
-        dsets = get_ligfit_datasets(self.proj, "NEW", True, True)
-
-        self.assertListEqual(
-            ["PrtK-JBS-A12a_1", "PrtK-JBS-H2a_2", "PrtK-JBS-H11a_1"], list(dsets)
-        )
-
-    def test_new_ligand_fit(self):
+    @db_session
+    def test_new_ligandfit(self):
         """
         test 'NEW' filter with ligandfit selected
         """
-        dsets = get_ligfit_datasets(self.proj, "NEW", True, False)
+        datasets = get_ligfit_datasets(self.project, "NEW", "ligandfit")
+        self.assert_datasets(self.NEW_LIGANDFIT_DATASET, datasets)
 
-        self.assertListEqual(["PrtK-JBS-A12a_1", "PrtK-JBS-H2a_2"], list(dsets))
-
+    @db_session
     def test_new_rho_fit(self):
         """
         test 'NEW' filter with rho_fit selected
         """
-        dsets = get_ligfit_datasets(self.proj, "NEW", False, True)
+        datasets = get_ligfit_datasets(self.project, "NEW", "rhofit")
+        self.assert_datasets(self.NEW_RHOFIT_DATASET, datasets)
 
-        self.assertListEqual(["PrtK-JBS-H11a_1"], list(dsets))
-
+    @db_session
     def test_selected(self):
         """
         test the filter where datasets are explicitly specified
         """
-        dsets = get_ligfit_datasets(
-            self.proj, "PrtK-JBS-F3a_1,PrtK-JBS-D10a_1", True, True
-        )
+        ids, ids_string = self.get_dataset_ids(1, 4)
 
-        self.assertListEqual(["PrtK-JBS-F3a_1", "PrtK-JBS-D10a_1"], list(dsets))
+        datasets = get_ligfit_datasets(self.project, ids_string, None)
+        got_ids = self.as_dataset_ids(datasets)
+
+        self.assertSetEqual(ids, got_ids)

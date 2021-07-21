@@ -26,18 +26,13 @@ exclude = '''
   fragview/views/reciprocal.py |
   fragview/views/soaking.py |
   manage.py |
-  tests/test_context_processors.py |
   fragview/views/pipedream.py |
   tests/test_fraglib.py |
-  tests/test_fileio.py |
   tests/test_auth_ispyb.py |
   tests/test_views_fragment.py |
-  tests/test_projects.py |
   tests/test_worker_cpp4.py |
   tests/test_worker_dials.py |
-  tests/test_models.py |
   worker/__init__.py |
-  tests/test_middleware.py |
-  tests/test_views_projects.py
+  tests/test_middleware.py
 )
 '''

@@ -1,9 +1,8 @@
 from unittest.mock import patch
-from django.test import TestCase
 from django.urls import reverse
-from tests.utils import ViewTesterMixin
-from fragview.models import PDB
+from tests.utils import ViewTesterMixin, ProjectTestCase
 from fragview.sites.plugin import Pipeline, LigandTool
+from projects.database import db_session
 
 PIPELINES = {Pipeline.DIMPLE, Pipeline.XIA2_XDS}
 DEF_LIGAND_TOOL = LigandTool.ACEDRG
@@ -11,27 +10,19 @@ LIGAND_TOOLS = {LigandTool.ACEDRG, LigandTool.ELBOW}
 
 
 class MockSitePlugin:
-    PROPOSALS_DIR = "/foo"
-
     def get_supported_pipelines(self):
         return PIPELINES
 
     def get_supported_ligand_tools(self):
         return DEF_LIGAND_TOOL, LIGAND_TOOLS
 
-    def get_project_datasets(self, project):
-        return ["Foo-Lib-A0_1", "hCAII-Apo25_1", "Foo-Lib-B0_2"]
 
-
-class TestProcessingForm(TestCase, ViewTesterMixin):
+class TestProcessingForm(ProjectTestCase, ViewTesterMixin):
     def setUp(self):
-        self.setup_client()
-        self.setup_project()
+        super().setUp()
+        self.setup_client(self.proposals)
 
-        # add PDB to our project
-        self.pdb = PDB(project=self.proj, filename="moin.pdb")
-        self.pdb.save()
-
+    @db_session
     def test_view(self):
         """
         test the 'data analysis' form view
@@ -50,11 +41,6 @@ class TestProcessingForm(TestCase, ViewTesterMixin):
         # check created template context
         ctx = resp.context
 
-        self.assertEqual(
-            ctx["datasets"], ["Foo-Lib-A0_1", "Foo-Lib-B0_2", "hCAII-Apo25_1"]
-        )
-        self.assertEqual(list(ctx["pdbs"]), [self.pdb])
-        self.assertEqual(ctx["methods"], [])
         self.assertEqual(ctx["pipelines"], PIPELINES)
         self.assertEqual(ctx["default_ligand_tool"], DEF_LIGAND_TOOL)
         self.assertEqual(ctx["ligand_tools"], LIGAND_TOOLS)

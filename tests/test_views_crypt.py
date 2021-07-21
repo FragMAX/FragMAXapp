@@ -1,23 +1,41 @@
 from unittest.mock import Mock, patch
 from os import path
-from django import test
-from tests.utils import ViewTesterMixin, TempDirMixin
-from fragview import tokens, encryption
+from pathlib import Path
+from tests.utils import ViewTesterMixin
+from fragview.tokens import get_valid_token
 from fragview.fileio import makedirs
-from fragview.models import EncryptionKey
 from fragview.encryption import decrypt, EncryptedFile
-from fragview.projects import project_model_file
+from projects.database import db_session
+from tests.utils import ProjectTestCase
+from tests.project_setup import Project
 
 
-class _CryptViewTesterMixin(ViewTesterMixin):
+class _CryptViewTesterMixin(ProjectTestCase, ViewTesterMixin):
     PDB_FILE = "dummy.pdb"
     PDB_DATA = b"Grunne-Tree-VAX"
 
-    def setup_crypto(self):
-        self.setup_client()
-        self.setup_project(encrypted=True)
+    PROJECTS = [
+        Project(
+            protein="AR",
+            proposal="2020102",
+            encrypted=True,
+            crystals=[],
+            datasets=[],
+            results=[],
+        )
+    ]
 
-        self.token = tokens.get_valid_token(self.proj)
+    def setUp(self):
+        super().setUp()
+        self.setup_client(self.proposals)
+
+        # set-up access token
+        with db_session:
+            self.token = get_valid_token(self.project)
+
+        # create project's dir
+        self.project.project_dir.mkdir()
+        self.pdb_path = Path(self.project.project_dir, self.PDB_FILE)
 
         # create a mocked 'file-like' object
         pdb_file = Mock()
@@ -26,50 +44,34 @@ class _CryptViewTesterMixin(ViewTesterMixin):
 
         self.pdb_file = pdb_file
 
-        key = EncryptionKey(key=encryption.generate_key(), project=self.proj)
-        key.save()
 
-
-class TestReadWrite(test.TestCase, _CryptViewTesterMixin, TempDirMixin):
-    def setUp(self):
-        self.setup_crypto()
-        self.setup_temp_dir()
-
-        with patch("fragview.projects.SITE") as site:
-            site.PROPOSALS_DIR = self.temp_dir
-            self.pdb_path = project_model_file(self.proj, self.PDB_FILE)
-
-    def tearDown(self):
-        self.tear_down_temp_dir()
-
+class TestReadWrite(_CryptViewTesterMixin):
+    @db_session
     def test_write(self):
-        with patch("fragview.projects.SITE") as site:
-            site.PROPOSALS_DIR = self.temp_dir
-
-            resp = self.client.post(
-                f"/crypt/",
-                dict(
-                    auth=self.token.as_base64(),
-                    filepath=self.pdb_path,
-                    file=self.pdb_file,
-                    operation="write",
-                ),
-            )
+        resp = self.client.post(
+            f"/crypt/",
+            dict(
+                auth=self.token.as_base64(),
+                filepath=self.pdb_path,
+                file=self.pdb_file,
+                operation="write",
+            ),
+        )
 
         # we should get OK reply
         self.assertEqual(resp.status_code, 200)
 
         # check that file was written encrypted
         self.assertEqual(
-            decrypt(self.proj.encryptionkey.key, self.pdb_path), self.PDB_DATA
+            decrypt(self.project.encryption_key, self.pdb_path), self.PDB_DATA
         )
 
+    @db_session
     def test_read(self):
         #
         # write encrypted file inside 'fragmax' directory
         #
-        makedirs(path.dirname(self.pdb_path))
-        with EncryptedFile(self.proj.encryptionkey.key, self.pdb_path) as f:
+        with EncryptedFile(self.project.encryption_key, self.pdb_path) as f:
             f.write(self.PDB_DATA)
 
         with patch("fragview.projects.SITE") as site:
@@ -90,6 +92,7 @@ class TestReadWrite(test.TestCase, _CryptViewTesterMixin, TempDirMixin):
         # check that we got expected plaintext content
         self.assertEqual(resp.content, self.PDB_DATA)
 
+    @db_session
     def test_error_decrypting(self):
         makedirs(path.dirname(self.pdb_path))
         with open(self.pdb_path, "w") as f:
@@ -110,11 +113,7 @@ class TestReadWrite(test.TestCase, _CryptViewTesterMixin, TempDirMixin):
             self.assert_bad_request(resp, "cryptology error")
 
 
-class TestInvalidReqs(test.TestCase, _CryptViewTesterMixin):
-    def setUp(self):
-        self.setup_crypto()
-        self.pdb_path = project_model_file(self.proj, self.PDB_FILE)
-
+class TestInvalidReqs(_CryptViewTesterMixin):
     def test_invalid_method(self):
         resp = self.client.get(f"/crypt/")
 
@@ -151,6 +150,7 @@ class TestInvalidReqs(test.TestCase, _CryptViewTesterMixin):
 
         self.assert_bad_request(resp, "error parsing auth token")
 
+    @db_session
     def test_file_not_found(self):
         # the file we are reading, should not exist
         self.assertFalse(path.isfile(self.pdb_path))
@@ -164,12 +164,17 @@ class TestInvalidReqs(test.TestCase, _CryptViewTesterMixin):
 
     def test_no_encryption_key(self):
         # drop the key
-        self.proj.encryptionkey.delete()
+        self.forget_key()
 
-        resp = self.client.post(
-            f"/crypt/",
-            dict(auth=self.token.as_base64(), filepath=self.pdb_path, operation="read"),
-        )
+        with db_session:
+            resp = self.client.post(
+                f"/crypt/",
+                dict(
+                    auth=self.token.as_base64(),
+                    filepath=self.pdb_path,
+                    operation="read",
+                ),
+            )
 
         self.assert_bad_request(resp, "project's encryption key is missing")
 

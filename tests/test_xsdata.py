@@ -1,11 +1,7 @@
 import unittest
+from datetime import datetime
 from fragview.xsdata import XSDataCollection
 from tests.utils import xs_data_path, data_file_path
-
-EXPECTED_SNAPSHOTS = [
-    "/some/dir/Prtk-Vt-G2_1_1.snapshot.jpeg",
-    "/some/dir/Prtk-Vt-G2_1_2.snapshot.jpeg",
-]
 
 
 class TestXSDataCollection(unittest.TestCase):
@@ -14,7 +10,7 @@ class TestXSDataCollection(unittest.TestCase):
         xsdata = XSDataCollection(xs_data_path(0))
 
         # check that we get expected data
-        self.assertListEqual(xsdata.snapshots, EXPECTED_SNAPSHOTS)
+        self.assertListEqual(list(xsdata.snapshot_indexes), [1, 2])
         self.assertAlmostEqual(xsdata.axisStart, 2.70001e02)
         self.assertAlmostEqual(xsdata.axisEnd, 6.300010e02)
         self.assertAlmostEqual(xsdata.flux, 2.7e12)
@@ -37,12 +33,9 @@ class TestXSDataCollection(unittest.TestCase):
         self.assertEqual(xsdata.imageDirectory, "/img/dir/")
         self.assertEqual(xsdata.fileTemplate, "Prtk-Vt-G2_%06d.h5")
         self.assertEqual(xsdata.beamShape, "ellipse")
-        self.assertEqual(xsdata.startTime, "2020-04-01 09:55:25+02:00")
-        self.assertEqual(xsdata.endTime, "2020-04-01 09:56:44+02:00")
+        self.assertEqual(xsdata.start_time, datetime(2020, 4, 1, 7, 55, 25))
+        self.assertEqual(xsdata.end_time, datetime(2020, 4, 1, 7, 56, 44))
         self.assertEqual(xsdata.synchrotronMode, "Variable TopUp/Decay")
-
-        # fetch snapshots list second time, to test 'cached snapshots' code path
-        self.assertListEqual(xsdata.snapshots, EXPECTED_SNAPSHOTS)
 
     def test_no_snaps(self):
         """
@@ -51,5 +44,5 @@ class TestXSDataCollection(unittest.TestCase):
         """
         xsdata = XSDataCollection(data_file_path(f"xs_data_no_snaps.xml"))
 
-        # snapshots should be an empty list
-        self.assertListEqual(xsdata.snapshots, [])
+        # snapshots indices should be an empty list
+        self.assertListEqual(list(xsdata.snapshot_indexes), [])
