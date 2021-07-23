@@ -16,162 +16,140 @@
     <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
 
     <style>
-        .user-view {
-            padding: 0px 32px 0 !important;
+.user-view
+{
+    padding: 0px 32px 0 !important;
+}
+
+.sidenav_local
+{
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #212121;
+    overflow-x: hidden;
+    padding-top: 50px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+.sidenav-links
+{
+    padding-left: 32px !important;
+}
+
+.sub-sidenav-links
+{
+    padding-left: 48px !important;
+}
+
+.sidenav_local a
+{
+    color: #f0f0f0;
+}
+
+.sidenav_local a:hover
+{
+    color: #f1f1f1;
+}
+
+.sidenav_local li>a
+{
+    color: #f0f0f0;
+
+    .main_local
+    {
+        display: block;
+        font-size: 28px;
+        /* Increased text to enable scrolling */
+        padding: 0px 10px;
+    }
+
+    @media screen and (max-height: 450px)
+    {
+        .sidenav
+        {
+            padding-top: 15px;
         }
 
-        .sidenav_local {
-            height: 100%;
-            width: 250px;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: #212121;
-            overflow-x: hidden;
-            padding-top: 50px;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
-
+        .sidenav a
+        {
+            font-size: 18px;
         }
+    }
+}
 
-        .sidenav-links {
-            padding-left: 32px !important;
-        }
+.isDisabled
+{
+    opacity: 0.5;
+}
 
-        .sub-sidenav-links {
-            padding-left: 48px !important;
-        }
+.isDisabled>a
+{
+    color: currentColor;
+    display: inline-block;
 
-        .sidenav_local a {
-                {
-                % comment %
-            }
+    /* For IE11/ MS Edge bug */
+    pointer-events: none;
+    text-decoration: none;
+}
 
-            text-decoration: none;
+.menu ul,
+.menu input,
+.menu .closer,
+.menu input:checked~.opener
+{
+    display: none;
+}
 
-                {
-                % endcomment %
-            }
+.menu input:checked~ul,
+.menu input:checked~.closer
+{
+    display: block;
+}
 
-                {
-                % comment %
-            }
+.headli
+{
+    color: #f0f0f0;
+    display: block;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    height: 48px !important;
+    line-height: 48px !important;
+    padding: 0 32px;
+}
 
-            font-size: 22px;
+.projects-menu
+{
+    top: -25px !important;
+    left: 5px !important;
+    min-width: 240px;
+    background-color: #dddddd;
+    border: 1px solid grey;
+}
 
-                {
-                % endcomment %
-            }
+.project-entry
+{
+    border-bottom: 1px solid grey;
+}
 
-            color: #f0f0f0;
+.project-cell
+{
+    display: inline-block;
+    color: black;
+    padding: 5px;
+    vertical-align: middle;
+}
 
-                {
-                % comment %
-            }
-
-            display: block;
-
-                {
-                % endcomment %
-            }
-        }
-
-        .sidenav_local a:hover {
-            color: #f1f1f1;
-        }
-
-        .sidenav_local li>a {
-            color: #f0f0f0;
-
-            .main_local {
-                display: block;
-
-                    {
-                    % comment %
-                }
-
-                margin-left: 200px;
-
-                /* Same as the width of the sidenav */
-                    {
-                    % endcomment %
-                }
-
-                font-size: 28px;
-                /* Increased text to enable scrolling */
-                padding: 0px 10px;
-            }
-
-            @media screen and (max-height: 450px) {
-                .sidenav {
-                    padding-top: 15px;
-                }
-
-                .sidenav a {
-                    font-size: 18px;
-                }
-            }
-    </style>
-    <style>
-        .isDisabled {
-            opacity: 0.5;
-        }
-
-        .isDisabled>a {
-            color: currentColor;
-            display: inline-block;
-            /* For IE11/ MS Edge bug */
-            pointer-events: none;
-            text-decoration: none;
-        }
-
-        .menu ul,
-        .menu input,
-        .menu .closer,
-        .menu input:checked~.opener {
-            display: none;
-        }
-
-        .menu input:checked~ul,
-        .menu input:checked~.closer {
-            display: block;
-        }
-
-        .headli {
-            color: #f0f0f0;
-            display: block;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            height: 48px !important;
-            line-height: 48px !important;
-            padding: 0 32px;
-        }
-
-        .projects-menu {
-            top: -25px !important;
-            left: 5px !important;
-            min-width: 240px;
-            background-color: #dddddd;
-            border: 1px solid grey;
-        }
-
-        .project-entry {
-            border-bottom: 1px solid grey;
-        }
-
-        .project-cell {
-            display: inline-block;
-            color: black;
-            padding: 5px;
-            vertical-align: middle;
-        }
-
-        .projects-button-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
+.projects-button-box
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
     </style>
 </head>
 
