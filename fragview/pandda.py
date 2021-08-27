@@ -7,6 +7,7 @@ from pandas import Series
 from pathlib import Path
 from dataclasses import dataclass
 from fragview.projects import Project
+from fragview.sites.current import get_pandda_inspect_commands
 
 """
 Handle 'file scraping' for pandda runs.
@@ -213,12 +214,6 @@ def _list_method_report_dates(method_dir: Path):
             yield _analysis_date(analysis_dir)
 
 
-def _get_coot_command(method_dir: Path) -> str:
-    from fragview.sites import SITE
-
-    return SITE.get_pandda_inspect_commands(method_dir)
-
-
 def _get_dendrograms(method_dir):
     dendrograms = Path(method_dir, "clustered-datasets", "dendrograms")
     for png in dendrograms.glob("*.png"):
@@ -243,7 +238,7 @@ def load_method_reports(project: Project, method: str) -> PanddaMethodReports:
     method_dir = Path(project.pandda_dir, method)
 
     report_dates = _list_method_report_dates(method_dir)
-    coot_command = _get_coot_command(method_dir)
+    coot_command = get_pandda_inspect_commands(method_dir)
     selected = PanddaSelectedDatasets.load(method_dir)
     dendrograms = _get_dendrograms(method_dir)
 

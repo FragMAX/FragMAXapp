@@ -1,4 +1,31 @@
-from typing import List, Optional
+from typing import List, Optional, Iterable
+from pathlib import Path
+from datetime import datetime
+from dataclasses import dataclass, field
+
+
+@dataclass
+class DatasetMetadata:
+    detector: str
+    resolution: float
+    images: int
+    start_time: datetime
+    end_time: Optional[datetime]
+    wavelength: float
+    start_angle: float
+    angle_increment: float
+    exposure_time: float
+    detector_distance: float
+    xbeam: Optional[float]
+    ybeam: Optional[float]
+    beam_shape: str
+    transmission: float
+    slit_gap_horizontal: Optional[float]
+    slit_gap_vertical: Optional[float]
+    flux: float
+    beam_size_at_sample_x: float
+    beam_size_at_sample_y: float
+    snapshot_indices: List[int] = field(default_factory=list)
 
 
 class SitePlugin:
@@ -13,10 +40,33 @@ class SitePlugin:
     # should be either 'local' or 'slurm'
     HPC_JOBS_RUNNER: str
 
-    def get_project_datasets(self, project):
+    def get_project_dir(self, project) -> Path:
         raise NotImplementedError()
 
-    def get_diffraction_picture_command(self, project, dataset, angle: int, dest_pic_file) -> List[str]:
+    def get_project_dataset_dirs(self, project) -> Iterable[Path]:
+        raise NotImplementedError()
+
+    def get_dataset_runs(self, data_dir: Path) -> Iterable[int]:
+        raise NotImplementedError()
+
+    def get_dataset_metadata(
+        self, project, dataset_dir: Path, crystal_id: str, run: int
+    ) -> DatasetMetadata:
+        raise NotImplementedError()
+
+    def get_dataset_master_image(self, project, dataset) -> Path:
+        raise NotImplementedError()
+
+    def add_pandda_init_commands(self, batch):
+        """
+        add site specific commands to prepare environment
+        for running PanDDA commands
+        """
+        raise NotImplementedError()
+
+    def get_diffraction_picture_command(
+        self, project, dataset, angle: int, dest_pic_file
+    ) -> List[str]:
         raise NotImplementedError()
 
     def get_beamline_info(self):
@@ -30,9 +80,6 @@ class SitePlugin:
         get the name of the filesystem group, which
         should own the files in the project's directory
         """
-        raise NotImplementedError()
-
-    def prepare_project_folders(self, project, shifts):
         raise NotImplementedError()
 
     def dataset_master_image(self, dataset):
@@ -97,7 +144,6 @@ class BeamlineInfo:
     # beamline's name
     name: str
     detector_type: str
-    detector_model: str
     detector_pixel_size: str
     focusing_optics: str
     monochrom_type: str
@@ -106,17 +152,31 @@ class BeamlineInfo:
 
 
 class PipelineCommands:
-    def get_xia_dials_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xia_dials_commands(
+        self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
+    ):
         raise NotImplementedError()
 
-    def get_xia_xds_commands(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xia_xds_commands(
+        self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
+    ):
         raise NotImplementedError()
 
-    def get_xdsapp_command(self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images):
+    def get_xdsapp_command(
+        self, space_group, unit_cell, custom_parameters, friedel, image_file, num_images
+    ):
         raise NotImplementedError()
 
-    def get_autoproc_command(self, output_dir, space_group, unit_cell, custom_parameters, friedel, image_file,
-                             num_images):
+    def get_autoproc_command(
+        self,
+        output_dir,
+        space_group,
+        unit_cell,
+        custom_parameters,
+        friedel,
+        image_file,
+        num_images,
+    ):
         raise NotImplementedError()
 
     def get_dimple_command(self, dstmtz, custom_parameters):
@@ -164,7 +224,9 @@ class Duration:
 
 
 class DataSize:
-    def __init__(self, gigabyte: int = None, megabyte: int = None, kilobyte: int = None):
+    def __init__(
+        self, gigabyte: int = None, megabyte: int = None, kilobyte: int = None
+    ):
         def set_res(val, unit):
             if val is None:
                 return res
@@ -197,8 +259,15 @@ class BatchFile:
         # expected number of CPU this task will use
         self._cpus = cpus
 
-    def set_options(self, time: Duration = None, exclusive=None, nodes=None, partition=None,
-                    mem_per_cpu: DataSize = None, memory: DataSize = None):
+    def set_options(
+        self,
+        time: Duration = None,
+        exclusive=None,
+        nodes=None,
+        partition=None,
+        mem_per_cpu: DataSize = None,
+        memory: DataSize = None,
+    ):
         """
         time - a limit on the total run time of the batch file
         exclusive - don't share compute node with this job

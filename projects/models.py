@@ -42,6 +42,9 @@ def _define_entities(db):
         # limit to unique combinations of crystal and run
         composite_key(crystal, run)
 
+        # the detector type used to capture the dataset, e.g. PILATUS3 2M
+        detector = Required(str)
+
         # resolution at the edge of images, in Ångström
         resolution = Required(float)
 
@@ -50,23 +53,22 @@ def _define_entities(db):
 
         # data collection start and end times, in UTC time
         start_time = Required(datetime)
-        end_time = Required(datetime)
+        end_time = Optional(datetime)
 
         # beam transmission
         transmission = Required(float)
 
         wavelength = Required(float)
-        phi_start = Required(float)
-        oscillation_range = Required(float)
-        overlap = Required(float)
+        start_angle = Required(float)
+        angle_increment = Required(float)
         exposure_time = Required(float)
         detector_distance = Required(float)
-        xbeam = Required(float)
-        ybeam = Required(float)
+        xbeam = Optional(float)
+        ybeam = Optional(float)
         flux = Required(float)
         beam_shape = Required(str)
-        slit_gap_horizontal = Required(float)
-        slit_gap_vertical = Required(float)
+        slit_gap_horizontal = Optional(float)
+        slit_gap_vertical = Optional(float)
         beam_size_at_sample_x = Required(float)
         beam_size_at_sample_y = Required(float)
 

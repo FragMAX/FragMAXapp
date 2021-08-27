@@ -19,7 +19,6 @@ exclude = '''
   fragview/middleware.py |
   fragview/cbf.py |
   fragview/views/crypt.py |
-  fragview/sites/plugin.py |
   fragview/views/download.py |
   fragview/views/misc.py |
   fragview/views/reciprocal.py |

@@ -78,7 +78,6 @@ function create_project(formElement)
 </script>
 
 <h4>Create New Project</h4><br>
-
 <div class="card" style="max-width: 800px">
     <div class="card-content">
             <form onsubmit="return create_project(this)">
@@ -94,6 +93,7 @@ function create_project(formElement)
                                    required>
                         </td>
                     </tr>
+                    {% if not disabled.proposals %}
                     <tr>
                         <th>Project Proposal</th>
                         <td>
@@ -111,12 +111,14 @@ function create_project(formElement)
                             </datalist>
                         </td>
                     </tr>
+                    {% endif %}
                     <tr>
                         <th>Crystals CSV</th>
                         <td>
                             <input type="file" name="crystals_csv_file" required>
                         </td>
                     </tr>
+                    {% if not disabled.autoproc_import %}
                     <tr>
                         <th>Auto Processing</th>
                         <td>
@@ -131,7 +133,7 @@ function create_project(formElement)
                             </div>
                         </td>
                     </tr>
-
+                    {% endif %}
                     <tr>
                         <th>Data Processing</th>
                         <td>

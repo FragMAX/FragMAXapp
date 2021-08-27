@@ -7,6 +7,7 @@ from fragview.proposals import get_proposals
 from fragview.projects import current_project
 from fragview.views.utils import get_project_libraries
 from fragview.views.wrap import Wrapper
+from fragview.sites import current
 from worker import setup_project
 
 
@@ -64,7 +65,21 @@ def new(request):
             {"proposals": proposals},
         )
 
-    form = ProjectForm(request.POST, request.FILES)
+    #
+    # HZB-site hack, use 'username' as proposal
+    #
+    # As HZB is not using proposal to organize data, use the
+    # user name as 'proposal' for now. Perhaps we should
+    # restructure the code to no use 'proposal' concept in general.
+    #
+    post_args = request.POST
+    if current.proposals_disabled():
+        # make a mutable copy of POST arguments dict
+        post_args = post_args.copy()
+        # put down current user name as 'proposal'
+        post_args["proposal"] = request.user.username
+
+    form = ProjectForm(post_args, request.FILES)
     if not form.is_valid():
         return HttpResponseBadRequest(form.get_error_message())
 

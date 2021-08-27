@@ -41,6 +41,8 @@ def create_project_db(
     db_file = _db_file(projects_db_dir, project_id)
     if db_file.is_file():
         raise Exception(f"{db_file}: already exists")
+
+    db_file.parent.mkdir(exist_ok=True)
     db_file.touch()
 
     db = _bind(db_file, create_tables=True)

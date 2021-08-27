@@ -1,9 +1,12 @@
-from typing import List
+from typing import List, Iterable
 from os import path, walk
+from pathlib import Path
 from datetime import datetime
-from fragview.fileio import makedirs
+from django.conf import settings
 from fragview.sites import plugin
-from fragview.sites.plugin import Pipeline, LigandTool
+from fragview.sites.plugin import Pipeline, LigandTool, DatasetMetadata
+from fragview.sites.hzb.cbf import parse_metadata
+from fragview.sites.hzb.utils import get_dataset_frame_image
 from fragview.sites.hzb.diffractions import get_diffraction_pic_command
 from fragview.sites.hzb.pipelines import PipelineCommands
 from fragview.sites.hzb.beamline import BeamlineInfo
@@ -12,14 +15,45 @@ from fragview.sites.hzb.hpc import HPC
 # filename suffix for a dataset's master image file
 MASTER_IMG_SUFFIX = "_0001.cbf"
 
+# max number of dataset runs we'll look for
+MAX_RUNS = 8
+
 
 class SitePlugin(plugin.SitePlugin):
     NAME = "Helmholtz-Zentrum Berlin"
     LOGO = "hzb.png"
-    DISABLED_FEATURES = ["soaking_plan"]
+    DISABLED_FEATURES = ["soaking_plan", "proposals", "autoproc_import"]
     AUTH_BACKEND = "fragview.auth.LocalBackend"
     RAW_DATA_DIR = "/data/fragmaxrpc/user"
     HPC_JOBS_RUNNER = "local"
+
+    def get_project_dir(self, project) -> Path:
+        return Path(settings.PROJECTS_ROOT_DIR, project.proposal, "fragmax")
+
+    def get_project_dataset_dirs(self, project) -> Iterable[Path]:
+        protein_dir = Path(self.get_project_dir(project).parent, "raw", project.protein)
+        return protein_dir.iterdir()
+
+    def get_dataset_runs(self, data_dir: Path) -> Iterable[int]:
+        prefix = f"{data_dir.name}_"
+        postfix = "_0001.cbf"
+        for master_file in data_dir.glob(f"{prefix}*{postfix}"):
+            run_num = master_file.name[len(prefix) : -len(postfix)]
+            yield int(run_num)
+
+    def get_dataset_metadata(
+        self, project, dataset_dir: Path, crystal_id: str, run: int
+    ) -> DatasetMetadata:
+        cbf_file = Path(dataset_dir, f"{project.protein}-{crystal_id}_{run}_0001.cbf")
+        return parse_metadata(cbf_file)
+
+    def get_dataset_master_image(self, project, dataset) -> Path:
+        return get_dataset_frame_image(project, dataset, 1)
+
+    def add_pandda_init_commands(self, batch):
+        batch.add_command(
+            "source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh"
+        )
 
     def get_project_experiment_date(self, project):
         return _get_experiment_timestamp(project)
@@ -37,15 +71,6 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_group_name(self, project):
         return project.proposal
-
-    def prepare_project_folders(self, project, shifts):
-        from fragview.projects import project_process_protein_dir
-
-        root_dir = project_process_protein_dir(project)
-
-        for dataset in self.get_project_datasets(project):
-            dataset_dir, _ = dataset.rsplit("_", 2)
-            makedirs(path.join(root_dir, dataset_dir, dataset))
 
     def dataset_master_image(self, dataset):
         return f"{dataset}{MASTER_IMG_SUFFIX}"

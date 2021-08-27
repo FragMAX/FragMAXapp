@@ -12,6 +12,7 @@ from fragview import hpc, versions
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.sites import SITE
+from fragview.sites.current import add_pandda_init_commands
 from fragview.fileio import read_text_lines
 from fragview.views.utils import png_http_response, start_thread, get_crystals_fragment
 from fragview.projects import (
@@ -904,7 +905,8 @@ def _write_main_script(
         # )
     else:
         batch.add_command(f"cd {pandda_dir}")
-        batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
+
+        add_pandda_init_commands(batch)
 
         batch.add_commands(
             pandda_cluster,

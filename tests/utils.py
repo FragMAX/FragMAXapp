@@ -198,12 +198,12 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
         self.tear_down_temp_dir()
 
 
-def data_file_path(file_name):
+def data_file_path(file_name) -> Path:
     """
     return absolute path specified file in tests 'data' directory
     """
-    return path.join(path.dirname(__file__), "data", file_name)
+    return Path(path.dirname(__file__), "data", file_name)
 
 
-def xs_data_path(num):
+def xs_data_path(num) -> Path:
     return data_file_path(f"xs_data{num}.xml")

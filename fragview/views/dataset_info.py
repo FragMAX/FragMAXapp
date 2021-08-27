@@ -103,6 +103,7 @@ def show(request, dataset_id):
             ),
             "energy": 12.4 / dataset.wavelength,
             "total_exposure": dataset.exposure_time * dataset.images,
+            "total_rotation": dataset.images * dataset.angle_increment,
             "corner_resolution": dataset.resolution * 0.75625,
             "proc_logs": _get_processing_logs(project, dataset),
             "refine_logs": _get_refine_logs(project, dataset),

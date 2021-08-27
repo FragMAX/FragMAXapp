@@ -62,35 +62,37 @@ def _add_datasets(project: Project):
             continue
 
         for run in get_dataset_runs(dset_dir):
-            data_root_dir = dset_dir.parents[2].relative_to(project.proposal_dir)
-            meta_data = get_dataset_metadata(project, data_root_dir, crystal_id, run)
+            meta_data = get_dataset_metadata(project, dset_dir, crystal_id, run)
+
+            # TODO: this is MAXIV specific, think about site-independent style
+            shift_dir = dset_dir.parents[2].relative_to(project.proposal_dir)
 
             dataset = project.db.DataSet(
                 crystal=crystal,
-                data_root_dir=str(data_root_dir),
+                data_root_dir=str(shift_dir),
                 run=run,
+                detector=meta_data.detector,
                 resolution=meta_data.resolution,
-                images=meta_data.num_images,
+                images=meta_data.images,
                 start_time=meta_data.start_time,
                 end_time=meta_data.end_time,
                 wavelength=meta_data.wavelength,
-                phi_start=meta_data.axisStart,
-                oscillation_range=meta_data.axisRange,
-                overlap=meta_data.overlap,
-                exposure_time=meta_data.exposureTime,
-                detector_distance=meta_data.detectorDistance,
+                start_angle=meta_data.start_angle,
+                angle_increment=meta_data.angle_increment,
+                exposure_time=meta_data.exposure_time,
+                detector_distance=meta_data.detector_distance,
                 xbeam=meta_data.xbeam,
                 ybeam=meta_data.ybeam,
-                beam_shape=meta_data.beamShape,
+                beam_shape=meta_data.beam_shape,
                 transmission=meta_data.transmission,
-                slit_gap_horizontal=meta_data.slitGapHorizontal,
-                slit_gap_vertical=meta_data.slitGapVertical,
+                slit_gap_horizontal=meta_data.slit_gap_horizontal,
+                slit_gap_vertical=meta_data.slit_gap_vertical,
                 flux=meta_data.flux,
-                beam_size_at_sample_x=meta_data.beamSizeSampleX,
-                beam_size_at_sample_y=meta_data.beamSizeSampleY,
+                beam_size_at_sample_x=meta_data.beam_size_at_sample_x,
+                beam_size_at_sample_y=meta_data.beam_size_at_sample_y,
             )
 
-            for snapshot_index in meta_data.snapshot_indexes:
+            for snapshot_index in meta_data.snapshot_indices:
                 project.db.DataSetSnapshot(dataset=dataset, index=snapshot_index)
 
 

@@ -1,13 +1,11 @@
-from typing import Iterator, Tuple, Optional
+from typing import Iterable, Tuple, Optional
 import conf
 from pathlib import Path
 from datetime import datetime
-from itertools import count
-from django.conf import settings
-from fragview.sites import SITE
+from fragview.sites import SITE, current
 from fragview.proposals import get_proposals
-from fragview.xsdata import XSDataCollection
 from fragview.encryption import generate_key
+from fragview.sites.plugin import DatasetMetadata
 from projects.database import (
     create_project_db,
     get_project_db,
@@ -134,17 +132,8 @@ class Project:
     # File system access
     #
 
-    def _get_raw_dirs(self):
-        for sdir in self.proposal_dir.iterdir():
-            protein_dir = Path(sdir, "raw", self.protein)
-            if protein_dir.is_dir():
-                yield protein_dir
-
-    def get_dataset_dirs(self) -> Iterator[Path]:
-        for raw_dir in self._get_raw_dirs():
-            for dset_dir in raw_dir.iterdir():
-                if dset_dir.name.startswith(self.protein):
-                    yield dset_dir
+    def get_dataset_dirs(self) -> Iterable[Path]:
+        return current.get_project_dataset_dirs(self)
 
     @property
     def proposal_dir(self) -> Path:
@@ -182,7 +171,7 @@ class Project:
 
     @property
     def project_dir(self) -> Path:
-        return Path(settings.PROJECTS_ROOT_DIR, f"proj{self.id}")
+        return current.get_project_dir(self)
 
     @property
     def process_dir(self) -> Path:
@@ -245,11 +234,7 @@ class Project:
         return Path(self.results_dir, f"{dataset.name}")
 
     def get_dataset_master_image(self, dataset) -> Path:
-        # TODO: must be deployment-site specific
-        return Path(
-            self.get_dataset_raw_dir(dataset),
-            f"{self.protein}-{dataset.name}_master.h5",
-        )
+        return current.get_dataset_master_image(self, dataset)
 
     def get_refine_result_dir(self, refine_result) -> Path:
         processed_data = refine_result.result
@@ -300,49 +285,14 @@ def get_project(projects_db_dir: Path, project_id: str) -> Project:
     return Project(get_project_db(projects_db_dir, project_id), project_id)
 
 
-def get_dataset_runs(data_dir: Path) -> Iterator[int]:
-    for run_num in count(1):
-        master_file = Path(data_dir, f"{data_dir.name}_{run_num}_master.h5")
-        if not master_file.is_file():
-            break
-
-        yield run_num
+def get_dataset_runs(data_dir: Path) -> Iterable[int]:
+    return current.get_dataset_runs(data_dir)
 
 
 def get_dataset_metadata(
-    project: Project, data_root_dir: Path, crystal_id: str, run: int
-) -> XSDataCollection:
-    # TODO: we should probably have some site independant class for meta data, instead of XSDataCollection
-    # TODO: like DataSetMeta, where each site would provide it's own implementation
-    protein = project.protein
-    fastdp_dir = Path(
-        project.proposal_dir,
-        data_root_dir,
-        "process",
-        protein,
-        f"{protein}-{crystal_id}",
-        f"xds_{protein}-{crystal_id}_{run}_1",
-        "fastdp",
-    )
-
-    xml_file = next(
-        fastdp_dir.glob(
-            str(
-                Path(
-                    "cn*",
-                    "ISPyBRetrieveDataCollectionv1_4",
-                    "ISPyBRetrieveDataCollectionv1_4_dataOutput.xml",
-                )
-            )
-        ),
-        None,
-    )
-
-    if xml_file is None:
-        # TODO: think about exceptions
-        raise Exception(f"no XML file found for {crystal_id} {run}")
-
-    return XSDataCollection(xml_file)
+    project, dataset_dir: Path, crystal_id: str, run: int
+) -> DatasetMetadata:
+    return current.get_dataset_metadata(project, dataset_dir, crystal_id, run)
 
 
 def current_project(request) -> Project:
