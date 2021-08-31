@@ -67,7 +67,8 @@ def start_redis(conda_env_dir):
 def start_jobsd():
     cur_dir = current_dir()
     return subprocess.Popen(
-        [path.join(cur_dir, "deploy", "start_jobsd.sh")], cwd=cur_dir,
+        [path.join(cur_dir, "deploy", "start_jobsd.sh")],
+        cwd=cur_dir,
     )
 
 

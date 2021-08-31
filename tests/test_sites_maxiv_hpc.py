@@ -90,7 +90,8 @@ class TestBatchTimeOption(TestCase):
         self.batch.set_options(time=Duration(hours=128, minutes=23, seconds=7))
 
         self.assertEqual(
-            self.batch._body, f"{self.SBATCH_HEADER}#SBATCH --time=128:23:07\n",
+            self.batch._body,
+            f"{self.SBATCH_HEADER}#SBATCH --time=128:23:07\n",
         )
 
     def test_hours(self):
@@ -100,7 +101,8 @@ class TestBatchTimeOption(TestCase):
         self.batch.set_options(time=Duration(hours=6))
 
         self.assertEqual(
-            self.batch._body, f"{self.SBATCH_HEADER}#SBATCH --time=06:00:00\n",
+            self.batch._body,
+            f"{self.SBATCH_HEADER}#SBATCH --time=06:00:00\n",
         )
 
     def test_minutes(self):
@@ -110,7 +112,8 @@ class TestBatchTimeOption(TestCase):
         self.batch.set_options(time=Duration(minutes=9))
 
         self.assertEqual(
-            self.batch._body, f"{self.SBATCH_HEADER}#SBATCH --time=00:09:00\n",
+            self.batch._body,
+            f"{self.SBATCH_HEADER}#SBATCH --time=00:09:00\n",
         )
 
     def test_seconds(self):
@@ -120,5 +123,6 @@ class TestBatchTimeOption(TestCase):
         self.batch.set_options(time=Duration(seconds=5))
 
         self.assertEqual(
-            self.batch._body, f"{self.SBATCH_HEADER}#SBATCH --time=00:00:05\n",
+            self.batch._body,
+            f"{self.SBATCH_HEADER}#SBATCH --time=00:00:05\n",
         )

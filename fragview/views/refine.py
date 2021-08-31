@@ -98,7 +98,9 @@ def launch_refine_jobs(
                 cpus,
             )
             batch.set_options(
-                time=Duration(hours=12), nodes=1, mem_per_cpu=DataSize(gigabyte=5),
+                time=Duration(hours=12),
+                nodes=1,
+                mem_per_cpu=DataSize(gigabyte=5),
             )
 
             batch.add_commands(crypt_shell.crypt_cmd(project))
