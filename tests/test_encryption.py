@@ -41,7 +41,7 @@ class TestDecrypt(unittest.TestCase, TempDirMixin):
 
         # create a new different encryption key
         new_key = bytearray(self.enc_key)
-        new_key[0] += 1
+        new_key[0] = (new_key[0] + 1) % 256
 
         with self.assertRaisesRegex(CryptoErr, "MAC check failed"):
             decrypt(new_key, self.filepath)
