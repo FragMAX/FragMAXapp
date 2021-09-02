@@ -25,6 +25,8 @@ ISA = "ISa"
 RESOLUTION_RE = re.compile(r"^([\d\\.]+)-([\d\\.]+) \(([\d\\.]+)-([\d\\.]+)\)")
 # match 'N1 (N2)' string, that is a pair of numbers
 PAIR_RE = re.compile(r"^([\d\\.]+) \(([\d\\.]+)\)")
+# match 'N1 (N2)' string, where second number is optional
+OPTIONAL_PAIR_RE = re.compile(r"([\d\.]+)( \([\d\.]+\))?")
 
 
 def _get_results_log(project: Project, xdsapp_dir, dataset) -> Optional[Path]:
@@ -61,6 +63,9 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
     def _pair(text):
         return PAIR_RE.match(text).groups()
 
+    def _first_number(text):
+        return OPTIONAL_PAIR_RE.match(text).groups()[0]
+
     for line in read_text_lines(project, results_file):
         if not line.startswith("    "):
             # all lines we want to parse are indented with 4 spaces,
@@ -88,15 +93,15 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
                 stats.high_resolution_out,
             ) = _parse_line(line, RESOLUTION, _resolution)
         elif line.startswith(REFLECTIONS):
-            stats.reflections = _parse_line(line, REFLECTIONS, lambda x: x)
+            stats.reflections = _parse_line(line, REFLECTIONS, _first_number)
         elif line.startswith(UNIQUE_REFLECTIONS):
             stats.unique_reflections = _parse_line(
-                line, UNIQUE_REFLECTIONS, lambda x: x
+                line, UNIQUE_REFLECTIONS, _first_number
             )
         elif line.startswith(I_SIGI):
             stats.i_sig_average, stats.i_sig_out = _parse_line(line, I_SIGI, _pair)
         elif line.startswith(MULTIPLICITY):
-            stats.multiplicity = _parse_line(line, MULTIPLICITY, lambda x: x)
+            stats.multiplicity = _parse_line(line, MULTIPLICITY, _first_number)
         elif line.startswith(R_MEAS):
             stats.r_meas_average, stats.r_meas_out = _parse_line(line, R_MEAS, _pair)
         elif line.startswith(COMPLETENESS):
@@ -104,7 +109,7 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
                 line, COMPLETENESS, _pair
             )
         elif line.startswith(MOSAICITY):
-            stats.mosaicity = _parse_line(line, MOSAICITY, lambda x: x)
+            stats.mosaicity = _parse_line(line, MOSAICITY, _first_number)
         elif line.startswith(ISA):
             stats.isa = _parse_line(line, ISA, lambda x: x)
 

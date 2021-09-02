@@ -1,0 +1,87 @@
+
+-------------------------------------------------------------------
+
+Processing summary for data set hCAII-FMLv03-A01b_1_data
+ 2021-06-14 17:30:28
+-------------------------------------------------------------------
+
+    Space group                            P2(1) (4)                             
+    Unit cell parameters [A]               42.39 41.23 72.53 90.0 104.21 90.0    
+    Resolution limit [A]                   41.23-1.43 (1.51-1.43)                
+    No. of reflections                     286392                                
+    No. of uniques                         43953                                 
+    Multiplicity                           6.52                                  
+    I/sigI                                 11.50 (3.04)                          
+    R_meas [%]                             65.3 (103.9)                          
+    Completeness [%]                       96.4 (83.4)                           
+    B(Wilson) [A^2]                        20.8                                  
+    Mosaicity [deg]                        0.434                                 
+    CC(1/2)                                77.1 (80.2)                           
+    ISa                                    13.35                                 
+
+
+Result files generated for CCP4, CNS, SHELX
+-------------------------------------------------------------------
+                                                                                 
+    hCAII-FMLv03-A01b_1_data_I.mtz                                               
+    hCAII-FMLv03-A01b_1_data_F_plus_F_minus.mtz                                       
+    hCAII-FMLv03-A01b_1_data_F.mtz                                               
+    hCAII-FMLv03-A01b_1_data.hkl                                                 
+    hCAII-FMLv03-A01b_1_data.cv                                                  
+
+
+Intensity checks
+-------------------------------------------------------------------
+
+    SFCHECK                                                                      
+     Perfect twinning test                 2.2015                                
+     Pseudo translation                    not detected                          
+    Phenix.xtriage                                                               
+     <I^2>/<I>                             2.052 (untwinned 2.000, perfect twin 1.500)
+     <F>^2/<F^2>                           0.780 (untwinned 0.785, perfect twin 0.885)
+     <|E^2-1|>                             0.769 (untwinned 0.736, perfect twin 0.541)
+    Pointless                                                                    
+     |L|-test                              0.506 (untwinned 0.500, perfect twin 0.375)
+     L^2-test                              0.339 (untwinned 0.333, perfect twin 0.200)
+
+
+Space group determination by Pointless
+-------------------------------------------------------------------
+
+    Selected space group                   P 1 21 1 (4)                          
+    Total probability                      0.692                                 
+    Systematic absences probability        0.893                                 
+    Next probable space group              P 1 (1)                               
+    Total probability                      0.225                                 
+    Systematic absences probability        1.000                                 
+
+
+Indexing summary
+-------------------------------------------------------------------
+
+    No. of subtrees                        25                                    
+    No. of strong spots in root subtree    996                                   
+    No. of strong spots in subtree 2       5                                     
+    Quality value                          1.0                                   
+    Delta                                  0.0                                   
+    DH, DK, DL                             0.02, 0.05, 0.03                      
+    Selected origin                        0 0 0                                 
+    Computed (given) beam position         2100.0, 2120.6 (2100.8, 2120.3)       
+    Std. of spot position (refined)        1.56 (0.81)                           
+    Std. of spindle position (refined)     1.46 (0.43)                           
+    Detector distance (refined)            146.54 (148.18)                       
+    No. of spots indexed (total)           910 (1039) (=87.6 %)                  
+
+
+Experimental settings
+-------------------------------------------------------------------
+
+    Detector used                          EIGER                                 
+    Images processed                       1-3600                                
+    Detector distance [mm]                 146.54                                
+    Oscillation increment [deg]            0.1                                   
+    Wavelength [A]                         0.9763                                
+    Friedels law                           TRUE                                  
+    Rotation axis                          0 -1 0                                
+
+
