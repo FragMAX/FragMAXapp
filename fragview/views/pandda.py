@@ -1071,10 +1071,10 @@ def _write_prepare_script(
 
     batch.add_commands(
         cif_cmd,
-        f'echo -e " monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}" | \\\n'
+        f'printf "monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}\\n" | \\\n'
         "    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz",
         "uniqueify -f FreeR_flag $WORK_DIR/final.mtz $WORK_DIR/final.mtz",
-        f'echo -e "COMPLETE FREE={free_r_flag} \\nEND" | \\\n'
+        f'printf "COMPLETE FREE={free_r_flag} \\nEND\\n" | \\\n'
         "    freerflag hklin $WORK_DIR/final.mtz hklout $WORK_DIR/final_rfill.mtz",
         f"phenix.maps final_rfill.mtz final.pdb maps.input.reflection_data.labels='{native_f},{sigma_fp}'",
         "mv final.mtz final_original.mtz",
