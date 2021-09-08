@@ -10,7 +10,6 @@ from fragview.views import (
     analysis,
     pandda,
     reciprocal,
-    soaking,
     pdbs,
     refine,
     process,
@@ -32,7 +31,6 @@ from fragview.views import (
 urlpatterns = [
     # use 'project summary' view as the landing page
     path("", projects.project_summary, name="project_summary"),
-    path("soaking_plan/", soaking.soaking_plan, name="soaking_plan"),
     path("datasets/", datasets.show_all, name="datasets"),
     path("dataset_info/<dataset_id>", dataset_info.show, name="dataset_info"),
     path("dataset/<dataset_id>/snapshot/<snapshot_index>", snapshot.show),

@@ -22,7 +22,7 @@ MAX_RUNS = 8
 class SitePlugin(plugin.SitePlugin):
     NAME = "Helmholtz-Zentrum Berlin"
     LOGO = "hzb.png"
-    DISABLED_FEATURES = ["soaking_plan", "proposals", "autoproc_import"]
+    DISABLED_FEATURES = ["proposals", "autoproc_import"]
     AUTH_BACKEND = "fragview.auth.LocalBackend"
     RAW_DATA_DIR = "/data/fragmaxrpc/user"
     HPC_JOBS_RUNNER = "local"

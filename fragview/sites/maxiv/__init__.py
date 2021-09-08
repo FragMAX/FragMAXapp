@@ -15,7 +15,6 @@ from fragview.sites.maxiv.hpc import HPC
 class SitePlugin(plugin.SitePlugin):
     NAME = "MAX IV Laboratory"
     LOGO = "maxiv.png"
-    DISABLED_FEATURES = ["soaking_plan"]
     ACCOUNT_STYLE = "DUO"
     AUTH_BACKEND = "fragview.auth.ISPyBBackend"
     RAW_DATA_DIR = "/data/visitors/biomax"
