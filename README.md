@@ -55,7 +55,6 @@ Here is a non-exhaustive alphabetically-ordered list of software used by FragMAX
 |fspipeline|[FS @ HZB](https://www.helmholtz-berlin.de/forschung/oe/np/gmx/fragment-screening/index_en.html)|[How to cite](https://pubmed.ncbi.nlm.nih.gov/27452405/)|
 |Gemmi|[gemmi @ PyPi](https://pypi.org/project/gemmi/)|-|
 |PanDDA|[PanDDA](https://pandda.bitbucket.io/)|[How to cite](https://doi.org/10.1038/ncomms15123)|
-|Pipedream|[Global Phasing](https://www.globalphasing.com/)|- [Documentation](https://www.globalphasing.com/buster/manual/pipedream/manual/index.html/)<br>- [How to cite](https://www.globalphasing.com/buster/manual/pipedream/manual/index.html#_how_to_cite_use_of_pipedream)|
 |Phenix suite|[Phenix](https://www.phenix-online.org/)|[How to cite](https://www.phenix-online.org/documentation/reference/citations.html)|
 |RhoFit|[Global Phasing](https://www.globalphasing.com/)|- [Documentation](https://www.globalphasing.com/buster/manual/rhofit/manual/)<br>- [How to cite](https://www.globalphasing.com/buster/manual/rhofit/manual/#cite)|
 |XDS|[XDS](http://xds.mpimf-heidelberg.mpg.de/)|[How to cite](http://scripts.iucr.org/cgi-bin/paper?S0907444909047337)|

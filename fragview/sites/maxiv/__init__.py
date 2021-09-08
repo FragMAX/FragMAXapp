@@ -80,12 +80,6 @@ class SitePlugin(plugin.SitePlugin):
             Pipeline.FSPIPELINE,
             Pipeline.RHO_FIT,
             Pipeline.LIGAND_FIT,
-            # TODO: disable pipedream for now
-            # we need to test and potentially update
-            # the code for running pipedream tools
-            # Pipeline.PIPEDREAM_PROC,
-            # Pipeline.PIPEDREAM_REFINE,
-            # Pipeline.PIPEDREAM_LIGAND,
             Pipeline.PANDDA,
         }
 

@@ -1,6 +1,5 @@
 from typing import Union
 import os
-import csv
 import stat
 from os import path
 from pathlib import Path
@@ -114,12 +113,6 @@ def read_text_lines(proj, file_path):
     file_bytes = read_proj_file(proj, file_path)
     for line in file_bytes.decode("utf-8").splitlines():
         yield line
-
-
-def read_csv_lines(filename):
-    with open(filename, "r") as f:
-        reader = csv.reader(f)
-        return list(reader)
 
 
 def makedirs(dir_path):

@@ -15,7 +15,7 @@ class TestGetRlp(WorkerTaskTester):
     def test_task(self, isfile_mock, red_lock_mock):
         # mock the case when ccp4 file(s) have been previously created
         isfile_mock.return_value = True
-        with patch("worker.ccp4.celery.task", identity):
+        with patch("worker.dials.celery.task", identity):
             # reload ccp4 module, so that our mocked @celery.task decorator is applied
             import worker.dials
             importlib.reload(worker.dials)

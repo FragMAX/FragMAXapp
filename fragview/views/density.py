@@ -3,12 +3,7 @@ from glob import glob
 from pathlib import Path
 from ast import literal_eval
 from django.shortcuts import render
-from fragview.projects import (
-    Project,
-    current_project,
-    project_results_dir,
-)
-from fragview.projects import project_process_protein_dir
+from fragview.projects import Project, current_project
 from fragview.pandda import (
     PanddaAnalyseEvents,
     PanddaAnalyseSites,
@@ -16,7 +11,6 @@ from fragview.pandda import (
     Inspect,
     Inspects,
 )
-from fragview.fileio import read_csv_lines
 from fragview.views.wrap import Wrapper
 from fragview.views.utils import (
     get_refine_result_by_id,
@@ -55,84 +49,6 @@ def compare_poses(request, result_id):
             "rhofit_result": result.get_ligfit_result("rhofit"),
             "ligandfit_result": result.get_ligfit_result("ligandfit"),
             "fragment": get_crystals_fragment(result.dataset.crystal),
-        },
-    )
-
-
-def show_pipedream(request):
-    proj = current_project(request)
-
-    sample = str(request.GET.get("structure"))
-
-    lines = read_csv_lines(path.join(project_process_protein_dir(proj), "results.csv"))[
-        1:
-    ]
-
-    for n, line in enumerate(lines):
-        if line[0] == f"{sample}":
-            symmetry = line[4]
-            resolution = line[5]
-            rwork = line[7]
-            rfree = line[8]
-            rhofitscore = line[20]
-            ligsvg = ""
-            currentpos = n
-            center = line[22]
-            prefix = line[18]
-            ligand = prefix.split("-")[-1].split("_")[0]
-            if currentpos == len(lines) - 1:
-                prevstr = lines[currentpos - 1][0]
-                nextstr = lines[0][0]
-            elif currentpos == 0:
-                prevstr = lines[-1][0]
-                nextstr = lines[currentpos + 1][0]
-
-            else:
-                prevstr = lines[currentpos - 1][0]
-                nextstr = lines[currentpos + 1][0]
-    if "Apo" not in sample:
-        process = "rhofit"
-        files = glob(f"{project_results_dir(proj)}/{prefix}/pipedream/rhofit*/")
-        files.sort(key=lambda x: path.getmtime(x))
-        if files:
-            pdb = files[-1] + "refine.pdb"
-            rhofit = files[-1] + "best.pdb"
-
-        cE = "true"
-
-    else:
-        process = "refine"
-        files = glob(f"{project_results_dir(proj)}/{prefix}/pipedream/refine*/")
-        files.sort(key=lambda x: path.getmtime(x))
-        if files:
-            pdb = files[-1] + "refine.pdb"
-            rhofit = ""
-            rhofitscore = "-"
-            center = "[0,0,0]"
-            cE = "false"
-
-    return render(
-        request,
-        "fragview/pipedream_density.html",
-        {
-            "name": sample.replace("/data/visitors/", "/static/"),
-            "pdb": pdb.replace("/data/visitors/", "/static/"),
-            "mtz": pdb.replace("/data/visitors/", "/static/").replace(".pdb", ".mtz"),
-            "sample": sample,
-            "process": process,
-            "prefix": prefix,
-            "rhofit": rhofit.replace("/data/visitors/", "/static/"),
-            "center": center,
-            "symmetry": symmetry,
-            "resolution": resolution,
-            "rwork": rwork,
-            "rfree": rfree,
-            "rhofitscore": rhofitscore,
-            "ligand": ligand.replace("/data/visitors/", "/static/"),
-            "prevstr": prevstr,
-            "nextstr": nextstr,
-            "cE": cE,
-            "ligsvg": ligsvg,
         },
     )
 

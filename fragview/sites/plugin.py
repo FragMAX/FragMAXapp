@@ -124,9 +124,6 @@ class Pipeline:
     FSPIPELINE = "fspipeline"
     RHO_FIT = "rho_fit"
     LIGAND_FIT = "ligand_fit"
-    PIPEDREAM_PROC = "pipedream_proc"
-    PIPEDREAM_REFINE = "pipedream_refine"
-    PIPEDREAM_LIGAND = "pipedream_ligand"
     PANDDA = "pandda"
 
 

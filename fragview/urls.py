@@ -12,7 +12,6 @@ from fragview.views import (
     reciprocal,
     soaking,
     pdbs,
-    pipedream,
     refine,
     process,
     ligfit,
@@ -44,7 +43,6 @@ urlpatterns = [
     path("results/cellparams", results.cellparams),
     path("density/<result_id>", density.show, name="density"),
     path("dual_density/<result_id>", density.compare_poses, name="dual_density"),
-    path("pipedream_density/", density.show_pipedream, name="pipedream_density"),
     path("pandda_density/", density.pandda, name="pandda_density"),
     path(
         "pandda_densityC/<method>/<dataset_name>/<site_idx>/<event_idx>",
@@ -101,8 +99,6 @@ urlpatterns = [
     path("pdbs/pandda/fitted/<dataset>/<method>", result_pdbs.pandda_fitted),
     path("pdbs/pandda/input/<dataset>/<method>", result_pdbs.pandda_input),
     path("data_analysis/", analysis.processing_form, name="data_analysis"),
-    path("pipedream/", pipedream.processing_form, name="pipedream"),
-    path("submit_pipedream/", pipedream.submit, name="submit_pipedream"),
     path("hpc/kill/", hpc.kill),
     path("jobs/status", hpc.status, name="hpcstatus"),
     path("jobs/history", hpc.jobhistory, name="jobhistory"),
@@ -114,7 +110,6 @@ urlpatterns = [
         diffraction.image,
         name="diffraction_image",
     ),
-    path("pipedream_ccp4_map/<sample>/<process>/<type>", eldensity.pipedream_map),
     # pandda generated density maps
     path("density_map/pandda/<dataset>/<method>/zmap", eldensity.pandda_consensus_zmap),
     path("density_map/pandda/<dataset>/<method>/bdc", eldensity.pandda_bdc),

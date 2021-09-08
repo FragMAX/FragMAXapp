@@ -755,9 +755,6 @@
                 {% if refine_logs.fspipeline %}
                     <button class="tablinks" onclick="openMethod(event, 'FSPipeline')">fspipeline</button>
                 {% endif %}
-                {% if "pipedream_refine" in pipelines %}
-                    <button class="tablinks" onclick="openMethod(event, 'Pipedream')">Pipedream</button>
-                {% endif %}
             </div>
             <div id="EDNA" class="card tabcontent">
                 <div class="card-title logtab">EDNA_proc Logs</div>
@@ -808,60 +805,6 @@
                         </a>
                     </div>
                 {% endfor %}
-            </div>
-            <div id="Pipedream" class="card tabcontent">
-                <div class="card-title">Pipedream Logs</div>
-                <div class="tab-div-log">
-                    <div class="tab-vertical">
-                        {% if "pipedream_proc" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'pipedream-pipedream-v')">Pipedream</button>
-                        {% endif %}
-                        {% if "auto_proc" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'autoproc-pipedream-v')">autoPROC</button>
-                        {% endif %}
-                        {% if "rho_fit" in pipelines %}
-                        <button class="tablinks-vertical"
-                            onclick="openMethodV(event, 'rhofit-pipedream-v')">RhoFit</button>
-                        {% endif %}
-                    </div>
-                    <div id="pipedream-pipedream-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in pipedream_logs.items %}
-                        {% if proc_m == "pipedream" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div id="autoproc-pipedream-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in pipedream_logs.items %}
-                        {% if proc_m == "autoproc" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-
-                    <div id="rhofit-pipedream-v" class="tabcontent-vertical">
-                        {% for proc_m, logs in pipedream_logs.items %}
-                        {% if proc_m == "rhofit" %}
-                        {% for log, path in logs.items %}
-                        <div>
-                            <a href="/logs/show/{{path}}" class="log-name" target="_blank">{{log}}</a>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-
-                </div>
             </div>
             <div id="DIMPLE" class="card tabcontent">
                 <div class="card-title">DIMPLE Logs</div>
