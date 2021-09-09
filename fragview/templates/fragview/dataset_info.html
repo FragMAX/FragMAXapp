@@ -524,13 +524,6 @@
 
     <div class="flexdiv">
         <div id="snaps">
-            {% if proc_logs.dials %}
-            <form action="/reciprocal_lattice/{{imgprf}}/{{run}}" method="get" size="1" style="padding-left:25%;"
-                target="_blank">
-                <button class="btn-large" type="submit" size="1">Reciprocal Lattice</button>
-            </form>
-            {% endif %}
-
             <img class="myImg diffsnap" id="diff1" src="/diffraction/{{dataset.id}}/0">
             <img class="myImg diffsnap" id="diff2" src="/diffraction/{{dataset.id}}/90">
 

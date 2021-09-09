@@ -21,13 +21,10 @@ exclude = '''
   fragview/views/crypt.py |
   fragview/views/download.py |
   fragview/views/misc.py |
-  fragview/views/reciprocal.py |
   manage.py |
   tests/test_auth_ispyb.py |
   tests/test_views_fragment.py |
   tests/test_worker_cpp4.py |
-  tests/test_worker_dials.py |
-  worker/__init__.py |
   tests/test_middleware.py
 )
 '''

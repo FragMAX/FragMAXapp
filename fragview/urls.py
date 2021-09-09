@@ -9,7 +9,6 @@ from fragview.views import (
     misc,
     analysis,
     pandda,
-    reciprocal,
     pdbs,
     refine,
     process,
@@ -63,9 +62,6 @@ urlpatterns = [
     # pandda HTML report for a specific analysis run
     path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
     path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
-    path(
-        "reciprocal_lattice/<sample>/<run>", reciprocal.show, name="reciprocal_lattice"
-    ),
     path("project_details/", misc.project_details, name="project_details"),
     path("libraries/show", libraries.show, name="libraries"),
     path("libraries/<library_id>/json", libraries.as_json, name="libraries"),
@@ -119,7 +115,6 @@ urlpatterns = [
         eldensity.refined_map,
         name="density_map",
     ),
-    path("reciprocal/<sample>/<run>", reciprocal.rlp),
     path("fragment/<fragment_id>/image", fragment.svg, name="fragment_svg"),
     path("crypt/", crypt.index),
     # tools specific logs
