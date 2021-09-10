@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, Optional
 from fragview.models import Fragment
 from fragview.views.utils import get_crystals_fragment
 
@@ -73,7 +73,7 @@ class DatasetInfo(Wrapper):
     def ligandfit_result(self):
         return self._aggregate_tool_results("ligandfit")
 
-    def fragment(self) -> Fragment:
+    def fragment(self) -> Optional[Fragment]:
         return get_crystals_fragment(self.orig.crystal)
 
 
@@ -99,7 +99,7 @@ class RefineInfo(Wrapper):
     def ligandfit_score(self):
         return self._get_ligand_fit_score("ligandfit")
 
-    def fragment(self) -> Fragment:
+    def fragment(self) -> Optional[Fragment]:
         return get_crystals_fragment(self.orig.dataset.crystal)
 
 

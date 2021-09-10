@@ -73,6 +73,10 @@ def auto_ligand_fit(
 
     for num, result in enumerate(refine_results):
         dataset = result.dataset
+        if dataset.crystal.is_apo():
+            # don't try to fit ligand to an apo crystal
+            continue
+
         fragment = get_crystals_fragment(dataset.crystal)
         result_dir = project.get_refine_result_dir(result)
 

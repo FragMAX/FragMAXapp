@@ -263,12 +263,14 @@
       </div>
       {% endif %}
 
+      {% if fragment %}
       <div class="ligandSVG">
         <div>
           <p style="text-align: center;">{{fragment.code}}</p>
         </div>
         <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
       </div>
+      {% endif %}
 
     </div>
 

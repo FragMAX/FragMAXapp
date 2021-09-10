@@ -1036,15 +1036,6 @@ def _write_prepare_script(
     epoch = round(time.time())
     output_dir = Path(project.pandda_method_dir(method), dataset.name)
 
-    fragment = get_crystals_fragment(dataset.crystal)
-    if cif_method == "elbow":
-        cif_cmd = f"phenix.elbow --smiles='{fragment.smiles}' --output=$WORK_DIR/{fragment.code} --opt\n"
-    elif cif_method == "grade":
-        cif_cmd = (
-            f"grade '{fragment.smiles}' -ocif $WORK_DIR/{fragment.code}.cif "
-            f"-opdb $WORK_DIR/{fragment.code}.pdb -nomogul\n"
-        )
-
     hpc = SITE.get_hpc_runner()
     batch = hpc.new_batch_file(
         f"PnD{rn}",
@@ -1069,8 +1060,22 @@ def _write_prepare_script(
         ["gopresto", versions.PHENIX_MOD, versions.CCP4_MOD, versions.BUSTER_MOD]
     )
 
+    if not dataset.crystal.is_apo():
+        fragment = get_crystals_fragment(dataset.crystal)
+        # non-apo crystal should have a fragment
+        assert fragment
+        if cif_method == "elbow":
+            cif_cmd = f"phenix.elbow --smiles='{fragment.smiles}' --output=$WORK_DIR/{fragment.code} --opt\n"
+        else:
+            assert cif_method == "grade"
+            cif_cmd = (
+                f"grade '{fragment.smiles}' -ocif $WORK_DIR/{fragment.code}.cif "
+                f"-opdb $WORK_DIR/{fragment.code}.pdb -nomogul\n"
+            )
+
+        batch.add_command(cif_cmd)
+
     batch.add_commands(
-        cif_cmd,
         f'printf "monitor BRIEF\\n labin file 1 -\\n  ALL\\n resolution file 1 999.0 {resHigh}\\n" | \\\n'
         "    cad hklin1 $WORK_DIR/final.mtz hklout $WORK_DIR/final.mtz",
         "uniqueify -f FreeR_flag $WORK_DIR/final.mtz $WORK_DIR/final.mtz",

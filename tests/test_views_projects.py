@@ -8,6 +8,7 @@ from tests.project_setup import Project, DataSet, Crystal
 from projects.database import db_session
 
 AR_CSV = """SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
+X0000,,,DMS,5%
 X0001,TSLib,T0,DMS,5%
 X0002,TSLib,T1,DMS,6%
 X0003,TSLib,T2,DMS,8%
@@ -94,21 +95,28 @@ def _crystals_csv_mock():
 class TestNew(ProjectTestCase, ViewTesterMixin):
     PROJECTS: List = []
     CRYSTALS = [
-        crystals.Crystal(  # type: ignore
+        crystals.Crystal(
+            SampleID="X0000",
+            FragmentLibrary=None,
+            FragmentCode=None,
+            Solvent="DMS",
+            SolventConcentration="5%",
+        ),
+        crystals.Crystal(
             SampleID="X0001",
             FragmentLibrary="TSLib",
             FragmentCode="T0",
             Solvent="DMS",
             SolventConcentration="5%",
         ),
-        crystals.Crystal(  # type: ignore
+        crystals.Crystal(
             SampleID="X0002",
             FragmentLibrary="TSLib",
             FragmentCode="T1",
             Solvent="DMS",
             SolventConcentration="6%",
         ),
-        crystals.Crystal(  # type: ignore
+        crystals.Crystal(
             SampleID="X0003",
             FragmentLibrary="TSLib",
             FragmentCode="T2",
@@ -144,10 +152,44 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
         self.assert_response(resp, 200, "^ok")
 
         # check that 'create project' worker was invoked
-        # with resonable arguments
+        # with reasonable arguments
         user_proj = UserProject.objects.get(proposal=self.PROP1)
         setup_project_mock.assert_called_once_with(
-            str(user_proj.id), PROTO, self.PROP1, self.CRYSTALS, False, False
+            str(user_proj.id),
+            PROTO,
+            self.PROP1,
+            [
+                dict(
+                    SampleID="X0000",
+                    FragmentLibrary=None,
+                    FragmentCode=None,
+                    Solvent="DMS",
+                    SolventConcentration="5%",
+                ),
+                dict(
+                    SampleID="X0001",
+                    FragmentLibrary="TSLib",
+                    FragmentCode="T0",
+                    Solvent="DMS",
+                    SolventConcentration="5%",
+                ),
+                dict(
+                    SampleID="X0002",
+                    FragmentLibrary="TSLib",
+                    FragmentCode="T1",
+                    Solvent="DMS",
+                    SolventConcentration="6%",
+                ),
+                dict(
+                    SampleID="X0003",
+                    FragmentLibrary="TSLib",
+                    FragmentCode="T2",
+                    Solvent="DMS",
+                    SolventConcentration="8%",
+                ),
+            ],
+            False,
+            False,
         )
 
 

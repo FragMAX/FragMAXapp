@@ -274,9 +274,13 @@
             </td>
 
             <td>
-                <a href="/fragment/{{dataset.fragment.id}}/image" target="_blank">
-                    <img class="ligimg">
-                </a>
+                {% with fragment=dataset.fragment %}
+                    {% if fragment %}
+                    <a href="/fragment/{{fragment.id}}/image" target="_blank">
+                        <img class="ligimg">
+                    </a>
+                    {% endif %}
+                {% endwith %}
             </td>
         </tr>
         {% endfor %}

@@ -9,6 +9,9 @@ def _get_fragments(project: Project) -> Dict[Fragment, List]:
     fragments: Dict = {}
 
     for crystal in project.get_crystals():
+        if crystal.is_apo():
+            continue
+
         frag = get_crystals_fragment(crystal)
         crystals = fragments.get(frag, [])
         crystals.append(crystal)

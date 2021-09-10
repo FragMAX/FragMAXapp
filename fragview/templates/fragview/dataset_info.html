@@ -539,7 +539,12 @@
             <img class="myImg crystalsnap" id="snap2" src="{{snapshots.1}}"
                 onerror="if (this.src != '/static/img/nosnap.png') this.src='/static/img/nosnap.png';">
             {% endif %}
-            <img src="/fragment/{{dataset.fragment.id}}/image">
+
+            {% with fragment=dataset.fragment %}
+                {% if fragment %}
+                <img src="/fragment/{{fragment.id}}/image">
+                {% endif %}
+            {% endwith %}
         </div>
         <div class="flex-left">
             <div class="card" style="min-height:700px">

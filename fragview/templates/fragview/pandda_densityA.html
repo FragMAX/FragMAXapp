@@ -290,10 +290,10 @@
     </div>
 
     <div class="ligandSVG">
+      {% if not ground_model %}
       <div>
         <h5 style="text-align: center;">{{fragment.code}}</h5>
       </div>
-      {% if not ground_model %}
       <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
       {% endif %}
     </div>

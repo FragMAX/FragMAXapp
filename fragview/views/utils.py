@@ -1,3 +1,4 @@
+from typing import Optional
 from os import path
 from threading import Thread
 from typing import Set
@@ -72,10 +73,13 @@ def get_ligfit_result_by_id(project: Project, result_id):
     return result
 
 
-def get_crystals_fragment(crystal) -> Fragment:
+def get_crystals_fragment(crystal) -> Optional[Fragment]:
     """
-    get Crystal's Fragment
+    get Crystal's Fragment, returns None for apo crystals
     """
+    if crystal.is_apo():
+        return None
+
     return Fragment.get_by_id(crystal.fragment_id)
 
 
@@ -92,6 +96,9 @@ def get_project_libraries(project: Project) -> Set[Library]:
     libs = set()
 
     for crystal in project.get_crystals():
+        if crystal.is_apo():
+            continue
+
         frag = Fragment.get_by_id(crystal.fragment_id)
         libs.add(frag.library)
 

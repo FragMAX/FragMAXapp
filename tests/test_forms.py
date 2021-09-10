@@ -2,7 +2,6 @@ from django import test
 from django.test.client import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 from fragview import forms
-from fragview.crystals import Crystal
 from fragview.models import Library, Fragment
 
 
@@ -12,6 +11,7 @@ LIBRARY = "JBS"
 CRYSTALS_CSV = b"""SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
 F001,JBS,j001,DMS,5%
 F002,JBS,j002,DMS,6%
+F003,,,EMO,3%
 """
 
 
@@ -170,19 +170,26 @@ class TestProjectForm(test.TestCase):
         self.assertListEqual(
             crystals.as_list(),
             [
-                Crystal(
+                dict(
                     SampleID="F001",
                     FragmentLibrary="JBS",
                     FragmentCode="j001",
                     Solvent="DMS",
                     SolventConcentration="5%",
                 ),
-                Crystal(
+                dict(
                     SampleID="F002",
                     FragmentLibrary="JBS",
                     FragmentCode="j002",
                     Solvent="DMS",
                     SolventConcentration="6%",
+                ),
+                dict(
+                    SampleID="F003",
+                    FragmentLibrary=None,
+                    FragmentCode=None,
+                    Solvent="EMO",
+                    SolventConcentration="3%",
                 ),
             ],
         )

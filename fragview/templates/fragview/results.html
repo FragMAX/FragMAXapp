@@ -263,9 +263,13 @@
         {% endif %}
       </td>
       <td>
-        <a href="/fragment/{{item.fragment.id}}/image" target="_blank">
-          <img class="ligand" src="/fragment/{{item.fragment.id}}/image" height="40" width="86">
-        </a>
+        {% with fragment=item.fragment %}
+          {% if fragment %}
+          <a href="/fragment/{{fragment.id}}/image" target="_blank">
+            <img class="ligand" src="/fragment/{{fragment.id}}/image" height="40" width="86">
+          </a>
+          {% endif %}
+        {% endwith %}
       </td>
 
     </tr>

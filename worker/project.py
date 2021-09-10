@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import os
 import grp
 import stat
@@ -8,7 +8,7 @@ from pathlib import Path
 from django.conf import settings
 from fragview.sites import SITE
 from projects.database import db_session
-from fragview.crystals import Crystals
+from fragview.crystals import Crystals, Crystal
 from fragview.models import UserProject, Fragment
 from fragview.status import scrape_imported_autoproc_status
 from fragview.projects import PANDDA_WORKER
@@ -31,7 +31,6 @@ def setup_project(
 ):
     try:
         user_proj = UserProject.get(project_id)
-        crystals = Crystals.from_list(crystals)
 
         project = create_project(
             settings.PROJECTS_DB_DIR, project_id, proposal, protein, encrypted
@@ -39,7 +38,7 @@ def setup_project(
 
         with db_session:
             _setup_project_folders(project)
-            _add_crystals(project, crystals)
+            _add_crystals(project, Crystals.from_list(crystals))
             _add_datasets(project)
 
             if import_autoproc:
@@ -96,13 +95,20 @@ def _add_datasets(project: Project):
                 project.db.DataSetSnapshot(dataset=dataset, index=snapshot_index)
 
 
-def _add_crystals(project: Project, crystals):
-    for crystal in crystals:
-        fragment = Fragment.get(crystal.FragmentLibrary, crystal.FragmentCode)
+def _add_crystals(project: Project, crystals: Crystals):
+    def get_fragment_id(crystal: Crystal) -> Optional[str]:
+        fragment = crystal.get_fragment()
+        if fragment is None:
+            # pony ORM uses empty string as 'None'
+            return ""
 
+        db_frag = Fragment.get(fragment.library, fragment.code)
+        return str(db_frag.id)
+
+    for crystal in crystals:
         project.db.Crystal(
             id=crystal.SampleID,
-            fragment_id=str(fragment.id),
+            fragment_id=get_fragment_id(crystal),
             solvent=crystal.Solvent,
             solvent_concentration=crystal.SolventConcentration,
         )

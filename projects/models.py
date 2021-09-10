@@ -20,7 +20,7 @@ def _define_entities(db):
 
     class Crystal(db.Entity):
         id = PrimaryKey(str)
-        fragment_id = Required(str)
+        fragment_id = Optional(str)
 
         datasets = Set(lambda: DataSet)  # type: ignore
 
@@ -29,6 +29,10 @@ def _define_entities(db):
         #
         solvent_concentration = Required(str)
         solvent = Required(str)
+
+        def is_apo(self) -> bool:
+            # as per pony ORM, 'no fragment' is denoted by an empty string
+            return self.fragment_id == ""
 
     class DataSet(db.Entity):
         id = PrimaryKey(int, auto=True)
