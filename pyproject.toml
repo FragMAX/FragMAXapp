@@ -28,3 +28,42 @@ exclude = '''
   tests/test_middleware.py
 )
 '''
+
+[tool.mypy]
+exclude = "worker/data/pandda_prepare_runs.py|fragview/migrations/|static/"
+
+[[tool.mypy.overrides]]
+    module = [
+        "pony.orm",
+        "pypdb",
+        "fabio",
+        "rdkit",
+        "rdkit.Chem",
+        "gemmi",
+        "pandas",
+        "pandas.errors",
+        "celery",
+        "django",
+        "django.db",
+        "django.db.models",
+        "django.http",
+        "django.conf",
+        "django.urls",
+        "django.test",
+        "django.forms",
+        "django.shortcuts",
+        "django.test.client",
+        "django.core.wsgi",
+        "django.views.decorators.csrf",
+        "django.contrib.auth.models",
+        "django.core.management",
+        "django.core.management.base",
+        "django.core.files.uploadedfile",
+        "natsort",
+        "redlock",
+        "material.frontend",
+        "asyncssh",
+        "zipstream",
+        "xmltodict",
+    ]
+    ignore_missing_imports = true
