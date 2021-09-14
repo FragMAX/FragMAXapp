@@ -3,6 +3,7 @@ crystals list CSV file parser
 """
 from typing import List, Optional, Dict
 from pandas import read_csv, DataFrame
+from pandas.errors import ParserError
 from fragview import models
 from dataclasses import dataclass, fields
 
@@ -181,11 +182,14 @@ def parse_crystals_csv(csv_data: bytes) -> Crystals:
 
     raises InvalidCrystalsCSV exception if invalid data is detected
     """
-    csv = read_csv(
-        csv_data,
-        # don't convert empty strings to float NaN values
-        na_filter=False,
-    )
+    try:
+        csv = read_csv(
+            csv_data,
+            # don't convert empty strings to float NaN values
+            na_filter=False,
+        )
+    except ParserError as e:
+        raise InvalidCrystalsCSV(f"{e}")
 
     _check_column_names(csv)
 
