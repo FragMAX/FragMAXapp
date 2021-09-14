@@ -32,6 +32,10 @@ To adapt the FragMAXapp for a new deployment site, a plugin module can be develo
 The `site-plugin` implements site specific details and configuration.
 For more details on writing plugins see the [site plugins](docs/site_plugins.md) documentation.
 
+# Managing
+
+[Operating FragMAXapp](docs/operation.md) document contains some useful information on managing and running a deploymnet of the application.
+
 # Development
 
 The overview of the app's structure is described in the [Architecture](docs/architecture.md) document.
