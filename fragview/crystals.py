@@ -19,8 +19,6 @@ class Crystal:
     SampleID: str
     FragmentLibrary: Optional[str]
     FragmentCode: Optional[str]
-    Solvent: str
-    SolventConcentration: str
 
     def get_fragment(self) -> Optional[Fragment]:
         """
@@ -75,8 +73,6 @@ class Crystals:
                     crystal.SampleID,
                     _sanitize_str(crystal.FragmentLibrary),
                     _sanitize_str(crystal.FragmentCode),
-                    crystal.Solvent,
-                    crystal.SolventConcentration,
                 )
 
         return Crystals(list(_rows_as_crystal_tuples()))

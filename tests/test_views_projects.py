@@ -7,11 +7,11 @@ from tests.utils import ProjectTestCase, ViewTesterMixin
 from tests.project_setup import Project, DataSet, Crystal
 from projects.database import db_session
 
-AR_CSV = """SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
-X0000,,,DMS,5%
-X0001,TSLib,T0,DMS,5%
-X0002,TSLib,T1,DMS,6%
-X0003,TSLib,T2,DMS,8%
+AR_CSV = """SampleID,FragmentLibrary,FragmentCode
+X0000,,
+X0001,TSLib,T0
+X0002,TSLib,T1
+X0003,TSLib,T2
 """
 
 PROTO = "AR"
@@ -99,29 +99,21 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
             SampleID="X0000",
             FragmentLibrary=None,
             FragmentCode=None,
-            Solvent="DMS",
-            SolventConcentration="5%",
         ),
         crystals.Crystal(
             SampleID="X0001",
             FragmentLibrary="TSLib",
             FragmentCode="T0",
-            Solvent="DMS",
-            SolventConcentration="5%",
         ),
         crystals.Crystal(
             SampleID="X0002",
             FragmentLibrary="TSLib",
             FragmentCode="T1",
-            Solvent="DMS",
-            SolventConcentration="6%",
         ),
         crystals.Crystal(
             SampleID="X0003",
             FragmentLibrary="TSLib",
             FragmentCode="T2",
-            Solvent="DMS",
-            SolventConcentration="8%",
         ),
     ]
 
@@ -163,29 +155,21 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
                     SampleID="X0000",
                     FragmentLibrary=None,
                     FragmentCode=None,
-                    Solvent="DMS",
-                    SolventConcentration="5%",
                 ),
                 dict(
                     SampleID="X0001",
                     FragmentLibrary="TSLib",
                     FragmentCode="T0",
-                    Solvent="DMS",
-                    SolventConcentration="5%",
                 ),
                 dict(
                     SampleID="X0002",
                     FragmentLibrary="TSLib",
                     FragmentCode="T1",
-                    Solvent="DMS",
-                    SolventConcentration="6%",
                 ),
                 dict(
                     SampleID="X0003",
                     FragmentLibrary="TSLib",
                     FragmentCode="T2",
-                    Solvent="DMS",
-                    SolventConcentration="8%",
                 ),
             ],
             False,

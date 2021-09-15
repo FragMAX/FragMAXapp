@@ -8,10 +8,10 @@ from fragview.models import Library, Fragment
 PROPOSAL = "12345678"
 PROTEIN = "MyProt"
 LIBRARY = "JBS"
-CRYSTALS_CSV = b"""SampleID,FragmentLibrary,FragmentCode,Solvent,SolventConcentration
-F001,JBS,j001,DMS,5%
-F002,JBS,j002,DMS,6%
-F003,,,EMO,3%
+CRYSTALS_CSV = b"""SampleID,FragmentLibrary,FragmentCode
+F001,JBS,j001
+F002,JBS,j002
+F003,,
 """
 
 
@@ -174,22 +174,16 @@ class TestProjectForm(test.TestCase):
                     SampleID="F001",
                     FragmentLibrary="JBS",
                     FragmentCode="j001",
-                    Solvent="DMS",
-                    SolventConcentration="5%",
                 ),
                 dict(
                     SampleID="F002",
                     FragmentLibrary="JBS",
                     FragmentCode="j002",
-                    Solvent="DMS",
-                    SolventConcentration="6%",
                 ),
                 dict(
                     SampleID="F003",
                     FragmentLibrary=None,
                     FragmentCode=None,
-                    Solvent="EMO",
-                    SolventConcentration="3%",
                 ),
             ],
         )

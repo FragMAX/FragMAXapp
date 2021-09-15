@@ -109,8 +109,6 @@ def _add_crystals(project: Project, crystals: Crystals):
         project.db.Crystal(
             id=crystal.SampleID,
             fragment_id=get_fragment_id(crystal),
-            solvent=crystal.Solvent,
-            solvent_concentration=crystal.SolventConcentration,
         )
 
 

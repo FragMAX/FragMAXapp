@@ -73,9 +73,6 @@ def populate_project_db(project, project_desc: Project):
         project.db.Crystal(
             id=crystal.sample_id,
             fragment_id=get_fragment_id(crystal.library_name, crystal.fragment_code),
-            # hard-coded solvent values for now
-            solvent="DMS",
-            solvent_concentration="5%",
         )
 
     #
