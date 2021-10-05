@@ -1,0 +1,100 @@
+
+-------------------------------------------------------------------
+
+Processing summary for data set TRIM2-x0076_1_data
+ 2021-10-05 15:31:42
+-------------------------------------------------------------------
+
+Things you may want to check:
+
+ Twinning
+ Indexing (low percentage of indexed spots)
+ Ice rings?
+
+
+Images in /gpfs/offline1/visitors/biomax/20210777/20210930/raw/TRIM2/TRIM2-x0076
+
+
+Table 1 like summary 
+-------------------------------------------------------------------
+
+    Space group                            P2 (3)                                
+    Unit cell parameters [A]               45.68 79.86 111.70 90.0 95.56 90.0    
+    Resolution limit [A]                   45.62-1.9 (2.01-1.90)                 
+    No. of reflections                     179110                                
+    No. of uniques                         48213                                 
+    Multiplicity                           3.71                                  
+    I/sigI                                 0.04 (-0.03)                          
+    R_meas [%]                             9899.5 (31446.9)                      
+    Completeness [%]                       75.9 (11.3)                           
+    B(Wilson) [A^2]                        5.17                                  
+    Mosaicity [deg]                        0.839                                 
+    CC(1/2)                                2.2 (2.2)                             
+    ISa                                    7.09                                  
+
+
+Result files generated for CCP4, CNS, SHELX
+-------------------------------------------------------------------
+                                                                                 
+    TRIM2-x0076_1_data_F.mtz                                                     
+    TRIM2-x0076_1_data_F_plus_F_minus.mtz                                        
+    TRIM2-x0076_1_data_I.mtz                                                     
+    TRIM2-x0076_1_data.hkl                                                       
+    TRIM2-x0076_1_data.cv                                                        
+
+
+Intensity checks
+-------------------------------------------------------------------
+
+    SFCHECK                                                                      
+     Perfect twinning test                 1.3556                                
+     Pseudo translation                    not detected                          
+    Phenix.xtriage                                                               
+     <I^2>/<I>                             1.687 (untwinned 2.000, perfect twin 1.500)
+     <F>^2/<F^2>                           0.894 (untwinned 0.785, perfect twin 0.885)
+     <|E^2-1|>                             0.526 (untwinned 0.736, perfect twin 0.541)
+    Pointless                                                                    
+     |L|-test                              0.448 (untwinned 0.500, perfect twin 0.375)
+     L^2-test                              0.279 (untwinned 0.333, perfect twin 0.200)
+
+
+Space group determination by Pointless
+-------------------------------------------------------------------
+
+    Selected space group                   P 1 2 1 (3)                           
+    Total probability                      0.756                                 
+    Systematic absences probability        1.000                                 
+    Next probable space group              P 1 (1)                               
+    Total probability                      0.244                                 
+    Systematic absences probability        1.000                                 
+
+
+Indexing summary
+-------------------------------------------------------------------
+
+    No. of subtrees                        432                                   
+    No. of strong spots in root subtree    137                                   
+    No. of strong spots in subtree 2       3                                     
+    Quality value                          1.6                                   
+    Delta                                  0.2                                   
+    DH, DK, DL                             0.01, 0.04, 0.02                      
+    Selected origin                        0 0 0                                 
+    Computed (given) beam position         2100.1, 2108.6 (2099.6, 2121.1)       
+    Std. of spot position (refined)        1.47 (1.18)                           
+    Std. of spindle position (refined)     0.84 (0.66)                           
+    Detector distance (refined)            251.25 (not refined)                  
+    No. of spots indexed (total)           134 (594) (=22.6 %)                   
+
+
+Experimental settings
+-------------------------------------------------------------------
+
+    Detector used                          EIGER                                 
+    Images processed                       1-3600                                
+    Detector distance [mm]                 251.25                                
+    Oscillation increment [deg]            0.1                                   
+    Wavelength [A]                         0.9763                                
+    Friedels law                           TRUE                                  
+    Rotation axis                          0 -1 0                                
+
+
