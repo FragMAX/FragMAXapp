@@ -15,7 +15,7 @@ def get_diffraction_pic_command(
 
     h5_file = Path(
         project.get_dataset_raw_dir(dataset),
-        f"{project.protein}-{dataset.name}_data_{file_num:06d}.h5",
+        f"{dataset.name}_data_{file_num:06d}.h5",
     )
 
     return [

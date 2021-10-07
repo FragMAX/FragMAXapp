@@ -147,7 +147,7 @@ class Project:
             self.get_dataset_root_dir(dataset),
             "raw",
             self.protein,
-            f"{self.protein}-{dataset.crystal.id}",
+            f"{dataset.crystal.id}",
         )
 
     def get_dataset_snapshot_path(self, dataset_snapshot) -> Path:
@@ -161,8 +161,8 @@ class Project:
             dataset.data_root_dir,
             "raw",
             self.protein,
-            f"{self.protein}-{dataset.crystal.id}",
-            f"{self.protein}-{dataset.name}_{dataset_snapshot.index}.snapshot.jpeg",
+            f"{dataset.crystal.id}",
+            f"{dataset.name}_{dataset_snapshot.index}.snapshot.jpeg",
         )
 
     #

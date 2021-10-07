@@ -54,7 +54,7 @@ def setup_project(
 
 def _add_datasets(project: Project):
     for dset_dir in project.get_dataset_dirs():
-        _, crystal_id = dset_dir.name.split("-", 1)
+        crystal_id = dset_dir.name
         crystal = project.get_crystal(crystal_id)
         if crystal is None:
             # not part of the project

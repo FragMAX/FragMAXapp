@@ -45,7 +45,7 @@ class SitePlugin(plugin.SitePlugin):
     def get_dataset_master_image(self, project, dataset) -> Path:
         return Path(
             project.get_dataset_raw_dir(dataset),
-            f"{project.protein}-{dataset.name}_master.h5",
+            f"{dataset.name}_master.h5",
         )
 
     def add_pandda_init_commands(self, batch):
@@ -118,14 +118,13 @@ def _get_dataset_metadata(
     # figure out path to the dataset's meta-data XML file
     #
     shift_dir = dataset_dir.parents[2].relative_to(project.proposal_dir)
-    protein = project.protein
     fastdp_dir = Path(
         project.proposal_dir,
         shift_dir,
         "process",
-        protein,
-        f"{protein}-{crystal_id}",
-        f"xds_{protein}-{crystal_id}_{run}_1",
+        project.protein,
+        f"{crystal_id}",
+        f"xds_{crystal_id}_{run}_1",
         "fastdp",
     )
     xml_file = next(

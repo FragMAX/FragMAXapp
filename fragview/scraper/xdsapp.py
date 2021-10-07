@@ -35,9 +35,7 @@ def _get_results_log(project: Project, xdsapp_dir, dataset) -> Optional[Path]:
     # older versions name the report file: 'results_<dataset>_data.txt'
     # newer versions                       'results_<dataset>.txt'
     #
-    log_file = next(
-        xdsapp_dir.glob(f"results_{project.protein}-{dataset.name}*.txt"), None
-    )
+    log_file = next(xdsapp_dir.glob(f"results_{dataset.name}*.txt"), None)
     if log_file is None or not log_file.is_file():
         return None
 
