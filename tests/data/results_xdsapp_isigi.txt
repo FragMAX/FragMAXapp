@@ -24,7 +24,7 @@ Table 1 like summary
     No. of reflections                     179110                                
     No. of uniques                         48213                                 
     Multiplicity                           3.71                                  
-    I/sigI                                 0.04 (-0.03)                          
+    I/sigI                                 -0.04 (-0.03)
     R_meas [%]                             9899.5 (31446.9)                      
     Completeness [%]                       75.9 (11.3)                           
     B(Wilson) [A^2]                        5.17                                  

@@ -24,7 +24,7 @@ ISA = "ISa"
 # match 'N1-N2 (N3-N4)' string, for resolutions line
 RESOLUTION_RE = re.compile(r"^([\d\\.]+)-([\d\\.]+) \(([\d\\.]+)-([\d\\.]+)\)")
 # match 'N1 (N2)' string, that is a pair of numbers
-PAIR_RE = re.compile(r"^([\d\\.]+) \((-?[\d\\.]+)\)")
+PAIR_RE = re.compile(r"^(-?[\d\\.]+) \((-?[\d\\.]+)\)")
 # match 'N1 (N2)' string, where second number is optional
 OPTIONAL_PAIR_RE = re.compile(r"([\d\.]+)( \([\d\.]+\))?")
 

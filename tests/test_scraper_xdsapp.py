@@ -101,7 +101,7 @@ class TestParseResultsLog(TestCase):
         self.assertEquals(self.stats.unit_cell_beta, "95.56")
         self.assertEquals(self.stats.unit_cell_gamma, "90.0")
         self.assertEquals(self.stats.multiplicity, "3.71")
-        self.assertEquals(self.stats.i_sig_average, "0.04")
+        self.assertEquals(self.stats.i_sig_average, "-0.04")
         self.assertEquals(self.stats.i_sig_out, "-0.03")
         self.assertEquals(self.stats.r_meas_average, "9899.5")
         self.assertEquals(self.stats.r_meas_out, "31446.9")
