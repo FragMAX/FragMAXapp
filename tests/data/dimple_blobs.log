@@ -1,0 +1,237 @@
+# workflow log (compatible with Python configparser)
+
+[workflow]
+host: cn16
+platform: Linux-3.10.0-1160.36.2.el7.x86_64-x86_64-with-centos-7.9.2009-Core
+cwd: /local/slurmtmp.1023304/tmp.gPbxVnmqKD
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/lib/py2/dimple/__main__.py
+args:
+ input.mtz
+ model.pdb
+ dimple
+output_dir: dimple
+CCP4: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0
+CCP4_SCR: /tmp
+version: 2.6.1
+#      ### Dimple v2.6.1. Problems and suggestions: ccp4.github.io/dimple ###
+# 
+# MTZ (1.9A)            P 1 2 1      (45.68, 79.86, 111.70,  90, 95.56, 90)
+# 308c3875e585d352e360db622f902e71 ../model.pdb
+data_file: ../input.mtz
+pdb_files: ["../model.pdb"]
+# 
+# model.pdb             P 1 21 1     (44.40, 77.88, 109.43,  90, 97.20, 90)
+
+[rwcontents]
+start_time: 2021-10-08 14:36:30
+input: end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/rwcontents
+args: XYZIN ini.pdb
+end_time: 2021-10-08 14:36:30
+info: 2 x 30kDa (+ 0kDa het) in 375nm3, 81% solvent
+stdout: 01-rwcontents.log
+num_mol: 2
+aa_count: 281
+weight: 29664.619
+Vm: 6.33
+water_count: 0.0
+volume: 375395.688
+total_weight: 29664.619
+solvent_percent: 80.5687203791
+# 
+# Hmm... 80.6% of solvent or incomplete model
+
+[pointless]
+start_time: 2021-10-08 14:36:30
+input: TOLERANCE 5
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/pointless
+args: HKLIN ../input.mtz HKLOUT pointless.mtz XYZIN ini.pdb
+end_time: 2021-10-08 14:36:31
+info: resol. 1.90 A   #refl: 19915
+stdout: 02-pointless.log
+refl_out: 19915
+output_cell: (45.68, 79.86, 111.7, 90.0, 95.56, 90.0)
+resol: 1.895
+refl_ref: 58812
+alt_reindex: [{"cc": -0.044, "cell_deviat": 2.63, "op": "[h,k,l]"}]
+# 
+#     [h,k,l]    CC: -0.044   cell diff: 2.6A
+# 
+# reindexed MTZ         P 1 21 1     (45.68, 79.86, 111.70,  90, 95.56, 90)
+# 
+# Rigid-body refinement with resolution 3.5 A, 10 cycles.
+#  0.0 waters/aa.
+
+[refmac5 rigid]
+start_time: 2021-10-08 14:36:31
+input: labin FP=FP SIGFP=SIGFP
+  refinement type rigidbody resolution 15 3.5
+  rigidbody ncycle 10
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/refmac5
+args: HKLIN pointless.mtz HKLOUT refmacRB.mtz XYZIN ini.pdb XYZOUT refmacRB.pdb
+end_time: 2021-10-08 14:36:38
+info: 10/10   R  0.4810  ->  0.4806
+stdout: 03-refmac5_rigid.log
+ncyc: 10
+overall_r: 0.4806
+iter_overall_r: [0.481, 0.4809, 0.4808, 0.4808, 0.4808, 0.4808, 0.4808, 0.4807, 0.4807, 0.4806, 0.4806]
+ini_overall_r: 0.481
+cycle: 10
+# 
+# Run MR for R > 0.4.
+#  Volume of asu: 108.0% of model asu.
+# 
+# 64% solvent for 2, 46% for 3 components.
+
+[phaser]
+start_time: 2021-10-08 14:36:38
+input: MODE MR_AUTO
+  SEARCH METHOD FAST
+  SEARCH DEEP OFF
+  ENSEMBLE p PDBFILE "ini.pdb" IDENTITY 100
+  ENSEMBLE p HETATOM ON
+  SEARCH ENSEMBLE p NUM 3
+  HKLIN "pointless.mtz"
+  LABIN F=FP SIGF=SIGFP
+  SGALTERNATIVE SELECT ALL
+  ROOT phaser
+  SOLUTION TEMPLATE original_model
+  SOLUTION 6DIM ENSE p EULER 0 0 0 FRAC 0 0 0
+  RESOLUTION AUTO HIGH 2.0
+  COMPOSITION PROTEIN MW 29664.619000 NUMBER 3
+  KILL TIME 180
+  PURGE ROT NUM 7
+  PURGE TRA NUM 20
+  PURGE RNP NUM 10
+  RESOLUTION HIGH 3.25
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/phaser
+args: 
+end_time: 2021-10-08 14:37:56
+info: RFZ=5.3 TFZ=2.7 PAK=7 LLG=21 *T=1 TFZ==2.5 LLG=18...
+stdout: 04-phaser.log
+status: RFZ=5.3 TFZ=2.7 PAK=7 LLG=21 *T=1 TFZ==2.5 LLG=18 *T=1 TFZ==2.4 PAK=8 LLG=18 *T=1 TFZ==2.4
+partial_solution: yes
+SG: P 1 2 1
+# 
+# ... *T=1 TFZ==2.4 PAK=8 LLG=18 *T=1 TFZ==2.4
+# 
+# Solution found with 1 components.
+# 
+# Spacegroup changed to P 1 2 1
+# 
+# Generate free-R flags
+#  (repeatably)
+
+[unique]
+start_time: 2021-10-08 14:37:56
+input: cell 44.398 77.881 109.429 90 97.2 90
+  symmetry 'P 1 2 1'
+  resolution 1.000
+  labout F=F_UNIQUE SIGF=SIGF_UNIQUE
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/unique
+args: HKLOUT unique.mtz
+end_time: 2021-10-08 14:37:57
+stdout: 05-unique.log
+
+[freerflag]
+start_time: 2021-10-08 14:37:57
+input: end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/freerflag
+args: HKLIN unique.mtz HKLOUT free.mtz
+end_time: 2021-10-08 14:37:58
+stdout: 06-freerflag.log
+
+[cad]
+start_time: 2021-10-08 14:37:58
+input: labin file 1 E1=FP E2=SIGFP E3=FreeRflag E4=FC E5=PHIC E6=FWT E7=PHWT E8=DELFWT E9=PHDELWT E10=FOM
+  labin file 2 E1=FreeR_flag
+  sysab_keep
+  reso overall 1000.0 1.89449
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/cad
+args: HKLIN1 phaser.1.mtz HKLIN2 free.mtz HKLOUT prepared.mtz
+end_time: 2021-10-08 14:37:59
+info: #refl  19915 -> 63575
+stdout: 07-cad.log
+refl_out: 63575
+refl_in1: 19915
+# 
+# Restrained refinement, 4+8 cycles.
+
+[refmac5 jelly]
+start_time: 2021-10-08 14:37:59
+input: labin FP=FP SIGFP=SIGFP FREE=FreeR_flag
+  make newligand continue
+  refinement type restrained
+  weight auto
+  ridge distance sigma 0.01
+  make hydrogen no
+  ncycle 4
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/refmac5
+args: HKLIN prepared.mtz HKLOUT jelly.mtz XYZIN phaser.1.pdb XYZOUT jelly.pdb
+end_time: 2021-10-08 14:38:30
+info:  4/4   R/Rfree  0.4538/0.4435  ->  0.4538/0.4437
+stdout: 08-refmac5_jelly.log
+ncyc: 4
+ini_free_r: 0.4435
+overall_r: 0.4538
+iter_overall_r: [0.4538, 0.4539, 0.4538, 0.4538, 0.4538]
+iter_free_r: [0.4435, 0.4441, 0.444, 0.4439, 0.4437]
+rmsBOND: [0.0168, 0.0125, 0.01, 0.0084, 0.0074]
+ini_overall_r: 0.4538
+free_r: 0.4437
+rmsANGL: [1.485, 1.405, 1.362, 1.333, 1.311]
+rmsCHIRAL: [0.078, 0.073, 0.072, 0.072, 0.073]
+cycle: 4
+# 
+#     RMS:   bond 0.017 -> 0.007   angle 1.49 -> 1.31   chiral 0.08 -> 0.07
+
+[refmac5 restr]
+start_time: 2021-10-08 14:38:30
+input: labin FP=FP SIGFP=SIGFP FREE=FreeR_flag
+  make newligand continue
+  refinement type restrained
+  weight auto
+  ncycle 8
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/refmac5
+args: HKLIN prepared.mtz HKLOUT final.mtz XYZIN jelly.pdb XYZOUT final.pdb
+end_time: 2021-10-08 14:39:41
+info:  8/8   R/Rfree  0.4528/0.4452  ->  0.4457/0.4407
+stdout: 09-refmac5_restr.log
+ncyc: 8
+ini_free_r: 0.4452
+overall_r: 0.4457
+iter_overall_r: [0.4528, 0.4523, 0.4516, 0.4511, 0.4502, 0.4493, 0.4478, 0.4469, 0.4457]
+iter_free_r: [0.4452, 0.4454, 0.4458, 0.4457, 0.4448, 0.4436, 0.442, 0.4413, 0.4407]
+rmsBOND: [0.0128, 0.0079, 0.006, 0.0052, 0.0049, 0.0048, 0.0047, 0.0047, 0.0047]
+ini_overall_r: 0.4528
+free_r: 0.4407
+rmsANGL: [1.494, 1.319, 1.289, 1.314, 1.355, 1.394, 1.426, 1.45, 1.469]
+rmsCHIRAL: [0.1, 0.077, 0.064, 0.056, 0.052, 0.048, 0.045, 0.045, 0.044]
+cycle: 8
+# 
+#     RMS:   bond 0.013 -> 0.005   angle 1.49 -> 1.47   chiral 0.10 -> 0.04
+
+[find-blobs]
+start_time: 2021-10-08 14:39:41
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/find-blobs
+args: -c -s0.8 final.mtz final.pdb
+end_time: 2021-10-08 14:39:41
+info: Blob scores: 17300 155 113 91 62 53 52 51
+stdout: 10-find-blobs.log
+center: (16.63, 1.406, 17.0)
+density_info: Density std.dev: 0.509, cut-off: 0.407 e/A^3 (0.8 sigma)
+blobs: [[9.5, 2.21, 18.98], [15.74, -16.55, 33.79], [18.88, 5.64, 3.49], [11.19, 9.51, 1.17], [31.63, 4.21, 20.67], [29.7, -9.9, 9.92], [19.59, 3.02, 27.47], [23.53, -3.2, 17.05]]
+scores: [17300.0, 154.7, 113.0, 91.46, 62.02, 52.81, 52.08, 51.4]
+# 
+# To see it in Coot run /local/slurmtmp.1023304/tmp.gPbxVnmqKD/dimple/coot.sh
+# 
+#  Our little contaminant list has 1 entry with similar unit cell:
+#   4a2c (GATD_ECOLI): P 1 21 1 (43.72, 77.14, 107.51,  90, 95.36, 90)
+# 

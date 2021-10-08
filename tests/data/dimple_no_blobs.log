@@ -1,0 +1,182 @@
+# workflow log (compatible with Python configparser)
+
+[workflow]
+host: cn16
+platform: Linux-3.10.0-1160.36.2.el7.x86_64-x86_64-with-centos-7.9.2009-Core
+cwd: /local/slurmtmp.1023307/tmp.3z1VKg5KvV
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/lib/py2/dimple/__main__.py
+args:
+ input.mtz
+ model.pdb
+ dimple
+output_dir: dimple
+CCP4: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0
+CCP4_SCR: /tmp
+version: 2.6.1
+#      ### Dimple v2.6.1. Problems and suggestions: ccp4.github.io/dimple ###
+# 
+# MTZ (1.4A)            P 1          (49.46, 97.53, 120.86,  100.03, 90.30, 91.97)
+# 308c3875e585d352e360db622f902e71 ../model.pdb
+data_file: ../input.mtz
+pdb_files: ["../model.pdb"]
+# 
+# model.pdb             P 1 21 1     (44.40, 77.88, 109.43,  90, 97.20, 90)
+
+[rwcontents]
+start_time: 2021-10-08 14:36:30
+input: end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/rwcontents
+args: XYZIN ini.pdb
+end_time: 2021-10-08 14:36:30
+info: 2 x 30kDa (+ 0kDa het) in 375nm3, 81% solvent
+stdout: 01-rwcontents.log
+num_mol: 2
+aa_count: 281
+weight: 29664.619
+Vm: 6.33
+water_count: 0.0
+volume: 375395.688
+total_weight: 29664.619
+solvent_percent: 80.5687203791
+# 
+# Hmm... 80.6% of solvent or incomplete model
+# 
+# Different unit cells.
+#  Volume of asu: 305.7% of model asu.
+# 
+# 49% solvent for 8, 36% for 10 components.
+
+[phaser]
+start_time: 2021-10-08 14:36:30
+input: MODE MR_AUTO
+  SEARCH METHOD FAST
+  SEARCH DEEP OFF
+  ENSEMBLE p PDBFILE "ini.pdb" IDENTITY 100
+  ENSEMBLE p HETATOM ON
+  SEARCH ENSEMBLE p NUM 10
+  HKLIN "../input.mtz"
+  LABIN F=FP SIGF=SIGFP
+  SGALTERNATIVE SELECT ALL
+  ROOT phaser
+  SOLUTION TEMPLATE original_model
+  SOLUTION 6DIM ENSE p EULER 0 0 0 FRAC 0 0 0
+  RESOLUTION AUTO HIGH 2.0
+  COMPOSITION PROTEIN MW 29664.619000 NUMBER 10
+  KILL TIME 180
+  PURGE ROT NUM 7
+  PURGE TRA NUM 20
+  PURGE RNP NUM 10
+  RESOLUTION HIGH 3.25
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/phaser
+args: 
+end_time: 2021-10-08 14:51:46
+info: RFZ=3.8 TFZ=* PAK=0 LLG=14 *T=1 TFZ==4.2 RFZ=3.6...
+stdout: 02-phaser.log
+status: RFZ=3.8 TFZ=* PAK=0 LLG=14 *T=1 TFZ==4.2 RFZ=3.6 TFZ=5.6 PAK=0 LLG=43 TFZ==5.9 RFZ=5.3 TFZ=5.2 PAK=2 LLG=70 TFZ==5.3 RFZ=5.8 TFZ=5.0 PAK=2 LLG=91 TFZ==5.4 RFZ=4.5 TFZ=5.2 PAK=4 LLG=113 TFZ==5.9 RFZ=6.2 TFZ=4.8 PAK=5 LLG=128 TFZ==5.1 RFZ=6.7 TFZ=4.9 PAK=5 LLG=140 TFZ==5.2 LLG=127 TFZ==6.1 PAK=5 LLG=127 TFZ==6.1
+partial_solution: yes
+SG: P 1
+# 
+# ... TFZ=5.6 PAK=0 LLG=43 TFZ==5.9 RFZ=5.3 TFZ=5.2 PAK=2 LLG=70 TFZ==5.3 RFZ=5.8 TFZ=5.0 PAK=2 LLG=91 TFZ==5.4 RFZ=4.5 TFZ=5.2 PAK=4 LLG=113 TFZ==5.9 RFZ=6.2 TFZ=4.8 PAK=5 LLG=128 TFZ==5.1 RFZ=6.7 TFZ=4.9 PAK=5 LLG=140 TFZ==5.2 LLG=127 TFZ==6.1 PAK=5 LLG=127 TFZ==6.1
+# 
+# Solution found with 7 components.
+# 
+# Generate free-R flags
+
+[unique]
+start_time: 2021-10-08 14:51:46
+input: cell 49.462 97.532 120.86 100.035 90.295 91.973
+  symmetry 'P 1'
+  resolution 1.378
+  labout F=F_UNIQUE SIGF=SIGF_UNIQUE
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/unique
+args: HKLOUT unique.mtz
+end_time: 2021-10-08 14:51:46
+stdout: 03-unique.log
+
+[freerflag]
+start_time: 2021-10-08 14:51:46
+input: end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/freerflag
+args: HKLIN unique.mtz HKLOUT free.mtz
+end_time: 2021-10-08 14:51:47
+stdout: 04-freerflag.log
+
+[cad]
+start_time: 2021-10-08 14:51:47
+input: labin file 1 E1=FP E2=SIGFP E3=FreeRflag E4=FC E5=PHIC E6=FWT E7=PHWT E8=DELFWT E9=PHDELWT E10=FOM
+  labin file 2 E1=FreeR_flag
+  sysab_keep
+  reso overall 1000.0 1.37849
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/cad
+args: HKLIN1 phaser.1.mtz HKLIN2 free.mtz HKLOUT prepared.mtz
+end_time: 2021-10-08 14:51:49
+info: #refl  64258 -> 458712
+stdout: 05-cad.log
+refl_out: 458712
+refl_in1: 64258
+# 
+# Restrained refinement, 4+8 cycles.
+
+[refmac5 jelly]
+start_time: 2021-10-08 14:51:49
+input: labin FP=FP SIGFP=SIGFP FREE=FreeR_flag
+  make newligand continue
+  refinement type restrained
+  weight auto
+  ridge distance sigma 0.01
+  make hydrogen no
+  ncycle 4
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/refmac5
+args: HKLIN prepared.mtz HKLOUT jelly.mtz XYZIN phaser.1.pdb XYZOUT jelly.pdb
+end_time: 2021-10-08 14:53:55
+info:  4/4   R/Rfree  0.5881/0.5883  ->  0.5880/0.5884
+stdout: 06-refmac5_jelly.log
+ncyc: 4
+ini_free_r: 0.5883
+overall_r: 0.588
+iter_overall_r: [0.5881, 0.588, 0.588, 0.588, 0.588]
+iter_free_r: [0.5883, 0.5885, 0.5884, 0.5884, 0.5884]
+rmsBOND: [0.0168, 0.0125, 0.01, 0.0084, 0.0074]
+ini_overall_r: 0.5881
+free_r: 0.5884
+rmsANGL: [1.485, 1.408, 1.369, 1.345, 1.329]
+rmsCHIRAL: [0.078, 0.073, 0.071, 0.071, 0.072]
+cycle: 4
+# 
+#     RMS:   bond 0.017 -> 0.007   angle 1.49 -> 1.33   chiral 0.08 -> 0.07
+
+[refmac5 restr]
+start_time: 2021-10-08 14:53:55
+input: labin FP=FP SIGFP=SIGFP FREE=FreeR_flag
+  make newligand continue
+  refinement type restrained
+  weight auto
+  ncycle 8
+  end
+prog: /sw/pkg/presto/software/CCP4/7.0.078-foss-2018b-SHELX-ARP-8.0-3/ccp4-7.0/bin/refmac5
+args: HKLIN prepared.mtz HKLOUT final.mtz XYZIN jelly.pdb XYZOUT final.pdb
+end_time: 2021-10-08 14:59:20
+info:  8/8   R/Rfree  0.5841/0.5825  ->  0.5799/0.5766
+stdout: 07-refmac5_restr.log
+ncyc: 8
+ini_free_r: 0.5825
+overall_r: 0.5799
+iter_overall_r: [0.5841, 0.5835, 0.5827, 0.5823, 0.5818, 0.5812, 0.5807, 0.5803, 0.5799]
+iter_free_r: [0.5825, 0.5809, 0.5796, 0.5787, 0.5779, 0.5775, 0.5771, 0.5768, 0.5766]
+rmsBOND: [0.0128, 0.008, 0.006, 0.0053, 0.0049, 0.0047, 0.0046, 0.0044, 0.0043]
+ini_overall_r: 0.5841
+free_r: 0.5766
+rmsANGL: [1.512, 1.323, 1.272, 1.276, 1.291, 1.309, 1.327, 1.342, 1.355]
+rmsCHIRAL: [0.099, 0.076, 0.063, 0.057, 0.053, 0.05, 0.048, 0.047, 0.046]
+cycle: 8
+# 
+#     RMS:   bond 0.013 -> 0.004   angle 1.51 -> 1.35   chiral 0.10 -> 0.05
+# 
+# No blob search for Rfree > 0.5.
+# 
+# Unmodelled blobs not found.
+# 

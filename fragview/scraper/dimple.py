@@ -63,6 +63,10 @@ def _scrape_blobs(project, logs_dir):
         if line.startswith(BLOBS_LINE):
             return _cut_prefix_strip(BLOBS_LINE, line)
 
+    # no blobs list found in the log file
+    # dimple probably could not find any 'Unmodelled blobs'
+    return "[]"
+
 
 def _get_results(project: Project, dataset, results_dir: Path) -> RefineResult:
     proc_tool = results_dir.parent.name
