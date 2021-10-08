@@ -1,7 +1,5 @@
 from typing import List, Iterable
-from os import path, walk
 from pathlib import Path
-from datetime import datetime
 from django.conf import settings
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool, DatasetMetadata
@@ -55,9 +53,6 @@ class SitePlugin(plugin.SitePlugin):
             "source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh"
         )
 
-    def get_project_experiment_date(self, project):
-        return _get_experiment_timestamp(project)
-
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
     ) -> List[str]:
@@ -109,23 +104,3 @@ class SitePlugin(plugin.SitePlugin):
             f"source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh; "
             f"cd {cd_path}; pandda.inspect"
         )
-
-
-def _get_experiment_timestamp(project):
-    def _find_path():
-        from fragview.projects import project_raw_protein_dir
-
-        raw = project_raw_protein_dir(project)
-
-        # look for any random CBF folder inside raw folder
-        for dir_name, _, files in walk(raw):
-            for fname in files:
-                _, ext = path.splitext(fname)
-                if ext.lower() == ".cbf":
-                    return path.join(dir_name, fname)
-
-        # no CBF file found, use raw folder
-        return raw
-
-    timestamp = path.getmtime(_find_path())
-    return datetime.fromtimestamp(timestamp)
