@@ -97,6 +97,11 @@ def scrape_results(project: Project, logs_dir: Path) -> Optional[ProcStats]:
 def get_log_files(project: Project, process_dir: Path):
     project_dir = project.project_dir
     logs_dir = Path(process_dir, "LogFiles")
+
+    if not logs_dir.is_dir():
+        # Logs dir does not exist, no logs available
+        return None
+
     for node in logs_dir.iterdir():
         if not node.is_file():
             continue
