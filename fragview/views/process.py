@@ -207,7 +207,7 @@ def run_xds(proj, filters, options):
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
-            spg = f"space_group={spacegroup}"
+            spg = f"space_group='{spacegroup}'"
         else:
             spg = ""
         if options["cellparam"] != "":
@@ -269,7 +269,7 @@ def run_dials(proj, filters, options):
 
         if options["spacegroup"] != "":
             spacegroup = options["spacegroup"]
-            spg = f"space_group={spacegroup}"
+            spg = f"space_group='{spacegroup}'"
         else:
             spg = ""
         if options["cellparam"] != "":
