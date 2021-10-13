@@ -57,6 +57,13 @@ exclude = '''
   worker/project.py |
   fragview/views/density.py |
   fragview/views/pandda.py |
-  worker/data/update_results.py
+  worker/data/update_results.py |
+  fragview/sites/hzb/hpc.py |
+  fragview/scraper/xdsapp.py |
+  runappd.py |
+  tests/test_views_ligfit.py |
+  tests/test_sites_maxiv_hpc.py |
+  fragview/views/logs.py |
+  fragview/views/refine.py
 )
 '''
