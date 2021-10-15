@@ -3,6 +3,9 @@ services:
   fragmax:
     image: docker.maxiv.lu.se/fragmax
     container_name: fragmax
+    # needed to run py-spy
+    cap_add:
+      - SYS_PTRACE
     networks:
       - fragmax
     ports:
