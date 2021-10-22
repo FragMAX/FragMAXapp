@@ -35,6 +35,19 @@ SLURM_FRONT_END = {
 # path crystal snapshot pictures root directory
 SNAPSHOTS_ROOT_DIR = Path("/", "data", "staff", "ispybstorage", "pyarch", "visitors")
 
+#
+# Sets UI visual style to represent deployment type.
+#
+# This is used to minimize the risk of confusing for example
+# production instance of the application with testing set-up.
+#
+# Valid values are:
+#
+# 'production' - production deployment
+# 'test'       - testing deploymnet
+# 'dev'        - development deployment
+#
+DEPLOYMENT_TYPE = "dev"
 
 # load set-up specific settings
 from local_conf import *  # noqa F403, F401

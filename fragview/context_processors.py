@@ -2,14 +2,20 @@ import re
 from fragview.sites import SITE
 from fragview.models import UserProject
 from fragview.proposals import get_proposals
+from django.conf import settings
 
 
 def site(request):
     """
     Adds site specific parameters to template context.
     """
-    disabled_features = {
-        feature: True for feature in SITE.DISABLED_FEATURES
+    disabled_features = {feature: True for feature in SITE.DISABLED_FEATURES}
+
+    # side-bar colors used for different deployment types
+    side_colors = {
+        "production": "#212121",
+        "test": "#650300",
+        "dev": "#001865",
     }
 
     ctx = {
@@ -17,6 +23,9 @@ def site(request):
         "site_logo": SITE.LOGO,
         # features disabled for this site
         "disabled": disabled_features,
+        # pick side-bar color to visually distinguish
+        # different deployment types
+        "side_color": side_colors[settings.DEPLOYMENT_TYPE],
     }
 
     if not request.user.is_authenticated:

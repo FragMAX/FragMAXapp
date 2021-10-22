@@ -16,7 +16,7 @@ import conf
 from fragview.sites import SITE
 from conf import REDIS_URL, DATABASE_DIR
 # expose these configs below as django settings
-from conf import PROJECTS_DB_DIR, PROJECTS_ROOT_DIR  # noqa F401
+from conf import PROJECTS_DB_DIR, PROJECTS_ROOT_DIR, DEPLOYMENT_TYPE  # noqa F401
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
