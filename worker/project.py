@@ -30,6 +30,7 @@ def setup_project(
     encrypted: bool,
 ):
     try:
+        print(f"setting up project, ID {project_id}: {protein} ({proposal})")
         user_proj = UserProject.get(project_id)
 
         project = create_project(

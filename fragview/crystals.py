@@ -69,8 +69,13 @@ class Crystals:
     def from_data_frame(crystals: DataFrame):
         def _rows_as_crystal_tuples():
             for line_num, crystal in crystals.iterrows():
+                sample_id = _sanitize_str(crystal.SampleID)
+                # make sure SampleID is specified
+                if sample_id is None:
+                    raise InvalidCrystalsCSV("Empty SampleID specified.")
+
                 yield Crystal(
-                    crystal.SampleID,
+                    sample_id,
                     _sanitize_str(crystal.FragmentLibrary),
                     _sanitize_str(crystal.FragmentCode),
                 )
@@ -169,7 +174,7 @@ def _check_fragments(crystals: Crystals):
         _check_fragment(crystal)
 
 
-def parse_crystals_csv(csv_data: bytes) -> Crystals:
+def parse_crystals_csv(csv_data) -> Crystals:
     """
     Parse specified data as 'Crystals CSV' file.
 
