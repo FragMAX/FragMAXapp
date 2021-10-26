@@ -1,4 +1,4 @@
-from typing import List, Iterable
+from typing import List, Iterable, Optional
 from pathlib import Path
 from itertools import count
 from django.conf import settings
@@ -39,7 +39,7 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_dataset_metadata(
         self, project, dataset_dir: Path, crystal_id: str, run: int
-    ) -> DatasetMetadata:
+    ) -> Optional[DatasetMetadata]:
         return _get_dataset_metadata(project, dataset_dir, crystal_id, run)
 
     def get_dataset_master_image(self, project, dataset) -> Path:
@@ -112,7 +112,7 @@ def _get_raw_dirs(project) -> Iterable[Path]:
 
 def _get_dataset_metadata(
     project, dataset_dir: Path, crystal_id: str, run: int
-) -> DatasetMetadata:
+) -> Optional[DatasetMetadata]:
 
     #
     # figure out path to the dataset's meta-data XML file
@@ -127,6 +127,7 @@ def _get_dataset_metadata(
         f"xds_{crystal_id}_{run}_1",
         "fastdp",
     )
+
     xml_file = next(
         fastdp_dir.glob(
             str(
@@ -140,8 +141,8 @@ def _get_dataset_metadata(
         None,
     )
     if xml_file is None:
-        # TODO: think about exceptions
-        raise Exception(f"no XML file found for {crystal_id} {run}")
+        # no meta-data found for specified dataset
+        return None
 
     # parse the located XML file
     return parse_xsdata_file(xml_file)

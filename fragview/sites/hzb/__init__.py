@@ -1,4 +1,4 @@
-from typing import List, Iterable
+from typing import List, Iterable, Optional
 from pathlib import Path
 from django.conf import settings
 from fragview.sites import plugin
@@ -41,7 +41,7 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_dataset_metadata(
         self, project, dataset_dir: Path, crystal_id: str, run: int
-    ) -> DatasetMetadata:
+    ) -> Optional[DatasetMetadata]:
         cbf_file = Path(dataset_dir, f"{project.protein}-{crystal_id}_{run}_0001.cbf")
         return parse_metadata(cbf_file)
 

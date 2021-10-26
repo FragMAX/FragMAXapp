@@ -51,7 +51,7 @@ class SitePlugin:
 
     def get_dataset_metadata(
         self, project, dataset_dir: Path, crystal_id: str, run: int
-    ) -> DatasetMetadata:
+    ) -> Optional[DatasetMetadata]:
         raise NotImplementedError()
 
     def get_dataset_master_image(self, project, dataset) -> Path:

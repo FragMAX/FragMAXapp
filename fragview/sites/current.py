@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from pathlib import Path
 from fragview.sites import SITE
 from fragview.sites.plugin import DatasetMetadata
@@ -39,7 +39,7 @@ def get_diffraction_picture_command(
 
 def get_dataset_metadata(
     project, dataset_dir: Path, crystal_id: str, run: int
-) -> DatasetMetadata:
+) -> Optional[DatasetMetadata]:
     return SITE.get_dataset_metadata(project, dataset_dir, crystal_id, run)
 
 

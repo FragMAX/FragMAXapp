@@ -63,6 +63,11 @@ def _add_datasets(project: Project):
 
         for run in get_dataset_runs(dset_dir):
             meta_data = get_dataset_metadata(project, dset_dir, crystal_id, run)
+            if meta_data is None:
+                print(
+                    f"warning: no meta-data found for {crystal_id} {run}, skipping the dataset"
+                )
+                continue
 
             # TODO: this is MAXIV specific, think about site-independent style
             shift_dir = dset_dir.parents[2].relative_to(project.proposal_dir)

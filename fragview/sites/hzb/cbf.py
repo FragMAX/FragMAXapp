@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import re
 import fabio
 from re import Pattern
@@ -88,7 +88,7 @@ def _parse_beam_xy(line: str) -> Tuple[float, float]:
     return float(x), float(y)
 
 
-def parse_metadata(cbf_file: Path) -> DatasetMetadata:
+def parse_metadata(cbf_file: Path) -> Optional[DatasetMetadata]:
     header = _get_array_data_header(cbf_file)
 
     val = _parse_detector_distance(header[16])
