@@ -25,14 +25,31 @@ class SSHConnectionParams:
 class FrontEndConnection:
     def __init__(self, ssh_params: SSHConnectionParams):
         self.ssh_params = ssh_params
-        # reference counter for SSH connection
-        self.conn_users = 0
         self.conn_last_usage = 0
         self.ssh_conn = None
         self.ssh_conn_lock = asyncio.Lock()
 
-    async def _connect_if_needed(self):
+    async def _disconnect_timeout(self):
+        def time_to_sleep():
+            now = time.monotonic()
+            time_to_sleep = (self.conn_last_usage + SSH_CONNECTION_TIMEOUT) - now
+
+            return time_to_sleep
+
+        while (tts := time_to_sleep()) > 0:
+            await asyncio.sleep(tts)
+
         async with self.ssh_conn_lock:
+            log.info(
+                f"SSH connection unused for at least {SSH_CONNECTION_TIMEOUT}s, closing"
+            )
+            self.ssh_conn.close()
+            await self.ssh_conn.wait_closed()
+            self.ssh_conn = None
+
+    @asynccontextmanager
+    async def connection(self):
+        async def _connect_if_needed():
             if self.ssh_conn is not None:
                 # already connected
                 return
@@ -50,34 +67,10 @@ class FrontEndConnection:
             )
             asyncio.create_task(self._disconnect_timeout())
 
-    async def _disconnect_timeout(self):
-        def time_to_sleep():
-            now = time.monotonic()
-            time_to_sleep = (self.conn_last_usage + SSH_CONNECTION_TIMEOUT) - now
-
-            return time_to_sleep
-
-        while self.conn_users > 0:
-            while (tts := time_to_sleep()) > 0:
-                await asyncio.sleep(tts)
-
         async with self.ssh_conn_lock:
-            log.info(
-                f"SSH connection unused for at least {SSH_CONNECTION_TIMEOUT}s, closing"
-            )
-            self.ssh_conn.close()
-            await self.ssh_conn.wait_closed()
-            self.ssh_conn = None
-
-    @asynccontextmanager
-    async def connection(self):
-        self.conn_users += 1
-        self.conn_last_usage = time.monotonic()
-
-        await self._connect_if_needed()
-
-        yield self.ssh_conn
-        self.conn_users -= 1
+            await _connect_if_needed()
+            self.conn_last_usage = time.monotonic()
+            yield self.ssh_conn
 
 
 class SlurmClient:
