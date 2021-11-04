@@ -16,7 +16,7 @@ RUN apt-get update \
     && echo "libnss-ldapd	libnss-ldapd/nsswitch	multiselect	passwd, group, shadow" | debconf-set-selections \
     && apt-get -y  install \
         # for troubleshooting
-        nano less \
+        tmux nano less \
         # for LDAP authentication
         nslcd \
         # for accessing HPC
