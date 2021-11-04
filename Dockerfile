@@ -52,7 +52,7 @@ COPY environment.yml /tmp
 RUN . /opt/conda/etc/profile.d/conda.sh \
     && conda env create -f /tmp/environment.yml \
     && conda activate FragMAX \
-    && conda install -c conda-forge uwsgi=2.0.18
+    && conda install -c conda-forge uwsgi=2.0.20
 
 RUN mkdir /app
 
