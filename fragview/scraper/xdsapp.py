@@ -8,8 +8,9 @@ from fragview.scraper.utils import get_files_by_suffixes
 
 LOG_FILE_SUFFIXES = ["txt", "lp", "lp_1", "log", "out", "html"]
 
-
-SPACE_GROUP = "Space group"
+# use _two_ trailing spaces to avoid matching with lines such as:
+# 'Space group number given by user:      5'
+SPACE_GROUP = "Space group  "
 UNIT_CELL = "Unit cell parameters [A]"
 RESOLUTION = "Resolution limit [A]"
 REFLECTIONS = "No. of reflections"
@@ -62,7 +63,14 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
         return PAIR_RE.match(text).groups()
 
     def _first_number(text):
+
         return OPTIONAL_PAIR_RE.match(text).groups()[0]
+
+    def _mosaicity(text):
+        if text == "-":
+            return None
+
+        return _first_number(text)
 
     for line in read_text_lines(project, results_file):
         if not line.startswith("    "):
@@ -107,7 +115,7 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
                 line, COMPLETENESS, _pair
             )
         elif line.startswith(MOSAICITY):
-            stats.mosaicity = _parse_line(line, MOSAICITY, _first_number)
+            stats.mosaicity = _parse_line(line, MOSAICITY, _mosaicity)
         elif line.startswith(ISA):
             stats.isa = _parse_line(line, ISA, lambda x: x)
 

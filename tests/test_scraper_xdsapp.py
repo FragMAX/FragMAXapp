@@ -109,3 +109,34 @@ class TestParseResultsLog(TestCase):
         self.assertEquals(self.stats.completeness_out, "11.3")
         self.assertEquals(self.stats.mosaicity, "0.839")
         self.assertEquals(self.stats.isa, "7.09")
+
+    def test_no_mosaicity(self):
+        """
+        test parsing results log file where 'sigI' is a negative number
+        """
+        _parse_results_log(
+            self.project, data_file_path("results_xdsapp_no_mosaicity.txt"), self.stats
+        )
+
+        self.assertEquals(self.stats.space_group, "C2(5)")
+        self.assertEquals(self.stats.unique_reflections, "2038")
+        self.assertEquals(self.stats.reflections, "2883")
+        self.assertEquals(self.stats.low_resolution_average, "44.22")
+        self.assertEquals(self.stats.low_resolution_out, "3.96")
+        self.assertEquals(self.stats.high_resolution_average, "3.73")
+        self.assertEquals(self.stats.high_resolution_out, "3.73")
+        self.assertEquals(self.stats.unit_cell_a, "88.00")
+        self.assertEquals(self.stats.unit_cell_b, "82.00")
+        self.assertEquals(self.stats.unit_cell_c, "93.00")
+        self.assertEquals(self.stats.unit_cell_alpha, "90.0")
+        self.assertEquals(self.stats.unit_cell_beta, "108.0")
+        self.assertEquals(self.stats.unit_cell_gamma, "90.0")
+        self.assertEquals(self.stats.multiplicity, "1.41")
+        self.assertEquals(self.stats.i_sig_average, "1.04")
+        self.assertEquals(self.stats.i_sig_out, "0.37")
+        self.assertEquals(self.stats.r_meas_average, "67.8")
+        self.assertEquals(self.stats.r_meas_out, "121.6")
+        self.assertEquals(self.stats.completeness_average, "30.7")
+        self.assertEquals(self.stats.completeness_out, "27.9")
+        self.assertEquals(self.stats.mosaicity, None)
+        self.assertEquals(self.stats.isa, "4.29")

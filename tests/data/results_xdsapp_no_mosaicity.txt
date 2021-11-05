@@ -1,0 +1,90 @@
+
+-------------------------------------------------------------------
+
+Processing summary for data set AR-F2XUniversal-P05F08a_2_data
+ 2020-07-11 17:17:24
+-------------------------------------------------------------------
+
+Things you may want to check:
+
+ SG_no set manually
+ Incomplete data
+ Twinning
+
+
+Images in /gpfs/offline1/visitors/biomax/20190887/20200515/raw/AR/AR-F2XUniversal-P05F08a
+
+
+Table 1 like summary 
+-------------------------------------------------------------------
+
+    Space group                            C2 (5)                                
+    Unit cell parameters [A]               88.00 82.00 93.00 90.0 108.0 90.0     
+    Resolution limit [A]                   44.22-3.73 (3.96-3.73)                
+    No. of reflections                     2883                                  
+    No. of uniques                         2038                                  
+    Multiplicity                           1.41                                  
+    I/sigI                                 1.04 (0.37)                           
+    R_meas [%]                             67.8 (121.6)                          
+    Completeness [%]                       30.7 (27.9)                           
+    B(Wilson) [A^2]                        47.73                                 
+    Mosaicity [deg]                        -                                     
+    CC(1/2)                                63.5 (4.5)                            
+    ISa                                    4.29                                  
+
+
+Result files generated for CCP4, CNS, SHELX
+-------------------------------------------------------------------
+                                                                                 
+    AR-F2XUniversal-P05F08a_2_data_I.mtz                                         
+    AR-F2XUniversal-P05F08a_2_data_F_plus_F_minus.mtz                                       
+    AR-F2XUniversal-P05F08a_2_data_F.mtz                                         
+    AR-F2XUniversal-P05F08a_2_data.hkl                                           
+    AR-F2XUniversal-P05F08a_2_data.cv                                            
+
+
+Intensity checks
+-------------------------------------------------------------------
+
+    SFCHECK                                                                      
+     Perfect twinning test                 1.4531                                
+     Pseudo translation                    not detected                          
+    Phenix.xtriage                                                               
+     <I^2>/<I>                             1.397 (untwinned 2.000, perfect twin 1.500)
+     <F>^2/<F^2>                           0.911 (untwinned 0.785, perfect twin 0.885)
+     <|E^2-1|>                             0.456 (untwinned 0.736, perfect twin 0.541)
+    Pointless                                                                    
+     |L|-test                                                                    
+     L^2-test                                                                    
+
+
+Indexing summary
+-------------------------------------------------------------------
+
+    No. of subtrees                        1                                     
+    No. of strong spots in root subtree    30                                    
+    No. of strong spots in subtree 2       -                                     
+    Quality value                          1.0                                   
+    Delta                                  0.0                                   
+    DH, DK, DL                             0.02, 0.02, 0.02                      
+    Selected origin                        0 0 0                                 
+    Computed (given) beam position         2099.9, 2121.1 (2100.8, 2120.3)       
+    Std. of spot position (refined)        0.30 (0.30)                           
+    Std. of spindle position (refined)     0.10 (0.11)                           
+    Detector distance (refined)            152.44 (153.49)                       
+    No. of spots indexed (total)           30 (30) (=100.0 %)                    
+
+
+Experimental settings
+-------------------------------------------------------------------
+
+    Space group number given by user:      5                                     
+    Detector used                          EIGER                                 
+    Images processed                       1-3600                                
+    Detector distance [mm]                 152.44                                
+    Oscillation increment [deg]            0.1                                   
+    Wavelength [A]                         0.9999                                
+    Friedels law                           TRUE                                  
+    Rotation axis                          0 -1 0                                
+
+

@@ -178,7 +178,7 @@ def _define_entities(db):
         r_meas_out = Required(float)
         completeness_average = Required(float)
         completeness_out = Required(float)
-        mosaicity = Required(float)
+        mosaicity = Optional(float)
         isa = Optional(float)
 
     class RefineResult(db.Entity):
