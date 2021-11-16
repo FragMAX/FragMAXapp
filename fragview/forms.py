@@ -6,6 +6,7 @@ from django.forms import (
     FileField,
     ValidationError,
 )
+from fragview.space_groups import get_space_group
 from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV
 
 
@@ -15,10 +16,29 @@ class _GetFieldMixin:
 
 
 class _ProcJobForm(Form, _GetFieldMixin):
+    spaceGroup = CharField(required=False)
     datasetsFilter = CharField(required=False)
     cifMethod = CharField(required=False)
 
+    def clean_spaceGroup(self):
+        space_group_name = self.space_group
+        if space_group_name == "":
+            # no space group specified, aka 'auto' space group
+            return None
+
+        space_group = get_space_group(space_group_name)
+        if space_group is None:
+            raise ValidationError(
+                f"unsupported space group '{space_group_name}' specified"
+            )
+
+        return space_group
+
     # note: this properties are only valid after call to is_valid()
+
+    @property
+    def space_group(self):
+        return self._get_field("spaceGroup")
 
     @property
     def datasets_filter(self):
@@ -57,7 +77,6 @@ class ProcessForm(_ProcJobForm):
     useXds = BooleanField(required=False)
     useXdsapp = BooleanField(required=False)
     useAutoproc = BooleanField(required=False)
-    spaceGroup = CharField(required=False)
     cellParams = CharField(required=False)
     friedelLaw = CharField(required=False)
     customXds = CharField(required=False)
@@ -65,7 +84,9 @@ class ProcessForm(_ProcJobForm):
     customDials = CharField(required=False)
     customXdsApp = CharField(required=False)
 
+    #
     # note: this properties are only valid after call to is_valid()
+    #
 
     @property
     def use_dials(self):
@@ -82,10 +103,6 @@ class ProcessForm(_ProcJobForm):
     @property
     def use_autoproc(self):
         return self._get_field("useAutoproc")
-
-    @property
-    def space_group(self):
-        return self._get_field("spaceGroup")
 
     @property
     def cell_params(self):
@@ -115,7 +132,6 @@ class ProcessForm(_ProcJobForm):
 class RefineForm(_ProcJobForm):
     useDimple = BooleanField(required=False)
     useFSpipeline = BooleanField(required=False)
-    refSpaceGroup = CharField(required=False)
     customDimple = CharField(required=False)
     customFspipe = CharField(required=False)
     runAimless = BooleanField(required=False)
@@ -139,10 +155,6 @@ class RefineForm(_ProcJobForm):
         return self._get_field("pdbModel")
 
     @property
-    def ref_space_group(self):
-        return self._get_field("refSpaceGroup")
-
-    @property
     def custom_dimple(self):
         return self._get_field("customDimple")
 
@@ -155,10 +167,10 @@ class RefineForm(_ProcJobForm):
         return self._get_field("runAimless")
 
     def clean(self):
-        if self.run_aimless and self.ref_space_group == "":
+        if self.run_aimless and self.space_group is None:
             # if 'run aimless' enabled the space group must be specified
             raise ValidationError(
-                dict(refSpaceGroup="space group required when aimless is enabled")
+                dict(spaceGroup="space group required when aimless is enabled")
             )
 
 

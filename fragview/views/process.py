@@ -6,6 +6,7 @@ from fragview.projects import project_log_path
 from fragview import versions
 from fragview.filters import get_proc_datasets
 from fragview.forms import ProcessForm
+from fragview.tools import Tools, get_space_group_argument
 from fragview.views.utils import start_thread
 from fragview.views.update_jobs import add_update_job
 from fragview.sites import SITE
@@ -38,17 +39,17 @@ def datasets(request):
         "customxdsapp": form.custom_xdsapp,
     }
 
-    if form.use_xdsapp:
-        start_thread(run_xdsapp, proj, filters, options)
-
     if form.use_dials:
         start_thread(run_dials, proj, filters, options)
 
-    if form.use_autoproc:
-        start_thread(run_autoproc, proj, filters, options)
-
     if form.use_xds:
         start_thread(run_xds, proj, filters, options)
+
+    if form.use_xdsapp:
+        start_thread(run_xdsapp, proj, filters, options)
+
+    if form.use_autoproc:
+        start_thread(run_autoproc, proj, filters, options)
 
     return render(request, "fragview/jobs_submitted.html")
 
@@ -72,9 +73,9 @@ def run_xdsapp(project, filters, options):
     for num, dset in enumerate(get_proc_datasets(project, filters, "xdsapp")):
         outdir, image_file = _get_dataset_params(project, dset)
 
-        if options["spacegroup"] != "":
+        if options["spacegroup"] is not None:
             cellpar = " ".join(options["cellparam"].split(","))
-            spacegroup = options["spacegroup"]
+            spacegroup = get_space_group_argument(Tools.XDSAPP, options["spacegroup"])
             spg = f"--spacegroup='{spacegroup} {cellpar}'"
         else:
             spg = ""
@@ -205,11 +206,8 @@ def run_xds(proj, filters, options):
     for num, dset in enumerate(get_proc_datasets(proj, filters, "xds")):
         outdir, image_file = _get_dataset_params(proj, dset)
 
-        if options["spacegroup"] != "":
-            spacegroup = options["spacegroup"]
-            spg = f"space_group='{spacegroup}'"
-        else:
-            spg = ""
+        spg = get_space_group_argument(Tools.XDS, options["spacegroup"])
+
         if options["cellparam"] != "":
             cellpar = ",".join(options["cellparam"].split(","))
             unit_cell = f"unit_cell={cellpar}"
@@ -267,11 +265,8 @@ def run_dials(proj, filters, options):
     for num, dset in enumerate(get_proc_datasets(proj, filters, "dials")):
         outdir, image_file = _get_dataset_params(proj, dset)
 
-        if options["spacegroup"] != "":
-            spacegroup = options["spacegroup"]
-            spg = f"space_group='{spacegroup}'"
-        else:
-            spg = ""
+        spg = get_space_group_argument(Tools.DIALS, options["spacegroup"])
+
         if options["cellparam"] != "":
             cellpar = ",".join(options["cellparam"].split(","))
             cellpar = cellpar.replace("(", "").replace(")", "")

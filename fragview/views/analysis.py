@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from fragview.sites import SITE
 from fragview.projects import current_project
+from fragview.space_groups import by_system
 
 
 def processing_form(request):
@@ -17,5 +18,6 @@ def processing_form(request):
             "datasets": datasets,
             "default_ligand_tool": default_ligand_tool,
             "ligand_tools": ligand_tools,
+            "space_group_systems": by_system(),
         },
     )

@@ -45,7 +45,7 @@ def datasets(request):
             project,
             form.datasets_filter,
             pdb_file,
-            form.ref_space_group,
+            form.space_group,
             form.run_aimless,
             "dimple",
             [cmd],
@@ -59,7 +59,7 @@ def datasets(request):
             project,
             form.datasets_filter,
             pdb_file,
-            form.ref_space_group,
+            form.space_group,
             form.run_aimless,
             "fspipeline",
             cmds,
@@ -116,7 +116,7 @@ def launch_refine_jobs(
             batch.load_modules(HPC_MODULES)
 
             if run_aimless:
-                batch.add_commands(_aimless_cmd(space_group, "input.mtz"))
+                batch.add_commands(_aimless_cmd(space_group.short_name, "input.mtz"))
 
             results_dir = Path(project.get_dataset_results_dir(dset), tool)
 

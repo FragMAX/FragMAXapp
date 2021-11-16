@@ -166,9 +166,98 @@
     span {
         display: inline !important;
     }
+
+/* The Modal (background) */
+.modal
+{
+    display: none;                        /* Hidden by default */
+    position: fixed;                      /* Stay in place */
+    z-index: 2;                           /* Sit on top */
+    padding-top: 8px;
+    /* Location of the box */
+    max-height: 100%;
+    left: 250px;
+    top: 0;
+    width: calc(100% - 200px);
+    height: 100%;                         /* Full height */
+    overflow: auto;                       /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);       /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-cont
+{
+    margin: auto;
+    display: block;
+    max-width: 800px;
+    width: 80%;
+    background-color: white;
+}
+
+.spacegroup-section
+{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: left;
+    align-items: auto;
+    align-content: start;
+    margin: 8px;
+}
+
+.spacegroup-header
+{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-items: auto;
+    align-content: start;
+}
+
+.spacegroup-item
+{
+    flex: 0 0 auto;
+    margin: 13px;
+}
+
+.space-grp-button
+{
+    height: 36px;
+    width: 128px;
+}
 </style>
 
 <div>
+    <!-- The Modal -->
+    <div class="modal" id="spaceGroupDialog">
+        <div class="modal-cont">
+            <div class="spacegroup-header" style="background: WhiteSmoke">
+                <h5 class="spacegroup-item">Select Space Group</h5>
+            </div>
+            {% for space_groups in space_group_systems %}
+                <div class="spacegroup-section">
+                    {% for space_group in space_groups %}
+                    <button class="btn-small spacegroup-item"
+                            style="width: 90px; margin: 10px;"
+                            onclick="setSpaceGroup(this)">
+                        {{space_group.short_name}}
+                    </button>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="spacegroup-header" style="background: WhiteSmoke">
+                <button class="btn-large spacegroup-item" onclick="setSpaceGroup(this)">
+                    Auto
+                </button>
+                <button class="btn-large spacegroup-item" onclick="hideSpaceGroupDialog()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <h5 style="padding-left:310px;">{{project.protein}} Data Analysis</h5>
 
     <h6 style="padding-left:330px;">
@@ -219,14 +308,6 @@
     </div>
 </div>
 
-
-<!-- The Modal -->
-<div class="modal" id="myModal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="img01">
-    <div id="caption"></div>
-</div>
-
 <div class="card_options">
     <div class="flexdiv_options card ">
         <div class="flex-left">
@@ -237,12 +318,13 @@
                         target="_blank">
 
                         {% csrf_token %}
-                        <input type="hidden" name="datasetsFilter" id="dtsFilterProc" />
-                        <input type="hidden" name="friedelLaw" id="friedelLawProc" />
-                        <input type="hidden" name="customXds" id="customXds" />
-                        <input type="hidden" name="customAutoProc" id="customAutoProc" />
-                        <input type="hidden" name="customDials" id="customDials" />
-                        <input type="hidden" name="customXdsApp" id="customXdsApp" />
+                        <input type="hidden" name="spaceGroup" id="spaceGroupProc"/>
+                        <input type="hidden" name="datasetsFilter" id="dtsFilterProc"/>
+                        <input type="hidden" name="friedelLaw" id="friedelLawProc"/>
+                        <input type="hidden" name="customXds" id="customXds"/>
+                        <input type="hidden" name="customAutoProc" id="customAutoProc"/>
+                        <input type="hidden" name="customDials" id="customDials"/>
+                        <input type="hidden" name="customXdsApp" id="customXdsApp"/>
 
                         <table class="optionstable">
                             <col width="8%">
@@ -294,9 +376,14 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class=" top-options">Space group</th>
-                                    <td class=" top-options">
-                                        <input class="selectbox" name="spaceGroup" placeholder="P43212" />
+                                    <th class="top-options">Space group</th>
+                                    <td class="top-options">
+                                        <button class="btn-small space-grp-button"
+                                                onclick="showSpaceGroupDialog(this)"
+                                                id="procSpaceGroup"
+                                                type="button">
+                                            auto
+                                        </button>
                                     </td>
                                 </tr>
 
@@ -331,6 +418,7 @@
                         target="_blank">
 
                         {% csrf_token %}
+                        <input type="hidden" name="spaceGroup" id="spaceGroupRefine"/>
                         <input type="hidden" name="datasetsFilter" id="dtsFilterRefine" />
                         <input type="hidden" name="customDimple" id="customDimpleRefine"/>
                         <input type="hidden" name="customFspipe" id="customFspipeRefine"/>
@@ -345,7 +433,7 @@
                                         <br>
                                         <div>
                                             {% if "dimple" in pipelines %}
-                                            <div class="checkbox" id="dials">
+                                            <div class="checkbox">
                                                 <label>
                                                     <input class="refineform filled-in dt-checkboxes"
                                                         id="dimplecheckboxinput" name="useDimple" type="checkbox">
@@ -354,7 +442,7 @@
                                             </div>
                                             {% endif %}
                                             {% if "fspipeline" in pipelines %}
-                                            <div class="checkbox" id="autoproc">
+                                            <div class="checkbox">
                                                 <label>
                                                     <input class="refineform filled-in dt-checkboxes"
                                                         id="fspcheckboxinput" name="useFSpipeline" type="checkbox">
@@ -363,7 +451,6 @@
                                             </div>
                                             {% endif %}
                                         </div>
-
                                     </td>
                                 </tr>
                                 <tr>
@@ -377,16 +464,26 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class=" top-options">Space group</th>
-                                    <td class=" top-options">
-                                        <label>
-                                            <input class="refineform selectbox" name="refSpaceGroup" id="refSpaceGroup"
-                                                placeholder="P43212" />
-                                        </label>
+                                    <th class="top-options">Space group</th>
+                                    <td class="top-options">
+                                        <button class="btn-small space-grp-button"
+                                                onclick="showSpaceGroupDialog(this)"
+                                                id="refineSpaceGroup"
+                                                type="button">
+                                            auto
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">
+                                    </th>
+                                    <td>
                                         <div class="checkbox" id="aimless">
                                             <label>
-                                                <input class="refineform filled-in dt-checkboxes" id="run_aimless"
-                                                    name="runAimless" type="checkbox" value="aimless">
+                                                <input class="refineform filled-in dt-checkboxes"
+                                                       id="run_aimless"
+                                                       name="runAimless"
+                                                       type="checkbox">
                                                 <span for="run_aimless">Run aimless</span>
                                             </label>
                                         </div>
@@ -1314,6 +1411,63 @@
 
 </div>
 <script>
+function hideSpaceGroupDialog()
+{
+    const modal = document.getElementById("spaceGroupDialog");
+    modal.style.display = "none";
+}
+
+let targetSpaceGroupButtonID = null;
+
+function setSpaceGroup(button)
+{
+    document.getElementById(targetSpaceGroupButtonID).innerText = button.innerText;
+    hideSpaceGroupDialog();
+}
+
+function showSpaceGroupDialog(srcButton)
+{
+    targetSpaceGroupButtonID = srcButton.id;
+    const modal = document.getElementById("spaceGroupDialog");
+    modal.style.display = "block";
+}
+
+function getSelectedSpaceGroup(spaceGroupButtonID)
+{
+    const spaceGroup = document.getElementById(spaceGroupButtonID).innerText;
+    if (spaceGroup == "AUTO")
+    {
+        return null;
+    }
+    return spaceGroup;
+}
+
+function refineFormChanged()
+{
+    let noTools = none_checked("fspcheckboxinput", "bustercheckboxinput", "dimplecheckboxinput");
+    let spaceGroupOk = true;
+
+    if ($("#run_aimless").is(':checked'))
+    {
+        const selectedSpaceGroup = getSelectedSpaceGroup("refineSpaceGroup");
+        spaceGroupOk = (selectedSpaceGroup != null);
+    }
+
+    let disableBtn = noTools || !spaceGroupOk;
+    $("#submitrfProc").prop("disabled", disableBtn);
+}
+
+function setupRefineFormListeners()
+{
+    /* listen for 'space group changed' events */
+    const observer = new MutationObserver(refineFormChanged);
+    observer.observe(document.querySelector("#refineSpaceGroup"),
+                     {subtree: true, childList: true});
+
+    /* listen for 'form changed' events */
+    document.querySelector("#rfprocBtn").addEventListener("input", refineFormChanged);
+}
+
     function openMethod(evt, methodName) {
         if (document.getElementById(methodName).style.display == "block") {
             document.getElementById(methodName).style.display = "none"
@@ -1464,18 +1618,6 @@
         $("#submitdtProc").prop("disabled", disable_btn);
     });
 
-    $('.refineform').on('input', function (e) {
-        let no_tools = none_checked("fspcheckboxinput", "bustercheckboxinput", "dimplecheckboxinput");
-        let space_group_ok = true;
-
-        if ($("#run_aimless").is(':checked')) {
-            space_group_ok = ($("#refSpaceGroup").val() !== "");
-        }
-
-        let disable_btn = no_tools || !space_group_ok;
-        $("#submitrfProc").prop("disabled", disable_btn);
-    });
-
     $('.ligandform').on('input', function (e) {
         disable_btn = none_checked("rhofitcheckboxinput", "phenixligfitcheckboxinput");
 
@@ -1521,6 +1663,7 @@
     {
         document.getElementById("dtprocBtn").onsubmit = function()
         {
+            document.getElementById("spaceGroupProc").value = getSelectedSpaceGroup("procSpaceGroup");
             $("#customDials").val($("#customdataproc-dials").val());
             $("#customXds").val($("#customdataproc-xds").val());
             $("#customXdsApp").val($("#customdataproc-xdsapp").val());
@@ -1537,6 +1680,7 @@
     {
         document.getElementById("rfprocBtn").onsubmit = function()
         {
+            document.getElementById("spaceGroupRefine").value = getSelectedSpaceGroup("refineSpaceGroup");
             $("#customDimpleRefine").val($("#customrefine-dimple").val());
             $("#customFspipeRefine").val($("#customrefine-fspipe").val());
 
@@ -1603,12 +1747,13 @@
         }
     }
 
-    $(document).ready(function()
-    {
-        setup_process_submit();
-        setup_refine_submit();
-        setup_ligproc_submit();
-        setup_pandda_submit();
-    });
+$(document).ready(function()
+{
+    setup_process_submit();
+    setupRefineFormListeners();
+    setup_refine_submit();
+    setup_ligproc_submit();
+    setup_pandda_submit();
+});
 </script>
 {% endblock %}

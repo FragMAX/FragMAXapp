@@ -61,12 +61,12 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
 
 
 class TestProcessForm(test.TestCase, JobsFormTesterMixin):
-    def test_form(self):
+    def test_no(self):
         request = self._request(
             dict(
                 useDials="on",
                 useXdsapp="on",
-                spaceGroup="SGRP",
+                spaceGroup="P2",
                 cellParams="cellpy",
                 friedelLaw="true",
                 customXds="cXds",
@@ -83,7 +83,7 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
         self.assertTrue(form.use_xdsapp)
         self.assertFalse(form.use_autoproc)
 
-        self.assertEqual(form.space_group, "SGRP")
+        self.assertEqual(form.space_group.short_name, "P2")
         self.assertEqual(form.cell_params, "cellpy")
         self.assertEqual(form.friedel_law, "true")
 
@@ -92,13 +92,39 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
         self.assertEqual(form.custom_dials, "dlsdl")
         self.assertEqual(form.custom_xdsapp, "")
 
+    def test_invalid_space_group(self):
+        """
+        test validating request where unknown space groups is specified
+        """
+        request = self._request(
+            dict(
+                useDials="on",
+                useXdsapp="on",
+                spaceGroup="INVALID_GROUP",
+                cellParams="cellpy",
+                friedelLaw="true",
+                customXds="cXds",
+                customDials="dlsdl",
+            )
+        )
+
+        form = forms.ProcessForm(request.POST)
+
+        # check that it's flagged as invalid
+        valid = form.is_valid()
+        self.assertFalse(valid)
+
+        # check that correct error was raised
+        err = form.errors.get("spaceGroup")
+        self.assertEqual(err[0], "unsupported space group 'INVALID_GROUP' specified")
+
 
 class TestRefineForm(test.TestCase, JobsFormTesterMixin):
-    def test_form(self):
+    def test_ok(self):
         request = self._request(
             dict(
                 useDimple="on",
-                refSpaceGroup="SGRP",
+                spaceGroup="P43",
                 pdbModel="32",
                 customDimple="ddimp",
             )
@@ -113,9 +139,31 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
         self.assertFalse(form.run_aimless)
 
         self.assertEqual(form.pdb_model, 32)
-        self.assertEqual(form.ref_space_group, "SGRP")
+        self.assertEqual(form.space_group.short_name, "P43")
         self.assertEqual(form.custom_dimple, "ddimp")
         self.assertEqual(form.custom_fspipe, "")
+
+    def test_no_space_group(self):
+        """
+        test the case where 'run aimless' option is selected,
+        but no space group is specified
+        """
+        request = self._request(
+            dict(
+                useDimple="on",
+                pdbModel="32",
+                runAimless="on",
+                customDimple="ddimp",
+            )
+        )
+
+        form = forms.RefineForm(request.POST)
+        valid = form.is_valid()
+        self.assertFalse(valid)
+
+        # check that correct error was raised
+        err = form.errors.get("spaceGroup")
+        self.assertEqual(err[0], "space group required when aimless is enabled")
 
 
 class TestProjectForm(test.TestCase):
