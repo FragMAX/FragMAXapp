@@ -102,8 +102,6 @@ def run_xdsapp(project, filters, options):
             time=Duration(hours=168),
             exclusive=True,
             nodes=1,
-            partition="fujitsu",
-            memory=DataSize(gigabyte=300),
         )
 
         batch.purge_modules()
@@ -150,7 +148,6 @@ def run_autoproc(proj, filters, options):
             exclusive=True,
             nodes=1,
             cpus_per_task=64,
-            partition="fujitsu",
             memory=DataSize(gigabyte=300),
         )
 
@@ -236,8 +233,6 @@ def run_xds(proj, filters, options):
             time=Duration(hours=168),
             exclusive=True,
             nodes=1,
-            partition="fujitsu",
-            memory=DataSize(gigabyte=300),
         )
 
         batch.purge_modules()
@@ -296,8 +291,6 @@ def run_dials(proj, filters, options):
             time=Duration(hours=168),
             exclusive=True,
             nodes=1,
-            partition="fujitsu",
-            memory=DataSize(gigabyte=300),
         )
 
         batch.purge_modules()

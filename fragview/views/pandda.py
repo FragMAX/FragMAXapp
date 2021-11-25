@@ -841,17 +841,6 @@ def submit(request):
 def _write_main_script(
     project: Project, pandda_dir: Path, method, methodshort, options
 ):
-    def _hpc_options():
-        if project.encrypted:
-            # when running in encrypted mode, we need to use the
-            # 'all' partition, as 'fujitsu' node don't have access
-            # to fragmax web host, which we use to read and write
-            # encrypted data
-            return "all", DataSize(gigabyte=210), 48
-
-        # use 'fujitsu' nodes, when possible, as they have better performance
-        return "fujitsu", DataSize(gigabyte=310), 64
-
     epoch = round(time.time())
 
     log_prefix = project_log_path(project, f"PanDDA_{method}_{epoch}_%j_")
@@ -865,20 +854,17 @@ def _write_main_script(
         pandda_cluster = f"{giant_cluster} ./*/final.pdb pdb_label=foldername"
 
     hpc = SITE.get_hpc_runner()
-    partition, memory, cpus_per_task = _hpc_options()
     batch = hpc.new_batch_file(
         f"PDD{methodshort}",
         project_script(project, f"pandda_{method}.sh"),
         f"{log_prefix}out.txt",
         f"{log_prefix}err.txt",
-        cpus=cpus_per_task,
+        cpus=40,
     )
     batch.set_options(
         time=Duration(hours=99),
         exclusive=True,
         nodes=1,
-        partition=partition,
-        memory=memory,
     )
 
     if project.encrypted:

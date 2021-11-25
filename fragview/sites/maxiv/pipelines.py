@@ -8,10 +8,10 @@ class PipelineCommands(plugin.PipelineCommands):
         return (
             [
                 f"xia2 goniometer.axes=0,1,0 pipeline=dials failover=true {space_group} {unit_cell} "
-                f"{custom_parameters} nproc=64 {friedel} image={image_file}:1:{num_images} "
+                f"{custom_parameters} nproc=20 {friedel} image={image_file}:1:{num_images} "
                 f"multiprocessing.mode=serial multiprocessing.njob=1"
             ],
-            64,
+            20,
         )
 
     def get_xia_xds_commands(
@@ -20,10 +20,10 @@ class PipelineCommands(plugin.PipelineCommands):
         return (
             [
                 f"xia2 goniometer.axes=0,1,0  pipeline=3dii failover=true {space_group} {unit_cell} "
-                f"{custom_parameters} nproc=64 {friedel} image={image_file}:1:{num_images} "
+                f"{custom_parameters} nproc=40 {friedel} image={image_file}:1:{num_images} "
                 f"multiprocessing.mode=serial multiprocessing.njob=1"
             ],
-            64,
+            40,
         )
 
     def get_xdsapp_command(
@@ -37,10 +37,10 @@ class PipelineCommands(plugin.PipelineCommands):
     ):
         return (
             (
-                f"xdsapp --cmd --dir={output_dir}/xdsapp -j 1 -c 64 -i {image_file} {space_group} "
+                f"xdsapp --cmd --dir={output_dir}/xdsapp -j 1 -c 40 -i {image_file} {space_group} "
                 f"{custom_parameters} --delphi=10 {friedel} --range=1\\ {num_images}"
             ),
-            64,
+            40,
         )
 
     def get_autoproc_command(
