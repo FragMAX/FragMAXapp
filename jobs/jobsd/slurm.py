@@ -241,7 +241,7 @@ class JobWatcher:
             return self.watched_jobs.keys()
 
         def job_finished_status(status):
-            return status in ["COMPLETED", "FAILED", "CANCELLED"]
+            return status in ["COMPLETED", "FAILED", "CANCELLED", "OUT_OF_ME+"]
 
         # poll jobs status,
         # until the 'watched_jobs' is empty
