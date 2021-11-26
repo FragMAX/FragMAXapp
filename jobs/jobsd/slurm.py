@@ -153,6 +153,7 @@ class SlurmClient:
             result = await conn.run(sacct_command(), check=True)
 
         # TODO: handle parse errors
+        log.info(f"sacct reply '{result.stdout}'")
         return parse_sacct_reply(result.stdout)
 
 
@@ -250,6 +251,7 @@ class JobWatcher:
             job_status = await self.client.jobs_status(job_ids())
 
             for jid, status in job_status:
+                log.info(f"{jid=} {status=}")
                 if job_finished_status(status):
                     self._job_done(jid)
 
