@@ -101,6 +101,6 @@ class SitePlugin(plugin.SitePlugin):
         cd_path = Path("~", pandda_path.relative_to(parent), "pandda")
 
         return (
-            f"source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh; "
+            f"source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-sh; "
             f"cd {cd_path}; pandda.inspect"
         )
