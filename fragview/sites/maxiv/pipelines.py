@@ -8,10 +8,10 @@ class PipelineCommands(plugin.PipelineCommands):
         return (
             [
                 f"xia2 goniometer.axes=0,1,0 pipeline=dials failover=true {space_group} {unit_cell} "
-                f"{custom_parameters} nproc=20 {friedel} image={image_file}:1:{num_images} "
+                f"{custom_parameters} nproc=4 {friedel} image={image_file}:1:{num_images} "
                 f"multiprocessing.mode=serial multiprocessing.njob=1"
             ],
-            20,
+            4,
         )
 
     def get_xia_xds_commands(
