@@ -37,7 +37,7 @@ class PipelineCommands(plugin.PipelineCommands):
     ):
         return (
             (
-                f"xdsapp --cmd --dir={output_dir}/xdsapp -j 1 -c 40 -i {image_file} {space_group} "
+                f"xdsapp3 --cmd --dir={output_dir}/xdsapp -j 1 -c 40 -i {image_file} {space_group} "
                 f"{custom_parameters} --delphi=10 {friedel} --range=1\\ {num_images}"
             ),
             40,
