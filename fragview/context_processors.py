@@ -62,7 +62,7 @@ class ActiveMenuCtx:
     """
 
     URL_REGEXP = (
-        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/project_details|^/fragments/show|^/encryption|^/$)|"
+        r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/crystals|^/project_details|^/fragments/show|^/encryption|^/$)|"
         + r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$)"
     )
     # URLs 'project' submenus

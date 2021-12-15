@@ -27,6 +27,12 @@ def _define_entities(db):
             # as per pony ORM, 'no fragment' is denoted by an empty string
             return self.fragment_id == ""
 
+        def get_dataset(self, run: int):
+            """
+            get this crystal's dataset for specified run
+            """
+            return self.datasets.select(run=run).first()
+
     class DataSet(db.Entity):
         id = PrimaryKey(int, auto=True)
 

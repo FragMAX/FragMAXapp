@@ -103,10 +103,15 @@ class UserProject(Model):
         """
         proj = UserProject(proposal=proposal)
         proj.save()
-
-        PendingProject(project=proj, protein=protein).save()
+        proj.set_pending(protein)
 
         return proj
+
+    def is_pending(self) -> bool:
+        return PendingProject.objects.filter(project=self).exists()
+
+    def set_pending(self, protein: str):
+        PendingProject(project=self, protein=protein).save()
 
     def set_ready(self):
         PendingProject.remove_pending(self)
@@ -240,7 +245,19 @@ class User(AbstractBaseUser):
 
         proposals - list of proposal number for this user
         """
-        cur_proj = None
+
+        def _get_current_project() -> Optional[UserProject]:
+            """
+            Get currently selected project, if any.
+            Takes care of filtering out 'current project' that is in pending state.
+            """
+            if self.current_project is None:
+                return None
+
+            if self.current_project.is_pending():
+                return None
+
+            return UserProject.get_project(proposals, self.current_project.id)
 
         #
         # if user object have selected current_project, use that
@@ -251,8 +268,7 @@ class User(AbstractBaseUser):
         # list.
         #
 
-        if self.current_project is not None:
-            cur_proj = UserProject.get_project(proposals, self.current_project.id)
+        cur_proj = _get_current_project()
 
         if cur_proj is None:
             return next(UserProject.user_projects(proposals), None)

@@ -4,7 +4,7 @@ from fragview import projects
 from fragview.projects import Project, ProjectNotFound
 
 
-def get_project(project_id) -> Project:
+def get_project(project_id: str) -> Project:
     """
     returns project's model object,
     or raises CommandError exception if no project

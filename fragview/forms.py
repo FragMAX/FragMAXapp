@@ -7,7 +7,7 @@ from django.forms import (
     ValidationError,
 )
 from fragview.space_groups import get_space_group
-from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV
+from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV, Crystals
 
 
 class _GetFieldMixin:
@@ -188,12 +188,8 @@ class KillJobForm(Form):
         return self.cleaned_data["job_ids"]
 
 
-class ProjectForm(Form):
+class _CrystalsCsvForm(Form):
     crystals_csv_file = FileField()
-    protein = CharField()
-    proposal = CharField()
-    autoproc = BooleanField(required=False)
-    encrypted = BooleanField(required=False)
 
     def clean_crystals_csv_file(self):
         csv_file = self.cleaned_data["crystals_csv_file"]
@@ -209,6 +205,13 @@ class ProjectForm(Form):
 
         assert False, "unexpected form error"
 
+
+class ProjectForm(_CrystalsCsvForm):
+    protein = CharField()
+    proposal = CharField()
+    autoproc = BooleanField(required=False)
+    encrypted = BooleanField(required=False)
+
     def get_values(self):
         cdata = self.cleaned_data
 
@@ -219,3 +222,8 @@ class ProjectForm(Form):
             cdata["autoproc"],
             cdata["encrypted"],
         )
+
+
+class CrystalsImportForm(_CrystalsCsvForm):
+    def get_crystals(self) -> Crystals:
+        return self.cleaned_data["crystals_csv_file"]

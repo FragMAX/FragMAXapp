@@ -13,10 +13,6 @@ Add re-synchoronization button that will look for new datasets for all the cryst
 
 To support use case where users have thier own secrete fragments.
 
-* implement 'add new crystals' feature.
-
-For an existing project, it should be possible to add new crystals by uploading a new CSV file. This is to support projects where datacollection happens during many different shifts, and users whant to start analysing data before all data collection session are completed.
-
 * fix the 'Project Info' page.
 
 Look over the fields on Project -> Project Info page. Add support for saving the fields in the database. This data can be used for example during group deposition.

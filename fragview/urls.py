@@ -16,6 +16,7 @@ from fragview.views import (
     diffraction,
     eldensity,
     libraries,
+    crystals,
     fragment,
     crypt,
     result_pdbs,
@@ -68,6 +69,10 @@ urlpatterns = [
     path("libraries/<library_id>/csv", libraries.as_csv, name="libraries"),
     path("fragments/show", fragments.show, name="library_view"),
     path("download_options/", misc.download_options, name="download_options"),
+    # crystals management views
+    path("crystals", crystals.show),
+    path("crystals/new", crystals.new),
+    path("crystals/import", crystals.import_csv),
     # project management views
     path("projects/", projects.show, name="manage_projects"),
     path("project/new", projects.new, name="new_project"),

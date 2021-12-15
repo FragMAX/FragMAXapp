@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Dict, Optional
 import os
 import grp
 import stat
@@ -14,6 +14,7 @@ from fragview.status import scrape_imported_autoproc_status
 from fragview.projects import PANDDA_WORKER
 from fragview.projects import (
     create_project,
+    get_project,
     Project,
     get_dataset_runs,
     get_dataset_metadata,
@@ -25,7 +26,7 @@ def setup_project(
     project_id: str,
     protein: str,
     proposal: str,
-    crystals: List[List[str]],
+    crystals: List[Dict[str, str]],
     import_autoproc: bool,
     encrypted: bool,
 ):
@@ -53,7 +54,35 @@ def setup_project(
         raise e
 
 
+@celery.task
+def import_crystals(project_id: str, crystals: List[Dict[str, str]]):
+    try:
+        print(f"importing crystals to project ID: {project_id}")
+
+        with db_session:
+            project = get_project(settings.PROJECTS_DB_DIR, project_id)
+            _add_crystals(project, Crystals.from_list(crystals))
+            _add_datasets(project)
+
+    except Exception as e:
+        UserProject.get(project_id).set_failed(f"{e}")
+        # re-raise exception, so that
+        # details are recoded in the worker log
+        raise e
+
+    UserProject.get(project_id).set_ready()
+
+
 def _add_datasets(project: Project):
+    """
+    For all the project's crystals, look for datasets on the file system.
+    Add database entries for all new datasets found on the file system.
+    """
+
+    def dataset_exists(crystal, run: int):
+        dset = crystal.get_dataset(run)
+        return dset is not None
+
     for dset_dir in project.get_dataset_dirs():
         crystal_id = dset_dir.name
         crystal = project.get_crystal(crystal_id)
@@ -62,6 +91,10 @@ def _add_datasets(project: Project):
             continue
 
         for run in get_dataset_runs(dset_dir):
+            if dataset_exists(crystal, run):
+                # skip already existing dataset
+                continue
+
             meta_data = get_dataset_metadata(project, dset_dir, crystal_id, run)
             if meta_data is None:
                 print(
@@ -102,6 +135,12 @@ def _add_datasets(project: Project):
 
 
 def _add_crystals(project: Project, crystals: Crystals):
+    """
+    Add provided crystals to project's database.
+
+    Note: any crystals already defined in the database will be ignored.
+    """
+
     def get_fragment_id(crystal: Crystal) -> Optional[str]:
         fragment = crystal.get_fragment()
         if fragment is None:
@@ -111,7 +150,15 @@ def _add_crystals(project: Project, crystals: Crystals):
         db_frag = Fragment.get(fragment.library, fragment.code)
         return str(db_frag.id)
 
+    def crystal_exist(crystal_id: str):
+        crystal = project.get_crystal(crystal_id)
+        return crystal is not None
+
     for crystal in crystals:
+        if crystal_exist(crystal.SampleID):
+            # skip already existing Crystal
+            continue
+
         project.db.Crystal(
             id=crystal.SampleID,
             fragment_id=get_fragment_id(crystal),
