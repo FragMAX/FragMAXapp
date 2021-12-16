@@ -15,6 +15,7 @@ from typing import Optional
 import conf
 from fragview.sites import SITE
 from conf import REDIS_URL, DATABASE_DIR
+
 # expose these configs below as django settings
 from conf import PROJECTS_DB_DIR, PROJECTS_ROOT_DIR, DEPLOYMENT_TYPE  # noqa F401
 
@@ -26,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'xcra)=3kh9#*39o=cj-bdw^rfukhgemgo^hh(k%uvu_@g3dcs#'
+SECRET_KEY = "xcra)=3kh9#*39o=cj-bdw^rfukhgemgo^hh(k%uvu_@g3dcs#"
 
 DEBUG = conf.DEBUG
 
@@ -36,61 +37,61 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_static_jquery',
-    'fragview',
-    'material',
-    'material.frontend',
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_static_jquery",
+    "fragview",
+    "material",
+    "material.frontend",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'fragview.middleware.login_required',
-    'fragview.middleware.no_projects_redirect',
-    'fragview.middleware.key_required_redirect',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "fragview.middleware.login_required",
+    "fragview.middleware.no_projects_redirect",
+    "fragview.middleware.key_required_redirect",
 ]
 
-ROOT_URLCONF = 'fragmax.urls'
+ROOT_URLCONF = "fragmax.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'fragview.context_processors.site',
-                'fragview.context_processors.projects',
-                'fragview.context_processors.active_menu',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "fragview.context_processors.site",
+                "fragview.context_processors.projects",
+                "fragview.context_processors.active_menu",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'fragmax.wsgi.application'
+WSGI_APPLICATION = "fragmax.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(DATABASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(DATABASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -100,22 +101,23 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
-AUTHENTICATION_BACKENDS = [
-    SITE.AUTH_BACKEND
-]
+# Use 'AutoField' primary keys for models that don’t explicitly specify primary key
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+AUTHENTICATION_BACKENDS = [SITE.AUTH_BACKEND]
 
 OPEN_URLS = ["/crypt/"]
 
@@ -133,9 +135,9 @@ LOGOUT_REDIRECT_URL = "login"
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'CET'
+TIME_ZONE = "CET"
 
 USE_I18N = True
 
@@ -147,11 +149,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    '/data/visitors/biomax/',
+    "/data/visitors/biomax/",
 ]
 
 #

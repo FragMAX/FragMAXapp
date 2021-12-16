@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8.6
-  - django=2.2.5
+  - django=3.2.10
   - natsort=6.0.0
   - requests=2.25.1
   - gemmi=0.4.5
@@ -25,5 +25,5 @@ dependencies:
     - redlock==1.2.0
     - zipstream-new==1.1.7
     - asyncssh==2.5.0
-    - django-material==1.6.7
+    - django-material==1.10.0
     - pony==0.7.14
