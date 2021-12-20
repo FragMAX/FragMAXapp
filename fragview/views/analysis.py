@@ -12,7 +12,7 @@ def processing_form(request):
 
     return render(
         request,
-        "fragview/data_analysis.html",
+        "data_analysis.html",
         {
             "pipelines": SITE.get_supported_pipelines(),
             "datasets": datasets,

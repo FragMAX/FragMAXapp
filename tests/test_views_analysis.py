@@ -36,7 +36,7 @@ class TestProcessingForm(ProjectTestCase, ViewTesterMixin):
         self.assertEquals(resp.status_code, 200)
 
         # check template used
-        self.assert_contains_template(resp, "fragview/data_analysis.html")
+        self.assert_contains_template(resp, "data_analysis.html")
 
         # check created template context
         ctx = resp.context

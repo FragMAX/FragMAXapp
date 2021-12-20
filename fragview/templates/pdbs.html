@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}FragMAX - PDBs{% endblock %}
+{% block content %}
+
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+    }
+
+    td,
+    th {
+        border: 1px solid #f0f0f0;
+        padding: 8px;
+        height: 60px;
+        text-align: center;
+    }
+
+    tr:nth-child(odd) {
+        background-color: #dddddd;
+    }
+
+    .container {
+        padding-left: 250px;
+        max-width: 1180 !important;
+        width: calc(100% - 75px) !important;
+    }
+
+    .btn-right {
+        float: right !important;
+    }
+
+    .pdb_desc {
+        display: table;
+    }
+
+    .pdb_elm {
+        display: table-cell;
+        vertical-align: middle;
+        padding-left: 12px;
+    }
+
+    .download {
+        width: 100px;
+    }
+</style>
+
+<h4>Protein Models - PDBs</h4><br>
+
+<div class="card">
+    <div class="card-content">
+        <div class="card-title">
+            Available PDBs
+            <button class="btn btn-right" onclick="location.href='/pdb/add'">Add PDB</button>
+        </div>
+
+        <br>
+
+        <table class="table bordered">
+            <thead>
+                <tr style="background-color: white;">
+                    <th>Model Filename</th>
+                    <th>PDB ID</th>
+                    <th class="download">Download</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for pdb in project.get_pdbs %}
+                <tr>
+                    <td>
+                        <a href="/pdb/{{pdb.id}}" class="pdb_desc">
+                            <div class="pdb_elm">{{pdb.filename}}</div>
+                        </a>
+                    </td>
+                    <td>{{pdb.pdb_id}}</td>
+                    <td>
+                        <a href="/pdb/get/{{pdb.id}}" download>
+                            <i class="material-icons">file_download</i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

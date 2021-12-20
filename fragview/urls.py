@@ -68,7 +68,6 @@ urlpatterns = [
     path("libraries/<library_id>/json", libraries.as_json, name="libraries"),
     path("libraries/<library_id>/csv", libraries.as_csv, name="libraries"),
     path("fragments/show", fragments.show, name="library_view"),
-    path("download_options/", misc.download_options, name="download_options"),
     # crystals management views
     path("crystals", crystals.show),
     path("crystals/new", crystals.new),

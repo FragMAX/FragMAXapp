@@ -66,7 +66,7 @@ def datasets(request):
             cpus,
         )
 
-    return render(request, "fragview/jobs_submitted.html")
+    return render(request, "jobs_submitted.html")
 
 
 @db_session

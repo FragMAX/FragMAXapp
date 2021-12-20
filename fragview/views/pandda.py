@@ -56,7 +56,7 @@ def inspect(request):
 
     if not proc_methods:
         localcmd = f"none"
-        return render(request, "fragview/pandda_notready.html", {"cmd": localcmd})
+        return render(request, "pandda_notready.html", {"cmd": localcmd})
 
     filters = []
 
@@ -466,7 +466,7 @@ def inspect(request):
 
             return render(
                 request,
-                "fragview/pandda_inspect.html",
+                "pandda_inspect.html",
                 {
                     "proc_methods": proc_methods,
                     "Report": html,
@@ -546,7 +546,7 @@ def inspect(request):
 
                 return render(
                     request,
-                    "fragview/pandda_inspect.html",
+                    "pandda_inspect.html",
                     {
                         "proc_methods": proc_methods,
                         "Report": html.replace(
@@ -703,11 +703,11 @@ def analyse(request, method=None):
 
     if method is None:
         # no pandda resuls found
-        return render(request, "fragview/pandda_notready.html")
+        return render(request, "pandda_notready.html")
 
     return render(
         request,
-        "fragview/pandda_analyse.html",
+        "pandda_analyse.html",
         {
             "method": method,
             "reports": load_method_reports(project, method),
@@ -835,7 +835,7 @@ def submit(request):
                 pandda_worker, project, method, methodshort, options, cifMethod
             )
 
-        return render(request, "fragview/jobs_submitted.html", {"command": panddaCMD})
+        return render(request, "jobs_submitted.html", {"command": panddaCMD})
 
 
 def _write_main_script(

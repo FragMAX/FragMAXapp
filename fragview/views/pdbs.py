@@ -38,7 +38,7 @@ def list(request):
     """
     protein models list page, aka 'manage pdbs' page
     """
-    return render(request, "fragview/pdbs.html")
+    return render(request, "pdbs.html")
 
 
 def _is_valid_pdb_filename(filename):
@@ -173,7 +173,7 @@ def add(request):
     """
     the 'add new PDB' page
     """
-    return render(request, "fragview/add_pdb.html")
+    return render(request, "pdb_add.html")
 
 
 def new(request):
@@ -206,7 +206,7 @@ def edit(request, id):
         _delete_pdb(project, pdb)
         return redirect(urls.reverse("manage_pdbs"))
 
-    return render(request, "fragview/pdb.html", {"pdb": pdb})
+    return render(request, "pdb.html", {"pdb": pdb})
 
 
 def get(request, id):

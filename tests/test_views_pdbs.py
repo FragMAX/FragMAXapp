@@ -67,7 +67,7 @@ class TestListView(_PDBViewTester):
         resp = self.client.get(reverse("manage_pdbs"))
 
         # check template used
-        self.assert_contains_template(resp, "fragview/pdbs.html")
+        self.assert_contains_template(resp, "pdbs.html")
 
 
 class TestAddView(_PDBViewTester):
@@ -80,7 +80,7 @@ class TestAddView(_PDBViewTester):
         resp = self.client.get("/pdb/add")
 
         # check template used
-        self.assert_contains_template(resp, "fragview/add_pdb.html")
+        self.assert_contains_template(resp, "pdb_add.html")
 
 
 class TestEditView(_PDBViewTester):
@@ -99,7 +99,7 @@ class TestEditView(_PDBViewTester):
             resp = self.client.get(f"/pdb/{pdb.id}")
 
             # check template used
-            self.assert_contains_template(resp, "fragview/pdb.html")
+            self.assert_contains_template(resp, "pdb.html")
 
             # check that PDB in the context is correct one
             self.assertEqual(resp.context["pdb"].id, pdb.id)

@@ -30,7 +30,7 @@ def page(request):
     project = current_project(request)
 
     return render(request,
-                  "fragview/download.html",
+                  "download.html",
                   {"pandda_dirs": _get_method_dirs(project)})
 
 

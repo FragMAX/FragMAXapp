@@ -51,7 +51,7 @@ def datasets(request):
     if form.use_autoproc:
         start_thread(run_autoproc, proj, filters, options)
 
-    return render(request, "fragview/jobs_submitted.html")
+    return render(request, "jobs_submitted.html")
 
 
 def _get_dataset_params(project, dataset):

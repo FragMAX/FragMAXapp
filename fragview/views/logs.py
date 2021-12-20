@@ -38,7 +38,7 @@ def _show_html_log(request, html_file_url):
     rel_path = html_file_url.relative_to(project.project_dir)
     html_file_url = f"/logs/htmldata/{rel_path}"
 
-    return render(request, "fragview/html_log.html", {"html_url": html_file_url})
+    return render(request, "html_log.html", {"html_url": html_file_url})
 
 
 def _show_text_log(request, proj, download_url, log_path):
@@ -47,7 +47,7 @@ def _show_text_log(request, proj, download_url, log_path):
     """
     return render(
         request,
-        "fragview/text_log.html",
+        "text_log.html",
         {
             "log_text": read_proj_text_file(proj, log_path),
             "log_path": log_path,
@@ -104,11 +104,10 @@ def _show_imported_html_log(request, log_file):
     proj = current_project(request)
 
     rel_path = log_file.relative_to(Path(SITE.RAW_DATA_DIR, proj.proposal))
-    print(rel_path)
 
     html_file_url = f"/logs/imported/htmldata/{rel_path}"
 
-    return render(request, "fragview/html_log.html", {"html_url": html_file_url})
+    return render(request, "html_log.html", {"html_url": html_file_url})
 
 
 def show_autoproc(request, dataset, log_file):

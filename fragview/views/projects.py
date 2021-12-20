@@ -42,7 +42,7 @@ def show(request):
 
     return render(
         request,
-        "fragview/projects.html",
+        "projects.html",
         {
             "project_entries": _wrap_projects(request),
             "failed_projects": failed,
@@ -61,7 +61,7 @@ def new(request):
         proposals = sorted(get_proposals(request), reverse=True)
         return render(
             request,
-            "fragview/project_new.html",
+            "project_new.html",
             {"proposals": proposals},
         )
 
@@ -125,4 +125,4 @@ def set_current(request, id):
 
 def project_summary(request):
     libraries = get_project_libraries(current_project(request))
-    return render(request, "fragview/project_summary.html", {"libraries": libraries})
+    return render(request, "project_summary.html", {"libraries": libraries})

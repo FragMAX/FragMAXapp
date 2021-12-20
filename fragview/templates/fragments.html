@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}FragMAX - Fragments{% endblock %}
+{% block content %}
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+
+.ligimg
+{
+    height: 96px;
+    width: 96px;
+}
+
+th
+{
+    cursor: pointer;
+    text-align: center;
+}
+
+td, th
+{
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+
+<div>
+    <h4>Fragments</h4>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Library</th>
+            <th>Fragment Code</th>
+            <th>SMILES</th>
+            <th>Crystals</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for fragment, crystals in fragments.items %}
+        <tr>
+            <td>{{fragment.library.name}}</td>
+            <td>{{fragment.code}}</td>
+            <td>{{fragment.smiles}}</td>
+            <td>
+                {% for crystal in crystals %}
+                    <div>{{crystal.id}}</div>
+                {% endfor %}
+            </td>
+            <td>
+                <img class="ligimg" src="/fragment/{{fragment.id}}/image">
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

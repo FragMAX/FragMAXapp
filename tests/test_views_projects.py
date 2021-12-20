@@ -60,7 +60,7 @@ class TestListProjects(ProjectTestCase, ViewTesterMixin):
         listed_proj_ids = {p.id for p in resp.context["projects"]}
         self.assertSetEqual(expected_proj_ids, listed_proj_ids)
 
-        self.assert_contains_template(resp, "fragview/projects.html")
+        self.assert_contains_template(resp, "projects.html")
 
 
 class TestNewErrs(unittest.TestCase, ViewTesterMixin):
@@ -74,7 +74,7 @@ class TestNewErrs(unittest.TestCase, ViewTesterMixin):
         resp = self.client.get("/project/new")
 
         self.assertEqual(200, resp.status_code)
-        self.assert_contains_template(resp, "fragview/project_new.html")
+        self.assert_contains_template(resp, "project_new.html")
 
     def test_new_invalid(self):
         resp = self.client.post("/project/new")

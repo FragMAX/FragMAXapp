@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+
+{% block title %}FragMAX - Results{% endblock %}
+{% block content %}
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: center;
+    height: 50px;
+  }
+
+  td,
+  th {
+    border: 1px solid #f0f0f0;
+    padding: 5px;
+  }
+
+  td {
+    height: 100px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  tr td:nth-child(n) {
+    text-align: center;
+  }
+
+  th {
+    cursor: pointer;
+  }
+
+  .container {
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+  }
+
+  /* Style the tab */
+  .tab {
+    overflow: hidden;
+    background-color: #f1f1f1;
+  }
+
+  /* Style the buttons inside the tab */
+  .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+  }
+
+  /* Create an active/current tablink class */
+  .tab button.active {
+    background-color: #82be00;
+  }
+
+  /* Style the tab content */
+  .tabcontent {
+    display: none;
+    padding: 6px 12px;
+  }
+
+  .top-right {
+    position: absolute;
+    right: 50px;
+    top: 25px;
+  }
+
+  .ligand {
+    height: 88px;
+    width: 88px;
+  }
+
+  .plot-holder {
+    background: #e2e2e2;
+  }
+
+  line {
+    stroke-width: 0.25px;
+    fill: none;
+  }
+
+  .tooltip {
+    background-color: #f1f7e5;
+    color: black;
+    font-size: 10px;
+    padding: 1px 1px;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+  }
+
+  .axis--x .tick line {
+    visibility: hidden;
+  }
+
+  .tshold-holder {
+    display: inline-block;
+    margin-left: 28px;
+  }
+</style>
+
+<div>
+  <h4>Results</h4>
+</div>
+<div class=" card_options">
+
+  <div class="card tab">
+    <button class="tablinks" onclick="openMethod(event, 'ISa'); createIsaPlot()">ISa</button>
+    <button class="tablinks" onclick="openMethod(event, 'Resolution'); createResolutionPlot()">Resolution</button>
+    <button class="tablinks"
+      onclick="openMethod(event, 'rfactorstab'); createRfactorsPlot()">R<sub>work/</sub>R<sub>free</sub></button>
+    <button class="tablinks" onclick="openMethod(event, 'Cell_Parameters'); createcellparamsPlot()">Cell
+      Parameters</button>
+    <button class="tablinks" onclick="openMethod(event, 'Hide')">Hide Plots</button>
+  </div>
+
+  <div id="ISa" class="card tabcontent">
+    <div class="card-title" style="text-align: center;">ISa distribution</div>
+    <div class="plot-holder">
+      <script src="/static/js/isaplot.js"></script>
+      <div style="display: none" class="tshold-holder">
+        <label for="tshold_isa">Threshold:</label>
+        <input type="number" value="0" id="tshold_isa" name="threshold" style="width: 45px;margin-bottom: 0;"
+          name="threshold_ISa" maxlength="2"
+          onchange="this.value=this.value.slice(0,this.maxLength);createIsaThresholdLine(this.value)">
+        <br><br>
+      </div>
+      <div id="isaplot"></div>
+    </div>
+  </div>
+
+  <div id="Resolution" class="card tabcontent">
+    <div class="card-title" style="text-align: center;">Resolution distribution</div>
+    <div class="plot-holder">
+      <script src="/static/js/resolutionplot.js"></script>
+      <div style="display: none" class="tshold-holder">
+        <label for="tshold_res">Threshold:</label>
+        <input type="number" value="1.00" id="tshold_res" step=".01" name="threshold" maxlength="2"
+          onchange="createResolutionThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
+        <br><br>
+      </div>
+      <div id="resolutionplot"></div>
+    </div>
+  </div>
+
+  <div id="Cell_Parameters" class="card tabcontent">
+    <div class="card-title" style="text-align: center;">Cell Parameters distribution</div>
+    <div class="plot-holder">
+      <script src="/static/js/cellparamsplot.js"></script>
+      <div style="display: none" class="tshold-holder">
+        <label for="tshold_params">Threshold:</label>
+        <input type="number" value="50" id="tshold_params" name="threshold" maxlength="3"
+          onchange="createCellParamsThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
+        <br><br>
+      </div>
+      <div id="cellparams_legend"></div>
+      <div id="cellparams_plot"></div>
+    </div>
+  </div>
+
+  <div id="rfactorstab" class="card tabcontent">
+    <div class="card-title" style="text-align: center;">R<sub>work</sub>/R<sub>free</sub> distribution</div>
+    <div class="plot-holder">
+      <script src="/static/js/rfactors.js"></script>
+      <div style="display: none" class="tshold-holder">
+        <label for="tshold_rfactor">Threshasdold:</label>
+        <input type="number" value="0.00" id="tshold_rfactor" step=".01" name="threshold" maxlength="2"
+          onchange="createRfactorThresholdLine(this.value)" style="width: 45px;margin-bottom: 0;">
+        <br><br>
+      </div>
+      <div id="rfactor_legend"></div>
+      <div id="rfactors_plot"></div>
+    </div>
+  </div>
+
+  <div id="Hide"></div>
+
+  <script src="/static/libs/d3.min.js"></script>
+</div> <!-- end card options -->
+
+<div class="input-field col s12" id="searchDiv">
+  <i class="material-icons prefix">search</i>
+  <input type="text" id="searchDataset" onkeyup="filterTable(new Array(this.value))" title="Type in a dataset name">
+  <label for="searchDataset">Search for Dataset..</label>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>View Structure</th>
+      <th id="th_dataset">Data set</th>
+      <th>Space group</th>
+      <th>Res. [&Aring;]</th>
+      <th>ISa</th>
+      <th>R<sub>work</sub></th>
+      <th>R<sub>free</sub></th>
+      <th>RMS bonds [&Aring;]</th>
+      <th>RMS angles [&deg;]</th>
+      <th>a</th>
+      <th>b</th>
+      <th>c</th>
+      <th>&alpha;</th>
+      <th>&beta;</th>
+      <th>&gamma;</th>
+      <th>RhoFit</th>
+      <th>LigandFit</th>
+      <th>Ligand</th>
+    </tr>
+  </thead>
+  <tbody id="resultsTableBody">
+    <tr>
+    </tr>
+    {% for item in refine_results %}
+
+    <tr class="resultsTableRow">
+      <td>
+        <a href="/density/{{item.id}}" target="_blank">
+          <button class="btn" style="height: 48px; margin-top: 15px;">
+            <i class="material-icons" style="font-size:28px; padding-top: 6px;">3d_rotation</i>
+          </button>
+        </a>
+      </td>
+      <td class="score">{{item.name}}</td>
+      <td>{{item.space_group}}</td>
+      <td>{{item.resolution|floatformat:2}}</td>
+      <td>
+        {% if item.isa %}
+          {{item.isa|floatformat:2}}
+        {% else %}
+           unknown
+        {% endif %}
+      </td>
+      <td>{{item.r_work|floatformat:2}}</td>
+      <td>{{item.r_free|floatformat:2}}</td>
+      <td>{{item.rms_bonds|floatformat:3}}</td>
+      <td>{{item.rms_angles|floatformat:3}}</td>
+      <td>{{item.unit_cell_a|floatformat:3}}</td>
+      <td>{{item.unit_cell_b|floatformat:3}}</td>
+      <td>{{item.unit_cell_c|floatformat:3}}</td>
+      <td>{{item.unit_cell_alpha|floatformat:2}}</td>
+      <td>{{item.unit_cell_beta|floatformat:2}}</td>
+      <td>{{item.unit_cell_gamma|floatformat:2}}</td>
+      <td>
+        {% if item.rhofit_score %}
+          {{item.rhofit_score|floatformat:3}}
+        {% endif %}
+      </td>
+      <td>
+        {% if item.ligandfit_score %}
+          {{item.ligandfit_score|floatformat:3}}
+        {% endif %}
+      </td>
+      <td>
+        {% with fragment=item.fragment %}
+          {% if fragment %}
+          <a href="/fragment/{{fragment.id}}/image" target="_blank">
+            <img class="ligand" src="/fragment/{{fragment.id}}/image" height="40" width="86">
+          </a>
+          {% endif %}
+        {% endwith %}
+      </td>
+
+    </tr>
+    {% endfor %}
+
+  </tbody>
+</table>
+
+<script>
+  // listening for selection events on the plot and filter the table
+  document.addEventListener('dotsSelection',
+    evt => filterTable(evt.detail.data, evt.detail.total));
+
+  const getCellValue = (tr, idx) => tr.children[idx].textContent;
+
+  const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+  )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+  /* Attach sorting to click event of table headers */
+  document.querySelectorAll('th').forEach(tableHeader =>
+    tableHeader.addEventListener('click', () => sortTable(tableHeader)));
+
+  /* sort the table by column */
+  function sortTable(sortingHeader) {
+    const table = sortingHeader.closest('table');
+    const tbody = document.getElementById("resultsTableBody");
+    const rows = Array.from(tbody.querySelectorAll('.resultsTableRow'));
+    const headers = Array.from(table.querySelectorAll('th'));
+    rows.sort(comparer(headers.indexOf(sortingHeader), this.asc = !this.asc));
+    rows.forEach(tr => tbody.appendChild(tr));
+  }
+
+  function filterTable(filter, total) {
+    const tableBody = document.getElementById("resultsTableBody");
+    const trs = tableBody.querySelectorAll('.resultsTableRow');
+
+    switch (filter.length) {
+
+      /* single dataset filter (searchDatabase or 1 dot selection from the plot) */
+      case 1:
+        const datasetName = filter.toString().toUpperCase();
+        const tds = tableBody.querySelectorAll('.score');
+        for (let i = 0; i < tds.length; i++) {
+          const td = tds[i];
+          if (td.textContent.toUpperCase().indexOf(datasetName) > -1) {
+            td.parentElement.style.display = "";
+          } else td.parentElement.style.display = "none";
+        }
+        break;
+
+        /* empty selection in the plot */
+      case 0:
+        /* all the datasets in the plot are selected or zoom out */
+      case total:
+        // display all table rows
+        for (let i = 0; i < trs.length; i++) {
+          trs[i].style.display = "";
+        }
+        break;
+
+        /* selection of more than one dot (zoom in) */
+      default:
+        // hide all table rows first
+        for (let i = 0; i < trs.length; i++) {
+          trs[i].style.display = "none";
+        }
+        // make visible only rows correspondent to the selected datasets
+        for (let i = 0; i < filter.length; i++) {
+          const dataset = filter[i];
+          for (let i = 0; i < trs.length; i++) {
+            const tr = trs[i];
+            if (tr.children[1].textContent.indexOf(dataset) > -1) {
+              tr.style.display = "";
+            }
+          }
+        }
+        break;
+    }
+  } // end filter
+</script>
+<script>
+  function openMethod(evt, methodName) {
+    /* disable click on tab for 1 second after click */
+    const buttonClicked = evt.currentTarget;
+    buttonClicked.disabled = true;
+    setTimeout(() => buttonClicked.disabled = false, 1000);
+
+    /* refresh table */
+    const emptyFilter = "";
+    filterTable(emptyFilter);
+
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(methodName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+  $(document).ready(function () {
+    // when page loads, sort table by dataset name
+    const datasetColumn = document.getElementById('th_dataset');
+    sortTable(datasetColumn);
+  });
+
+  $(document).ready(function () {
+    $(document).bind("keydown", function (e) {
+      e = e || window.event;
+      var charCode = e.which || e.keyCode;
+      if (charCode == 90) toggle_zoom();
+    });
+  });
+
+  function toggle_zoom() {
+    if (document.body.style.zoom == "75%") {
+      document.body.style.zoom = "100%"
+    } else {
+      document.body.style.zoom = "75%"
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}FragMAX - Log Viewer{% endblock %}
+{% block content %}
+
+<style>
+  .log {
+    font-family: "Dejavu Sans", monospace;
+  }
+  .container {
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+  }
+</style>
+
+
+Log file - <a href="{{download_url}}">{{log_path}}</a>
+
+<div class="log">
+  {{log_text|linebreaks}}
+</div>
+
+{% endblock %}

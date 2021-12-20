@@ -86,9 +86,9 @@ def show(request):
 
     if proj.has_encryption_key():
         # encryption key currently uploaded
-        template = "fragview/encryption.html"
+        template = "encryption.html"
     else:
         # key needs to be uploaded
-        template = "fragview/upload_enc_key.html"
+        template = "upload_enc_key.html"
 
     return render(request, template)

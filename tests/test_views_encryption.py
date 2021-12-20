@@ -215,7 +215,7 @@ class TestShow(_EncryptionKeyTestCase):
             resp = self.client.get(self.URL)
 
         self.assertEquals(resp.status_code, 200)
-        self.assert_contains_template(resp, "fragview/upload_enc_key.html")
+        self.assert_contains_template(resp, "upload_enc_key.html")
 
     @db_session
     def test_has_key(self):
@@ -225,4 +225,4 @@ class TestShow(_EncryptionKeyTestCase):
         resp = self.client.get(self.URL)
 
         self.assertEquals(resp.status_code, 200)
-        self.assert_contains_template(resp, "fragview/encryption.html")
+        self.assert_contains_template(resp, "encryption.html")

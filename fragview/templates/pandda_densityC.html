@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% block title %}FragMAX - PanDDA maps viewer{% endblock %}
+{% block content %}
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="theme-color" content="#333333">
+  <style>
+    body {
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      height: 100% !important;
+      width: 100% !important;
+    }
+
+    .side-table {
+      font-size: 15px;
+
+    }
+
+    #viewer {
+      position: absolute;
+      left: 550px;
+      width: calc(100% - 550px);
+      height: 100%;
+    }
+
+    #help {
+      display: none;
+      font-size: 16px;
+      color: #eee;
+      background-color: rgba(0, 0, 0, 0.7);
+      position: absolute;
+      left: 550px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: default;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 9;
+      white-space: pre-line;
+    }
+
+    #left-controlpanel {
+      font-size: 16px;
+      background-color: rgba(0, 0, 0, 0.1);
+      position: absolute;
+      left: 265px;
+      top: 10px;
+      height: calc(100% - 20px);
+      width: 270px;
+      cursor: default;
+      padding: 5px;
+      border-radius: 5px;
+      z-index: 9;
+    }
+
+    #hud u {
+      text-decoration: none;
+      border: solid;
+      border-width: 1px 0;
+    }
+
+    #hud s {
+      padding: 0 8px;
+      text-decoration: none;
+      opacity: 0.5;
+    }
+
+    #inset {
+      width: 200px;
+      height: 200px;
+      background-color: #888;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      display: none;
+    }
+
+    a {
+      color: #59C;
+    }
+
+    #viewer b {
+      color: #FCFCFC;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 22px;
+    }
+
+    .svg {
+      -webkit-filter: contrast(0.5);
+      filter: contrast(0.5);
+    }
+
+    .navbt {
+      width: 110px;
+      font-size: 11px;
+    }
+
+    #viewer1 b,
+    #viewer2 b {
+      color: #FCFCFC;
+    }
+
+    #viewer1 b {
+      overflow: hidden;
+      font-size: 24px;
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+    }
+
+    #viewer2 b {
+      overflow: hidden;
+      font-size: 22px;
+      position: absolute;
+      bottom: 60px;
+      right: 50%;
+    }
+
+    #viewer1,
+    #viewer2 {
+      position: absolute;
+      top: 0;
+      width: calc((100% - 550px)/2);
+      height: 100%;
+    }
+
+    #viewer1 {
+      left: 550px;
+    }
+
+    #viewer2 {
+      right: 0;
+    }
+
+    .svg {
+      -webkit-filter: contrast(0.5);
+      filter: contrast(0.5);
+    }
+
+    .ligandSVG {
+      left: 0px;
+      position: absolute;
+      bottom: 0px;
+      width: 250px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+  </style>
+
+  <script src="/static/libs/uglymol.js"></script>
+  <script src="/static/libs/wasm/mtz.js"></script>
+
+</head>
+
+<body style="background-color: white">
+  <div id="left-controlpanel">
+    <div style="padding-left:15px !important;">
+      <div>
+        <h6><a href="/logs/show/{{summary}}" target="_blank">Analysis summary</a></h6>
+        <h6>Structure navigation</h6>
+      </div>
+      {% if panddatype == "consensus" %}
+      <div style="display:flex">
+        <a href="/pandda_densityC/{{prev.method}}/{{prev.dataset}}/{{prev.site_idx}}/{{prev.event_idx}}">
+          <button class="btn navbt" size="1"
+              {% if not prev %}disabled{% endif %}
+          >
+            Prev event
+          </button>
+        </a>
+
+        <a href="/pandda_densityC/{{next.method}}/{{next.dataset}}/{{next.site_idx}}/{{next.event_idx}}"
+           style="padding-left:5px">
+          <button class="btn navbt" size="1"
+              {% if not next %}disabled{% endif %}
+          >
+            Next event
+          </button>
+        </a>
+      </div>
+      {% elif panddatype == "inspect" %}
+      <div style="display:flex">
+        <form action="/pandda_density/" method="get" id="pandda_form"><button class="btn" type="submit"
+            value="{{method}};{{dataset}};prev" name="structure" size="1">Previous</button></form>
+        <form action="/pandda_density/" method="get" id="pandda_form" style="padding-left:5px"><button class="btn"
+            type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next</button></form>
+      </div>
+      {% elif panddatype == "analyse" %}
+      <div style="display:flex;">
+        <form action="/pandda_densityA/" method="get" id="pandda_form"><button class="btn navbt" type="submit"
+            value="{{method}};{{dataset}};prev" name="structure" size="1">Prev Event</button></form>
+        <form action="/pandda_densityA/" method="get" id="pandda_form" style="padding-left:5px"><button
+            class="btn navbt" type="submit" value="{{method}};{{dataset}};next" name="structure" size="1">Next
+            Event</button></form>
+      </div>
+      {% endif %}
+
+      <div style="display:block; padding-top: 8px;"">
+        <input class=" btn navbt" type="button" value="Prev site" onclick="return previoussite()"></input>
+        <input class="btn navbt" type="button" value="Next site" onclick="return nextsite()"></input>
+      </div>
+    </div>
+    <div style="padding-top:10px !important;padding-left:15px !important;padding-right:15px !important">
+      <table class="side-table">
+
+        <tr>
+          <th>Resolution
+          </th>
+          <td>{{resolution}} Å
+          </td>
+        </tr>
+        <tr>
+          <th>Rwork
+          </th>
+          <td>{{rwork}}
+          </td>
+        </tr>
+        <tr>
+          <th>Rfree
+          </th>
+          <td>{{rfree}}
+          </td>
+        </tr>
+        <tr>
+          <th>Spacegroup
+          </th>
+          <td>{{spg}}
+          </td>
+        </tr>
+        <tr>
+          <th>1-BDC
+          </th>
+          <td>{{bdc}}
+          </td>
+        </tr>
+        <tr>
+          <th>Comments
+          </th>
+          <td>{{comment}}
+          </td>
+        </tr>
+        <tr>
+          <th>Site
+          </th>
+          <td id="tdsite">{{siten}}
+          </td>
+        </tr>
+        <tr>
+          <th>Event
+          </th>
+          <td>{{event}}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="padding-left:15px !important; padding-top:30px !important;">
+      <div class="col s12 required inline" id="event_marker">
+        <div class="radio" id="event_mark"><label>
+            <input class="with-gap" id="interesting_radio" name="ref_type" type="radio" value="interesting">
+            <span class="item-label" for="interesting_radio">Event interesting</span>
+          </label></div>
+
+        <div class="radio" id="event_mark"><label>
+            <input class="with-gap" id="notinteresting_radio" name="ref_type" type="radio" value="notinteresting">
+            <span class="item-label" for="notinteresting_radio">Event not interesting</span>
+          </label></div>
+
+      </div>
+    </div>
+
+    <div style="padding-left:15px !important; padding-top:60px !important;">
+      <div class="col s12 required inline" id="ligand_modelled">
+        <div class="radio" id="ligand_placed"><label>
+            <input class="with-gap" id="lig_radio" name="lig_placed" type="radio" value="placed">
+            <span class="item-label" for="lig_radio">Ligand placed</span>
+          </label></div>
+
+        <div class="radio" id="ligand_placed"><label>
+            <input class="with-gap" id="nolig_radio" name="lig_placed" type="radio" value="notplaced">
+            <span class="item-label" for="nolig_radio">No ligand placed</span>
+          </label></div>
+
+      </div>
+    </div>
+
+
+    <div style="padding-left:15px !important;padding-top:60px !important;">
+      <div class="col s12 required inline" id="model_confidence">
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="high_conf_radio" name="model_conf" type="radio" value="high">
+            <span class="item-label" for="high_conf_radio">High confidence</span>
+          </label></div>
+
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="medium_conf_radio" name="model_conf" type="radio" value="medium">
+            <span class="item-label" for="medium_conf_radio">Medium confidence</span>
+          </label></div>
+
+        <div class="radio" id="conf_level"><label>
+            <input class="with-gap" id="low_conf_radio" name="model_conf" type="radio" value="low">
+            <span class="item-label" for="low_conf_radio">Low confidence</span>
+          </label></div>
+      </div>
+    </div>
+
+    <div class="ligandSVG">
+      <div>
+        <h5 style="text-align: center;">{{fragment.code}}</h5>
+      </div>
+      <img class="ligpng ligandSVG svg" id="ligand" src="/fragment/{{fragment.id}}/image">
+    </div>
+  </div>
+
+
+
+  <div style="display:flex;">
+    <div style="z-index:1; color: #FCFCFC; position: absolute; bottom: 20px; left: 600px">
+
+      <b>
+        <h6>{{dataset}}</h6>
+      </b>
+      <b>
+        <h6>{{method}}</h6>
+      </b>
+
+      <header id="hud">PanDDA event and average map for ligand {{fragment.code}}. Click on the ligand image to center view.
+        Press H for help.</header>
+    </div>
+  </div>
+
+
+  <div id="viewer1"><b>Event map<br></b></div>
+  <div id="viewer2"><b>Average map<br></b></div>
+  <header id="hud"></header>
+  <footer id="help"></footer>
+
+
+  <footer id="help"></footer>
+  <div id="inset"></div>
+
+  <script>
+    document.getElementById('{{interesting}}').checked = true;
+    document.getElementById('{{ligplaced}}').checked = true;
+    document.getElementById('{{ligconfid}}').checked = true;
+
+    V1 = new UM.Viewer({ viewer: "viewer1", focusable: true, hud: "hud", help: "help" });
+
+    V1.load_pdb_and_ccp4_maps(
+      "/pdbs/pandda/fitted/{{dataset}}/{{method}}",
+      "/density_map/pandda/{{dataset}}/{{method}}/bdc",
+      "/density_map/pandda/{{dataset}}/{{method}}/zmap");
+
+    V2 = new UM.Viewer({ viewer: "viewer2", focusable: true, share_view: V1, hud: "hud", help: "help" });
+
+    V2.load_pdb(
+      "/pdbs/pandda/fitted/{{dataset}}/{{method}}",
+      null,
+      function()
+      {
+        V2.recenter({{ center }}, null, 25);
+      }
+    );
+
+    V2.load_ccp4_maps(
+      "/density_map/pandda/{{dataset}}/{{method}}/average",
+      null,
+      function()
+      {
+        V2.map_bags[V2.map_bags.length - 1].name = "average_map"
+      }
+    );
+
+    V1.recenter({{ center }}, null, 25)
+    V1.renderer.domElement.focus();
+    V1.change_zoom_by_factor(3.5);
+
+    var ligcenter = [{{ center }}]
+    var centroid = {{ centroids }};
+    var centroidL = centroid.length
+    var sites = ligcenter.concat(centroid);
+    var site_idxs = [{{ siten }}].concat(range(1, centroidL));
+    var index = 0;
+    var numsites = sites.length;
+
+    function centerligand() {
+      V1.recenter({{ center }}, null, 25)
+    V1.request_render()
+    }
+
+    function nextsite() {
+      index = (index + 1) % numsites;
+      var site = sites[index];
+      movetosite(site)
+      document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function previoussite() {
+      index = (index - 1) % numsites;
+      if (index < 0) { index = numsites - 1 }
+      var site = sites[index];
+      movetosite(site)
+      document.getElementById("tdsite").innerHTML = site_idxs[index]
+    }
+    function movetosite(b) {
+      V1.recenter(b, null, 25);
+      V1.request_render();
+    }
+
+    $(document).on('click', '#ligand', function () {
+      V1.recenter({{ center }}, null, 25)
+    V1.request_render();
+    });
+
+    function range(start, end) {
+      /* generate a range : [start, start+1, ..., end-1, end] */
+      var len = end - start + 1;
+      var a = new Array(len);
+      for (let i = 0; i < len; i++) a[i] = start + i;
+      return a;
+    }
+    $(document).ready(function () {
+      $(document).bind("keydown", function (e) {
+        e = e || window.event;
+        var charCode = e.which || e.keyCode;
+        if (charCode == 37) previoussite();
+      });
+    });
+    $(document).ready(function () {
+      $(document).bind("keydown", function (e) {
+        e = e || window.event;
+        var charCode = e.which || e.keyCode;
+        if (charCode == 39) nextsite();
+      });
+    });
+    $(document).ready(function () {
+      $(document).bind("keydown", function (e) {
+        e = e || window.event;
+        var charCode = e.which || e.keyCode;
+        if (charCode == 88) centerligand();
+      });
+    });
+
+    function search_maps(nameKey, myArray) {
+      for (var i = 0; i < myArray.length; i++) {
+        if (myArray[i].name === nameKey) {
+          return i;
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
+
+
+{% endblock %}

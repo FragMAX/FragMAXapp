@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}FragMAX - Project details{% endblock %}
+{% block content %}
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+
+  }
+  th {
+    text-align: center;
+
+  }
+
+  td, th {
+    border: 1px solid #f0f0f0;
+    padding: 8px;
+      height: 60px;
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #e2e2e2;
+  }
+
+  .container {
+    padding-left: 250px;
+    max-width: 1280 !important;
+    width: calc(100% - 75px) !important;
+}
+ .section-title{
+     padding-top: 40px;
+ }
+</style>
+<h4>Project details</h4>
+<h6>Information provided here will be used to create PDB deposition files</h6>
+
+
+<div class="card">
+        <div class="card-content">
+
+            <div class="card-title section-title">Project details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Group Deposition ID</th>
+                    <td><input class="selectbox" name="details_field" id="group_dep_id" placeholder="G_1002099"></td>
+                </tr>
+                <tr>
+                    <th>Protein Full Name</th>
+                    <td><input class="selectbox" name="details_field" id="protein_full_name" placeholder="Proteinase K"></td>
+                </tr>
+                <tr>
+                    <th>Protein Name</th>
+                    <td>{{project.protein}}</td>
+                </tr>
+                <tr>
+                    <th>Library Full Name</th>
+                    <td><input class="selectbox" name="details_field" id="library_full_name" placeholder="Frag Xtal Screen"></td>
+                </tr>
+                <tr>
+                    <th>Keywords</th>
+                    <td><input class="selectbox" name="details_field" id="keywords" placeholder="Fragment screening, hydrolase, inhibition"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="card-title section-title">Publication details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr >
+                    <th>Citation title</th>
+                    <td><input class="selectbox" name="details_field" id="citation_title" placeholder="To be published"></td>
+                </tr>
+                <tr >
+                    <th>Journal Abbreviation</th>
+                    <td><input class="selectbox" name="details_field" id="journal_abrev" placeholder="To be published"></td>
+                </tr>
+                <tr>
+                    <th>Journal Volume</th>
+                    <td><input class="selectbox" name="details_field" id="journal_vol" placeholder="?"></td>
+                </tr>
+                <tr>
+                    <th>Pages</th>
+                    <td><input class="selectbox" name="details_field" id="first-last_page" placeholder="?"></td>
+                </tr>
+                <tr>
+                    <th>Year</th>
+                    <td><input class="selectbox" name="details_field" id="year" placeholder="?"></td>
+                </tr>
+                <tr>
+                    <th>PUBMED ID</th>
+                    <td><input class="selectbox" name="details_field" id="PUBMED_id" placeholder="?"></td>
+                </tr>
+                <tr>
+                    <th>DOI</th>
+                    <td><input class="selectbox" name="details_field" id="DOI" placeholder="?"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="card-title section-title">Biological details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Organism scientific name</th>
+                    <td><input class="selectbox" name="details_field" id="organism_scientific" placeholder="Parengyodontium album"></td>
+                </tr>
+                <tr>
+                    <th>Source Taxon ID</th>
+                    <td><input class="selectbox" name="details_field" id="taxon_ID" placeholder="37998"></td>
+                </tr>
+                <tr>
+                    <th>Natural strain</th>
+                    <td><input class="selectbox" name="details_field" id="nat_strain" placeholder="?">?</td>
+                </tr>
+                <tr>
+                    <th>Gene source name</th>
+                    <td><input class="selectbox" name="details_field" id="gene_src_gene" placeholder="PROK"></td>
+                </tr>
+                <tr>
+                    <th>Host scientific name</th>
+                    <td><input class="selectbox" name="details_field" id="host_org_scientific_name" placeholder="Escherichia coli"></td>
+                </tr>
+                <tr>
+                    <th>Host NCBI taxon id</th>
+                    <td><input class="selectbox" name="details_field" id="host_org_ncbi_taxonomy_id" placeholder="562"></td>
+                </tr>
+                <tr>
+                    <th>UniProt database accession code</th>
+                    <td><input class="selectbox" name="details_field" id="database_accession" placeholder="P06873"></td>
+                </tr>
+                <tr>
+                    <th>Aminoacid sequence number</th>
+                    <td><input class="selectbox" name="details_field" id="seq_number" placeholder="1-279"></td>
+                </tr>
+                <tr>
+                    <th>Aminoacid sequence</th>
+                    <td><input class="selectbox" name="details_field" id="sequence" placeholder="AAQTNAPWGLARISSTSPGTSTYYYDESAGQGSCVYV...."></td>
+                </tr>
+                <tr>
+                    <th>Protein Function</th>
+                    <td><input class="selectbox" name="details_field" id="protein_function" placeholder="Hydrolase"></td>
+                </tr>
+                <tr>
+                    <th>EC Number</th>
+                    <td><input class="selectbox" name="details_field" id="EC" placeholder="3.4.21.64"></td>
+                </tr>
+                <tr>
+                    <th>Source method</th>
+                    <td><input class="selectbox" name="details_field" id="source_method" placeholder="man"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="card-title section-title">Crystallisation details</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+                <tbody>
+                <tr>
+                    <th>Crystallisation condition </th>
+                    <td><input class="selectbox" name="details_field" id="crystallisation_condition" placeholder="1.25M ammonium sulfate, 0.1M Tris-HCl, pH 7.5"></td>
+                </tr>
+                <tr>
+                    <th>Crystallistion temperature (K)</th>
+                    <td><input class="selectbox" name="details_field" id="crystallisation_temp" placeholder="290"></td>
+                </tr>
+                <tr>
+                    <th>Crystallisation pH</th>
+                    <td><input class="selectbox" name="details_field" id="crystallisation_ph" placeholder="7.5"></td>
+                </tr>
+                <tr>
+                    <th>Crystallisation method</th>
+                    <td><input class="selectbox" name="details_field" id="crystallisation_method" placeholder="VAPOR DIFFUSION, SITTING DROP"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="card-title section-title">Authors information</div><br>
+            <table class="table bordered">
+            <colgroup>
+                <col width="33%">
+                <col width="66%">
+            </colgroup>
+            <tbody>
+            <tr>
+                <th>Author 1 (PI)</th>
+                <td><input class="selectbox" name="details_field" id="author_1" placeholder="Author1 details"></td>
+            </tr>
+
+            </tbody>
+            </table>
+            <form action="" method="get" id="saveBtn" name="saveBtnf" size="1">
+                <button class="btn-large " style="margin-top: 30px;" type="submit" onsubmit="" value="Save" name="Save_button" size="1">Save</button>
+            </form>
+        </div>
+    <script>
+        var input = document.getElementById("userInput");
+
+    </script>
+{% endblock %}
+

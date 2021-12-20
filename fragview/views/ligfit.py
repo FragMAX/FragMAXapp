@@ -37,7 +37,7 @@ def datasets(request):
         form.custom_rhofit,
     )
 
-    return render(request, "fragview/jobs_submitted.html")
+    return render(request, "jobs_submitted.html")
 
 
 def _get_refine_results(

@@ -4,7 +4,7 @@ from django.http import JsonResponse, HttpResponseNotFound, HttpResponse
 
 
 def show(request):
-    return render(request, "fragview/libraries.html", {"libraries": Library.get_all()})
+    return render(request, "libraries.html", {"libraries": Library.get_all()})
 
 
 def _get_library(library_id: str):

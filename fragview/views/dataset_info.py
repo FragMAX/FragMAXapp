@@ -94,7 +94,7 @@ def show(request, dataset_id):
 
     return render(
         request,
-        "fragview/dataset_info.html",
+        "dataset_info.html",
         {
             "dataset": DatasetInfo(dataset),
             "processing_stats": processing_stats,

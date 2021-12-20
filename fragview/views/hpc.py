@@ -9,7 +9,7 @@ from fragview import hpc
 
 
 def status(request):
-    return render(request, "fragview/hpcstatus.html", {"jobs": hpc.get_jobs()})
+    return render(request, "hpcstatus.html", {"jobs": hpc.get_jobs()})
 
 
 def kill(request):
@@ -55,4 +55,4 @@ def jobhistory(request):
     # sort jobs by date, newest first
     logHistory.sort(key=lambda e: e[2], reverse=True)
 
-    return render(request, "fragview/jobhistory.html", {"logHistory": logHistory})
+    return render(request, "jobhistory.html", {"logHistory": logHistory})

@@ -35,16 +35,14 @@ def _get_crystals(project: Project) -> Iterable[_CrystalInfo]:
 def show(request):
     project = current_project(request)
 
-    return render(
-        request, "fragview/crystals.html", {"crystals": _get_crystals(project)}
-    )
+    return render(request, "crystals.html", {"crystals": _get_crystals(project)})
 
 
 def new(request):
     """
     the 'Import New Crystals' page
     """
-    return render(request, "fragview/crystals_new.html")
+    return render(request, "crystals_new.html")
 
 
 class _InvalidCrystal(Exception):

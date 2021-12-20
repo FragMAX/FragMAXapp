@@ -25,7 +25,7 @@ def show(request, result_id):
 
     return render(
         request,
-        "fragview/density.html",
+        "density.html",
         {
             "result": result,
             "rhofit_result": result.get_ligfit_result("rhofit"),
@@ -43,7 +43,7 @@ def compare_poses(request, result_id):
 
     return render(
         request,
-        "fragview/dual_density.html",
+        "dual_density.html",
         {
             "result": result,
             "rhofit_result": result.get_ligfit_result("rhofit"),
@@ -107,7 +107,7 @@ def pandda_analyse(request, method: str, dataset_name: str):
 
     return render(
         request,
-        "fragview/pandda_densityA.html",
+        "pandda_densityA.html",
         {
             "event": PanddaEvent(event),
             "method": method,
@@ -206,7 +206,7 @@ def pandda(request):
 
         return render(
             request,
-            "fragview/pandda_density.html",
+            "pandda_density.html",
             {
                 "method": method,
                 "siten": site_idx,
@@ -232,7 +232,7 @@ def pandda(request):
     else:
         return render(
             request,
-            "fragview/error.html",
+            "error.html",
             {
                 "issue": "No modelled structure for "
                 + method
@@ -304,7 +304,7 @@ def pandda_consensus(request, method, dataset_name, site_idx, event_idx):
 
     return render(
         request,
-        "fragview/pandda_densityC.html",
+        "pandda_densityC.html",
         {
             "protein": project.protein,
             "siten": site_idx,

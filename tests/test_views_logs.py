@@ -56,7 +56,7 @@ class TestLogs(ProjectTestCase, ViewTesterMixin):
         resp = self.client.get(f"/logs/show/{HTML_LOG}")
 
         self.assertEqual(resp.status_code, 200)
-        self.assert_contains_template(resp, "fragview/html_log.html")
+        self.assert_contains_template(resp, "html_log.html")
         self.assertEqual(resp.context["html_url"], "/logs/htmldata/log.html")
 
     @db_session
@@ -67,7 +67,7 @@ class TestLogs(ProjectTestCase, ViewTesterMixin):
         resp = self.client.get(f"/logs/show/{TEXT_LOG}")
 
         self.assertEqual(resp.status_code, 200)
-        self.assert_contains_template(resp, "fragview/text_log.html")
+        self.assert_contains_template(resp, "text_log.html")
 
         self.assertEqual(resp.context["log_text"], TEXT_LOG_BODY.decode())
         self.assertEqual(resp.context["log_path"], self.text_log)

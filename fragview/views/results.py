@@ -15,7 +15,7 @@ def show(request):
     project = current_project(request)
     return render(
         request,
-        "fragview/results.html",
+        "results.html",
         {"refine_results": wrap_refine_results(project.get_refine_results())},
     )
 

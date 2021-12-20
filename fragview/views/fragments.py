@@ -22,6 +22,4 @@ def _get_fragments(project: Project) -> Dict[Fragment, List]:
 
 def show(request):
     project = current_project(request)
-    return render(
-        request, "fragview/fragments.html", {"fragments": _get_fragments(project)}
-    )
+    return render(request, "fragments.html", {"fragments": _get_fragments(project)})

@@ -15,7 +15,7 @@ def show_all(request):
 
     return render(
         request,
-        "fragview/datasets.html",
+        "datasets.html",
         {
             "datasets": _get_dataset_info(project),
         },
