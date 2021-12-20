@@ -178,11 +178,7 @@ class KillJobForm(Form):
     job_ids = CharField(required=False)
 
     def clean_job_ids(self):
-        ids = self.cleaned_data["job_ids"].split(",")
-        if len(ids) < 1:
-            raise ValidationError("no job IDs specified")
-
-        return ids
+        return self.cleaned_data["job_ids"].split(",")
 
     def get_job_ids(self):
         return self.cleaned_data["job_ids"]

@@ -166,6 +166,24 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
         self.assertEqual(err[0], "space group required when aimless is enabled")
 
 
+class TestKillJobForm(test.TestCase):
+    ReqsFactory = RequestFactory()
+
+    def test_valid(self):
+        request = self.ReqsFactory.post(
+            "/",  # we don't really care about the URL here
+            dict(job_ids="1,4,6"),
+        )
+        kill_form = forms.KillJobForm(request.POST)
+
+        # validate form request
+        self.assertTrue(kill_form.is_valid())
+
+        # check that we got expected job ids
+        job_ids = set(kill_form.get_job_ids())
+        self.assertSetEqual(job_ids, {"1", "4", "6"})
+
+
 class _SetUpFragLibMixin:
     def setUp(self):
         lib = Library(name="JBS")
