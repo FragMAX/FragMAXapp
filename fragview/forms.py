@@ -18,7 +18,6 @@ class _GetFieldMixin:
 class _ProcJobForm(Form, _GetFieldMixin):
     spaceGroup = CharField(required=False)
     datasetsFilter = CharField(required=False)
-    cifMethod = CharField(required=False)
 
     def clean_spaceGroup(self):
         space_group_name = self.space_group
@@ -44,16 +43,13 @@ class _ProcJobForm(Form, _GetFieldMixin):
     def datasets_filter(self):
         return self._get_field("datasetsFilter")
 
-    @property
-    def cif_method(self):
-        return self._get_field("cifMethod")
-
 
 class LigfitForm(_ProcJobForm):
     useRhoFit = BooleanField(required=False)
     usePhenixLigfit = BooleanField(required=False)
     customLigFit = CharField(required=False)
     customRhoFit = CharField(required=False)
+    cifMethod = CharField(required=False)
 
     @property
     def use_rho_fit(self):
@@ -70,6 +66,10 @@ class LigfitForm(_ProcJobForm):
     @property
     def custom_rhofit(self):
         return self._get_field("customRhoFit")
+
+    @property
+    def cif_method(self):
+        return self._get_field("cifMethod")
 
 
 class ProcessForm(_ProcJobForm):

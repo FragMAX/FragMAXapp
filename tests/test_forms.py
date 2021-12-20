@@ -46,6 +46,7 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
                 usePhenixLigfit="on",
                 customLigFit="cLigFit",
                 customRhoFit="cRhoFit",
+                cifMethod="grade",
             )
         )
 
@@ -58,6 +59,7 @@ class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
         self.assertTrue(form.use_phenix_ligfit)
         self.assertEqual(form.custom_ligfit, "cLigFit")
         self.assertEqual(form.custom_rhofit, "cRhoFit")
+        self.assertEqual(form.cif_method, "grade")
 
 
 class TestProcessForm(test.TestCase, JobsFormTesterMixin):
