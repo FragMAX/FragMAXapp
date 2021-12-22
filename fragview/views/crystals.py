@@ -35,7 +35,7 @@ def _get_crystals(project: Project) -> Iterable[_CrystalInfo]:
 def show(request):
     project = current_project(request)
 
-    return render(request, "crystals.html", {"crystals": _get_crystals(project)})
+    return render(request, "crystals.html", {"crystals": list(_get_crystals(project))})
 
 
 def new(request):

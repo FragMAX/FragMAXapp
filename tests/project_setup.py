@@ -47,6 +47,10 @@ def _populate_fragments_db(project_desc: Project):
             models.Fragment(library=library, code=code, smiles="CNCC1=NC=CS1").save()
 
     for crystal in project_desc.crystals:
+        if crystal.library_name is None and crystal.fragment_code is None:
+            # Apo crystal, skip it
+            continue
+
         library = _create_library(crystal.library_name)
         _create_fragment(library, crystal.fragment_code)
 
@@ -63,6 +67,10 @@ def populate_project_db(project, project_desc: Project):
                 return res
 
     def get_fragment_id(library_name: str, fragment_code: str) -> str:
+        if library_name is None and fragment_code is None:
+            # Apo crystal, return 'orm' version of 'None' fragment
+            return ""
+
         frag = models.Fragment.get(library_name, fragment_code)
         return str(frag.id)
 
