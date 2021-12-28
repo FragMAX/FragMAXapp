@@ -1,8 +1,9 @@
 from unittest import TestCase
 from io import BytesIO
 from django import test
+from fragview import crystals
 from fragview.models import Library, Fragment
-from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV
+from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV, Crystals, Crystal
 
 VALID_CSV = b"""SampleID,FragmentLibrary,FragmentCode
 MID2-x0017,FragMAXlib,VT00249
@@ -76,6 +77,67 @@ class TestParse(test.TestCase):
                 },
             ],
         )
+
+
+class TestCrystal(TestCase):
+    def test_get_fragment(self):
+        """
+        test Crystal.get_fragment() method
+        """
+        crystal = Crystal("FOO-x01", "Lib", "E23")
+        fragment = crystal.get_fragment()
+
+        self.assertEqual(fragment, crystals.Fragment("Lib", "E23"))
+
+    def test_get_fragment_apo(self):
+        """
+        test Crystal.get_fragment() method on an Apo crystal
+        """
+        crystal = Crystal("FOO-x01", None, None)
+        fragment = crystal.get_fragment()
+
+        self.assertIsNone(fragment)
+
+
+class TestFromList(TestCase):
+    """
+    test Crystals.from_list()
+    """
+
+    EXPECTED_CRYSTALS = {
+        "MID2-x0017": Crystal("MID2-x0017", "FragMAXlib", "VT00249"),
+        "MID2-x0019": Crystal("MID2-x0019", None, None),
+    }
+
+    def test_from_list(self):
+        #
+        # 'deserialize' Crystals from a list of dicts
+        #
+        crystals = Crystals.from_list(
+            [
+                {
+                    "SampleID": "MID2-x0017",
+                    "FragmentLibrary": "FragMAXlib",
+                    "FragmentCode": "VT00249",
+                },
+                {
+                    "SampleID": "MID2-x0019",
+                    "FragmentLibrary": None,
+                    "FragmentCode": None,
+                },
+            ]
+        )
+
+        #
+        # check that we got the expected set if Crystal objects
+        #
+        num_crystals = 0
+        for crystal in crystals:
+            expected_crystal = self.EXPECTED_CRYSTALS[crystal.SampleID]
+            self.assertEqual(crystal, expected_crystal)
+            num_crystals += 1
+
+        self.assertEqual(num_crystals, len(self.EXPECTED_CRYSTALS))
 
 
 class TestParseCrystalsCsvErrors(TestCase):
