@@ -6,7 +6,7 @@ from django import urls
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from fragview.fileio import open_proj_file
-from fragview.views.wrap import PDBInfo
+from fragview.views.wrap import wrap_pdbs
 from fragview.projects import current_project, Project
 from fragview.space_groups import space_group_to_db_format
 from fragview.views.utils import download_http_response, get_pdb_by_id
@@ -28,17 +28,14 @@ class PDBAddError(Exception):
         return self.args[0]
 
 
-def _get_pdbs(project: Project):
-    for pdb in project.get_pdbs():
-        yield PDBInfo(pdb)
-
-
 def list(request):
     """
     protein models list page, aka 'manage pdbs' page
     """
     project = current_project(request)
-    return render(request, "pdbs.html", {"pdbs": _get_pdbs(project)})
+    pdbs = wrap_pdbs(project.get_pdbs())
+
+    return render(request, "pdbs.html", {"pdbs": pdbs})
 
 
 def _is_valid_pdb_filename(filename):

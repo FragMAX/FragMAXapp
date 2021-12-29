@@ -16,7 +16,7 @@ from fragview.pipeline_commands import (
     get_dimple_command,
     get_fspipeline_commands,
 )
-from fragview.forms import RefineForm
+from fragview.forms import OldRefineForm
 from fragview.sites import SITE
 from fragview.sites.plugin import Duration, DataSize
 from fragview.views.update_jobs import add_update_job
@@ -31,7 +31,7 @@ HPC_MODULES = ["gopresto", versions.BUSTER_MOD, versions.PHENIX_MOD]
 def datasets(request):
     project = current_project(request)
 
-    form = RefineForm(request.POST)
+    form = OldRefineForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 

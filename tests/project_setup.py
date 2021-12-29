@@ -3,7 +3,7 @@ from collections import namedtuple
 from datetime import datetime
 from fragview import models
 from fragview.projects import create_project
-from fragview.scraper import REFINE_TOOLS
+from fragview.scraper import PROC_TOOLS, REFINE_TOOLS
 from projects.database import db_session
 
 DUMMY_START_TIME = datetime(2019, 10, 22, 12, 30)
@@ -127,7 +127,34 @@ def populate_project_db(project, project_desc: Project):
             dataset=dataset, tool=result_desc.tool, result=result_desc.result
         )
 
-        # if result of refine tool, and 'refine result' entry as well
+        # if result of process tool add 'process result' entry
+        if result_desc.tool in PROC_TOOLS:
+            project.db.ProcessResult(
+                result=result,
+                # some hardcoded dummy values for now
+                space_group="C 2 2 2",
+                unit_cell_a=43.783,
+                unit_cell_b=85.432,
+                unit_cell_c=161.728,
+                unit_cell_alpha=90.0,
+                unit_cell_beta=90.0,
+                unit_cell_gamma=90.0,
+                low_resolution_average=41.3,
+                high_resolution_average=1.49,
+                low_resolution_out=1.54,
+                high_resolution_out=1.49,
+                reflections=240997,
+                unique_reflections=46616,
+                multiplicity=5.2,
+                i_sig_average=2.7,
+                i_sig_out=-0.1,
+                r_meas_average=0.53,
+                r_meas_out=-66.413,
+                completeness_average=78.1,
+                completeness_out=35.9,
+            )
+
+        # if result of refine tool add 'refine result' entry
         if result_desc.tool in REFINE_TOOLS:
             project.db.RefineResult(
                 result=result,

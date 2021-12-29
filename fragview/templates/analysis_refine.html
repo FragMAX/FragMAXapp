@@ -1,0 +1,792 @@
+{% extends 'base.html' %}
+{% block title %}Refine Structures{% endblock %}
+{% block content %}
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+
+.selectbox
+{
+   display: flex !important;
+   width: 200px;
+}
+
+/* Style the tab */
+.tab
+{
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button
+{
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+/* Create an active/current tablink class */
+.tab button.active
+{
+    background-color: #fea901;
+}
+
+.pipelines
+{
+   margin-top: 16px;
+   margin-bottom: 12px;
+}
+
+.pdb-model
+{
+    display: grid;
+    align-items: center;
+    grid-template-columns: auto 64px 1fr;
+
+}
+
+.unselectable-dataset
+{
+    font-style: italic;
+    color: grey;
+}
+</style>
+
+<div>
+    <h4>Refine Structures</h4>
+</div>
+
+<div class="card tab">
+    <button>Target Model</button>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <div class="pdb-model">
+            <div>
+                <div class="card-title">
+                    PDB Model:
+                </div>
+                <div>
+                    <select class="selectbox" id="pdbs">
+                    </select>
+                </div>
+            </div>
+            <div><!-- empty --></div>
+            <div id="pdbDetails">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Space group</th>
+                            <th>a</th>
+                            <th>b</th>
+                            <th>c</th>
+                            <th>α</th>
+                            <th>β</th>
+                            <th>γ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="pdb_space_group"></td>
+                            <td id="pdb_cell_a"></td>
+                            <td id="pdb_cell_b"></td>
+                            <td id="pdb_cell_c"></td>
+                            <td id="pdb_cell_alpha"></td>
+                            <td id="pdb_cell_beta"></td>
+                            <td id="pdb_cell_gamma"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card tab">
+    <button id="datasetsButton" class="tablinks">
+        <i id="datasetsArrow" class="material-icons right">
+            arrow_drop_down
+        </i>
+        Datasets
+    </button>
+</div>
+
+<div id="datasetsSummary" class="card">
+    <div class="card-content">
+        (no datasets selected)
+    </div>
+</div>
+
+<div id="datasetsList" class="card" style="display: none">
+    <div class="card-content">
+        <table id="datasets">
+            <thead>
+                <tr>
+                    <th>
+                        <label>
+                            <input id="toggleSelected"
+                                   class="filled-in dt-checkboxes"
+                                   type="checkbox"/>
+                            <span></span>
+                        </label>
+                    </th>
+                    <th>Crystal</th>
+                    <th>Run</th>
+                    <th>Pipeline</th>
+                    <th>Space group</th>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>c</th>
+                    <th>α</th>
+                    <th>β</th>
+                    <th>γ</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+<div class="card tab">
+    <button>Structure Refinement</button>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <div class="card-title">
+            Refine structures with:
+        </div>
+        <div id="pipelines" class="pipelines">
+            {% if "dimple" in pipelines %}
+            <div class="checkbox">
+                <label>
+                    <input id="dimple" class="processform filled-in dt-checkboxes"
+                           type="checkbox"/>
+                    <span>DIMPLE</span>
+                </label>
+            </div>
+            {% endif %}
+            {% if "fspipeline" in pipelines %}
+            <div class="checkbox">
+                <label>
+                    <input id="fspipeline" class="processform filled-in dt-checkboxes"
+                           type="checkbox"/>
+                    <span>fspipeline</span>
+                </label>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card tab">
+    <button>Ligand Fitting</button>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <div class="card-title">
+            Fit ligands with:
+        </div>
+        <div id="ligfitTools" class="pipelines">
+            {% if "rho_fit" in pipelines %}
+            <div class="checkbox">
+                <label>
+                    <input class="processform filled-in dt-checkboxes"
+                        id="rho_fit" type="checkbox"/>
+                    <span>RhoFit</span>
+                </label>
+            </div>
+            {% endif %}
+
+            {% if "ligand_fit" in pipelines %}
+            <div class="checkbox">
+                <label>
+                    <input class="processform filled-in dt-checkboxes"
+                        id="ligand_fit" type="checkbox"/>
+                    <span>LigandFit</span>
+                </label>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-title">
+            Generate restrains with:
+        </div>
+        <div>
+            {% if "grade" in ligand_tools %}
+            <label>
+                <input id="grade" name="constrainsTool" type="radio"
+                       {% if default_ligand_tool == "grade" %}checked{% endif %}/>
+                <span>GRADE</span>
+            </label>
+            {% endif %}
+            {% if "acedrg" in ligand_tools %}
+            <label>
+                <input id="acedrg" name="constrainsTool" type="radio"
+                       {% if default_ligand_tool == "acedrg" %}checked{% endif %}/>
+                <span>AceDRG</span>
+            </label>
+            {% endif %}
+            {% if "elbow" in ligand_tools %}
+            <label>
+                <input id="elbow" name="constrainsTool" type="radio"
+                       {% if default_ligand_tool == "elbow" %}checked{% endif %}/>
+                <span>eLBOW</span>
+            </label>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<button id="refineStructuresButton" class="btn" disabled>
+    Refine Structures
+</button>
+
+<script>
+/*
+ * Checks if PDB and MTZ files are compatible with regard to
+ * point group and cell volume.
+ */
+function isCompatible(pdb, mtz)
+{
+    /*
+     * check that point groups are identical
+     */
+    if (pdb.point_group != mtz.point_group)
+    {
+        return false;
+    }
+
+    /*
+     * check that cell volumes are within 10% of each other
+     */
+    const maxVol = Math.max(pdb.cell_volume, mtz.cell_volume);
+    const minVol = Math.min(pdb.cell_volume, mtz.cell_volume);
+    const delta = (maxVol - minVol) / maxVol;
+    if (delta > 0.1)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+class PDB
+{
+    constructor(filename, point_group, cell_volume, space_group,
+                cell_a, cell_b, cell_c, cell_alpha, cell_beta, cell_gamma)
+    {
+        this.filename = filename;
+        this.point_group = point_group;
+        this.cell_volume = cell_volume;
+        this.space_group = space_group;
+        this.cell_a = cell_a;
+        this.cell_b = cell_b;
+        this.cell_c = cell_c;
+        this.cell_alpha = cell_alpha;
+        this.cell_beta = cell_beta;
+        this.cell_gamma = cell_gamma;
+    }
+}
+
+const PDBs = new Map([
+    {% for pdb in pdbs %}
+        [
+            "{{pdb.id}}",
+            new PDB(
+                "{{pdb.filename}}",
+                "{{pdb.point_group}}",
+                {{pdb.unit_cell.volume}},
+                "{{pdb.space_group.short_name}}",
+                {{pdb.unit_cell.a}},
+                {{pdb.unit_cell.b}},
+                {{pdb.unit_cell.c}},
+                {{pdb.unit_cell.alpha}},
+                {{pdb.unit_cell.beta}},
+                {{pdb.unit_cell.gamma}})
+        ],
+    {% endfor %}
+]);
+
+class Mtz
+{
+    constructor(id, crystal, run, tool_name, space_group,
+                unit_cell_a, unit_cell_b, unit_cell_c,
+                unit_cell_alpha, unit_cell_beta, unit_cell_gamma,
+                point_group, cell_volume)
+    {
+        this.id = id;
+        this.crystal = crystal;
+        this.run = run;
+        this.tool_name = tool_name;
+        this.space_group = space_group;
+        this.unit_cell_a = unit_cell_a;
+        this.unit_cell_b = unit_cell_b;
+        this.unit_cell_c = unit_cell_c;
+        this.unit_cell_alpha = unit_cell_alpha;
+        this.unit_cell_beta = unit_cell_beta;
+        this.unit_cell_gamma = unit_cell_gamma;
+        this.point_group = point_group;
+        this.cell_volume = cell_volume;
+
+        this.selected = false;
+        this.selectable = false;
+    }
+
+    name()
+    {
+        return `${this.crystal} (${this.run})`;
+    }
+}
+
+const MTZs = [
+    {% for mtz in proc_results %}
+        new Mtz(
+            {{mtz.id}}, "{{mtz.crystal.id}}", {{mtz.dataset.run}},
+            "{{mtz.tool_name}}", "{{mtz.space_group.short_name}}",
+            {{mtz.unit_cell.a}}, {{mtz.unit_cell.b}}, {{mtz.unit_cell.c}},
+            {{mtz.unit_cell.alpha}}, {{mtz.unit_cell.beta}}, {{mtz.unit_cell.gamma}},
+            "{{mtz.point_group}}", {{mtz.cell_volume}}
+        ),
+    {% endfor %}
+];
+
+function updateToggleSelected()
+{
+    let allDisabled = true;
+    let allSelected = true;
+
+    for (const mtz of MTZs)
+    {
+        if (mtz.selectable)
+        {
+            allDisabled = false;
+            if (!mtz.selected)
+            {
+                allSelected = false;
+            }
+        }
+    }
+
+    const toggle = document.getElementById("toggleSelected");
+    if (allDisabled)
+    {
+        toggle.checked = false;
+        setElementDisabled(toggle, true);
+    }
+    else
+    {
+        toggle.checked = allSelected;
+        setElementDisabled(toggle, false);
+    }
+}
+
+function mtzToggled(mtz, checkbox)
+{
+    mtz.selected = checkbox.checked;
+    updateToggleSelected();
+    updateRefineStructuresButton();
+}
+
+function setElementDisabled(element, disabled)
+{
+    if (disabled)
+    {
+        /* disable element */
+        element.setAttribute("disabled", "");
+        return;
+    }
+
+    /* enable element */
+    element.removeAttribute("disabled");
+}
+
+function* selectedMTZs()
+{
+    for (const mtz of MTZs)
+    {
+        if (mtz.selectable && mtz.selected)
+        {
+            yield mtz;
+        }
+    }
+}
+
+function* pipelineCheckboxes()
+{
+    const pipelineDiv = document.getElementById("pipelines");
+
+    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
+    {
+        yield checkbox;
+    }
+}
+
+function* ligfitCheckboxes()
+{
+    const pipelineDiv = document.getElementById("ligfitTools");
+
+    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
+    {
+        yield checkbox;
+    }
+}
+
+function getRefineStructuresButton()
+{
+    return document.getElementById("refineStructuresButton");
+}
+
+function setRefineStructuresButtonEnabled(enabled)
+{
+    setElementDisabled(getRefineStructuresButton(), !enabled);
+}
+
+function updateRefineStructuresButton()
+{
+    function datasetSelected()
+    {
+        /* check if 'selected MTZs' generator is 'empty' */
+        const selMtzs = selectedMTZs().next();
+        return !selMtzs.done;
+    }
+
+    /* check if any of the pipelines are enabled */
+    function pipelineEnabled()
+    {
+        for (const checkbox of pipelineCheckboxes())
+        {
+            if (checkbox.checked)
+            {
+                return true;
+            }
+        }
+
+        /* none of the pipeline checkboxes are checked */
+        return false;
+    }
+
+    setRefineStructuresButtonEnabled(pipelineEnabled() && datasetSelected());
+}
+
+function updateSelectedSummary()
+{
+    function getText()
+    {
+        const mtzs = Array.from(selectedMTZs());
+
+        if (mtzs.length == 0)
+        {
+            return "(no datasets selected)";
+        }
+
+        let text = "";
+        for (const mtz of mtzs)
+        {
+            if (text.length > 86)
+            {
+                /* truncate selected datasets text */
+                text += `... (${mtzs.length} datasets selected).`;
+                break;
+            }
+
+            text += `${mtz.name()} `;
+        }
+        return text;
+    }
+
+    const summaryDiv = document.getElementById("datasetsSummary").children[0];
+    summaryDiv.innerText = getText();
+}
+
+function toggleDatasets()
+{
+    function unfold()
+    {
+        arrow.innerText = "arrow_drop_up";
+        list.style.display = "";
+        summary.style.display = "none";
+    }
+
+    function fold()
+    {
+        updateSelectedSummary();
+        arrow.innerText = "arrow_drop_down";
+
+        list.style.display = "none";
+        summary.style.display = "";
+    }
+
+    const arrow = document.getElementById("datasetsArrow");
+    const summary = document.getElementById("datasetsSummary");
+    const list = document.getElementById("datasetsList");
+
+    const folded = (arrow.innerText == "arrow_drop_down");
+
+    if (folded)
+    {
+        unfold();
+    }
+    else
+    {
+        fold();
+    }
+}
+
+function renderDatasets(pdb)
+{
+    function removeTableBody(table)
+    {
+        /* we assume there is only one body element in this table */
+        const body = table.tBodies.item(0);
+        if (body != null) /* handle case no body, i.e. empy table */
+        {
+            body.remove();
+        }
+    }
+
+    function populateCheckboxCell(cell, mtz)
+    {
+        const label = document.createElement("label");
+
+        const input = document.createElement("input");
+        input.classList.add("filled-in", "dt-checkboxes");
+        input.setAttribute("type", "checkbox");
+        input.checked = mtz.selectable && mtz.selected;
+
+        const span = document.createElement("span");
+
+        label.append(input);
+        label.append(span);
+
+        if (mtz.selectable)
+        {
+            input.addEventListener("input", () => mtzToggled(mtz, input));
+        }
+        else
+        {
+            input.setAttribute("disabled", "");
+        }
+
+        cell.append(label);
+    }
+
+    function populateRow(row, mtz, pdb)
+    {
+        if (!mtz.selectable)
+        {
+            row.classList.add("unselectable-dataset");
+            row.setAttribute("title",
+                             `can't refine using ${pdb.filename} model\n`);
+        }
+
+        populateCheckboxCell(row.insertCell(), mtz);
+        row.insertCell().innerText = mtz.crystal;
+        row.insertCell().innerText = mtz.run;
+        row.insertCell().innerText = mtz.tool_name;
+        row.insertCell().innerText = mtz.space_group;
+        row.insertCell().innerText = mtz.unit_cell_a.toFixed(1);
+        row.insertCell().innerText = mtz.unit_cell_b.toFixed(1);
+        row.insertCell().innerText = mtz.unit_cell_c.toFixed(1);
+        row.insertCell().innerText = mtz.unit_cell_alpha.toFixed(1);
+        row.insertCell().innerText = mtz.unit_cell_beta.toFixed(1);
+        row.insertCell().innerText = mtz.unit_cell_gamma.toFixed(1);
+    }
+
+    const table = document.getElementById("datasets");
+    /* 'empty' table by removing it's body */
+    removeTableBody(table);
+
+    /* populate table using newly created body element */
+    const body = table.createTBody();
+    for (const mtz of MTZs)
+    {
+        mtz.selectable = isCompatible(pdb, mtz);
+        populateRow(body.insertRow(), mtz, pdb);
+    }
+
+    updateToggleSelected();
+    updateSelectedSummary();
+}
+
+function pdbChanged(select)
+{
+    const pdb = PDBs.get(select.value);
+
+    document.getElementById("pdb_space_group").innerText = pdb.space_group;
+    document.getElementById("pdb_cell_a").innerText = pdb.cell_a.toFixed(1);
+    document.getElementById("pdb_cell_b").innerText = pdb.cell_b.toFixed(1);
+    document.getElementById("pdb_cell_c").innerText = pdb.cell_c.toFixed(1);
+    document.getElementById("pdb_cell_alpha").innerText = pdb.cell_alpha.toFixed(1);
+    document.getElementById("pdb_cell_beta").innerText = pdb.cell_beta.toFixed(1);
+    document.getElementById("pdb_cell_gamma").innerText = pdb.cell_gamma.toFixed(1);
+
+    renderDatasets(pdb);
+    updateRefineStructuresButton();
+}
+
+function populatePDBsHTML()
+{
+    const select = document.getElementById("pdbs");
+
+    for (const [id, pdb] of PDBs)
+    {
+        const option = document.createElement("option");
+        option.value = id;
+        option.text = pdb.filename;
+
+        select.add(option);
+    }
+
+    pdbChanged(select);
+}
+
+function* enabledMtzCheckboxes(onlySelected = false)
+{
+    function getCheckbox(row)
+    {
+        const cell = row.cells[0];
+        return cell.getElementsByTagName("input")[0];
+    }
+
+    const rows = document.getElementById("datasets").rows;
+    /* start at index 1, to skip header row */
+    for (let i = 1; i < rows.length; i += 1)
+    {
+        const checkbox = getCheckbox(rows[i]);
+        if (!checkbox.disabled)
+        {
+            yield checkbox;
+        }
+    }
+}
+
+function toggleSelectedMTZs(checkbox)
+{
+    const checked = checkbox.checked;
+
+    for (const checkbox of enabledMtzCheckboxes())
+    {
+        /* simulate a click on MTZ's checkbox */
+        checkbox.checked = checked;
+        checkbox.dispatchEvent(new Event("input"));
+    }
+}
+
+function refineStructures()
+{
+    function getSelectedDatasets()
+    {
+        const mtzIds = new Set();
+        for (const mtz of selectedMTZs())
+        {
+            mtzIds.add(mtz.id);
+        }
+
+        return Array.from(mtzIds).join();
+    }
+
+    function getSelectedPipelines()
+    {
+        const pipes = new Set();
+        for (const pipeline of pipelineCheckboxes())
+        {
+            if (pipeline.checked)
+            {
+                pipes.add(pipeline.id);
+            }
+        }
+
+        return Array.from(pipes).join();
+    }
+
+    function getSelectedLigfitTools()
+    {
+        const tools = new Set();
+        for (const tool of ligfitCheckboxes())
+        {
+            if (tool.checked)
+            {
+                tools.add(tool.id);
+            }
+        }
+
+        return Array.from(tools).join();
+    }
+
+    function getConstrainsTool()
+    {
+        return document.querySelector("input[name=constrainsTool]:checked").id;
+    }
+
+    /* disable button to avoid double clicks */
+    setElementDisabled(getRefineStructuresButton(), true);
+
+    const data = new FormData();
+    data.append("csrfmiddlewaretoken", "{{csrf_token}}");
+    data.append("datasets", getSelectedDatasets());
+    data.append("pipelines", getSelectedPipelines());
+    data.append("ligfitTools", getSelectedLigfitTools());
+    data.append("constrainsTool", getConstrainsTool());
+
+    fetch("/datasets/refine",
+    {
+        method: "POST",
+        body: data,
+    })
+    .then(function(response)
+    {
+        if (!response.ok)
+        {
+            response.text().then(text => alert(text));
+            return;
+        }
+        window.open("/jobs/status", "_blank");
+        setElementDisabled(getRefineStructuresButton(), false);
+    })
+    .catch(function(error)
+    {
+        alert(error.message);
+    });
+}
+
+function setup()
+{
+    populatePDBsHTML();
+
+    /* handle changes to selected pipelines */
+    for (const checkbox of pipelineCheckboxes())
+    {
+        checkbox.addEventListener("input", updateRefineStructuresButton);
+    }
+
+    /* handle changes of selected PDB model */
+    const select = document.getElementById("pdbs");
+    select.addEventListener("change", () => pdbChanged(select));
+
+    /* handle clicks on 'Datasets' button */
+    const datasetsButton = document.getElementById("datasetsButton");
+    datasetsButton.addEventListener("click", toggleDatasets);
+
+    /* handle changes to 'toggle selected' mtzs checkbox */
+    document.getElementById("toggleSelected").addEventListener(
+        "input",
+        () => toggleSelectedMTZs(toggleSelected));
+
+    /* handle clicks on 'refine structures' button */
+    getRefineStructuresButton().addEventListener("click", refineStructures);
+}
+
+setup();
+</script>
+{% endblock %}

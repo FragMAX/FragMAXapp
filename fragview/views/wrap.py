@@ -1,5 +1,5 @@
-from typing import Iterator, Optional
-from gemmi import SpaceGroup
+from typing import Iterable, Optional
+from gemmi import SpaceGroup, UnitCell
 from fragview.models import Fragment
 from fragview.views.utils import get_crystals_fragment
 
@@ -21,6 +21,32 @@ class PDBInfo(Wrapper):
 
         # overwrite the DB space group string with gemmi SpaceGroup object
         self.space_group = SpaceGroup(orig.space_group)
+
+        # lazy generated property
+        self._unit_cell = None
+
+    @property
+    def unit_cell(self):
+        if self._unit_cell is None:
+            self._unit_cell = UnitCell(
+                self.unit_cell_a,
+                self.unit_cell_b,
+                self.unit_cell_c,
+                self.unit_cell_alpha,
+                self.unit_cell_beta,
+                self.unit_cell_gamma,
+            )
+
+        return self._unit_cell
+
+    @property
+    def point_group(self):
+        return self.space_group.point_group_hm()
+
+
+def wrap_pdbs(pdbs) -> Iterable[PDBInfo]:
+    for pdb in pdbs:
+        yield PDBInfo(pdb)
 
 
 class DatasetInfo(Wrapper):
@@ -54,6 +80,9 @@ class DatasetInfo(Wrapper):
             assert res == "error"
 
         return "error"
+
+    def processed(self) -> bool:
+        return len(self.orig.result) > 0
 
     def autoproc_result(self):
         return self._tool_result("autoproc")
@@ -95,9 +124,38 @@ class ProcessingInfo(Wrapper):
         # overwrite the DB space group string with gemmi SpaceGroup object
         self.space_group = SpaceGroup(orig.space_group)
 
+        # lazy generated property
+        self._unit_cell = None
+
+    @property
+    def unit_cell(self):
+        if self._unit_cell is None:
+            self._unit_cell = UnitCell(
+                self.unit_cell_a,
+                self.unit_cell_b,
+                self.unit_cell_c,
+                self.unit_cell_alpha,
+                self.unit_cell_beta,
+                self.unit_cell_gamma,
+            )
+
+        return self._unit_cell
+
+    @property
+    def point_group(self):
+        return self.space_group.point_group_hm()
+
     def tool_name(self):
         tool = self.orig.result.tool
         return self.TOOL_NAMES.get(tool, tool)
+
+    @property
+    def crystal(self):
+        return self.orig.result.dataset.crystal
+
+    @property
+    def dataset(self):
+        return self.orig.result.dataset
 
 
 class RefineInfo(Wrapper):
@@ -118,6 +176,6 @@ class RefineInfo(Wrapper):
         return get_crystals_fragment(self.orig.dataset.crystal)
 
 
-def wrap_refine_results(results) -> Iterator[RefineInfo]:
+def wrap_refine_results(results) -> Iterable[RefineInfo]:
     for result in results:
         yield RefineInfo(result)

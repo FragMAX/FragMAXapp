@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Set
 from pathlib import Path
 from fragview.sites import SITE
 from fragview.sites.plugin import DatasetMetadata
@@ -20,6 +20,14 @@ def proposals_disabled() -> bool:
     returns True if 'proposals' feature is disabled for this site
     """
     return "proposals" in SITE.DISABLED_FEATURES
+
+
+def get_supported_pipelines() -> Set[str]:
+    return SITE.get_supported_pipelines()
+
+
+def get_supported_ligand_tools():
+    return SITE.get_supported_ligand_tools()
 
 
 #

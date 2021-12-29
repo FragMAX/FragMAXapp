@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterable
+from typing import List, Optional, Iterable, Set
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -88,7 +88,7 @@ class SitePlugin:
         """
         raise NotImplementedError()
 
-    def get_supported_pipelines(self):
+    def get_supported_pipelines(self) -> Set[str]:
         """
         return set of pipelines supported by this site,
         must be a set() of Pipeline class's fields

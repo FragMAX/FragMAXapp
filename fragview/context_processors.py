@@ -11,7 +11,7 @@ def site(request):
     """
     disabled_features = {feature: True for feature in SITE.DISABLED_FEATURES}
 
-    # side-bar colors used for different deployment types
+    # sidebar colors used for different deployment types
     side_colors = {
         "production": "#212121",
         "test": "#650300",
@@ -63,6 +63,7 @@ class ActiveMenuCtx:
 
     URL_REGEXP = (
         r"(?P<project>^/pdb/add|^/pdb/\d*|^/pdbs|^/crystals|^/project_details|^/fragments/show|^/encryption|^/$)|"
+        + r"(?P<analyse>^/analysis/\w*$)|"
         + r"(?P<pandda>^/pandda_analyse/$|^/pandda_inspect/$)"
     )
     # URLs 'project' submenus

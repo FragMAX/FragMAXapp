@@ -96,13 +96,19 @@ urlpatterns = [
     path("pdbs/ligand/<result_id>", result_pdbs.ligand),
     path("pdbs/pandda/fitted/<dataset>/<method>", result_pdbs.pandda_fitted),
     path("pdbs/pandda/input/<dataset>/<method>", result_pdbs.pandda_input),
+    # data analyse views
     path("data_analysis/", analysis.processing_form, name="data_analysis"),
-    path("hpc/kill/", hpc.kill),
-    path("jobs/status", hpc.status, name="hpcstatus"),
-    path("jobs/history", hpc.jobhistory, name="jobhistory"),
+    path("analysis/process", analysis.process),
+    path("analysis/refine", analysis.refine),
+    path("datasets/process", datasets.process),
+    path("datasets/refine", datasets.refine),
+    # TODO: drop view below
     path("dataproc_datasets/", process.datasets, name="dataproc_datasets"),
     path("refine_datasets/", refine.datasets, name="refine_datasets"),
     path("ligfit_datasets/", ligfit.datasets, name="ligfit_datasets"),
+    path("hpc/kill/", hpc.kill),
+    path("jobs/status", hpc.status, name="hpcstatus"),
+    path("jobs/history", hpc.jobhistory, name="jobhistory"),
     path(
         "diffraction/<dataset_id>/<angle>",
         diffraction.image,

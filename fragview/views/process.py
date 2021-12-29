@@ -5,7 +5,7 @@ from fragview.projects import current_project, project_script
 from fragview.projects import project_log_path
 from fragview import versions
 from fragview.filters import get_proc_datasets
-from fragview.forms import ProcessForm
+from fragview.forms import OldProcessForm
 from fragview.tools import Tools, get_space_group_argument
 from fragview.views.utils import start_thread
 from fragview.views.update_jobs import add_update_job
@@ -23,7 +23,7 @@ from projects.database import db_session
 def datasets(request):
     proj = current_project(request)
 
-    form = ProcessForm(request.POST)
+    form = OldProcessForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 

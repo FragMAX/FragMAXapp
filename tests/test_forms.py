@@ -76,7 +76,7 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
             )
         )
 
-        form = forms.ProcessForm(request.POST)
+        form = forms.OldProcessForm(request.POST)
         valid = form.is_valid()
         self.assertTrue(valid)
 
@@ -110,7 +110,7 @@ class TestProcessForm(test.TestCase, JobsFormTesterMixin):
             )
         )
 
-        form = forms.ProcessForm(request.POST)
+        form = forms.OldProcessForm(request.POST)
 
         # check that it's flagged as invalid
         valid = form.is_valid()
@@ -132,7 +132,7 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
             )
         )
 
-        form = forms.RefineForm(request.POST)
+        form = forms.OldRefineForm(request.POST)
         valid = form.is_valid()
         self.assertTrue(valid)
 
@@ -159,7 +159,7 @@ class TestRefineForm(test.TestCase, JobsFormTesterMixin):
             )
         )
 
-        form = forms.RefineForm(request.POST)
+        form = forms.OldRefineForm(request.POST)
         valid = form.is_valid()
         self.assertFalse(valid)
 

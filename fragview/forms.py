@@ -15,6 +15,7 @@ class _GetFieldMixin:
         return self.cleaned_data[name]
 
 
+# TODO: remove me?
 class _ProcJobForm(Form, _GetFieldMixin):
     spaceGroup = CharField(required=False)
     datasetsFilter = CharField(required=False)
@@ -44,6 +45,7 @@ class _ProcJobForm(Form, _GetFieldMixin):
         return self._get_field("datasetsFilter")
 
 
+# TODO: remove me?
 class LigfitForm(_ProcJobForm):
     useRhoFit = BooleanField(required=False)
     usePhenixLigfit = BooleanField(required=False)
@@ -72,7 +74,41 @@ class LigfitForm(_ProcJobForm):
         return self._get_field("cifMethod")
 
 
-class ProcessForm(_ProcJobForm):
+class _JobsForm(Form, _GetFieldMixin):
+    datasets = CharField()
+    pipelines = CharField()
+
+    def get_datasets(self):
+        return self._get_field("datasets")
+
+    def get_pipelines(self):
+        return self._get_field("pipelines")
+
+
+class ProcessForm(_JobsForm):
+    spaceGroup = CharField(required=False)
+    cellParameters = CharField(required=False)
+
+    def get_space_group(self):
+        return self._get_field("spaceGroup")
+
+    def get_cell_parameters(self):
+        return self._get_field("cellParameters")
+
+
+class RefineForm(_JobsForm):
+    ligfitTools = CharField(required=False)
+    constrainsTool = CharField(required=False)
+
+    def get_ligfit_tools(self):
+        return self._get_field("ligfitTools")
+
+    def get_constrains_tool(self):
+        return self._get_field("constrainsTool")
+
+
+# TODO: remove me
+class OldProcessForm(_ProcJobForm):
     useDials = BooleanField(required=False)
     useXds = BooleanField(required=False)
     useXdsapp = BooleanField(required=False)
@@ -129,7 +165,8 @@ class ProcessForm(_ProcJobForm):
         return self._get_field("customXdsApp")
 
 
-class RefineForm(_ProcJobForm):
+# TODO: remove me
+class OldRefineForm(_ProcJobForm):
     useDimple = BooleanField(required=False)
     useFSpipeline = BooleanField(required=False)
     customDimple = CharField(required=False)
