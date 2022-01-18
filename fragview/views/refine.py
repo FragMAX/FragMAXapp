@@ -35,7 +35,7 @@ def datasets(request):
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid refinement arguments {form.errors}")
 
-    pdb = project.get_pdb(form.pdb_model)
+    pdb = project.get_pdb(id=form.pdb_model)
     pdb_file = project.get_pdb_file(pdb)
 
     if form.use_dimple:

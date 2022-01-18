@@ -74,7 +74,6 @@ class EncryptedTest(ProjectTestCase):
     def setUp(self):
         super().setUp()
 
-        self.project.project_dir.mkdir()
         self.file_path = Path(self.project.project_dir, FILE_NAME)
 
     @db_session

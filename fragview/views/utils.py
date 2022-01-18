@@ -38,7 +38,7 @@ def download_http_response(file_path, filename=None):
 
 
 def get_pdb_by_id(project: Project, pdb_id):
-    pdb = project.get_pdb(pdb_id)
+    pdb = project.get_pdb(id=pdb_id)
     if pdb is None:
         raise Http404(f"no PDB with id '{pdb_id}' found")
 

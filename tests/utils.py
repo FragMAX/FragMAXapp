@@ -160,7 +160,17 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
         """
         add 'PDB' entry to 'first' project
         """
-        return self.project.db.PDB(filename=filename)
+        return self.project.db.PDB(
+            filename=filename,
+            # hard-code these for now
+            space_group="C 1 2 1",
+            unit_cell_a=88.44,
+            unit_cell_b=82.27,
+            unit_cell_c=92.49,
+            unit_cell_alpha=90.0,
+            unit_cell_beta=107.79,
+            unit_cell_gamma=90.0,
+        )
 
     @db_session
     def forget_key(self):
@@ -171,7 +181,19 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
     def _setup_temp_project(self):
         self.projects = []
         for project in self.PROJECTS:
-            self.projects.append(create_temp_project(self.projects_db_dir, project))
+            # create project database
+            project = create_temp_project(self.projects_db_dir, project)
+
+            # create project folders
+            project.project_dir.mkdir()
+            project.logs_dir.mkdir()
+            project.system_logs_dir.mkdir()
+            project.scripts_dir.mkdir()
+            project.process_dir.mkdir()
+            project.results_dir.mkdir()
+            project.models_dir.mkdir()
+
+            self.projects.append(project)
 
     def setUp(self):
         self.setup_temp_dir()
@@ -190,7 +212,7 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
         )
         self.settings_override.enable()
 
-        # set-up project(s) database(s)
+        # set-up project(s)
         self._setup_temp_project()
 
     def tearDown(self):

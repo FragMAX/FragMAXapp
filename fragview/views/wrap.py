@@ -1,4 +1,5 @@
 from typing import Iterator, Optional
+from gemmi import SpaceGroup
 from fragview.models import Fragment
 from fragview.views.utils import get_crystals_fragment
 
@@ -12,6 +13,14 @@ class Wrapper:
         give access to all of wrapped object's attributes
         """
         return getattr(self.orig, attr_name)
+
+
+class PDBInfo(Wrapper):
+    def __init__(self, orig):
+        super().__init__(orig)
+
+        # overwrite the DB space group string with gemmi SpaceGroup object
+        self.space_group = SpaceGroup(orig.space_group)
 
 
 class DatasetInfo(Wrapper):

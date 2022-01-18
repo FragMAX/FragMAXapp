@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, Optional
+from typing import Iterable, Tuple, Optional, Dict, Union
 import conf
 from pathlib import Path
 from datetime import datetime
@@ -89,8 +89,24 @@ class Project:
     def get_pdbs(self):
         return self.db.PDB.select()
 
-    def get_pdb(self, pdb_id):
-        return self.db.PDB.get(id=pdb_id)
+    #
+    # Look-up PDB by it's database id and/or filename
+    #
+    # if 'id' is specified, get PDB with that database ID
+    # if 'filename' is specified, get PDB with that filename
+    # if both 'id' and 'filename' are specified,
+    # look for PDB where both id and filename matches
+    #
+    def get_pdb(self, id: int = None, filename: str = None):
+        assert id is not None or filename is not None
+
+        get_args: Dict[str, Union[int, str]] = {}
+        if id:
+            get_args["id"] = id
+        if filename:
+            get_args["filename"] = filename
+
+        return self.db.PDB.get(**get_args)
 
     def get_refine_results(self):
         return self.db.RefineResult.select()
@@ -246,11 +262,22 @@ class Project:
             processed_data.tool,
         )
 
+    def get_pdb_path(self, pdb_filename: str) -> Path:
+        """
+        Get absolute path to where a PDB file with specified
+        file name would be stored inside project's folder.
+        """
+        return Path(self.models_dir, pdb_filename)
+
     def get_pdb_file(self, pdb) -> Path:
         """
-        absolute path to user uploaded PDB file
+        Absolute path to user uploaded PDB file.
+
+        This is short-cut instead of using:
+
+            Project.get_pdb_path(pdb.filename)
         """
-        return Path(self.models_dir, pdb.filename)
+        return self.get_pdb_path(pdb.filename)
 
     #
     # User presentation support

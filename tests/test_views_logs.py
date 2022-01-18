@@ -19,8 +19,6 @@ class TestLogs(ProjectTestCase, ViewTesterMixin):
         #
         # create dummy log files
         #
-        self.project.project_dir.mkdir(parents=True)
-
         self.text_log = Path(self.project.project_dir, TEXT_LOG)
         self.text_log.write_bytes(TEXT_LOG_BODY)
 

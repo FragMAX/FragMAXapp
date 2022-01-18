@@ -5,8 +5,7 @@ from django import test
 from django.urls import reverse
 from fragview.views import pdbs
 from projects.database import db_session, commit
-from tests.utils import ViewTesterMixin
-from tests.utils import ProjectTestCase
+from tests.utils import ViewTesterMixin, ProjectTestCase, data_file_path
 
 
 class _PDBViewTester(ProjectTestCase, ViewTesterMixin):
@@ -35,23 +34,72 @@ class TestIsValidPDBFilename(unittest.TestCase):
         self.assertFalse(pdbs._is_valid_pdb_filename("No_or-please.pdb"))
 
 
-class TestAddPdbEntry(_PDBViewTester):
+class TestSavePdb(_PDBViewTester):
     """
-    test _add_pdb_entry() function
+    test _save_pdb()
     """
 
-    PDB_NAME = "9876.pdb"
+    # PDB_NAME = "9876.pdb"
+    PDB_NAME = "SHP2.pdb"
+
+    def setUp(self):
+        super().setUp()
+
+        # load PDB file
+        self.pdb_data = data_file_path(self.PDB_NAME).read_bytes()
+
+    def assert_pdb(self, pdb, pdb_id=""):
+        self.assertEqual(pdb.filename, self.PDB_NAME)
+        self.assertEqual(pdb.pdb_id, pdb_id)
+        self.assertEqual(pdb.space_group, "C 2 2 21")
+        self.assertAlmostEqual(pdb.unit_cell_a, 43.861)
+        self.assertAlmostEqual(pdb.unit_cell_b, 85.539)
+        self.assertAlmostEqual(pdb.unit_cell_c, 160.111)
+        self.assertAlmostEqual(pdb.unit_cell_alpha, 90.0)
+        self.assertAlmostEqual(pdb.unit_cell_beta, 90.0)
+        self.assertAlmostEqual(pdb.unit_cell_gamma, 90.0)
+
+    @db_session
+    def test_ok(self):
+        pdbs._save_pdb(self.project, None, self.PDB_NAME, self.pdb_data)
+
+        #
+        # check that correct pdb entry was created
+        #
+        proj_pdbs = list(self.project.get_pdbs())
+        self.assertEqual(len(proj_pdbs), 1)
+        self.assert_pdb(proj_pdbs[0])
+
+    @db_session
+    def test_with_pdb_id(self):
+        PDB_ID = "2ID8"
+        pdbs._save_pdb(self.project, PDB_ID, self.PDB_NAME, self.pdb_data)
+
+        #
+        # check that correct pdb entry was created
+        #
+        proj_pdbs = list(self.project.get_pdbs())
+        self.assertEqual(len(proj_pdbs), 1)
+        self.assert_pdb(proj_pdbs[0], pdb_id=PDB_ID)
 
     def test_duplicate_entry(self):
         with db_session:
-            pdbs._add_pdb_entry(self.project, self.PDB_NAME)
+            pdbs._save_pdb(self.project, None, self.PDB_NAME, self.pdb_data)
 
         with db_session:
             with self.assertRaisesRegex(
                 pdbs.PDBAddError,
-                "^Model file '9876.pdb' already exists in the project.",
+                f"^Model file '{self.PDB_NAME}' already exists in the project.",
             ):
-                pdbs._add_pdb_entry(self.project, self.PDB_NAME)
+                pdbs._save_pdb(self.project, None, self.PDB_NAME, self.pdb_data)
+
+    @db_session
+    def test_invalid_pdb(self):
+        with self.assertRaisesRegex(
+            pdbs.PDBAddError,
+            f"^Failed to read space group",
+        ):
+            pdbs._save_pdb(self.project, None, "Foo.pdb", b"bah")
 
 
 class TestListView(_PDBViewTester):

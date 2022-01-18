@@ -61,12 +61,16 @@
                 <tr style="background-color: white;">
                     <th>Model Filename</th>
                     <th>PDB ID</th>
+                    <th>Space group</th>
+                    <td>a</td>
+                    <td>b</td>
+                    <td>c</td>
                     <th class="download">Download</th>
                 </tr>
             </thead>
 
             <tbody>
-                {% for pdb in project.get_pdbs %}
+                {% for pdb in pdbs %}
                 <tr>
                     <td>
                         <a href="/pdb/{{pdb.id}}" class="pdb_desc">
@@ -74,6 +78,10 @@
                         </a>
                     </td>
                     <td>{{pdb.pdb_id}}</td>
+                    <td>{{pdb.space_group.short_name}}</td>
+                    <td>{{pdb.unit_cell_a|floatformat:1}}</td>
+                    <td>{{pdb.unit_cell_b|floatformat:1}}</td>
+                    <td>{{pdb.unit_cell_c|floatformat:1}}</td>
                     <td>
                         <a href="/pdb/get/{{pdb.id}}" download>
                             <i class="material-icons">file_download</i>

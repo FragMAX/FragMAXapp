@@ -18,6 +18,20 @@ def _define_entities(db):
         filename = Required(str, unique=True)
         pdb_id = Optional(str)
 
+        #
+        # space group as 'hm[:ext]' where
+        #   hm - Hermann-Mauguin name  (as in gemmi.SpaceGroup.hm)
+        #   ext - optional extension   (as in gemmi.SpaceGroup.ext)
+        #
+        space_group = Required(str)
+
+        unit_cell_a = Required(float)
+        unit_cell_b = Required(float)
+        unit_cell_c = Required(float)
+        unit_cell_alpha = Required(float)
+        unit_cell_beta = Required(float)
+        unit_cell_gamma = Required(float)
+
     class Crystal(db.Entity):
         id = PrimaryKey(str)
         fragment_id = Optional(str)

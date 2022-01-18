@@ -1,6 +1,7 @@
 from typing import Optional
-from dataclasses import dataclass
+import gemmi
 from enum import Enum, auto
+from dataclasses import dataclass
 
 
 class System(Enum):
@@ -103,6 +104,22 @@ SPACE_GROUPS = [
     SpaceGroup(System.CUBIC, "P4132", 213),
     SpaceGroup(System.CUBIC, "I4132", 214),
 ]
+
+
+def space_group_to_db_format(space_group: SpaceGroup) -> str:
+    """
+    return space group encoded as 'hm[:ext]',
+    i.e. format we use for storing space groups in project databases
+    """
+    name = space_group.hm  # type: ignore
+    if space_group.ext != "\x00":  # type: ignore
+        name += f":{space_group.ext}"  # type: ignore
+
+    return name
+
+
+def db_to_space_group(db_format: str) -> SpaceGroup:
+    return gemmi.SpaceGroup(db_format)
 
 
 def by_system():

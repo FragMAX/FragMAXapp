@@ -34,7 +34,6 @@ class _CryptViewTesterMixin(ProjectTestCase, ViewTesterMixin):
             self.token = get_valid_token(self.project)
 
         # create project's dir
-        self.project.project_dir.mkdir()
         self.pdb_path = Path(self.project.project_dir, self.PDB_FILE)
 
         # create a mocked 'file-like' object

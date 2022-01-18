@@ -62,11 +62,12 @@ $(document).ready(function()
                         <th>Model Filename</th>
                         <td><span class="pdb_info">{{pdb.filename}}</span></td>
                     </tr>
+                    {% if pdb.pdb_id %}
                     <tr>
                         <th>PDB ID</th>
                         <td><span class="pdb_info">{{pdb.pdb_id}}</span></td>
                     </tr>
-
+                    {% endif %}
                     </tbody>
                 </table>
 
