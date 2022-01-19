@@ -13,8 +13,8 @@ def _get_summary_report(project: Project, dataset) -> Optional[Path]:
         project.get_dataset_root_dir(dataset),
         "process",
         project.protein,
-        f"{project.protein}-{dataset.crystal.id}",
-        f"xds_{project.protein}-{dataset.name}_1",
+        f"{dataset.crystal.id}",
+        f"xds_{dataset.name}_1",
         "autoPROC",
     )
 

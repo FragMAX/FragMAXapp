@@ -35,8 +35,8 @@ def _find_results(project: Project, dataset):
         project.get_dataset_root_dir(dataset),
         "process",
         project.protein,
-        f"{project.protein}-{dataset.crystal.id}",
-        f"xds_{project.protein}-{dataset.name}_1",
+        f"{dataset.crystal.id}",
+        f"xds_{dataset.name}_1",
         "EDNA_proc",
         "results",
     )
@@ -49,7 +49,7 @@ def _find_results(project: Project, dataset):
 
 
 def _parse_statistics(project: Project, edna_dir: Path, dataset, stats: ProcStats):
-    log_file = Path(edna_dir, f"ep_{project.protein}-{dataset.name}_aimless_anom.log")
+    log_file = Path(edna_dir, f"ep_{dataset.name}_aimless_anom.log")
 
     with open(log_file, "r", encoding="utf-8") as r:
         log = r.readlines()
