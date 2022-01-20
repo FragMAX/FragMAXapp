@@ -351,7 +351,7 @@
                     <tr>
                         <td style="text-align:center; font-weight: bold; font-size: 14px; height: 60px;">Spacegroup</td>
                         {% for entry in processing_stats %}
-                        <td style="text-align:center">{{entry.space_group}}</td>
+                        <td style="text-align:center">{{entry.space_group.short_name}}</td>
                         {% endfor %}
                     </tr>
                     <tr>

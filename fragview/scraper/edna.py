@@ -3,11 +3,9 @@ from pathlib import Path
 from fragview.fileio import read_text_lines
 from fragview.projects import Project
 from fragview.scraper import ToolStatus, ProcStats
-from fragview.scraper.utils import get_files_by_suffixes
-
+from fragview.scraper.utils import get_files_by_suffixes, load_mtz_stats
 
 LOG_FILE_SUFFIXES = ["lp", "log"]
-UNIT_CELL = "Average unit cell:"
 
 
 def _get_xscale_logs(logs_dir: Path):
@@ -55,8 +53,6 @@ def _parse_statistics(project: Project, edna_dir: Path, dataset, stats: ProcStat
         log = r.readlines()
 
     for line in log:
-        if "Space group:" in line:
-            stats.space_group = "".join(line.split()[2:])
         if "Number of unique reflections" in line:
             stats.unique_reflections = line.split()[-1]
         if "Total number of observations" in line:
@@ -67,15 +63,6 @@ def _parse_statistics(project: Project, edna_dir: Path, dataset, stats: ProcStat
         if "High resolution limit" in line:
             stats.high_resolution_average = line.split()[3]
             stats.high_resolution_out = line.split()[-1]
-        if line.startswith(UNIT_CELL):
-            (
-                stats.unit_cell_a,
-                stats.unit_cell_b,
-                stats.unit_cell_c,
-                stats.unit_cell_alpha,
-                stats.unit_cell_beta,
-                stats.unit_cell_gamma,
-            ) = line[len(UNIT_CELL) :].split()
         if "Multiplicity" in line:
             stats.multiplicity = line.split()[1]
         if "Mean((I)/sd(I))" in line:
@@ -110,7 +97,9 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
         return stats
 
     stats.status = ToolStatus.SUCCESS
+
     _parse_statistics(project, edna_dir, dataset, stats)
+    load_mtz_stats(mtz_file, stats)
     stats.isa = _scrape_isa(project, dataset)
 
     return stats

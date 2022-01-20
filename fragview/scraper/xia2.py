@@ -3,6 +3,7 @@ from pathlib import Path
 from fragview.scraper import ToolStatus, ProcStats
 from fragview.fileio import read_text_lines
 from fragview.projects import Project
+from fragview.scraper.utils import load_mtz_stats
 
 
 LOG_FILE_SUFFIXES = ["log", "html", "txt"]
@@ -64,18 +65,6 @@ def _parse_xia2_html(project: Project, xia2_html: Path, stats: ProcStats):
         if "I/sigma  " in line:
             stats.i_sig_average = line.split()[-3]
             stats.i_sig_out = line.split()[-1]
-        if "Space group:  " in line:
-            stats.space_group = "".join(line.split()[2:])
-        if "Unit cell: " in line:
-            vals = line.split(":")[1].strip()
-            (
-                stats.unit_cell_a,
-                stats.unit_cell_b,
-                stats.unit_cell_c,
-                stats.unit_cell_alpha,
-                stats.unit_cell_beta,
-                stats.unit_cell_gamma,
-            ) = vals.split(", ")
 
 
 def scrape_results(project: Project, logs_dir: Path) -> Optional[ProcStats]:
@@ -91,6 +80,8 @@ def scrape_results(project: Project, logs_dir: Path) -> Optional[ProcStats]:
         return stats
 
     _parse_xia2_html(project, xia2_html, stats)
+    load_mtz_stats(get_result_mtz(logs_dir), stats)
+
     return stats
 
 

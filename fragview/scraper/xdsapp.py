@@ -4,14 +4,11 @@ from pathlib import Path
 from fragview.projects import Project
 from fragview.fileio import read_text_lines
 from fragview.scraper import ProcStats, ToolStatus
-from fragview.scraper.utils import get_files_by_suffixes
+from fragview.scraper.utils import get_files_by_suffixes, load_mtz_stats
+
 
 LOG_FILE_SUFFIXES = ["txt", "lp", "lp_1", "log", "out", "html"]
 
-# use _two_ trailing spaces to avoid matching with lines such as:
-# 'Space group number given by user:      5'
-SPACE_GROUP = "Space group  "
-UNIT_CELL = "Unit cell parameters [A]"
 RESOLUTION = "Resolution limit [A]"
 REFLECTIONS = "No. of reflections"
 UNIQUE_REFLECTIONS = "No. of uniques"
@@ -48,14 +45,6 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
         text = line[len(prefix) :].strip()
         return parser_func(text)
 
-    def _space_group(text):
-        # remove all spaces in space group string
-        spg = "".join(text.split(" "))
-        return spg
-
-    def _unit_cell(text):
-        return text.split()
-
     def _resolution(text):
         return RESOLUTION_RE.match(text).groups()
 
@@ -80,18 +69,7 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
 
         line = line.strip()
 
-        if line.startswith(SPACE_GROUP):
-            stats.space_group = _parse_line(line, SPACE_GROUP, _space_group)
-        elif line.startswith(UNIT_CELL):
-            (
-                stats.unit_cell_a,
-                stats.unit_cell_b,
-                stats.unit_cell_c,
-                stats.unit_cell_alpha,
-                stats.unit_cell_beta,
-                stats.unit_cell_gamma,
-            ) = _parse_line(line, UNIT_CELL, _unit_cell)
-        elif line.startswith(RESOLUTION):
+        if line.startswith(RESOLUTION):
             (
                 stats.low_resolution_average,
                 stats.high_resolution_average,
@@ -146,6 +124,7 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
 
     if stats.status == ToolStatus.SUCCESS:
         _parse_results_log(project, results_log, stats)  # type: ignore
+        load_mtz_stats(get_result_mtz(project, dataset), stats)
 
     return stats
 

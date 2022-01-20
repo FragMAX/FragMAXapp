@@ -89,6 +89,12 @@ class DatasetInfo(Wrapper):
 class ProcessingInfo(Wrapper):
     TOOL_NAMES = {"xds": "XIA2/XDS", "dials": "XIA2/DIALS"}
 
+    def __init__(self, orig):
+        super().__init__(orig)
+
+        # overwrite the DB space group string with gemmi SpaceGroup object
+        self.space_group = SpaceGroup(orig.space_group)
+
     def tool_name(self):
         tool = self.orig.result.tool
         return self.TOOL_NAMES.get(tool, tool)

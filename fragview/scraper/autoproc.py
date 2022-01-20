@@ -2,7 +2,7 @@ from typing import Iterable, Optional, TextIO
 from pathlib import Path
 from fragview.projects import Project
 from fragview.scraper import ToolStatus, ProcStats
-from fragview.scraper.utils import get_files_by_suffixes
+from fragview.scraper.utils import get_files_by_suffixes, load_mtz_stats
 
 ERROR_MSG = '<div class="errorheader">ERROR</div>'
 LOG_FILE_SUFFIXES = ["lp", "log", "xml", "html"]
@@ -70,17 +70,6 @@ def _parse_statistics(stats: ProcStats, report):
         log = r.readlines()
 
     for n, line in enumerate(log):
-        if "Unit cell and space group:" in line:
-            parts = line.split()
-            stats.space_group = "".join(parts[11:]).replace("'", "")
-            (
-                stats.unit_cell_a,
-                stats.unit_cell_b,
-                stats.unit_cell_c,
-                stats.unit_cell_alpha,
-                stats.unit_cell_beta,
-                stats.unit_cell_gamma,
-            ) = parts[5:11]
         if "Low resolution limit  " in line:
             stats.low_resolution_average, stats.low_resolution_out = (
                 line.split()[3],
@@ -150,5 +139,6 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
 
     if stats.status == ToolStatus.SUCCESS:
         _parse_statistics(stats, summary_report)
+        load_mtz_stats(get_result_mtz(project, dataset), stats)
 
     return stats

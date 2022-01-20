@@ -178,7 +178,14 @@ def _define_entities(db):
     class ProcessResult(db.Entity):
         id = PrimaryKey(int, auto=True)
         result = Required(Result, unique=True)
+
+        #
+        # space group as 'hm[:ext]' where
+        #   hm - Hermann-Mauguin name  (as in gemmi.SpaceGroup.hm)
+        #   ext - optional extension   (as in gemmi.SpaceGroup.ext)
+        #
         space_group = Required(str)
+
         unit_cell_a = Required(float)
         unit_cell_b = Required(float)
         unit_cell_c = Required(float)
