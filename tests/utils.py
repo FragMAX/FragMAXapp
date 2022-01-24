@@ -165,7 +165,7 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
     @db_session
     def forget_key(self):
         with db_session:
-            project = get_project(self.projects_db_dir, self.project.id)
+            project = get_project(self.project.id)
             project.forget_key()
 
     def _setup_temp_project(self):
@@ -176,9 +176,8 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
     def setUp(self):
         self.setup_temp_dir()
 
-        # set-up project(s) database(s)
+        # set-up temp project databases directory
         self.projects_db_dir = Path(self.temp_dir, "db", "projs")
-        self._setup_temp_project()
 
         # set-up temp project root directory
         self.projects_root_dir = Path(self.temp_dir, "fragmax")
@@ -190,6 +189,9 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
             PROJECTS_ROOT_DIR=self.projects_root_dir,
         )
         self.settings_override.enable()
+
+        # set-up project(s) database(s)
+        self._setup_temp_project()
 
     def tearDown(self):
         # restore original settings

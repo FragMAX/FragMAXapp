@@ -48,7 +48,16 @@ class _FilterTestCase(TestCase, TempDirMixin):
 
     def setUp(self):
         self.setup_temp_dir()
-        self.project = create_temp_project(Path(self.temp_dir, "db", "projs"), PROJECT)
+
+        projects_db_dir = Path(self.temp_dir, "db", "projs")
+
+        # override path to projects database dir
+        self.settings_override = self.settings(
+            PROJECTS_DB_DIR=projects_db_dir,
+        )
+        self.settings_override.enable()
+
+        self.project = create_temp_project(projects_db_dir, PROJECT)
 
     def tearDown(self):
         self.tear_down_temp_dir()

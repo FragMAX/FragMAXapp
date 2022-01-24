@@ -4,7 +4,6 @@ from pathlib import Path
 from shutil import copyfile, copytree
 from dataclasses import dataclass
 from pandas import read_csv
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from fragview.models import UserProject
 from fragview.crystals import Crystals, Crystal
@@ -112,7 +111,7 @@ def _create_project(protein: str, proposal: str, crystals: Crystals) -> Project:
     project_id = user_proj.id
     setup_project(project_id, protein, proposal, crystals.as_list(), False, False)
 
-    return get_project(settings.PROJECTS_DB_DIR, project_id)
+    return get_project(project_id)
 
 
 def _import_models(project: Project, old_paths: OldPaths):
@@ -256,7 +255,7 @@ class Command(BaseCommand):
         proposal = options["proposal"]
         shift = options["shift"]
         old_paths = _get_old_paths(protein, proposal, shift)
-        project = get_project(settings.PROJECTS_DB_DIR, "8")
+        project = get_project("8")
 
         _migrate_pandda(project, old_paths)
 

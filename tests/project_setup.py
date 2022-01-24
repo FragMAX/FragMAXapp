@@ -159,7 +159,6 @@ def create_temp_project(projects_db_dir: Path, project_desc: Project):
     # create the project database file
     projects_db_dir.mkdir(parents=True, exist_ok=True)
     project = create_project(
-        projects_db_dir,
         user_proj.id,
         project_desc.proposal,
         project_desc.protein,

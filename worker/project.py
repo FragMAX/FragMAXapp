@@ -5,7 +5,6 @@ import stat
 import shutil
 import celery
 from pathlib import Path
-from django.conf import settings
 from fragview.sites import SITE
 from projects.database import db_session
 from fragview.crystals import Crystals, Crystal
@@ -34,9 +33,7 @@ def setup_project(
         print(f"setting up project, ID {project_id}: {protein} ({proposal})")
         user_proj = UserProject.get(project_id)
 
-        project = create_project(
-            settings.PROJECTS_DB_DIR, project_id, proposal, protein, encrypted
-        )
+        project = create_project(project_id, proposal, protein, encrypted)
 
         with db_session:
             _setup_project_folders(project)
@@ -60,7 +57,7 @@ def import_crystals(project_id: str, crystals: List[Dict[str, str]]):
         print(f"importing crystals to project ID: {project_id}")
 
         with db_session:
-            project = get_project(settings.PROJECTS_DB_DIR, project_id)
+            project = get_project(project_id)
             _add_crystals(project, Crystals.from_list(crystals))
             _add_datasets(project)
 

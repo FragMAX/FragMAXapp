@@ -2,7 +2,6 @@ from typing import Iterable, Optional
 import binascii
 from base64 import b64encode, b64decode
 from django.contrib.auth.models import AbstractBaseUser
-from django.conf import settings
 from fragview import encryption
 from fragview.projects import Project, get_project
 from fragview.encryption import generate_token, now_utc
@@ -94,7 +93,7 @@ class UserProject(Model):
         for user_proj in UserProject.objects.filter(
             proposal__in=user_proposals
         ).exclude(id__in=pending_ids):
-            yield get_project(settings.PROJECTS_DB_DIR, user_proj.id)
+            yield get_project(user_proj.id)
 
     @staticmethod
     def create_new(protein: str, proposal: str) -> "UserProject":
@@ -273,7 +272,7 @@ class User(AbstractBaseUser):
         if cur_proj is None:
             return next(UserProject.user_projects(proposals), None)
 
-        return get_project(settings.PROJECTS_DB_DIR, cur_proj.id)
+        return get_project(cur_proj.id)
 
     def set_current_project(self, new_current_proj: UserProject):
         self.current_project = new_current_proj

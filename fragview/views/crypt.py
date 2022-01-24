@@ -1,7 +1,6 @@
 from pathlib import Path
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from fragview.models import AccessToken
 from fragview.fileio import is_relative_to
 from fragview.projects import Project, get_project
@@ -29,7 +28,7 @@ def _validate_auth_token(auth_token) -> Project:
     except AccessToken.DoesNotExist:
         raise InvalidRequest("invalid auth token")
 
-    return get_project(settings.PROJECTS_DB_DIR, tok.project_id)
+    return get_project(tok.project_id)
 
 
 def _validate_file_path(proj: Project, filepath: str) -> Path:

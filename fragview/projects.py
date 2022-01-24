@@ -2,6 +2,7 @@ from typing import Iterable, Tuple, Optional
 import conf
 from pathlib import Path
 from datetime import datetime
+from django.conf import settings
 from fragview.sites import SITE, current
 from fragview.proposals import get_proposals
 from fragview.encryption import generate_key
@@ -266,23 +267,23 @@ class Project:
 
 
 def create_project(
-    projects_db_dir: Path,
     project_id: str,
     proposal: str,
     protein: str,
     encrypted: bool,
 ) -> Project:
+
     # generation encryption key, for encrypted projects
     encryption_key = generate_key() if encrypted else None
     proj_db = create_project_db(
-        projects_db_dir, project_id, proposal, protein, encryption_key
+        settings.PROJECTS_DB_DIR, project_id, proposal, protein, encryption_key
     )
 
     return Project(proj_db, project_id)
 
 
-def get_project(projects_db_dir: Path, project_id: str) -> Project:
-    return Project(get_project_db(projects_db_dir, project_id), project_id)
+def get_project(project_id: str) -> Project:
+    return Project(get_project_db(settings.PROJECTS_DB_DIR, project_id), project_id)
 
 
 def get_dataset_runs(data_dir: Path) -> Iterable[int]:

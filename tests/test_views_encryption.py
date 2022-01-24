@@ -148,7 +148,7 @@ class TestUploadKey(_EncryptionKeyTestCase):
         with db_session:
             # check that key was saved to database,
             # we need to reload project model in a new session
-            project = get_project(self.projects_db_dir, self.project.id)
+            project = get_project(self.project.id)
             self.assertEquals(project.encryption_key, DUMMY_KEY)
 
             # check that we were redirected to correct view
@@ -179,7 +179,7 @@ class TestForgetKey(_EncryptionKeyTestCase):
         with db_session:
             # check that key was removed from the database,
             # we need to reload project model in a new session
-            project = get_project(self.projects_db_dir, self.project.id)
+            project = get_project(self.project.id)
             self.assertFalse(project.has_encryption_key())
 
             # check that we were redirected to correct view
