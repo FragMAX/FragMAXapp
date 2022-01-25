@@ -2,6 +2,8 @@ import typing
 from datetime import datetime
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
 
+LATEST_SCHEMA_VERSION = "1"
+
 
 def _define_entities(db):
     class Project(db.Entity):
@@ -11,7 +13,7 @@ def _define_entities(db):
         encryption_key = Optional(bytes)
         # store hard-coded 'database schema version' value,
         # to aid future migrations to modified schemas
-        db_schema_version = Required(str, default="0")
+        db_schema_version = Required(str, default=LATEST_SCHEMA_VERSION)
 
     class PDB(db.Entity):
         id = PrimaryKey(int, auto=True)

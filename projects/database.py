@@ -27,7 +27,7 @@ def _bind(db_file: Path, create_tables=False) -> Database:
     return db
 
 
-def _db_file(projects_db_dir: Path, project_id: str) -> Path:
+def get_project_db_file(projects_db_dir: Path, project_id: str) -> Path:
     return Path(projects_db_dir, f"proj{project_id}.db")
 
 
@@ -38,7 +38,7 @@ def create_project_db(
     protein: str,
     encryption_key: Optional[bytes],
 ) -> Database:
-    db_file = _db_file(projects_db_dir, project_id)
+    db_file = get_project_db_file(projects_db_dir, project_id)
     if db_file.is_file():
         raise Exception(f"{db_file}: already exists")
 
@@ -59,7 +59,7 @@ def create_project_db(
 
 
 def get_project_db(projects_db_dir: Path, project_id: str) -> Database:
-    db_file = _db_file(projects_db_dir, project_id)
+    db_file = get_project_db_file(projects_db_dir, project_id)
     if not db_file.is_file():
         raise ProjectNotFound(f"{db_file}: database file not found")
 
