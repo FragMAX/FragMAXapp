@@ -137,8 +137,18 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
     stats = ProcStats("autoproc")
     stats.status = _scrape_summary_html(summary_report)
 
-    if stats.status == ToolStatus.SUCCESS:
-        _parse_statistics(stats, summary_report)
-        load_mtz_stats(get_result_mtz(project, dataset), stats)
+    if stats.status != ToolStatus.SUCCESS:
+        return stats
+
+    _parse_statistics(stats, summary_report)
+
+    mtz = get_result_mtz(project, dataset)
+    if mtz is None:
+        # seems that autoPROC failed to produce useful MTZ after all,
+        # we need to treat that as failure
+        stats.status = ToolStatus.FAILURE
+        return stats
+
+    load_mtz_stats(get_result_mtz(project, dataset), stats)
 
     return stats
