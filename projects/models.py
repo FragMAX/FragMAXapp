@@ -58,8 +58,9 @@ def _define_entities(db):
 
         crystal = Required(Crystal)
         run = Required(int)
-        # limit to unique combinations of crystal and run
-        composite_key(crystal, run)
+
+        # limit to unique combinations of crystal, run and 'shift'
+        composite_key(data_root_dir, crystal, run)
 
         # the detector type used to capture the dataset, e.g. PILATUS3 2M
         detector = Required(str)
