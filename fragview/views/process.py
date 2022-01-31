@@ -302,6 +302,13 @@ def run_dials(proj, filters, options):
             *dials_commands,
         )
 
+        batch.add_commands(
+            "echo 'remove .refl files, to conserve disk space'",
+            f"rm -rfv {outdir}/dials/DataFiles/*.refl",
+            f"rm -rfv {outdir}/dials/DEFAULT/scale/*.refl",
+            f"rm -rfv {outdir}/dials/DEFAULT/SAD/*/*/*.refl",
+        )
+
         batch.save()
         jobs.add_job(batch)
 
