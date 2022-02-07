@@ -66,3 +66,17 @@ def refine(request):
             "pdbs": wrap_pdbs(project.get_pdbs()),
         },
     )
+
+
+def pandda(request):
+    default_ligand_tool, ligand_tools = get_supported_ligand_tools()
+
+    return render(
+        request,
+        "analysis_pandda.html",
+        {
+            "pipelines": get_supported_pipelines(),
+            "default_ligand_tool": default_ligand_tool,
+            "ligand_tools": ligand_tools,
+        },
+    )

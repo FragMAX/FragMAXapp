@@ -7,8 +7,14 @@ from random import randint
 from pathlib import Path
 from collections import Counter
 from django.shortcuts import render, reverse
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.http import (
+    HttpResponse,
+    HttpResponseNotFound,
+    HttpResponseRedirect,
+    HttpResponseBadRequest,
+)
 from fragview import hpc, versions
+from fragview.forms import PanddaProcessForm
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.sites import SITE
@@ -760,6 +766,27 @@ def pandda_to_fragmax_html(project: Project, method: str, date: str):
     return pandda_html
 
 
+def process(request):
+    form = PanddaProcessForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
+
+    print(f"{form.processing_tool=}")
+    print(f"{form.refinement_tool=}")
+    print(f"{form.use_known_apo=}")
+    print(f"{form.use_dmso_datasets=}")
+    print(f"{form.reprocess_z_maps=}")
+    print(f"{form.num_of_cores=}")
+    print(f"{form.min_ground_datasets=}")
+    print(f"{form.max_r_free=}")
+    print(f"{form.resolution_low_limit=}")
+    print(f"{form.resolution_high_limit=}")
+    print(f"{form.custom_parameters=}")
+
+    return HttpResponse("okiedokie")
+
+
+# TODO remove me (to be replaced by process() above)
 def submit(request):
     project = current_project(request)
 

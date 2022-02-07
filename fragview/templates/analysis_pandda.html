@@ -1,0 +1,560 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Analyse with PanDDA{% endblock %}
+{% block content %}
+
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+
+.card-content-left
+{
+    padding: 24px 24px 38px 24px !important;
+}
+
+.flexdiv_options
+{
+    display: flex;
+}
+
+.flex-left
+{
+    max-width: 750px;
+    width: 40%
+}
+
+.flex-center
+{
+    margin-left: 3%;
+    max-width: 750px;
+    width: 50%
+}
+</style>
+
+<div>
+    <h4>Analyse with PanDDA</h4>
+</div>
+
+<div class="card_options">
+    <div class="card tabcontent">
+        <div class="flexdiv_options">
+            <div class="flex-left">
+                <div>
+                    <div class="card-content card-content-left">
+                        <div class="card-title">Dataset selection</div>
+                        <table class="optionstable">
+                            <col width="8%">
+                            <col width="17%">
+                            <tbody>
+                                <tr>
+                                    <th class="top-options">Processing</th>
+                                    <td class="top-options">
+                                        <div class="col s12 required inline" id="processing_method">
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" checked="checked"
+                                                           value="fragplex" name="processingTool">
+                                                    <span class="item-label">FragPLEX</span>
+                                                </label>
+                                            </div>
+                                            {% if "xia2_dials" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio"
+                                                           value="dials" name="processingTool">
+                                                    <span class="item-label">XIA2/DIALS</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "xia2_xds" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio"
+                                                           value="xds" name="processingTool">
+                                                    <span class="item-label">XIA2/XDS</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "xdsapp" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio"
+                                                           value="xdsapp" name="processingTool">
+                                                    <span class="item-label">XDSAPP</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "auto_proc" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio"
+                                                           value="autoproc" name="processingTool">
+                                                    <span class="item-label">autoPROC</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "edna_proc" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio"
+                                                           value="edna_proc" name="processingTool">
+                                                    <span class="item-label">EDNA_proc</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Refinement</th>
+                                    <td class="top-options">
+                                        <div class="col s12 required inline" id="refinement_method">
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" value="fragplex"
+                                                           name="refinementTool" checked="checked">
+                                                    <span class="item-label">FragPLEX</span>
+                                                </label>
+                                            </div>
+                                            {% if "dimple" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" value="dimple"
+                                                           name="refinementTool">
+                                                    <span class="item-label">DIMPLE</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "fspipeline" in pipelines %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" value="fspipeline"
+                                                           name="refinementTool">
+                                                    <span class="item-label">fspipeline</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Ligand Restrains</th>
+                                    <td class="top-options">
+                                        <div class="col s12 required inline">
+                                            {% if "grade" in ligand_tools %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" value="grade"
+                                                           name="restrainsTool" checked="checked">
+                                                    <span class="item-label">GRADE</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            {% if "elbow" in ligand_tools %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input class="with-gap" type="radio" value="elbow"
+                                                           name="restrainsTool">
+                                                    <span class="item-label">eLBOW</span>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class=" top-options">Ground state build</th>
+                                    <td class=" top-options">
+                                        <form id="groundstate">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes" type="checkbox"
+                                                           id="useKnownApo" checked>
+                                                    <span>Use known Apo</span>
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes" type="checkbox"
+                                                           id="useDMSODatasets">
+                                                    <span>Use Cryo/DMSO datasets</span>
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes" type="checkbox"
+                                                           id="reprocessZMaps">
+                                                    <span>
+                                                        Reprocess using datasets without peaks in Z-map
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-center">
+                <div>
+                    <div class="card-content card-content-left">
+                        <div class="card-title">PanDDA analysis options</div>
+                        <table class="optionstable">
+                            <col width="8%">
+                            <col width="17%">
+                            <tbody>
+                                <tr>
+                                    <th class="top-options">Number of cores (max: 64)</th>
+                                    <td class="top-options">
+                                        <input class="selectbox" id="numOfCores"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Options</th>
+                                    <td class="top-options">
+                                        <form id="preprocessOptions">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes"
+                                                           type="checkbox" id="removeBadDatasets" checked>
+                                                    <span>Auto remove dataset with problems</span>
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes"
+                                                           type="checkbox" id="continueAnalysis">
+                                                    <span>Continue last analysis</span>
+                                                </label>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input class="filled-in dt-checkboxes"
+                                                           type="checkbox" id="ignoreSymlinkIssues">
+                                                    <span>Ignore symlink issues</span>
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Minimum datasets for building ground state</th>
+                                    <td class="top-options">
+                                        <input class="selectbox" id="minGroundDatasets"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Maximum R<sub>free</sub></th>
+                                    <td class="top-options">
+                                        <input class="selectbox" id="maxRFree"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="top-options">Resolution limits</th>
+                                    <td class="top-options" style="display: flex">
+                                        <div>
+                                            <input class="selectbox" id="resolutionUpperLimit"/>
+                                        </div>
+                                        <div style="padding-left: 10%;">
+                                            <input class="selectbox" id="resolutionLowerLimit"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="custompar">
+                                    <th class="top-options">Custom parameters</th>
+                                    <td class="top-options">
+                                        <input class="selectbox" id="customParameters" placeholder="default: None"/>
+                                        See available parameters <a href="https://pandda.bitbucket.io/pandda/manual.html"
+                                            target="_blank">here</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="startButton" class="btn">
+    Start PanDDA
+</button>
+
+<script>
+const INTEGER_RE = /^-?\d+$/;
+const FLOAT_RE = /^-?\d*\.?\d+$/;
+
+/*
+ * Convert string to integer strictly.
+ * That is, the whole string must be a valid integer expression.
+ *
+ * Throws Error() if unable to parse.
+ */
+function parseIntStrict(text)
+{
+    if (!INTEGER_RE.test(text))
+    {
+        throw Error(`'${text}' is not a valid number`);
+    }
+
+    return parseInt(text);
+}
+
+/*
+ * Convert string to float strictly.
+ * That is, the whole string must be a valid float expression.
+ *
+ * Throws Error() if unable to parse.
+ */
+function parseFloatStrict(text)
+{
+    if (!FLOAT_RE.test(text))
+    {
+        throw Error(`'${text}' is not a valid number`);
+    }
+
+    return parseFloat(text);
+}
+
+class TextInput
+{
+    constructor(humanName, elementId, defaultValue)
+    {
+        this.humanName = humanName;
+        this.elementId = elementId;
+        this.defaultValue = defaultValue;
+    }
+
+    getElement()
+    {
+        return document.getElementById(this.elementId);
+    }
+
+    getValue()
+    {
+        const value = this.getElement().value;
+        if (value == "")
+        {
+            /* if no value is entered, return default value */
+            return this.defaultValue;
+        }
+        return value;
+    }
+
+    getDefaultValue()
+    {
+        return this.defaultValue;
+    }
+}
+
+class IntRangeInput extends TextInput
+{
+    constructor(humanName, elementId, defaultValue, minValidValue, maxValidValue)
+    {
+        super(humanName, elementId, defaultValue);
+        this.minValidValue = minValidValue;
+        this.maxValidValue = maxValidValue;
+    }
+
+    validate()
+    {
+        const value = parseIntStrict(this.getValue());
+
+        if (value < this.minValidValue || value > this.maxValidValue)
+        {
+            throw Error(`specify value between ${this.minValidValue} and ${this.maxValidValue}`);
+        }
+
+        return value;
+        console.log("validate this", this.getValue());
+    }
+}
+
+class DecimalInput extends TextInput
+{
+    constructor(humanName, elementId, defaultValue, numDecimals)
+    {
+        super(humanName, elementId, defaultValue);
+        this.numDecimals = numDecimals;
+    }
+
+    getDefaultValue()
+    {
+        return this.defaultValue.toFixed(this.numDecimals);
+    }
+
+    validate()
+    {
+        const value = this.getValue();
+        if (value < 0)
+        {
+            throw Error("specify a positive value");
+        }
+
+        return value;
+    }
+}
+
+NumOfCoresInput = new IntRangeInput("Number of cores", "numOfCores", 32, 1, 64);
+
+MinGroundDatasetsInput = new IntRangeInput(
+    "Minimum datasets", "minGroundDatasets", 40, 1, Infinity);
+
+MaxRFreeInput = new DecimalInput("Maximum Rfree", "maxRFree", 0.40, 2);
+
+ResolutionUpperLimitInput = new DecimalInput(
+    "Resolution limits", "resolutionUpperLimit", 0.0, 1);
+
+ResolutionLowerLimitInput = new DecimalInput(
+    "Resolution limits", "resolutionLowerLimit", 4.0, 1);
+
+function setElementDisabled(element, disabled)
+{
+    if (disabled)
+    {
+        /* disable element */
+        element.setAttribute("disabled", "");
+        return;
+    }
+
+    /* enable element */
+    element.removeAttribute("disabled");
+    return;
+}
+
+function getStartButton()
+{
+    return document.getElementById("startButton");
+}
+
+function startPandda()
+{
+    function getProcessingTool()
+    {
+        return document.querySelector("input[name=processingTool]:checked").value;
+    }
+
+    function getRefinementTool()
+    {
+        return document.querySelector("input[name=refinementTool]:checked").value;
+    }
+
+    function getRestrainsTool()
+    {
+        return document.querySelector("input[name=restrainsTool]:checked").value;
+    }
+
+    function appendCheckbox(formData, checkboxID)
+    {
+        formData.append(checkboxID, document.getElementById(checkboxID).checked);
+    }
+
+    function appendInputBox(formData, inputDesc)
+    {
+        try
+        {
+            const value = inputDesc.validate();
+            formData.append(inputDesc.elementId, value);
+        }
+        catch(err)
+        {
+            inputDesc.getElement().focus();
+            throw Error(`${inputDesc.humanName}: ${err.message}.`);
+        }
+    }
+
+    function getFormDataValues()
+    {
+        const data = new FormData();
+        data.append("csrfmiddlewaretoken", "{{csrf_token}}");
+        data.append("processingTool", getProcessingTool());
+        data.append("refinementTool", getRefinementTool());
+        data.append("restrainsTool", getRestrainsTool());
+
+        appendCheckbox(data, "useKnownApo");
+        appendCheckbox(data, "useDMSODatasets");
+        appendCheckbox(data, "reprocessZMaps");
+
+        appendInputBox(data, NumOfCoresInput);
+
+        appendCheckbox(data, "removeBadDatasets");
+        appendCheckbox(data, "continueAnalysis");
+        appendCheckbox(data, "ignoreSymlinkIssues");
+
+        appendInputBox(data, MinGroundDatasetsInput);
+        appendInputBox(data, MaxRFreeInput);
+        appendInputBox(data, ResolutionUpperLimitInput);
+        appendInputBox(data, ResolutionLowerLimitInput);
+
+        data.append("customParameters",
+                    document.getElementById("customParameters").value);
+
+        return data;
+    }
+
+    var formData;
+    try
+    {
+        formData = getFormDataValues();
+    }
+    catch (err)
+    {
+        alert(err.message);
+        return;
+    }
+
+    /* disable submit button to avoid double clicks */
+    setElementDisabled(getStartButton(), true);
+
+    fetch("/pandda/process",
+    {
+        method: "POST",
+        body: formData,
+    })
+    .then(function(response)
+    {
+        if (!response.ok)
+        {
+            response.text().then(text => alert(text));
+            return;
+        }
+        window.open("/jobs/status", "_blank");
+        setElementDisabled(getStartButton(), false);
+    })
+    .catch(function(error)
+    {
+        alert(error.message);
+    });
+}
+
+function setupInputElement(inputDesc)
+{
+    const element = document.getElementById(inputDesc.elementId);
+    const defaultValue = inputDesc.getDefaultValue();
+
+    element.setAttribute("placeholder", `default: ${defaultValue}`);
+    element.setAttribute("value", defaultValue);
+}
+
+function setup()
+{
+    /* handle clicks on 'Start PanDDA' button */
+    getStartButton().addEventListener("click", startPandda);
+
+    setupInputElement(NumOfCoresInput);
+    setupInputElement(MinGroundDatasetsInput);
+    setupInputElement(MaxRFreeInput);
+    setupInputElement(ResolutionLowLimitInput);
+    setupInputElement(ResolutionHighLimitInput);
+}
+
+setup();
+</script>
+{% endblock %}

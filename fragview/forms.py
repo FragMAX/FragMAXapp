@@ -3,6 +3,7 @@ from django.forms import (
     CharField,
     BooleanField,
     IntegerField,
+    FloatField,
     FileField,
     ValidationError,
 )
@@ -209,6 +210,69 @@ class OldRefineForm(_ProcJobForm):
             raise ValidationError(
                 dict(spaceGroup="space group required when aimless is enabled")
             )
+
+
+class PanddaProcessForm(Form, _GetFieldMixin):
+    processingTool = CharField()
+    refinementTool = CharField()
+    restrainsTool = CharField()
+    useKnownApo = BooleanField(required=False)
+    useDMSODatasets = BooleanField(required=False)
+    reprocessZMaps = BooleanField(required=False)
+    numOfCores = IntegerField()
+    minGroundDatasets = IntegerField()
+    maxRFree = FloatField()
+    resolutionUpperLimit = FloatField()
+    resolutionLowerLimit = FloatField()
+    customParameters = CharField(required=False)
+
+    @property
+    def processing_tool(self):
+        return self._get_field("processingTool")
+
+    @property
+    def refinement_tool(self):
+        return self._get_field("refinementTool")
+
+    @property
+    def restrains_tool(self):
+        return self._get_field("restrainsTool")
+
+    @property
+    def use_known_apo(self):
+        return self._get_field("useKnownApo")
+
+    @property
+    def use_dmso_datasets(self):
+        return self._get_field("useDMSODatasets")
+
+    @property
+    def reprocess_z_maps(self):
+        return self._get_field("reprocessZMaps")
+
+    @property
+    def num_of_cores(self):
+        return self._get_field("numOfCores")
+
+    @property
+    def min_ground_datasets(self):
+        return self._get_field("minGroundDatasets")
+
+    @property
+    def max_r_free(self):
+        return self._get_field("maxRFree")
+
+    @property
+    def resolution_upper_limit(self):
+        return self._get_field("resolutionUpperLimit")
+
+    @property
+    def resolution_lower_limit(self):
+        return self._get_field("resolutionLowerLimit")
+
+    @property
+    def custom_parameters(self):
+        return self._get_field("customParameters")
 
 
 class KillJobForm(Form):

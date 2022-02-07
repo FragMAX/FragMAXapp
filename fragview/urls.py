@@ -57,7 +57,9 @@ urlpatterns = [
     # show pandda analysis reports for specified method
     path("pandda_analyse/<method>", pandda.analyse, name="pandda_analyse"),
     path("pandda_inspect/", pandda.inspect, name="pandda_inspect"),
+    # TODO: drop view below
     path("submit_pandda/", pandda.submit, name="submit_pandda"),
+    path("pandda/process", pandda.process),
     # pandda cluster dendrogram images
     path("pandda/cluster/<method>/<cluster>/image", pandda.cluster_image),
     # pandda HTML report for a specific analysis run
@@ -100,6 +102,7 @@ urlpatterns = [
     path("data_analysis/", analysis.processing_form, name="data_analysis"),
     path("analysis/process", analysis.process),
     path("analysis/refine", analysis.refine),
+    path("analysis/pandda", analysis.pandda),
     path("datasets/process", datasets.process),
     path("datasets/refine", datasets.refine),
     # TODO: drop view below
