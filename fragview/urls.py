@@ -10,8 +10,6 @@ from fragview.views import (
     analysis,
     pandda,
     pdbs,
-    refine,
-    process,
     ligfit,
     diffraction,
     eldensity,
@@ -105,9 +103,6 @@ urlpatterns = [
     path("analysis/pandda", analysis.pandda),
     path("datasets/process", datasets.process),
     path("datasets/refine", datasets.refine),
-    # TODO: drop view below
-    path("dataproc_datasets/", process.datasets, name="dataproc_datasets"),
-    path("refine_datasets/", refine.datasets, name="refine_datasets"),
     path("ligfit_datasets/", ligfit.datasets, name="ligfit_datasets"),
     path("hpc/kill/", hpc.kill),
     path("jobs/status", hpc.status, name="hpcstatus"),

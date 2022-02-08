@@ -685,7 +685,13 @@ function toggleSelectedMTZs(checkbox)
 
 function refineStructures()
 {
-    function getSelectedDatasets()
+    function getSelectedPDB()
+    {
+        const select = document.getElementById("pdbs");
+        return select.value;
+    }
+
+    function getSelectedMTZs()
     {
         const mtzIds = new Set();
         for (const mtz of selectedMTZs())
@@ -734,7 +740,8 @@ function refineStructures()
 
     const data = new FormData();
     data.append("csrfmiddlewaretoken", "{{csrf_token}}");
-    data.append("datasets", getSelectedDatasets());
+    data.append("pdb", getSelectedPDB());
+    data.append("processResults", getSelectedMTZs());
     data.append("pipelines", getSelectedPipelines());
     data.append("ligfitTools", getSelectedLigfitTools());
     data.append("constrainsTool", getConstrainsTool());

@@ -72,7 +72,7 @@ class SitePlugin:
     def get_beamline_info(self):
         raise NotImplementedError()
 
-    def get_hpc_runner(self):
+    def get_hpc_runner(self) -> "HPC":
         raise NotImplementedError()
 
     def get_group_name(self, project):

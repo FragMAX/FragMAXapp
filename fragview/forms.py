@@ -1,3 +1,4 @@
+from typing import Optional, List
 from django.forms import (
     Form,
     CharField,
@@ -7,7 +8,10 @@ from django.forms import (
     FileField,
     ValidationError,
 )
-from fragview.space_groups import get_space_group
+from gemmi import UnitCell
+from fragview.tools import get_tool_by_name
+from fragview.projects import Project
+from fragview.space_groups import SpaceGroup, get_space_group
 from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV, Crystals
 
 
@@ -76,30 +80,89 @@ class LigfitForm(_ProcJobForm):
 
 
 class _JobsForm(Form, _GetFieldMixin):
-    datasets = CharField()
     pipelines = CharField()
 
-    def get_datasets(self):
-        return self._get_field("datasets")
+    def __init__(self, project: Project, data):
+        super().__init__(data)
+        self.project = project
+
+    def clean_pipelines(self):
+        def _tool_enums():
+            for tool_name in self.get_pipelines().split(","):
+                yield get_tool_by_name(tool_name)
+
+        return list(_tool_enums())
 
     def get_pipelines(self):
         return self._get_field("pipelines")
 
 
 class ProcessForm(_JobsForm):
+    datasets = CharField()
     spaceGroup = CharField(required=False)
     cellParameters = CharField(required=False)
 
-    def get_space_group(self):
+    def clean_datasets(self):
+        def _lookup_datasets(dataset_ids: List):
+            for dataset_id in dataset_ids:
+                yield self.project.get_dataset(dataset_id)
+
+        dataset_ids = self._get_field("datasets").split(",")
+        return list(_lookup_datasets(dataset_ids))
+
+    def clean_spaceGroup(self):
+        space_group_name = self.get_space_group()
+        if space_group_name == "":
+            # no space group specified, aka 'auto' space group
+            return None
+
+        space_group = get_space_group(space_group_name)
+        if space_group is None:
+            raise ValidationError(
+                f"unsupported space group '{space_group_name}' specified"
+            )
+
+        return space_group
+
+    def clean_cellParameters(self):
+        cell = self.get_cell_parameters()
+        if cell == "":
+            # no cell parameters specified, aka 'auto' mode
+            return None
+
+        # split cell parameters on comma, and convert to
+        a, b, c, alpha, beta, gamma = [float(v) for v in cell.split(",")]
+        return UnitCell(a, b, c, alpha, beta, gamma)
+
+    def get_datasets(self):
+        return self._get_field("datasets")
+
+    def get_space_group(self) -> Optional[SpaceGroup]:
         return self._get_field("spaceGroup")
 
-    def get_cell_parameters(self):
+    def get_cell_parameters(self) -> Optional[UnitCell]:
         return self._get_field("cellParameters")
 
 
 class RefineForm(_JobsForm):
+    pdb = CharField()
+    # ID's of ProcessResult row, i.e. MTZ files to be refined
+    processResults = CharField()
     ligfitTools = CharField(required=False)
     constrainsTool = CharField(required=False)
+
+    def clean_pdb(self):
+        pdb_id = self._get_field("pdb")
+        pdb = self.project.get_pdb(pdb_id)
+        self.pdb_file = self.project.get_pdb_file(pdb)
+
+    def clean_processResults(self):
+        def _lookup_process_results(proc_res_ids: List):
+            for res_id in proc_res_ids:
+                yield self.project.get_process_result(res_id)
+
+        dataset_ids = self._get_field("processResults").split(",")
+        return list(_lookup_process_results(dataset_ids))
 
     def get_ligfit_tools(self):
         return self._get_field("ligfitTools")
@@ -107,109 +170,8 @@ class RefineForm(_JobsForm):
     def get_constrains_tool(self):
         return self._get_field("constrainsTool")
 
-
-# TODO: remove me
-class OldProcessForm(_ProcJobForm):
-    useDials = BooleanField(required=False)
-    useXds = BooleanField(required=False)
-    useXdsapp = BooleanField(required=False)
-    useAutoproc = BooleanField(required=False)
-    cellParams = CharField(required=False)
-    friedelLaw = CharField(required=False)
-    customXds = CharField(required=False)
-    customAutoProc = CharField(required=False)
-    customDials = CharField(required=False)
-    customXdsApp = CharField(required=False)
-
-    #
-    # note: this properties are only valid after call to is_valid()
-    #
-
-    @property
-    def use_dials(self):
-        return self._get_field("useDials")
-
-    @property
-    def use_xds(self):
-        return self._get_field("useXds")
-
-    @property
-    def use_xdsapp(self):
-        return self._get_field("useXdsapp")
-
-    @property
-    def use_autoproc(self):
-        return self._get_field("useAutoproc")
-
-    @property
-    def cell_params(self):
-        return self._get_field("cellParams")
-
-    @property
-    def friedel_law(self):
-        return self._get_field("friedelLaw")
-
-    @property
-    def custom_xds(self):
-        return self._get_field("customXds")
-
-    @property
-    def custom_autoproc(self):
-        return self._get_field("customAutoProc")
-
-    @property
-    def custom_dials(self):
-        return self._get_field("customDials")
-
-    @property
-    def custom_xdsapp(self):
-        return self._get_field("customXdsApp")
-
-
-# TODO: remove me
-class OldRefineForm(_ProcJobForm):
-    useDimple = BooleanField(required=False)
-    useFSpipeline = BooleanField(required=False)
-    customDimple = CharField(required=False)
-    customFspipe = CharField(required=False)
-    runAimless = BooleanField(required=False)
-
-    # PDB model field is a drop-down, but we treat it as integer, as
-    # we don't want to bother with validating the provided model ID
-    pdbModel = IntegerField()
-
-    # note: this properties are only valid after call to is_valid()
-
-    @property
-    def use_dimple(self):
-        return self._get_field("useDimple")
-
-    @property
-    def use_fspipeline(self):
-        return self._get_field("useFSpipeline")
-
-    @property
-    def pdb_model(self):
-        return self._get_field("pdbModel")
-
-    @property
-    def custom_dimple(self):
-        return self._get_field("customDimple")
-
-    @property
-    def custom_fspipe(self):
-        return self._get_field("customFspipe")
-
-    @property
-    def run_aimless(self):
-        return self._get_field("runAimless")
-
-    def clean(self):
-        if self.run_aimless and self.space_group is None:
-            # if 'run aimless' enabled the space group must be specified
-            raise ValidationError(
-                dict(spaceGroup="space group required when aimless is enabled")
-            )
+    def get_process_results(self):
+        return self._get_field("processResults")
 
 
 class PanddaProcessForm(Form, _GetFieldMixin):

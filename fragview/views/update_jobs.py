@@ -3,7 +3,7 @@ from jobs.client import JobsSet
 
 
 def add_update_job(
-    jobs_set: JobsSet, hpc, project: Project, tool, dataset, dataset_batch
+    jobs_set: JobsSet, hpc, project: Project, tool: str, dataset, dataset_batch
 ):
     batch = hpc.new_batch_file(
         f"update results for {dataset.name}",

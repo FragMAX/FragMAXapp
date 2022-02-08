@@ -108,6 +108,9 @@ class Project:
 
         return self.db.PDB.get(**get_args)
 
+    def get_process_result(self, process_result_id):
+        return self.db.ProcessResult.get(id=process_result_id)
+
     def get_refine_results(self):
         return self.db.RefineResult.select()
 

@@ -8,6 +8,12 @@ import fragview.management.commands.gettoken  # noqa F401
 import fragview.management.commands.update  # noqa F401
 import fragview.sites.hzb  # noqa F401
 import fragview.sites.hzb.cbf  # noqa F401
+import fragview.tools.xia2  # noqa F401
+import fragview.tools.xds  # noqa F401
+import fragview.tools.dials  # noqa F401
+import fragview.tools.xdsapp  # noqa F401
+import fragview.tools.dimple  # noqa F401
+import fragview.tools.fspipeline  # noqa F401
 import fragview.scraper.dials  # noqa F401
 import fragview.scraper.dimple  # noqa F401
 import fragview.scraper.fspipeline  # noqa F401

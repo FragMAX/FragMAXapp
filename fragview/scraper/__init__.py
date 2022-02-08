@@ -2,6 +2,7 @@ from typing import Iterator, Iterable, Optional
 from pathlib import Path
 from importlib import import_module
 from enum import Enum
+from fragview.projects import Project
 
 #
 # we support scraping logs for these tools
@@ -87,6 +88,11 @@ def scrape_processing_results(project, tool, dataset) -> Optional[ProcStats]:
         raise UnknownToolException(tool)
 
     return get_tool_module(tool).scrape_results(project, dataset)
+
+
+def get_result_mtz(project: Project, process_result) -> Path:
+    tool_mod = get_tool_module(process_result.result.tool)
+    return tool_mod.get_result_mtz(project, process_result.result.dataset)
 
 
 def scrape_refine_results(project, tool, dataset) -> Iterator[RefineResult]:
