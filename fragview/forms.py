@@ -51,7 +51,7 @@ class _ProcJobForm(Form, _GetFieldMixin):
 
 
 # TODO: remove me?
-class LigfitForm(_ProcJobForm):
+class OldLigfitForm(_ProcJobForm):
     useRhoFit = BooleanField(required=False)
     usePhenixLigfit = BooleanField(required=False)
     customLigFit = CharField(required=False)
@@ -148,8 +148,6 @@ class RefineForm(_JobsForm):
     pdb = CharField()
     # ID's of ProcessResult row, i.e. MTZ files to be refined
     processResults = CharField()
-    ligfitTools = CharField(required=False)
-    constrainsTool = CharField(required=False)
 
     def clean_pdb(self):
         pdb_id = self._get_field("pdb")
@@ -164,14 +162,31 @@ class RefineForm(_JobsForm):
         dataset_ids = self._get_field("processResults").split(",")
         return list(_lookup_process_results(dataset_ids))
 
-    def get_ligfit_tools(self):
-        return self._get_field("ligfitTools")
-
-    def get_constrains_tool(self):
-        return self._get_field("constrainsTool")
-
     def get_process_results(self):
         return self._get_field("processResults")
+
+
+class LigfitForm(_JobsForm):
+    # ID's of RefineResult row
+    refineResults = CharField()
+    restrainsTool = CharField(required=False)
+
+    def clean_refineResults(self):
+        def _lookup_refine_results(refine_res_ids: List):
+            for res_id in refine_res_ids:
+                yield self.project.get_refine_result(res_id)
+
+        res_ids = self._get_field("refineResults").split(",")
+        return list(_lookup_refine_results(res_ids))
+
+    def clean_restrainsTool(self):
+        return get_tool_by_name(self._get_field("restrainsTool"))
+
+    def get_refine_results(self):
+        return self._get_field("refineResults")
+
+    def get_restrains_tool(self):
+        return self._get_field("restrainsTool")
 
 
 class PanddaProcessForm(Form, _GetFieldMixin):

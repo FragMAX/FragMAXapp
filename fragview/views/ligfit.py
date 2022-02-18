@@ -3,7 +3,7 @@ from pathlib import Path
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
 from fragview import versions
-from fragview.forms import LigfitForm
+from fragview.forms import OldLigfitForm
 from fragview.projects import (
     current_project,
     project_script,
@@ -19,10 +19,11 @@ from jobs.client import JobsSet
 from projects.database import db_session
 
 
+# TODO: remove me
 def datasets(request):
     proj = current_project(request)
 
-    form = LigfitForm(request.POST)
+    form = OldLigfitForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid ligfit arguments {form.errors}")
 

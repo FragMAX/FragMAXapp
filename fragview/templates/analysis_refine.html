@@ -189,65 +189,6 @@
     </div>
 </div>
 
-<div class="card tab">
-    <button>Ligand Fitting</button>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <div class="card-title">
-            Fit ligands with:
-        </div>
-        <div id="ligfitTools" class="pipelines">
-            {% if "rho_fit" in pipelines %}
-            <div class="checkbox">
-                <label>
-                    <input class="processform filled-in dt-checkboxes"
-                        id="rho_fit" type="checkbox"/>
-                    <span>RhoFit</span>
-                </label>
-            </div>
-            {% endif %}
-
-            {% if "ligand_fit" in pipelines %}
-            <div class="checkbox">
-                <label>
-                    <input class="processform filled-in dt-checkboxes"
-                        id="ligand_fit" type="checkbox"/>
-                    <span>LigandFit</span>
-                </label>
-            </div>
-            {% endif %}
-        </div>
-        <div class="card-title">
-            Generate restrains with:
-        </div>
-        <div>
-            {% if "grade" in ligand_tools %}
-            <label>
-                <input id="grade" name="constrainsTool" type="radio"
-                       {% if default_ligand_tool == "grade" %}checked{% endif %}/>
-                <span>GRADE</span>
-            </label>
-            {% endif %}
-            {% if "acedrg" in ligand_tools %}
-            <label>
-                <input id="acedrg" name="constrainsTool" type="radio"
-                       {% if default_ligand_tool == "acedrg" %}checked{% endif %}/>
-                <span>AceDRG</span>
-            </label>
-            {% endif %}
-            {% if "elbow" in ligand_tools %}
-            <label>
-                <input id="elbow" name="constrainsTool" type="radio"
-                       {% if default_ligand_tool == "elbow" %}checked{% endif %}/>
-                <span>eLBOW</span>
-            </label>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
 <button id="refineStructuresButton" class="btn" disabled>
     Refine Structures
 </button>
@@ -425,16 +366,6 @@ function* selectedMTZs()
 function* pipelineCheckboxes()
 {
     const pipelineDiv = document.getElementById("pipelines");
-
-    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
-    {
-        yield checkbox;
-    }
-}
-
-function* ligfitCheckboxes()
-{
-    const pipelineDiv = document.getElementById("ligfitTools");
 
     for (const checkbox of pipelineDiv.getElementsByTagName("input"))
     {
@@ -716,25 +647,6 @@ function refineStructures()
         return Array.from(pipes).join();
     }
 
-    function getSelectedLigfitTools()
-    {
-        const tools = new Set();
-        for (const tool of ligfitCheckboxes())
-        {
-            if (tool.checked)
-            {
-                tools.add(tool.id);
-            }
-        }
-
-        return Array.from(tools).join();
-    }
-
-    function getConstrainsTool()
-    {
-        return document.querySelector("input[name=constrainsTool]:checked").id;
-    }
-
     /* disable button to avoid double clicks */
     setElementDisabled(getRefineStructuresButton(), true);
 
@@ -743,8 +655,6 @@ function refineStructures()
     data.append("pdb", getSelectedPDB());
     data.append("processResults", getSelectedMTZs());
     data.append("pipelines", getSelectedPipelines());
-    data.append("ligfitTools", getSelectedLigfitTools());
-    data.append("constrainsTool", getConstrainsTool());
 
     fetch("/datasets/refine",
     {

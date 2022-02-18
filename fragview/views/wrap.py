@@ -166,6 +166,21 @@ class RefineInfo(Wrapper):
 
         return ligfit_res.score
 
+    def _get_tool_result(self, tool: str) -> Optional[str]:
+        tool_res = self.orig.dataset.get_result(tool, self.result)
+        if tool_res is None:
+            return None
+
+        return tool_res.result
+
+    @property
+    def rhofit_result(self) -> Optional[str]:
+        return self._get_tool_result("rhofit")
+
+    @property
+    def ligandfit_result(self) -> Optional[str]:
+        return self._get_tool_result("ligandfit")
+
     def rhofit_score(self):
         return self._get_ligand_fit_score("rhofit")
 
@@ -174,6 +189,10 @@ class RefineInfo(Wrapper):
 
     def fragment(self) -> Optional[Fragment]:
         return get_crystals_fragment(self.orig.dataset.crystal)
+
+    @property
+    def crystal(self):
+        return self.orig.result.dataset.crystal
 
 
 def wrap_refine_results(results) -> Iterable[RefineInfo]:

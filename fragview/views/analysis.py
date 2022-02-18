@@ -1,7 +1,12 @@
 from typing import Iterator
 from django.shortcuts import render
 from fragview.projects import current_project, Project
-from fragview.views.wrap import DatasetInfo, ProcessingInfo, wrap_pdbs
+from fragview.views.wrap import (
+    DatasetInfo,
+    ProcessingInfo,
+    wrap_pdbs,
+    wrap_refine_results,
+)
 from fragview.space_groups import by_system
 from fragview.sites.current import get_supported_pipelines, get_supported_ligand_tools
 
@@ -53,7 +58,6 @@ def _get_processed_datasets(project: Project) -> Iterator[ProcessingInfo]:
 
 def refine(request):
     project = current_project(request)
-    default_ligand_tool, ligand_tools = get_supported_ligand_tools()
 
     return render(
         request,
@@ -61,9 +65,25 @@ def refine(request):
         {
             "proc_results": list(_get_processed_datasets(project)),
             "pipelines": get_supported_pipelines(),
+            "pdbs": wrap_pdbs(project.get_pdbs()),
+        },
+    )
+
+
+def ligfit(request):
+    project = current_project(request)
+    default_ligand_tool, ligand_tools = get_supported_ligand_tools()
+
+    refine_results = list(wrap_refine_results(project.get_refine_results()))
+
+    return render(
+        request,
+        "analysis_ligfit.html",
+        {
+            "refine_results": list(refine_results),
+            "pipelines": get_supported_pipelines(),
             "default_ligand_tool": default_ligand_tool,
             "ligand_tools": ligand_tools,
-            "pdbs": wrap_pdbs(project.get_pdbs()),
         },
     )
 

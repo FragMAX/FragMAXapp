@@ -14,11 +14,23 @@ class UnknownToolNameException(Exception):
 
 
 class Tool(Enum):
+    # process tools
     DIALS = auto()
     XDS = auto()
     XDSAPP = auto()
+
+    # refine tools
     DIMPLE = auto()
     FSPIPELINE = auto()
+
+    # ligand fitting tools
+    RHOFIT = auto()
+    LIGANDFIT = auto()
+
+    # ligand restrains tools
+    GRADE = auto()
+    ELBOW = auto()
+    ACEDRG = auto()
 
     def get_name(self):
         return self.name.lower()
