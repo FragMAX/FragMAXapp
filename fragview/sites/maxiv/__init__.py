@@ -87,8 +87,7 @@ class SitePlugin(plugin.SitePlugin):
             LigandTool.GRADE,
             {
                 LigandTool.GRADE,
-                # disable AceDRG until issue #11 is resolved
-                # LigandTool.ACEDRG,
+                LigandTool.ACEDRG,
                 LigandTool.ELBOW,
             },
         )
