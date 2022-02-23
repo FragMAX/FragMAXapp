@@ -3,16 +3,19 @@ from django.shortcuts import render
 from django.http import HttpResponseBadRequest, HttpResponse
 from fragview.projects import current_project
 from fragview.projects import Project
-from fragview.forms import ProcessForm, RefineForm
+from fragview.forms import ProcessForm, RefineForm, LigfitForm
 from fragview.tools import (
     ProcessOptions,
     RefineOptions,
+    LigfitOptions,
     generate_process_batch,
     generate_refine_batch,
+    generate_ligfit_batch,
 )
 from fragview.scraper import get_result_mtz
 from fragview.views.wrap import DatasetInfo
 from fragview.sites.current import get_hpc_runner
+from fragview.views.utils import get_crystals_fragment
 from fragview.views.update_jobs import add_update_job
 from jobs.client import JobsSet
 
@@ -66,7 +69,7 @@ def refine(request):
 
     options = RefineOptions(form.pdb_file)
 
-    jobs = JobsSet("process datasets")
+    jobs = JobsSet("refine structures")
     hpc = get_hpc_runner()
 
     for proc_result in form.get_process_results():
@@ -77,6 +80,43 @@ def refine(request):
         for pipeline in form.get_pipelines():
             batch = generate_refine_batch(
                 pipeline, project, dataset, proc_tool, mtz, options
+            )
+            batch.save()
+
+            jobs.add_job(batch)
+            add_update_job(jobs, hpc, project, pipeline.get_name(), dataset, batch)
+
+    jobs.submit()
+
+    return HttpResponse("ok")
+
+
+def ligfit(request):
+    project = current_project(request)
+    form = LigfitForm(project, request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
+
+    options = LigfitOptions(form.get_restrains_tool())
+
+    jobs = JobsSet("fit ligands")
+    hpc = get_hpc_runner()
+
+    for ref_res in form.get_refine_results():
+        result_dir = project.get_refine_result_dir(ref_res)
+        dataset = ref_res.dataset
+        fragment = get_crystals_fragment(dataset.crystal)
+
+        for pipeline in form.get_pipelines():
+            batch = generate_ligfit_batch(
+                project,
+                pipeline,
+                dataset,
+                fragment,
+                ref_res.process_tool,
+                ref_res.refine_tool,
+                result_dir,
+                options,
             )
             batch.save()
 
