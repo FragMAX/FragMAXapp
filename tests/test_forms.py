@@ -27,41 +27,6 @@ class JobsFormTesterMixin:
         )
 
 
-class TestLigfitForm(test.TestCase, JobsFormTesterMixin):
-    def test_rho_fit(self):
-        request = self._request(dict(useRhoFit="on"))
-
-        form = forms.LigfitForm(request.POST)
-
-        valid = form.is_valid()
-        self.assertTrue(valid)
-        self.assertTrue(form.use_rho_fit)
-        self.assertFalse(form.use_phenix_ligfit)
-
-    def test_use_both(self):
-        request = self._request(
-            dict(
-                datasetsFilter=self.DS_FILTER,
-                useRhoFit="on",
-                usePhenixLigfit="on",
-                customLigFit="cLigFit",
-                customRhoFit="cRhoFit",
-                cifMethod="grade",
-            )
-        )
-
-        form = forms.LigfitForm(request.POST)
-
-        valid = form.is_valid()
-        self.assertTrue(valid)
-        self.assertEqual(form.datasets_filter, self.DS_FILTER)
-        self.assertTrue(form.use_rho_fit)
-        self.assertTrue(form.use_phenix_ligfit)
-        self.assertEqual(form.custom_ligfit, "cLigFit")
-        self.assertEqual(form.custom_rhofit, "cRhoFit")
-        self.assertEqual(form.cif_method, "grade")
-
-
 class TestKillJobForm(test.TestCase):
     ReqsFactory = RequestFactory()
 

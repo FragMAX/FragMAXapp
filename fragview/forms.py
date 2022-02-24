@@ -20,65 +20,6 @@ class _GetFieldMixin:
         return self.cleaned_data[name]
 
 
-# TODO: remove me?
-class _ProcJobForm(Form, _GetFieldMixin):
-    spaceGroup = CharField(required=False)
-    datasetsFilter = CharField(required=False)
-
-    def clean_spaceGroup(self):
-        space_group_name = self.space_group
-        if space_group_name == "":
-            # no space group specified, aka 'auto' space group
-            return None
-
-        space_group = get_space_group(space_group_name)
-        if space_group is None:
-            raise ValidationError(
-                f"unsupported space group '{space_group_name}' specified"
-            )
-
-        return space_group
-
-    # note: this properties are only valid after call to is_valid()
-
-    @property
-    def space_group(self):
-        return self._get_field("spaceGroup")
-
-    @property
-    def datasets_filter(self):
-        return self._get_field("datasetsFilter")
-
-
-# TODO: remove me?
-class OldLigfitForm(_ProcJobForm):
-    useRhoFit = BooleanField(required=False)
-    usePhenixLigfit = BooleanField(required=False)
-    customLigFit = CharField(required=False)
-    customRhoFit = CharField(required=False)
-    cifMethod = CharField(required=False)
-
-    @property
-    def use_rho_fit(self):
-        return self._get_field("useRhoFit")
-
-    @property
-    def use_phenix_ligfit(self):
-        return self._get_field("usePhenixLigfit")
-
-    @property
-    def custom_ligfit(self):
-        return self._get_field("customLigFit")
-
-    @property
-    def custom_rhofit(self):
-        return self._get_field("customRhoFit")
-
-    @property
-    def cif_method(self):
-        return self._get_field("cifMethod")
-
-
 class _JobsForm(Form, _GetFieldMixin):
     pipelines = CharField()
 
