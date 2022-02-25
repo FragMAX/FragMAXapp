@@ -1,7 +1,7 @@
+from typing import Optional
 import time
 import shutil
 import natsort
-import threading
 from glob import glob
 from random import randint
 from pathlib import Path
@@ -13,7 +13,7 @@ from django.http import (
     HttpResponseRedirect,
     HttpResponseBadRequest,
 )
-from fragview import hpc, versions
+from fragview import versions
 from fragview.forms import PanddaProcessForm
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
@@ -41,16 +41,6 @@ from fragview.pandda import (
 from pony.orm import db_session, select
 from fragview.sites.plugin import Duration, DataSize
 from jobs.client import JobsSet
-
-
-def str2bool(v):
-    if not type(v) == bool:
-        if v.lower() in ("yes", "true", "t", "1"):
-            return True
-        else:
-            return False
-    else:
-        return v
 
 
 def inspect(request):
@@ -771,98 +761,52 @@ def process(request):
     if not form.is_valid():
         return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
+    project = current_project(request)
+
     print(f"{form.processing_tool=}")
     print(f"{form.refinement_tool=}")
+    print(f"{form.restrains_tool=}")
     print(f"{form.use_known_apo=}")
     print(f"{form.use_dmso_datasets=}")
     print(f"{form.reprocess_z_maps=}")
     print(f"{form.num_of_cores=}")
     print(f"{form.min_ground_datasets=}")
     print(f"{form.max_r_free=}")
-    print(f"{form.resolution_low_limit=}")
-    print(f"{form.resolution_high_limit=}")
+    print(f"{form.resolution_upper_limit=}")
+    print(f"{form.resolution_lower_limit=}")
     print(f"{form.custom_parameters=}")
 
-    return HttpResponse("okiedokie")
+    custom_pandda = (
+        f"{form.custom_parameters} max_rfree={form.max_r_free} "
+        f"high_res_upper_limit={form.resolution_upper_limit} "
+        f"high_res_lower_limit={form.resolution_lower_limit}"
+    )
 
+    options = {
+        "useApos": form.use_known_apo,
+        # 'dtsfilter' and 'useSelected' are unused flags to specify
+        # specific datasets to process
+        "dtsfilter": "null",
+        "useSelected": False,
+        "reprocessZmap": form.reprocess_z_maps,
+        "initpass": True,
+        "min_datasets": form.min_ground_datasets,
+        "customPanDDA": custom_pandda,
+        "reprocessing": False,
+        "reprocessing_mode": "reprocess",
+        "nproc": form.num_of_cores,
+    }
 
-# TODO remove me (to be replaced by process() above)
-def submit(request):
-    project = current_project(request)
+    start_thread(
+        pandda_worker,
+        project,
+        form.processing_tool,
+        form.refinement_tool,
+        options,
+        form.restrains_tool,
+    )
 
-    panddaCMD = str(request.GET.get("panddaform"))
-
-    if "analyse" in panddaCMD:
-        (
-            function,
-            proc,
-            ref,
-            use_apo,
-            use_dmso,
-            reproZmaps,
-            use_CAD,
-            ref_CAD,
-            ign_errordts,
-            keepup_last,
-            ign_symlink,
-            PanDDAfilter,
-            min_dataset,
-            customPanDDA,
-            cifMethod,
-            ncpus,
-            blacklist,
-        ) = panddaCMD.split(";")
-
-        method = proc + "_" + ref
-
-        if PanDDAfilter == "null":
-            useSelected = False
-        else:
-            useSelected = True
-
-        if min_dataset.isnumeric():
-            min_dataset = int(min_dataset)
-        else:
-            min_dataset = 40
-
-        options = {
-            "method": method,
-            "blacklist": blacklist,
-            "useApos": str2bool(use_apo),
-            "useSelected": useSelected,
-            "reprocessZmap": str2bool(reproZmaps),
-            "initpass": True,
-            "min_datasets": min_dataset,
-            "rerun_state": False,
-            "dtsfilter": PanDDAfilter,
-            "customPanDDA": customPanDDA,
-            "reprocessing": False,
-            "reprocessing_mode": "reprocess",
-            "nproc": ncpus,
-        }
-
-        res_dir = Path(project.pandda_dir, method)
-
-        methodshort = proc[:2] + ref[:2]
-        if methodshort == "bebe":
-            methodshort = "best"
-
-        if not options["reprocessZmap"] and res_dir.exists():
-            t1 = threading.Thread(
-                target=pandda_worker,
-                args=(project, method, methodshort, options, cifMethod),
-            )
-            t1.daemon = True
-            t1.start()
-        elif options["reprocessZmap"]:
-            script = project_script(project, f"panddaRUN_{project.protein}{method}.sh")
-            hpc.run_sbatch(script)
-        else:
-            start_thread(
-                pandda_worker, project, method, methodshort, options, cifMethod
-            )
-
-        return render(request, "jobs_submitted.html", {"command": panddaCMD})
+    return HttpResponse("ok")
 
 
 def _write_main_script(
@@ -956,11 +900,13 @@ def _get_refine_results(project: Project, dataset, proc_tool=None, refine_tool=N
     return select(r for r in project.db.RefineResult if result_match(r))
 
 
-def _get_best_results(project: Project, proc_tool, refine_tool):
-    if proc_tool == "frag":
+def _get_best_results(
+    project: Project, proc_tool: Optional[str], refine_tool: Optional[str]
+):
+    if proc_tool == "fragplex":
         proc_tool = None
 
-    if refine_tool == "plex":
+    if refine_tool == "fragplex":
         refine_tool = None
 
     for dataset in project.get_datasets():
@@ -980,44 +926,49 @@ def _get_best_results(project: Project, proc_tool, refine_tool):
 
 
 @db_session
-def pandda_worker(project: Project, method, methodshort, options, cif_method):
+def pandda_worker(project: Project, proc_tool, refine_tool, options, cif_method):
     rn = str(randint(10000, 99999))
     prepare_scripts = []
 
-    proc_tool, refine_tool = method.split("_")
-    refine_results = _get_best_results(project, proc_tool, refine_tool)
+    method = f"{proc_tool}_{refine_tool}"
+    methodshort = proc_tool[:2] + proc_tool[:2]
+
+    options["method"] = method
 
     selection = PanddaSelectedDatasets()
-
-    for refine_result in refine_results:
-        res_dir = project.get_refine_result_dir(refine_result)
-        final_pdb = Path(res_dir, "final.pdb")
-        final_mtz = Path(res_dir, "final.mtz")
-
-        selection.add(refine_result.dataset.name, final_pdb)
-
-        res_high, free_r_flag, native_f, sigma_fp = read_info(project, str(final_mtz))
-
-        script = _write_prepare_script(
-            project,
-            rn,
-            method,
-            refine_result.dataset,
-            final_pdb,
-            final_mtz,
-            res_high,
-            free_r_flag,
-            native_f,
-            sigma_fp,
-            cif_method,
-        )
-
-        prepare_scripts.append(script)
-
     pandda_dir = Path(project.pandda_dir, method)
     pandda_dir.mkdir(parents=True, exist_ok=True)
 
-    selection.save(Path(pandda_dir))
+    if not options["reprocessZmap"]:
+        refine_results = _get_best_results(project, proc_tool, refine_tool)
+        for refine_result in refine_results:
+            res_dir = project.get_refine_result_dir(refine_result)
+            final_pdb = Path(res_dir, "final.pdb")
+            final_mtz = Path(res_dir, "final.mtz")
+
+            selection.add(refine_result.dataset.name, final_pdb)
+
+            res_high, free_r_flag, native_f, sigma_fp = read_info(
+                project, str(final_mtz)
+            )
+
+            script = _write_prepare_script(
+                project,
+                rn,
+                method,
+                refine_result.dataset,
+                final_pdb,
+                final_mtz,
+                res_high,
+                free_r_flag,
+                native_f,
+                sigma_fp,
+                cif_method,
+            )
+
+            prepare_scripts.append(script)
+
+        selection.save(Path(pandda_dir))
 
     main_script = _write_main_script(project, pandda_dir, method, methodshort, options)
 
@@ -1030,6 +981,9 @@ def pandda_worker(project: Project, method, methodshort, options, cif_method):
         jobs.add_job(prep_script)
 
     jobs.add_job(main_script, run_after=prepare_scripts)
+
+    print("done!")
+
     jobs.submit()
 
 
