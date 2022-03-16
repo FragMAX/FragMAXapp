@@ -1,9 +1,10 @@
+from typing import Iterable, Tuple
 import re
 
 SBATCH_REPLY = re.compile(r"^Submitted batch job (\d+)")
 
 
-def parse_sbatch_reply(reply):
+def parse_sbatch_reply(reply: str) -> str:
     for line in reply.splitlines():
         match = SBATCH_REPLY.match(line)
         if match is not None:
@@ -21,7 +22,7 @@ SACCT_STATUS_LINE = re.compile(
 )
 
 
-def parse_sacct_reply(reply):
+def parse_sacct_reply(reply: str) -> Iterable[Tuple[str, str]]:
     def as_lines(output):
         for line in output.splitlines():
             yield line
