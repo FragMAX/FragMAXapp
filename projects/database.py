@@ -54,6 +54,7 @@ def create_project_db(
             encrypted=encrypted,
             encryption_key=encryption_key,
         )
+        db.Details(deposit_pandda=False)
 
     return db
 

@@ -2,10 +2,58 @@ import typing
 from datetime import datetime
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
 
-LATEST_SCHEMA_VERSION = "1"
+LATEST_SCHEMA_VERSION = "2"
 
 
 def _define_entities(db):
+    # project's deposition details
+    class Details(db.Entity):
+        # sequence release status
+        sequence_release = Optional(str)
+        # coordinates/structure factors release status
+        coordinates_release = Optional(str)
+        deposition_title = Optional(str)
+        description = Optional(str)
+        keywords = Optional(str)
+        biological_assembly = Optional(str)
+        structure_title = Optional(str)
+        # make this boolean field required, so we don't need
+        # to deal with 'none', 'true' and 'false'
+        deposit_pandda = Required(bool)
+        apo_structure_title = Optional(str)
+        starting_model = Optional(str)
+
+        principal_investigator = Optional(lambda: Scientist)  # type: ignore
+
+    class ProteinEntity(db.Entity):
+        uniprot_id = Optional(str)
+        sequence = Optional(str)
+
+    class Funding(db.Entity):
+        organization = Optional(str)
+        grant_number = Optional(str)
+
+    class Scientist(db.Entity):
+        orcid = Optional(str)
+        salutation = Optional(str)
+        first_name = Optional(str)
+        last_name = Optional(str)
+        role = Optional(str)
+        organization_type = Optional(str)
+        organization_name = Optional(str)
+        street = Optional(str)
+        city = Optional(str)
+        zip_code = Optional(str)
+        country = Optional(str)
+        email = Optional(str)
+        phone = Optional(str)
+
+        project = Optional(Details)  # type: ignore
+
+    class Author(db.Entity):
+        orcid = Optional(str)
+        name = Optional(str)
+
     class Project(db.Entity):
         proposal = PrimaryKey(str)
         protein = Required(str)

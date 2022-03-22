@@ -54,6 +54,7 @@ exclude = "worker/data/pandda_prepare_runs.py|fragview/migrations/|static/"
         "django.core.wsgi",
         "django.views.decorators.csrf",
         "django.contrib.auth.models",
+        "django.http.request",
         "django.core.management",
         "django.core.management.base",
         "django.core.files.uploadedfile",
@@ -63,5 +64,6 @@ exclude = "worker/data/pandda_prepare_runs.py|fragview/migrations/|static/"
         "asyncssh",
         "zipstream",
         "xmltodict",
+        "jsonschema",
     ]
     ignore_missing_imports = true

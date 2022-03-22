@@ -54,6 +54,11 @@ class Project:
         return self._project_model.proposal
 
     @property
+    def details(self):
+        # there should only be one row in Details table
+        return self.db.Details.select().first()
+
+    @property
     def encrypted(self) -> bool:
         return self._project_model.encrypted
 
@@ -88,6 +93,9 @@ class Project:
 
     def get_pdbs(self):
         return self.db.PDB.select()
+
+    def get_scientists(self):
+        return self.db.Scientist.select()
 
     #
     # Look-up PDB by it's database id and/or filename

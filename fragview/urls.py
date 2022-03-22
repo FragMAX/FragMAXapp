@@ -2,11 +2,11 @@ from django.urls import path, re_path
 from fragview.views import (
     projects,
     datasets,
+    details,
     snapshot,
     hpc,
     results,
     density,
-    misc,
     analysis,
     pandda,
     pdbs,
@@ -60,7 +60,6 @@ urlpatterns = [
     # pandda HTML report for a specific analysis run
     path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
     path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
-    path("project_details/", misc.project_details, name="project_details"),
     path("libraries/show", libraries.show, name="libraries"),
     path("libraries/<library_id>/json", libraries.as_json, name="libraries"),
     path("libraries/<library_id>/csv", libraries.as_csv, name="libraries"),
@@ -74,6 +73,9 @@ urlpatterns = [
     path("project/new", projects.new, name="new_project"),
     path("project/<int:id>", projects.delete),
     path("project/current/<int:id>/", projects.set_current),
+    # project details (for PDB deposition) view
+    path("project/details/ui", details.ui),
+    path("project/details", details.details),
     # encryption key management views
     path("encryption/", encryption.show, name="encryption"),
     path("encryption/key/", encryption.download_key),

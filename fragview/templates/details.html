@@ -1,0 +1,730 @@
+{% extends 'base.html' %}
+{% block title %}Project Details{% endblock %}
+{% block content %}
+
+<script src="/static/js/vue-3.2.32.global.prod.js"></script>
+
+<script>
+const CSRF_TOKEN = "{{csrf_token}}";
+
+const SALUTATIONS = [
+    {% for salutation in salutations %}
+        "{{salutation}}",
+    {% endfor %}
+];
+
+const ROLES = [
+    {% for role in roles %}
+        "{{role}}",
+    {% endfor %}
+];
+
+const ORGANIZATION_TYPES = [
+    {% for org_type in organization_types %}
+        "{{org_type}}",
+    {% endfor %}
+];
+
+const COUNTRIES = [
+    {% for country in countries %}
+        "{{country}}",
+    {% endfor %}
+];
+
+const SEQUENCE_RELEASE = [
+    {% for srel in sequence_release %}
+        "{{srel}}",
+    {% endfor %}
+];
+
+const COORDINATES_RELEASE = [
+    {% for crel in coordinates_release %}
+        "{{crel}}",
+    {% endfor %}
+];
+
+const FUNDING_ORGANIZATIONS = [
+    {% for org in funding_organizations %}
+        "{{org}}",
+    {% endfor %}
+];
+</script>
+
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+.tab
+{
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button
+{
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+/* Create an active/current tablink class */
+.tab button.active
+{
+    background-color: #82be00;
+}
+
+/* Create an active/current tablink class */
+.tab button.active
+{
+    background-color: #fea901;
+}
+
+.contact-tab
+{
+    max-width: 750px;
+    width: 60%;
+}
+
+.authors-tab
+{
+    max-width: 900px;
+    width: 80%;
+}
+
+.general-tab
+{
+    max-width: 850px;
+    width: 80%;
+}
+
+.entities-tab
+{
+    max-width: 950px;
+    width: 80%;
+}
+
+.funding-tab
+{
+    max-width: 950px;
+    width: 80%;
+}
+
+.selectbox
+{
+    display: flex !important;
+    width: 200px;
+}
+
+.sequence-box
+{
+    height: 180px;
+}
+
+.btn-right
+{
+    float: right;
+}
+
+.hidden
+{
+    display: none;
+}
+</style>
+
+{% verbatim %}
+
+<div>
+    <h4>Project Details</h4>
+    Project details to use for PDB group deposition.
+</div>
+
+<div id="app">
+    <div>
+        <div id="tab" class="card tab">
+            <button v-for="tab in ui.tabs" @click="showTab(`${tab}`)"
+                    :class="{ active: isActiveTab(tab) }">
+                {{ tab }}
+            </button>
+        </div>
+        <div>
+            <button @click="save" class="btn btn-right">Save</button>
+        </div>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('Contact')}">
+        <div class="card contact-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Principal Investigator
+                </div>
+
+                <table>
+                    <tr>
+                        <td>ORCID</td>
+                        <td><input v-model="PrincipalInvestigator.ORCID"/></td>
+                    </tr>
+                    <tr>
+                        <td>Salutation</td>
+                        <td>
+                            <select v-model="PrincipalInvestigator.Salutation" class="selectbox">
+                                <option v-for="salutation in ui.pdbx.salutations">
+                                    {{salutation}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>First Name</td>
+                        <td><input v-model="PrincipalInvestigator.FirstName"/></td>
+                    </tr>
+                    <tr>
+                        <td>Last Name</td>
+                        <td><input v-model="PrincipalInvestigator.LastName"/></td>
+                    </tr>
+                    <tr>
+                        <td>Role</td>
+                        <td>
+                            <select v-model="PrincipalInvestigator.Role" class="selectbox">
+                                <option v-for="role in ui.pdbx.roles">
+                                    {{role}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Organization Type</td>
+                        <td>
+                            <select v-model="PrincipalInvestigator.OrganizationType" class="selectbox">
+                                <option v-for="org_type in ui.pdbx.organization_types">
+                                    {{org_type}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Organization Name</td>
+                        <td>
+                            <input v-model="PrincipalInvestigator.OrganizationName"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Street</td>
+                        <td><input v-model="PrincipalInvestigator.Street"/></td>
+                    </tr>
+                    <tr>
+                        <td>City</td>
+                        <td><input v-model="PrincipalInvestigator.City"/></td>
+                    </tr>
+                    <tr>
+                        <td>ZIP Code</td>
+                        <td><input v-model="PrincipalInvestigator.ZIPCode"/></td>
+                    </tr>
+                    <tr>
+                        <td>Country</td>
+                        <td>
+                            <select v-model="PrincipalInvestigator.Country" class="selectbox">
+                                <option v-for="country in ui.pdbx.countries">
+                                    {{country}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>E-mail</td>
+                        <td><input v-model="PrincipalInvestigator.Email"/></td>
+                    </tr>
+                    <tr>
+                        <td>Phone</td>
+                        <td><input v-model="PrincipalInvestigator.Phone"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div v-for="entry in ResponsibleScientists" class="card contact-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Responsible Scientist
+                    <button @click="deleteContact(entry.id)" class="btn-small btn-right">
+                        delete
+                    </button>
+                </div>
+                <table>
+                    <tr>
+                        <td>ORCID</td>
+                        <td><input v-model="entry.item.ORCID"/></td>
+                    </tr>
+                    <tr>
+                        <td>Salutation</td>
+                        <td>
+                            <select v-model="entry.item.Salutation" class="selectbox">
+                                <option v-for="salutation in ui.pdbx.salutations">
+                                    {{salutation}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>First Name</td>
+                        <td><input v-model="entry.item.FirstName"/></td>
+                    </tr>
+                    <tr>
+                        <td>Last Name</td>
+                        <td><input v-model="entry.item.LastName"/></td>
+                    </tr>
+                    <tr>
+                        <td>Role</td>
+                        <td>
+                            <select v-model="entry.item.Role" class="selectbox">
+                                <option v-for="role in ui.pdbx.roles">
+                                    {{role}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Organization Type</td>
+                        <td>
+                            <select v-model="entry.item.OrganizationType" class="selectbox">
+                                <option v-for="org_type in ui.pdbx.organization_types">
+                                    {{org_type}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Organization Name</td>
+                        <td><input v-model="entry.item.OrganizationName"/></td>
+                    </tr>
+                    <tr>
+                        <td>Street</td>
+                        <td><input v-model="entry.item.Street"/></td>
+                    </tr>
+                    <tr>
+                        <td>City</td>
+                        <td><input v-model="entry.item.City"/></td>
+                    </tr>
+                    <tr>
+                        <td>ZIP Code</td>
+                        <td><input v-model="entry.item.ZIPCode"/></td>
+                    </tr>
+                    <tr>
+                        <td>Country</td>
+                        <td>
+                            <select v-model="entry.item.Country" class="selectbox">
+                                <option v-for="country in ui.pdbx.countries">
+                                    {{country}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>E-mail</td>
+                        <td><input v-model="entry.item.Email"/></td>
+                    </tr>
+                    <tr>
+                        <td>Phone</td>
+                        <td><input v-model="entry.item.Phone"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <button @click="addContact" class="btn-small">
+            add contact
+        </button>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('Authors')}">
+        <div class="card authors-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Deposition Authors
+                </div>
+                <table>
+                    <tr v-for="entry in Authors">
+                        <td>Surname, F.M.</td>
+                        <td><input v-model="entry.item.Name"/></td>
+                        <td>ORCID</td>
+                        <td><input v-model="entry.item.ORCID"/></td>
+                        <td>
+                            <button @click="deleteAuthor(entry.id)" class="btn-small">
+                                delete
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <button @click="addAuthor" id="addAuthorButton" class="btn-small">
+            add author
+        </button>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('General')}">
+        <div class="card general-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Release Status
+                </div>
+                <table>
+                    <tr>
+                        <td>Sequence</td>
+                        <td>
+                            <select v-model="details.SequenceRelease" class="selectbox">
+                                <option v-for="srel in ui.pdbx.sequence_release">
+                                    {{srel}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Coordinates/Structure Factors</td>
+                        <td>
+                            <select v-model="details.CoordinatesRelease" class="selectbox">
+                                <option v-for="crel in ui.pdbx.coordinates_release">
+                                    {{crel}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card general-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Group Deposition Title and Details
+                </div>
+                <table>
+                    <tr>
+                        <td>Deposition Title</td>
+                        <td><input v-model="details.DepositionTitle"/></td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td><textarea v-model="details.Description"></textarea></td>
+                    </tr>
+                    <tr>
+                        <td>Keywords</td>
+                        <td>
+                            <input v-model="details.Keywords"
+                                   placeholder="beta barrel, protein-DNA complex"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Biological Assembly</td>
+                        <td><input v-model="details.BiologicalAssembly"/></td>
+                    </tr>
+                    <tr>
+                        <td>Structure Title (Ligand Bound)</td>
+                        <td><input v-model="details.StructureTitle"/></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="checkbox">
+                                <label>
+                                    <input v-model="details.DepositPandda"
+                                           class="filled-in dt-checkboxes"
+                                        id="depositPandda" type="checkbox"/>
+                                    <span>Deposit PanDDA Models</span>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Apo Structure Title</td>
+                        <td>
+                            <input v-model="details.ApoStructureTitle"
+                                   :disabled="!details.DepositPandda"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card general-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Input Model
+                </div>
+                <table>
+                    <tr>
+                        <td>PDB Starting Model (PDB ID)</td>
+                        <td><input v-model="details.StartingModel" maxlength="4"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('Entities')}">
+        <div class="card entities-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Entities
+                </div>
+                <table v-for="entry in Entities">
+                    <tr>
+                        <td>UNIPROT ID</td>
+                        <td><input v-model="entry.item.UniprotID"/></td>
+                        <td>
+                            <button @click="deleteEntity(entry.id)" class="btn-small btn-right">
+                                delete
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sequence</td>
+                        <td colspan="2">
+                            <textarea v-model="entry.item.Sequence" class="sequence-box"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <button @click="addEntity" class="btn-small">
+            add entity
+        </button>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('Funding')}">
+        <div class="card funding-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Funding
+                </div>
+                <table v-for="entry in Funding">
+                    <tr>
+                        <td>Funding Organization</td>
+                        <td>
+                            <select v-model="entry.item.Organization" class="selectbox">
+                                <option v-for="org in ui.pdbx.funding_organizations">
+                                    {{org}}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button @click="deleteFunding(entry.id)" class="btn-small btn-right">
+                                delete
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Grant Number</td>
+                        <td><input v-model="entry.item.GrantNumber"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <button @click="addFunding" class="btn-small">
+            add organization
+        </button>
+    </div>
+
+</div>
+
+<script>
+const DETAILS_URL = "/project/details";
+
+class IDs
+{
+    constructor(htmlRow)
+    {
+        this.nextId = 0;
+        this.objToId = new Map();
+    }
+
+    getId(obj)
+    {
+        if (this.objToId.has(obj))
+        {
+            return this.objToId.get(obj);
+        }
+
+        const objId = this.nextId++;
+        this.objToId.set(obj, objId);
+
+        return objId;
+    }
+}
+const ids = new IDs();
+
+function wrapWithIds(items)
+{
+    let entries = [];
+    for (const item of items)
+    {
+        entries.push({id: ids.getId(item), item: item});
+    }
+    return entries;
+}
+
+function loadData()
+{
+    return fetch(DETAILS_URL,
+    {
+        method: "GET",
+    })
+    .then(function(response)
+    {
+        return response.text().then(function(text)
+        {
+            if (!response.ok)
+            {
+                alert(`error loading project details:\n${text}`);
+                return;
+            }
+            return JSON.parse(text);
+        });
+    })
+    .catch(function(error)
+    {
+        alert(error.message);
+    });
+}
+
+function postData(details)
+{
+    const data = new FormData();
+
+    data.append("csrfmiddlewaretoken", CSRF_TOKEN);
+    data.append("details", JSON.stringify(details));
+
+    return fetch(DETAILS_URL,
+    {
+        method: "POST",
+        body: data,
+    })
+    .then(function(response)
+    {
+        return response.text().then(function(text)
+        {
+            if (!response.ok)
+            {
+                alert(`error saving project details:\n${text}`);
+                return;
+            }
+        });
+    })
+    .catch(function(error)
+    {
+        alert(error.message);
+    });
+
+}
+
+function createVueApp(details)
+{
+return Vue.createApp({
+    data() {
+        return {
+            details: details,
+            ui: {
+                activeTab: "Contact",
+                tabs: [ "Contact", "Authors", "General", "Entities", "Funding" ],
+                /* predefined strings accepted by PDB organization */
+                pdbx: {
+                    salutations: SALUTATIONS,
+                    roles: ROLES,
+                    organization_types: ORGANIZATION_TYPES,
+                    countries: COUNTRIES,
+                    sequence_release: SEQUENCE_RELEASE,
+                    coordinates_release: COORDINATES_RELEASE,
+                    funding_organizations: FUNDING_ORGANIZATIONS,
+                },
+            },
+        };
+    },
+    computed: {
+        PrincipalInvestigator() {
+            return this.details.PrincipalInvestigator;
+        },
+        ResponsibleScientists() {
+            return wrapWithIds(this.details.ResponsibleScientists);
+        },
+        Authors() {
+            return wrapWithIds(this.details.Authors);
+        },
+        Entities() {
+            return wrapWithIds(this.details.Entities);
+        },
+        Funding()
+        {
+            return wrapWithIds(this.details.Funding);
+        },
+    },
+    methods: {
+        showTab(tabName)
+        {
+            this.ui.activeTab = tabName;
+        },
+        isActiveTab(tabName)
+        {
+            return this.ui.activeTab == tabName;
+        },
+        save()
+        {
+            postData(this.details);
+        },
+        deleteContact(contactId)
+        {
+            this.details.ResponsibleScientists =
+                this.details.ResponsibleScientists.filter(obj => ids.getId(obj) != contactId);
+        },
+        addContact()
+        {
+            this.details.ResponsibleScientists.push({});
+        },
+        deleteAuthor(authorId)
+        {
+            this.details.Authors =
+                this.details.Authors.filter(obj => ids.getId(obj) != authorId);
+        },
+        addAuthor()
+        {
+            this.details.Authors.push({});
+        },
+        deleteEntity(entityId)
+        {
+            this.details.Entities =
+                this.details.Entities.filter(obj => ids.getId(obj) != entityId);
+        },
+        addEntity()
+        {
+            this.details.Entities.push({});
+        },
+        deleteFunding(entityId)
+        {
+            this.details.Funding =
+                this.details.Funding.filter(obj => ids.getId(obj) != entityId);
+        },
+        addFunding()
+        {
+            this.details.Funding.push({});
+        },
+    },
+});
+}
+
+loadData().then(function (details)
+{
+    const app = createVueApp(details);
+    app.mount('#app');
+});
+
+</script>
+{% endverbatim %}
+
+{% endblock %}

@@ -6,6 +6,7 @@ dependencies:
   - django=3.2.10
   - natsort=6.0.0
   - requests=2.25.1
+  - jsonschema=4.4.0
   - gemmi=0.4.5
   - rdkit=2019.09.3
   - fabio=0.10.2
