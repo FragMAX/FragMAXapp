@@ -24,3 +24,5 @@ def create_library(library: Library):
             library=db_lib, code=fragment.code, smiles=fragment.smiles
         )
         db_frag.save()
+
+    return db_lib
