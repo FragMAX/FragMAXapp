@@ -96,11 +96,11 @@ def import_csv(request):
     if request.method != "POST":
         return HttpResponseBadRequest("expected POST request")
 
-    form = CrystalsImportForm(request.POST, request.FILES)
+    project = current_project(request)
+    form = CrystalsImportForm(project, request.POST, request.FILES)
     if not form.is_valid():
         return HttpResponseBadRequest(form.get_error_message())
 
-    project = current_project(request)
     crystals = form.get_crystals()
 
     try:

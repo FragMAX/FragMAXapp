@@ -1,35 +1,17 @@
 from typing import Dict
-import yaml
 from pathlib import Path
-from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
-from fragview.models import Library, Fragment
+from fragview.fraglibs import parse_fraglib_yml, create_db_library, LibraryAlreadyExist
 
 
-def _load_yml(yml_file: Path):
-    with yml_file.open() as f:
-        return yaml.safe_load(f)
+def _create_library(name: str, fragments: Dict[str, str]):
+    try:
+        create_db_library(None, name, fragments)
+    except LibraryAlreadyExist as e:
+        raise CommandError(f"{e}")
 
-
-@transaction.atomic
-def _create_library(lib_desc: Dict):
-    lib_name = lib_desc["name"]
-
-    # check if this library already exist
-    if Library.objects.filter(name=lib_name).exists():
-        raise CommandError(
-            f"Fragments library '{lib_name}' already exists, refusing to overwrite."
-        )
-
-    lib = Library(name=lib_name)
-    lib.save()
-
-    for code, smiles in lib_desc["fragments"].items():
-        frag = Fragment(library=lib, code=code, smiles=smiles)
-        frag.save()
-
-    num_frags = len(lib_desc["fragments"].keys())
-    print(f"added library '{lib_name}' with {num_frags} fragments")
+    num_frags = len(fragments.items())
+    print(f"added library '{name}' with {num_frags} fragments")
 
 
 class Command(BaseCommand):
@@ -50,5 +32,5 @@ class Command(BaseCommand):
         if not yml_file.is_file():
             raise CommandError(f"can't read file: {yml_file}")
 
-        lib = _load_yml(yml_file)
-        _create_library(lib)
+        name, fragmens = parse_fraglib_yml(yml_file)
+        _create_library(name, fragmens)

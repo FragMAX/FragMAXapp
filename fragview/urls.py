@@ -60,9 +60,13 @@ urlpatterns = [
     # pandda HTML report for a specific analysis run
     path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
     path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
+    # fragment libraries views
     path("libraries/show", libraries.show, name="libraries"),
+    path("libraries/new", libraries.new, name="libraries"),
     path("libraries/<library_id>/json", libraries.as_json, name="libraries"),
     path("libraries/<library_id>/csv", libraries.as_csv, name="libraries"),
+    path("libraries/import", libraries.import_new),
+    # project fragments view
     path("fragments/show", fragments.show, name="library_view"),
     # crystals management views
     path("crystals", crystals.show),

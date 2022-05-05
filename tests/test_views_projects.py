@@ -77,17 +77,26 @@ class TestNewErrs(unittest.TestCase, ViewTesterMixin):
         self.assert_contains_template(resp, "project_new.html")
 
     def test_new_invalid(self):
-        resp = self.client.post("/project/new")
+        resp = self.client.post(
+            "/project/new",
+            dict(
+                protein=PROTO,
+                proposal=self.PROP1,
+                crystals=_crystals_csv_mock("FragmentCode,SampleID\n"),
+            ),
+        )
 
-        # we normally fail on crystal CSV first
-        self.assert_bad_request(resp, "Could not parse Crystals CSV")
+        # we should fail with missing column in crystals CSV
+        self.assert_bad_request(
+            resp, "Could not parse Crystals CSV.\nMissing column: FragmentLibrary."
+        )
 
 
-def _crystals_csv_mock():
+def _crystals_csv_mock(csv_content):
     # create a mocked 'file-like' object
     csv_file = mock.Mock()
     csv_file.name = "AR.csv"
-    csv_file.read.return_value = AR_CSV
+    csv_file.read.return_value = csv_content
 
     return csv_file
 
@@ -136,7 +145,7 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
             dict(
                 protein=PROTO,
                 proposal=self.PROP1,
-                crystals_csv_file=_crystals_csv_mock(),
+                crystals=_crystals_csv_mock(AR_CSV),
             ),
         )
 
@@ -172,6 +181,7 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
                     FragmentCode="T2",
                 ),
             ],
+            {},
             False,
             False,
         )

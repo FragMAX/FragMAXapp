@@ -8,6 +8,7 @@ from pathlib import Path
 from fragview.sites import SITE
 from projects.database import db_session
 from fragview.crystals import Crystals, Crystal
+from fragview.fraglibs import create_db_library, LibraryType
 from fragview.models import UserProject, Fragment
 from fragview.status import scrape_imported_autoproc_status
 from fragview.projects import PANDDA_WORKER
@@ -26,6 +27,7 @@ def setup_project(
     protein: str,
     proposal: str,
     crystals: List[Dict[str, str]],
+    libraries: Dict[str, LibraryType],
     import_autoproc: bool,
     encrypted: bool,
 ):
@@ -36,6 +38,7 @@ def setup_project(
         project = create_project(project_id, proposal, protein, encrypted)
 
         with db_session:
+            _create_frag_libs(project, libraries)
             _setup_project_folders(project)
             _add_crystals(project, Crystals.from_list(crystals))
             _add_datasets(project)
@@ -144,7 +147,7 @@ def _add_crystals(project: Project, crystals: Crystals):
             # pony ORM uses empty string as 'None'
             return ""
 
-        db_frag = Fragment.get(fragment.library, fragment.code)
+        db_frag = Fragment.get(project, fragment.library, fragment.code)
         return str(db_frag.id)
 
     def crystal_exist(crystal_id: str):
@@ -178,6 +181,11 @@ def _copy_scripts(project):
         script_files += ["crypt_files.py", "crypt_files.sh"]
 
     _copy_script_files(project, script_files)
+
+
+def _create_frag_libs(project: Project, libraries: Dict[str, Dict[str, str]]):
+    for name, fragments in libraries.items():
+        create_db_library(project, name, fragments)
 
 
 def _setup_project_folders(project: Project):

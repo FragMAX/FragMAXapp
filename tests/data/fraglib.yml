@@ -1,0 +1,8 @@
+name: TestLib
+fragments:
+  F00: "C1CCO[C@H](C1)C[NH3+]"
+  F01: "c1c(ncs1)C2CC2"
+  F02: "c1cc(cc(c1)Cl)CO"
+  F03: "c1cc(nc(c1)N)C(F)(F)F"
+  F04: "OC1CCCC2CCCC12"
+

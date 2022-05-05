@@ -71,7 +71,7 @@ def populate_project_db(project, project_desc: Project):
             # Apo crystal, return 'orm' version of 'None' fragment
             return ""
 
-        frag = models.Fragment.get(library_name, fragment_code)
+        frag = models.Fragment.get(project, library_name, fragment_code)
         return str(frag.id)
 
     #

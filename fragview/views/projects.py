@@ -1,7 +1,7 @@
 from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
-from fragview.models import UserProject, PendingProject
+from fragview.models import UserProject, PendingProject, Library
 from fragview.forms import ProjectForm
 from fragview.proposals import get_proposals
 from fragview.projects import current_project
@@ -83,11 +83,18 @@ def new(request):
     if not form.is_valid():
         return HttpResponseBadRequest(form.get_error_message())
 
-    protein, proposal, crystals, import_autoproc, encrypt = form.get_values()
+    protein, proposal, crystals, libraries, import_autoproc, encrypt = form.get_values()
+
     proj = UserProject.create_new(protein, proposal)
 
     setup_project.delay(
-        str(proj.id), protein, proposal, crystals.as_list(), import_autoproc, encrypt
+        str(proj.id),
+        protein,
+        proposal,
+        crystals.as_list(),
+        libraries,
+        import_autoproc,
+        encrypt,
     )
 
     return HttpResponse("ok")
@@ -102,11 +109,16 @@ def delete(_, id):
     #
     # Do a 'cosmetic' delete,
     # only delete the project from the list of existing projects.
-    # leave all data files will be left in-place.
+    # All data files will be left in-place.
     #
-    # This way it's should be possible to 'recover' a project,
+    # This way it should be possible to 'recover' a project,
     # deleted by mistake.
     #
+
+    # delete project's private fragment libraries
+    for lib in Library.get_all_private(id):
+        lib.delete()
+
     proj.delete()
 
     return HttpResponse(f"ok")

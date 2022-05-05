@@ -1,9 +1,8 @@
 from unittest import TestCase
 from io import BytesIO
-from django import test
 from fragview import crystals
-from fragview.models import Library, Fragment
 from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV, Crystals, Crystal
+from tests.utils import ProjectTestCase
 
 VALID_CSV = b"""SampleID,FragmentLibrary,FragmentCode
 MID2-x0017,FragMAXlib,VT00249
@@ -41,22 +40,15 @@ Cry1,MyLib,BT01
 """
 
 
-class TestParse(test.TestCase):
+class TestParse(TestCase):
     """
     test parsing crystals CSV file
     """
 
-    def setUp(self):
-        mylib = Library(name="FragMAXlib")
-        mylib.save()
-
-        frag = Fragment(
-            library=mylib, code="VT00249", smiles="O=C1N[C@@H](CO1)C1=CC=CC=C1"
-        )
-        frag.save()
+    LIBRARIES = {"FragMAXlib": {"VT00249": "O=C1N[C@@H](CO1)C1=CC=CC=C1"}}
 
     def test_ok(self):
-        crystals = parse_crystals_csv(BytesIO(VALID_CSV))
+        crystals = parse_crystals_csv(self.LIBRARIES, BytesIO(VALID_CSV))
         self.assertListEqual(
             crystals.as_list(),
             [
@@ -140,7 +132,7 @@ class TestFromList(TestCase):
         self.assertEqual(num_crystals, len(self.EXPECTED_CRYSTALS))
 
 
-class TestParseCrystalsCsvErrors(TestCase):
+class TestParseCrystalsCsvErrors(ProjectTestCase):
     """
     test cases where we get 'syntax errors' while parsing crystals CSV
     """
@@ -150,14 +142,14 @@ class TestParseCrystalsCsvErrors(TestCase):
         unparsable CSV case
         """
         with self.assertRaises(InvalidCrystalsCSV):
-            parse_crystals_csv(BytesIO(b'"'))
+            parse_crystals_csv(self.project, BytesIO(b'"'))
 
     def test_missing_required_cols(self):
         """
         required columns are missing
         """
         with self.assertRaisesRegex(InvalidCrystalsCSV, "^Missing columns:.*"):
-            parse_crystals_csv(BytesIO(MISSING_REQ_COLUMS))
+            parse_crystals_csv(self.project, BytesIO(MISSING_REQ_COLUMS))
 
     def test_unexpected_column(self):
         """
@@ -166,27 +158,22 @@ class TestParseCrystalsCsvErrors(TestCase):
         with self.assertRaisesRegex(
             InvalidCrystalsCSV, r"^Unexpected column: Suprise\."
         ):
-            parse_crystals_csv(BytesIO(UNEXPECTED_COLUMN))
+            parse_crystals_csv(self.project, BytesIO(UNEXPECTED_COLUMN))
 
     def test_empty_sample_id(self):
         """
         one of the crystals have an empty SampleID specified
         """
         with self.assertRaisesRegex(InvalidCrystalsCSV, r"Empty SampleID specified\."):
-            parse_crystals_csv(BytesIO(EMPTY_SAMPLE_ID))
+            parse_crystals_csv(self.project, BytesIO(EMPTY_SAMPLE_ID))
 
 
-class TestFragmentLibraryErrors(test.TestCase):
+class TestFragmentLibraryErrors(TestCase):
     """
     test cases when there is en error specifying ligand fragment
     """
 
-    def setUp(self):
-        mylib = Library(name="MyLib")
-        mylib.save()
-
-        frag = Fragment(library=mylib, code="VT000", smiles="CN1CCCC1CO")
-        frag.save()
+    LIBRARIES = {"MyLib": {"VT000": "CN1CCCC1CO"}}
 
     def test_missing_frag_library(self):
         """
@@ -195,7 +182,7 @@ class TestFragmentLibraryErrors(test.TestCase):
         with self.assertRaisesRegex(
             InvalidCrystalsCSV, r"^No fragment library specified for 'Cry2' crystal."
         ):
-            parse_crystals_csv(BytesIO(MISSING_FRAG_LIBRARY))
+            parse_crystals_csv(self.LIBRARIES, BytesIO(MISSING_FRAG_LIBRARY))
 
     def test_missing_frag_code(self):
         """
@@ -204,7 +191,7 @@ class TestFragmentLibraryErrors(test.TestCase):
         with self.assertRaisesRegex(
             InvalidCrystalsCSV, r"^No fragment code specified for 'Cry2' crystal."
         ):
-            parse_crystals_csv(BytesIO(MISSING_FRAG_CODE))
+            parse_crystals_csv(self.LIBRARIES, BytesIO(MISSING_FRAG_CODE))
 
     def test_unknown_frag_library(self):
         """
@@ -213,7 +200,7 @@ class TestFragmentLibraryErrors(test.TestCase):
         with self.assertRaisesRegex(
             InvalidCrystalsCSV, r"^Unknown fragment library 'Wat'."
         ):
-            parse_crystals_csv(BytesIO(UNKNOWN_FRAG_LIBRARY))
+            parse_crystals_csv(self.LIBRARIES, BytesIO(UNKNOWN_FRAG_LIBRARY))
 
     def test_unknown_frag_code(self):
         """
@@ -222,4 +209,4 @@ class TestFragmentLibraryErrors(test.TestCase):
         with self.assertRaisesRegex(
             InvalidCrystalsCSV, r"^No fragment BT01 in 'MyLib' library."
         ):
-            parse_crystals_csv(BytesIO(UNKNOW_FRAG_CODE))
+            parse_crystals_csv(self.LIBRARIES, BytesIO(UNKNOW_FRAG_CODE))

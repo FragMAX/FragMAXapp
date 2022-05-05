@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 import binascii
 from base64 import b64encode, b64decode
 from django.contrib.auth.models import AbstractBaseUser
@@ -6,6 +6,7 @@ from fragview import encryption
 from fragview.projects import Project, get_project
 from fragview.encryption import generate_token, now_utc
 from django.db.models import (
+    Q,
     Model,
     CharField,
     TextField,
@@ -26,22 +27,48 @@ class Library(Model):
     """
 
     # public libraries are available to all projects
-    name = TextField(unique=True)
+    name = TextField()
+    constraints = [UniqueConstraint(fields=["name", "project_id"], name="unique_names")]
+
+    #
+    # used to mark project private library
+    # is project_id is None - public library
+    # otherwise it's a library private to the specified project
+    #
+    project_id = TextField(null=True)
 
     def get_fragments(self):
         return self.fragment_set.all()
 
-    @staticmethod
-    def get(library_name: str) -> "Library":
-        return Library.objects.get(name=library_name)
+    def as_dict(self) -> Dict[str, str]:
+        frags = {}
+        for frag in self.get_fragments():
+            frags[frag.code] = frag.smiles
+
+        return frags
 
     @staticmethod
-    def get_by_id(library_id: str) -> "Library":
-        return Library.objects.get(id=library_id)
+    def get_by_name(project: Project, library_name: str) -> "Library":
+        return Library.get_all(project).get(name=library_name)
 
     @staticmethod
-    def get_all():
-        return Library.objects.all()
+    def get_by_id(project: Project, library_id: str) -> "Library":
+        return Library.get_all(project).get(id=library_id)
+
+    @staticmethod
+    def get_all(project: Optional[Project] = None):
+        # include all public libraries
+        query = Q(project_id=None)
+
+        if project is not None:
+            # include private libraries, if project is specified
+            query = query | Q(project_id=project.id)
+
+        return Library.objects.filter(query)
+
+    @staticmethod
+    def get_all_private(project_id):
+        return Library.objects.filter(project_id=project_id)
 
 
 class Fragment(Model):
@@ -58,9 +85,9 @@ class Fragment(Model):
     smiles = TextField()
 
     @staticmethod
-    def get(library_name: str, fragment_code: str) -> "Fragment":
+    def get(project: Project, library_name: str, fragment_code: str) -> "Fragment":
         return Fragment.objects.get(
-            library=Library.get(library_name), code=fragment_code
+            library=Library.get_by_name(project, library_name), code=fragment_code
         )
 
     @staticmethod
@@ -262,7 +289,7 @@ class User(AbstractBaseUser):
         # if user object have selected current_project, use that
         # otherwise use one of the user's project.
         #
-        # User Project class methods for fetching all projects, so that
+        # Use Project class methods for fetching all projects, so that
         # we only give access to project's included into current proposals
         # list.
         #

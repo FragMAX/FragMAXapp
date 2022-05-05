@@ -4,7 +4,7 @@ crystals list CSV file parser
 from typing import List, Optional, Dict
 from pandas import read_csv, DataFrame
 from pandas.errors import ParserError
-from fragview import models
+from fragview.fraglibs import LibraryType
 from dataclasses import dataclass, fields
 
 
@@ -131,7 +131,7 @@ def _check_column_names(data: DataFrame):
         raise InvalidCrystalsCSV(err_msg)
 
 
-def _check_fragment(crystal: Crystal):
+def _check_fragment(frag_libs: Dict[str, LibraryType], crystal: Crystal):
     """
     that that we can look-up specified fragment code in the specified
     library
@@ -155,26 +155,26 @@ def _check_fragment(crystal: Crystal):
             f"No fragment code specified for '{crystal.SampleID}' crystal."
         )
 
-    try:
-        models.Fragment.get(library_name, fragment_code)
-    except models.Library.DoesNotExist:
+    lib = frag_libs.get(library_name)
+    if lib is None:
         raise InvalidCrystalsCSV(f"Unknown fragment library '{library_name}'.")
-    except models.Fragment.DoesNotExist:
+
+    if fragment_code not in lib:
         raise InvalidCrystalsCSV(
             f"No fragment {fragment_code} in '{library_name}' library."
         )
 
 
-def _check_fragments(crystals: Crystals):
+def _check_fragments(frag_libs: Dict[str, LibraryType], crystals: Crystals):
     """
     check that all specified fragments have a known
     library name and fragment code
     """
     for crystal in crystals:
-        _check_fragment(crystal)
+        _check_fragment(frag_libs, crystal)
 
 
-def parse_crystals_csv(csv_data) -> Crystals:
+def parse_crystals_csv(frag_libs: Dict[str, LibraryType], csv_data) -> Crystals:
     """
     Parse specified data as 'Crystals CSV' file.
 
@@ -195,6 +195,6 @@ def parse_crystals_csv(csv_data) -> Crystals:
     _check_column_names(csv)
 
     crystals = Crystals.from_data_frame(csv)
-    _check_fragments(crystals)
+    _check_fragments(frag_libs, crystals)
 
     return crystals

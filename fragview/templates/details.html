@@ -3,6 +3,7 @@
 {% block content %}
 
 <script src="/static/js/vue-3.2.32.global.prod.js"></script>
+<script src="/static/js/utils.js"></script>
 
 <script>
 const CSRF_TOKEN = "{{csrf_token}}";
@@ -538,38 +539,7 @@ const FUNDING_ORGANIZATIONS = [
 <script>
 const DETAILS_URL = "/project/details";
 
-class IDs
-{
-    constructor(htmlRow)
-    {
-        this.nextId = 0;
-        this.objToId = new Map();
-    }
-
-    getId(obj)
-    {
-        if (this.objToId.has(obj))
-        {
-            return this.objToId.get(obj);
-        }
-
-        const objId = this.nextId++;
-        this.objToId.set(obj, objId);
-
-        return objId;
-    }
-}
 const ids = new IDs();
-
-function wrapWithIds(items)
-{
-    let entries = [];
-    for (const item of items)
-    {
-        entries.push({id: ids.getId(item), item: item});
-    }
-    return entries;
-}
 
 function loadData()
 {

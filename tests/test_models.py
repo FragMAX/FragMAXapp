@@ -1,6 +1,8 @@
-from fragview.models import User, UserProject, PendingProject
+from typing import Set
+from fragview.models import User, Library, UserProject, PendingProject
 from django.test import TestCase
 from tests.utils import ProjectTestCase
+from tests.project_setup import Project
 
 
 class TestUserProject(TestCase):
@@ -32,6 +34,69 @@ class TestUserProject(TestCase):
         pend_proj = PendingProject.objects.get(project=self.project.id)
         self.assertIsNotNone(pend_proj)
         self.assertEqual(pend_proj.error_message, self.ERR_MSG)
+
+
+class TestLibrary(ProjectTestCase):
+    PROJECTS = [
+        Project(
+            protein="Nsp5",
+            proposal="20180453",
+            encrypted=False,
+            datasets=[],
+            crystals=[],
+            results=[],
+        ),
+        Project(
+            protein="MID2",
+            proposal="20180453",
+            encrypted=False,
+            datasets=[],
+            crystals=[],
+            results=[],
+        ),
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+        lib = Library(name="public")
+        lib.save()
+
+        lib = Library(name="private", project_id=self.project.id)
+        lib.save()
+
+    def _assert_libs(self, libs, expected_names: Set[str]):
+        got_names = {lib.name for lib in libs}
+        self.assertSetEqual(got_names, expected_names)
+
+    def test_get_all(self):
+        # for first project, we should get all libraries
+        libs = Library.get_all(self.project)
+        self._assert_libs(libs, {"public", "private"})
+
+        # for second project, we should only get 'public' library
+        libs = Library.get_all(self.projects[1])
+        self._assert_libs(libs, {"public"})
+
+    def test_get_by_name(self):
+        #
+        # for first project we should be able to get both libs
+        #
+        lib = Library.get_by_name(self.project, "public")
+        self.assertEqual(lib.name, "public")
+
+        lib = Library.get_by_name(self.project, "private")
+        self.assertEqual(lib.name, "private")
+
+        #
+        # for second project, we should only be able to get
+        # the 'public' library
+        #
+        lib = Library.get_by_name(self.projects[1], "public")
+        self.assertEqual(lib.name, "public")
+
+        with self.assertRaises(Library.DoesNotExist):
+            Library.get_by_name(self.projects[1], "private")
 
 
 class TestUser(ProjectTestCase):

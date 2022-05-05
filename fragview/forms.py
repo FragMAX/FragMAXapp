@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
+from itertools import count
 from django.forms import (
     Form,
     CharField,
@@ -10,9 +11,11 @@ from django.forms import (
 )
 from gemmi import UnitCell
 from fragview.tools import get_tool_by_name
+from fragview.models import Library
 from fragview.projects import Project
 from fragview.space_groups import SpaceGroup, get_space_group
 from fragview.crystals import parse_crystals_csv, InvalidCrystalsCSV, Crystals
+from fragview.fraglibs import parse_fraglib_csv, InvalidLibraryCSV
 
 
 class _GetFieldMixin:
@@ -203,29 +206,62 @@ class KillJobForm(Form):
         return self.cleaned_data["job_ids"]
 
 
-class _CrystalsCsvForm(Form):
-    crystals_csv_file = FileField()
+def _append_db_libs(project: Optional[Project], libs: Dict) -> Dict:
+    for lib in Library.get_all(project):
+        libs[lib.name] = lib.as_dict()
 
-    def clean_crystals_csv_file(self):
-        csv_file = self.cleaned_data["crystals_csv_file"]
-        try:
-            return parse_crystals_csv(csv_file)
-        except InvalidCrystalsCSV as e:
-            raise ValidationError(str(e))
-
-    def get_error_message(self):
-        csv_errors = self.errors.get("crystals_csv_file")
-        if csv_errors:
-            return f"Could not parse Crystals CSV.\n{csv_errors[0]}"
-
-        assert False, "unexpected form error"
+    return libs
 
 
-class ProjectForm(_CrystalsCsvForm):
+class ProjectForm(Form):
     protein = CharField()
     proposal = CharField()
+    crystals = FileField()
     autoproc = BooleanField(required=False)
     encrypted = BooleanField(required=False)
+
+    def _clean_fraglibs(self):
+        def _get_libs():
+            for n in count():
+                name = self.data.get(f"fragsName{n}")
+                csv = self.files.get(f"fragsCSV{n}")
+                if name is None:
+                    break
+
+                yield name, csv
+
+        libs = {}
+
+        for name, frags_csv in _get_libs():
+            try:
+                libs[name] = parse_fraglib_csv(frags_csv)
+            except InvalidLibraryCSV as e:
+                raise ValidationError(
+                    f"fragments library '{name}' is invalid,\n{str(e)}"
+                )
+
+        self.cleaned_data["libraries"] = libs
+
+    def _clean_crystals(self):
+        libs = self.cleaned_data["libraries"].copy()
+        _append_db_libs(None, libs)
+
+        csv_file = self.cleaned_data["crystals"]
+        try:
+            crystals = parse_crystals_csv(libs, csv_file)
+        except InvalidCrystalsCSV as e:
+            raise ValidationError(f"Could not parse Crystals CSV.\n{e}")
+
+        self.cleaned_data["crystals"] = crystals
+
+    def get_error_message(self):
+        assert len(self.errors) == 1
+        return list(self.errors.values())[0][0]
+
+    def clean(self):
+        self._clean_fraglibs()
+        self._clean_crystals()
+        return self.cleaned_data
 
     def get_values(self):
         cdata = self.cleaned_data
@@ -233,12 +269,54 @@ class ProjectForm(_CrystalsCsvForm):
         return (
             cdata["protein"],
             cdata["proposal"],
-            cdata["crystals_csv_file"],
+            cdata["crystals"],
+            cdata["libraries"],
             cdata["autoproc"],
             cdata["encrypted"],
         )
 
 
-class CrystalsImportForm(_CrystalsCsvForm):
+class CrystalsImportForm(Form):
+    def __init__(self, project: Project, data, files):
+        super().__init__(data, files)
+        self.project = project
+
+    crystals_csv_file = FileField()
+
+    def clean_crystals_csv_file(self):
+        csv_file = self.cleaned_data["crystals_csv_file"]
+        libs = _append_db_libs(self.project, {})
+
+        try:
+            return parse_crystals_csv(libs, csv_file)
+        except InvalidCrystalsCSV as e:
+            raise ValidationError(f"Could not parse Crystals CSV.\n{e}")
+
+    def get_error_message(self):
+        assert len(self.errors) == 1
+        return list(self.errors.values())[0][0]
+
     def get_crystals(self) -> Crystals:
         return self.cleaned_data["crystals_csv_file"]
+
+
+class LibraryImportForm(Form, _GetFieldMixin):
+    name = CharField()
+    fragmentsFile = FileField()
+
+    def clean_fragmentsFile(self):
+        csv_file = self.cleaned_data["fragmentsFile"]
+        try:
+            return parse_fraglib_csv(csv_file)
+        except InvalidLibraryCSV as e:
+            raise ValidationError(str(e))
+
+    def get_error_message(self):
+        csv_errors = self.errors.get("fragmentsFile")
+        if csv_errors:
+            return f"Could not parse Fragment Library CSV.\n{csv_errors[0]}"
+
+        assert False, "unexpected form error"
+
+    def get_library(self):
+        return self._get_field("name"), self._get_field("fragmentsFile")

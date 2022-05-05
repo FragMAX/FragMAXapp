@@ -1,3 +1,4 @@
+from itertools import count
 from django import test
 from django.test.client import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -35,6 +36,24 @@ PROJECT = Project(
     ],
     results=[],
 )
+
+FRAG_LIB1_CSV = b"""fragmentCode,SMILES
+FL1001,O=C1N[C@@H](CO1)C1=CC=CC=C1
+FL1002,CN1CCCCS1(=O)=O
+FL1002,CC1=CC=C(S1)C1=CC(=NN1)C(O)=O
+"""
+
+FRAG_LIB2_CSV = b"""fragmentCode,SMILES
+SK001,COC1=CC=C2NC(C)=NC2=C1
+SK002,COC(=O)C1CN(C)C(=O)C1
+SK003,CC1=CN2C=C(N)C=CC2=N1
+SK004,CC(=O)N1CCCCC1CO
+"""
+
+FRAG_LIBS = {
+    "lib1": FRAG_LIB1_CSV,
+    "lib2": FRAG_LIB2_CSV,
+}
 
 
 class TestProcessForm(ProjectTestCase):
@@ -126,7 +145,7 @@ class TestKillJobForm(test.TestCase):
 
 
 class _SetUpFragLibMixin:
-    def setUp(self):
+    def setup_frag_lib(self):
         lib = Library(name="JBS")
         lib.save()
 
@@ -135,27 +154,44 @@ class _SetUpFragLibMixin:
             frag.save()
 
 
-class TestProjectForm(_SetUpFragLibMixin, test.TestCase):
+class TestProjectForm(_SetUpFragLibMixin, ProjectTestCase):
     ReqsFactory = RequestFactory()
+
+    def setUp(self):
+        super().setUp()
+        self.setup_frag_lib()
 
     def _request(
         self,
         protein=PROTEIN,
         proposal=PROPOSAL,
-        crystals_csv_data=CRYSTALS_CSV,
+        crystals=CRYSTALS_CSV,
+        #        frag_libs=FRAG_LIBS,
+        frag_libs={},
         autoproc=True,
     ):
-        req = self.ReqsFactory.post(
-            "/",  # we don't really care about the URL here
-            dict(
-                protein=protein,
-                proposal=proposal,
-                autoproc=autoproc,
-            ),
+        req_args = dict(
+            protein=protein,
+            proposal=proposal,
+            autoproc=autoproc,
         )
 
-        crystals_file = SimpleUploadedFile(f"{protein}.csv", crystals_csv_data)
-        req.FILES["crystals_csv_file"] = crystals_file
+        # add fragment libraries to request
+        frag_files = {}
+        for n, (name, csv) in zip(count(), frag_libs.items()):
+            req_args[f"fragsName{n}"] = name
+            frag_files[f"fragsCSV{n}"] = SimpleUploadedFile("dmy.csv", csv)
+
+        req = self.ReqsFactory.post(
+            "/", req_args  # we don't really care about the URL here
+        )
+
+        crystals_file = SimpleUploadedFile(f"{protein}.csv", crystals)
+        req.FILES["crystals"] = crystals_file
+
+        # add fragment libraries CSV files to the request
+        for name, data in frag_files.items():
+            req.FILES[name] = data
 
         return req
 
@@ -170,12 +206,83 @@ class TestProjectForm(_SetUpFragLibMixin, test.TestCase):
         self.assertTrue(proj_form.is_valid())
 
         # check project settings derived by the form
-        protein, proposal, crystals, autoproc, encrypt = proj_form.get_values()
+        (
+            protein,
+            proposal,
+            crystals,
+            libraries,
+            autoproc,
+            encrypt,
+        ) = proj_form.get_values()
 
         self.assertEqual(protein, PROTEIN)
         self.assertEqual(proposal, PROPOSAL)
         self.assertTrue(autoproc)
         self.assertFalse(encrypt)
+        self.assertDictEqual(
+            libraries,
+            {},
+        )
+        self.assertListEqual(
+            crystals.as_list(),
+            [
+                dict(
+                    SampleID="F001",
+                    FragmentLibrary="JBS",
+                    FragmentCode="j001",
+                ),
+                dict(
+                    SampleID="F002",
+                    FragmentLibrary="JBS",
+                    FragmentCode="j002",
+                ),
+                dict(
+                    SampleID="F003",
+                    FragmentLibrary=None,
+                    FragmentCode=None,
+                ),
+            ],
+        )
+
+    def test_valid_with_frags(self):
+        """
+        test validating a valid form, with custom fragment libraries
+        """
+        request = self._request(frag_libs=FRAG_LIBS)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
+
+        # check that form validates
+        self.assertTrue(proj_form.is_valid())
+
+        # check project settings derived by the form
+        (
+            protein,
+            proposal,
+            crystals,
+            libraries,
+            autoproc,
+            encrypt,
+        ) = proj_form.get_values()
+
+        self.assertEqual(protein, PROTEIN)
+        self.assertEqual(proposal, PROPOSAL)
+        self.assertTrue(autoproc)
+        self.assertFalse(encrypt)
+        self.assertDictEqual(
+            libraries,
+            {
+                "lib1": {
+                    "FL1001": "O=C1N[C@@H](CO1)C1=CC=CC=C1",
+                    "FL1002": "CC1=CC=C(S1)C1=CC(=NN1)C(O)=O",
+                },
+                "lib2": {
+                    "SK001": "COC1=CC=C2NC(C)=NC2=C1",
+                    "SK002": "COC(=O)C1CN(C)C(=O)C1",
+                    "SK003": "CC1=CN2C=C(N)C=CC2=N1",
+                    "SK004": "CC(=O)N1CCCCC1CO",
+                },
+            },
+        )
         self.assertListEqual(
             crystals.as_list(),
             [
@@ -199,9 +306,9 @@ class TestProjectForm(_SetUpFragLibMixin, test.TestCase):
 
     def test_invalid_crystals_csv(self):
         """
-        test validating a valid form
+        the case where invalid crystals CSV is provided
         """
-        request = self._request(crystals_csv_data=b"Foo, bar")
+        request = self._request(crystals=b"Foo, bar")
         proj_form = forms.ProjectForm(request.POST, request.FILES)
 
         # the form should be invalid
@@ -210,8 +317,25 @@ class TestProjectForm(_SetUpFragLibMixin, test.TestCase):
         # we should get an error about invalid CSV
         self.assertRegex(proj_form.get_error_message(), "^Could not parse Crystals CSV")
 
+    def test_invalid_fraglib_csv(self):
+        """
+        the case where invalid fragments CSV is provided
+        """
+        frag_libs = {"dummy": b"fragmentCode,foo"}
 
-class TestCrystalsImportForm(_SetUpFragLibMixin, test.TestCase):
+        request = self._request(frag_libs=frag_libs)
+        proj_form = forms.ProjectForm(request.POST, request.FILES)
+
+        # the form should be invalid
+        self.assertFalse(proj_form.is_valid())
+
+        # we should get an error about invalid CSV
+        self.assertRegex(
+            proj_form.get_error_message(), "^fragments library 'dummy' is invalid"
+        )
+
+
+class TestCrystalsImportForm(_SetUpFragLibMixin, ProjectTestCase):
     ReqsFactory = RequestFactory()
 
     # crystals CSV, which list unknown fragment library
@@ -219,6 +343,10 @@ class TestCrystalsImportForm(_SetUpFragLibMixin, test.TestCase):
 MID2-x0017,UnknownLib,UL01
 MID2-x0018,UnknownLib,UL02
 """
+
+    def setUp(self):
+        super().setUp()
+        self.setup_frag_lib()
 
     def _request(
         self,
@@ -238,7 +366,7 @@ MID2-x0018,UnknownLib,UL02
         test validating a valid form
         """
         request = self._request()
-        cryst_form = forms.CrystalsImportForm(request.POST, request.FILES)
+        cryst_form = forms.CrystalsImportForm(self.project, request.POST, request.FILES)
 
         # check that form validates
         self.assertTrue(cryst_form.is_valid())
@@ -271,7 +399,7 @@ MID2-x0018,UnknownLib,UL02
         test validating a valid form
         """
         request = self._request(crystals_csv_data=self.INVALID_CSV)
-        cryst_form = forms.CrystalsImportForm(request.POST, request.FILES)
+        cryst_form = forms.CrystalsImportForm(self.project, request.POST, request.FILES)
 
         # the form should be invalid
         self.assertFalse(cryst_form.is_valid())

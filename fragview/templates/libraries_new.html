@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}New Crystals{% endblock %}
+{% block content %}
+<style>
+table
+{
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+}
+
+th
+{
+    text-align: center;
+}
+
+.container
+{
+    padding-left: 200px;
+    max-width: 1280 !important;
+}
+
+.prechoice
+{
+    padding-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: space-between;
+    flex-direction: row;
+}
+
+.crystal_list_file
+{
+    height: 3rem;
+    margin: 15px -120px 0 0;
+}
+</style>
+<script>
+function show_import_error(message)
+{
+    alert(`Error importing library.\n${message}`);
+}
+
+function import_library(formElement)
+{
+    /*
+     * disable 'import' button while
+     * crystals import request is in flight
+     */
+    let importButton = document.getElementById("import");
+    importButton.disabled = true;
+
+    let request = new Request("/libraries/import",
+    {
+        method: "POST",
+        body: new FormData(formElement),
+    });
+
+    fetch(request).then(function(response)
+    {
+        if (!response.ok)
+        {
+            response.text().then(text => show_import_error(text));
+            importButton.disabled = false;
+            return;
+        }
+        window.location.href = "/libraries/show";
+    })
+    .catch(function(error)
+    {
+        show_import_error(error.message);
+        importButton.disabled = false;
+    });
+
+    return false;
+}
+</script>
+
+<h4>Import New Fragment Library</h4><br>
+<div class="card" style="max-width: 800px">
+    <div class="card-content">
+        <div class="card-title">Specify Library Details</div><br>
+        <form onsubmit="return import_library(this)">
+            {% csrf_token %}
+            <table class="table bordered">
+                <tbody>
+                    <tr>
+                        <th>Library Name</th>
+                        <td>
+                            <input name="name" required>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>
+                            <a href="https://github.com/FragMAX/FragMAXapp/wiki/fraglib_spec"
+                               target="_blank">
+                                Fragments CSV
+                            </a>
+                        </th>
+                        <td>
+                            <input type="file" name="fragmentsFile" required>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="prechoice">
+                <div style="padding-right: 0px;">
+                    <button class="btn-large" id="import" type="submit">
+                        import
+                    </button>
+                </div>
+
+                <div style="padding-left: 40px;">
+                    <button class="btn-large" type="button" onclick="location.href='/libraries/show'">
+                        cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

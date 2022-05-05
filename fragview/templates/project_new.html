@@ -1,25 +1,110 @@
 {% extends 'base.html' %}
 {% block title %}New Project{% endblock %}
 {% block content %}
+
+<!--<script src="/static/js/vue-3.2.32.global.prod.js"></script>-->
+<script src="/static/js/vue-3.2.32.global.js"></script>
+<script src="/static/js/utils.js"></script>
+
+<script>
+const CSRF_TOKEN = "{{csrf_token}}";
+
+const PROPOSALS = [
+    {% for prop in proposals %}
+        "{{prop}}",
+    {% endfor %}
+];
+
+const PROPOSALS_ENABLED = "{{disabled.proposals}}" != "True";
+const AUTOPROC_IMPORT_ENABLED = "{{disabled.autoproc_import}}" != "True";
+
+</script>
+
 <style>
-table
-{
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-}
-
-th
-{
-    text-align: center;
-}
-
 .container
 {
-    padding-left: 200px;
-    max-width: 1280 !important;
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
 }
 
-.prechoice
+.tab
+{
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button
+{
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+/* Create an active/current tablink class */
+.tab button.active
+{
+    background-color: #82be00;
+}
+
+/* Create an active/current tablink class */
+.tab button.active
+{
+    background-color: #fea901;
+}
+
+.data-tab
+{
+    max-width: 750px;
+    width: 60%;
+    align-items: center;
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.protein-name
+{
+    max-width: 200px;
+}
+
+.libs-tab
+{
+    width: 880px;
+    align-items: center;
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.selectbox
+{
+    display: flex !important;
+    width: 200px;
+}
+
+.sequence-box
+{
+    height: 180px;
+}
+
+.btn-right
+{
+    float: right;
+}
+
+.hidden
+{
+    display: none;
+}
+
+.buttons
 {
     padding-top: 28px;
     display: flex;
@@ -28,76 +113,44 @@ th
     align-content: space-between;
     flex-direction: row;
 }
-
-.crystal_list_file
-{
-    height: 3rem;
-    margin: 15px -120px 0 0;
-}
 </style>
-<script>
-function show_project_error(message)
-{
-    alert(`Error creating project.\n${message}`);
-}
 
-function create_project(formElement)
-{
-    /*
-     * disable 'create' button while
-     * project creation request is in flight
-     */
-    let createButton = document.getElementById("create");
-    createButton.disabled = true;
+<div>
+    <h4>Create New Project</h4>
+</div>
 
-    let request = new Request("/project/new",
-    {
-        method: "POST",
-        body: new FormData(formElement),
-    });
+{% verbatim %}
 
-    fetch(request).then(function(response)
-    {
-        if (!response.ok)
-        {
-            response.text().then(text => show_project_error(text));
-            return;
-        }
-        window.location.href = "/projects";
-    })
-    .catch(function(error)
-    {
-        show_project_error(error.message);
-    })
-    .finally(function() {
-        createButton.disabled = false;
-    });
+<div id="app">
+    <div>
+        <div id="tab" class="card tab">
+            <button v-for="tab in ui.tabs" @click="showTab(`${tab}`)"
+                    :class="{ active: isActiveTab(tab) }">
+                {{ tab }}
+            </button>
+        </div>
+    </div>
 
-    return false;
-}
-</script>
+    <div :class="{ hidden: !isActiveTab('Data')}">
+        <div class="card data-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Project's Collected Data
+                </div>
 
-<h4>Create New Project</h4><br>
-<div class="card" style="max-width: 800px">
-    <div class="card-content">
-            <form onsubmit="return create_project(this)">
-                {% csrf_token %}
-                <table class="table bordered">
-                    <tbody>
+                <table>
                     <tr>
-                        <th>Protein Name</th>
+                        <td>Protein Name</td>
                         <td>
-                            <input class="selectbox"
-                                   style="max-width: 200px"
-                                   name="protein"
-                                   required>
+                            <input v-model="project.protein" class="protein-name"/>
                         </td>
                     </tr>
-                    {% if not disabled.proposals %}
-                    <tr>
-                        <th>Project Proposal</th>
+
+                    <tr v-if="ui.proposalsEnabled">
+                        <td>Project Proposal</td>
                         <td>
-                            <input class="selectbox"
+                            <input v-model="project.proposal"
+                                   class="selectbox"
                                    maxlength="8"
                                    list="proposals"
                                    style="max-width: 200px"
@@ -105,26 +158,34 @@ function create_project(formElement)
                                    id="proposal"
                                    required>
                             <datalist id="proposals">
-                                {% for proposal in proposals %}
-                                    <option value="{{proposal}}">
-                                {% endfor %}
+                                <option v-for="prop in ui.proposals">
+                                    {{prop}}
+                                </option>
                             </datalist>
                         </td>
                     </tr>
-                    {% endif %}
+
                     <tr>
-                        <th>Crystals CSV</th>
                         <td>
-                            <input type="file" name="crystals_csv_file" required>
+                            <a href="https://github.com/FragMAX/FragMAXapp/wiki/csv_spec"
+                               target="_blank">
+                                Crystals CSV
+                            </a>
+                        </td>
+                        <td>
+                            <input
+                                v-on:change="setCrystalsCSV"
+                                type="file" name="crystals_csv_file" required>
                         </td>
                     </tr>
-                    {% if not disabled.autoproc_import %}
-                    <tr>
-                        <th>Auto Processing</th>
+
+                    <tr v-if="ui.autoprocImportEnabled">
+                        <td>Auto Processing</td>
                         <td>
                             <div class="checkbox">
                             <label>
-                                <input name="autoproc"
+                                <input v-model="project.importAutoproc"
+                                       name="autoproc"
                                        type="checkbox"
                                        class="filled-in dt-checkboxes"
                                        checked>
@@ -133,41 +194,207 @@ function create_project(formElement)
                             </div>
                         </td>
                     </tr>
-                    {% endif %}
-                    <tr>
-                        <th>Data Processing</th>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div :class="{ hidden: !isActiveTab('Fragments')}">
+        <div class="card libs-tab">
+            <div class="card-content">
+                <div class="card-title">
+                    Custom Fragment Libraries
+                </div>
+
+                <table>
+                    <tr v-for="entry in libraries">
+                        <td>Library Name</td>
+                        <td><input v-model="entry.item.name"/></td>
                         <td>
-                            <div class="checkbox">
-                            <label>
-                                <input name="encrypted"
-                                       type="checkbox"
-                                       class="filled-in dt-checkboxes"
-                                       disabled>
-                                <span>Encrypted Mode</span>
-                            </label>
-                            </div>
+                            <a href="https://github.com/FragMAX/FragMAXapp/wiki/fraglib_spec"
+                               target="_blank">
+                                Fragments CSV
+                            </a>
+                        </td>
+                        <td>
+                            <input v-on:change="(e) => setFragsCSV(entry.id, e)" type="file">
+                        </td>
+                        <td>
+                            <button @click="deleteLibrary(entry.id)" class="btn-small">
+                                delete
+                            </button>
                         </td>
                     </tr>
-
-                    </tbody>
                 </table>
 
-                <div class="prechoice">
-                    <div style="padding-right: 0px;">
-                        <button class="btn-large" id="create" type="submit">
-                            create
-                        </button>
-                    </div>
-
-                    <div style="padding-left: 40px;">
-                        <button class="btn-large" type="button" onclick="location.href='/projects'">
-                            cancel
-                        </button>
-                    </div>
+                <div style="padding: 10px">
+                <button @click="addLibrary" id="addAuthorButton" class="btn-small">
+                    add library
+                </button>
                 </div>
-            </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <div style="padding-right: 0px;">
+            <button @click="createProject" :disabled="!valid" class="btn-large">
+                create
+            </button>
+        </div>
+
+        <div style="padding-left: 40px;">
+            <button class="btn-large" type="button" onclick="location.href='/projects'">
+                cancel
+            </button>
         </div>
     </div>
 </div>
-{% endblock %}
 
+<script>
+const ids = new IDs();
+
+function postData(project)
+{
+    const data = new FormData();
+
+    data.append("csrfmiddlewaretoken", CSRF_TOKEN);
+    data.append("protein", project.protein);
+    data.append("proposal", project.proposal);
+    data.append("autoproc", project.importAutoproc);
+    data.append("crystals", project.crystalsCSV);
+
+    /* append all custom fragment libraries */
+    let cntr = 0;
+    for (const library of project.libraries)
+    {
+        data.append(`fragsCSV${cntr}`, library.fragsCSV);
+        data.append(`fragsName${cntr}`, library.name);
+        cntr += 1;
+    }
+
+    return fetch("/project/new",
+    {
+        method: "POST",
+        body: data,
+    })
+    .then(function(response)
+    {
+        return response.text().then(function(text)
+        {
+            if (!response.ok)
+            {
+                alert(`error creating project:\n${text}`);
+                return;
+            }
+            window.location.href = "/projects";
+        });
+    })
+    .catch(function(error)
+    {
+        alert(error.message);
+    });
+
+}
+
+function createVueApp()
+{
+return Vue.createApp({
+    data() {
+        return {
+            project: {
+                libraries: [],
+            },
+            ui: {
+                activeTab: "Data",
+                tabs: [ "Data", "Fragments" ],
+                proposalsEnabled: PROPOSALS_ENABLED,
+                proposals: PROPOSALS,
+                autoprocImportEnabled: AUTOPROC_IMPORT_ENABLED,
+            },
+        };
+    },
+    computed: {
+        libraries()
+        {
+            return wrapWithIds(this.project.libraries);
+        },
+        valid()
+        {
+            function is_valid_str(val)
+            {
+                return val !== undefined && val !== "";
+            }
+
+            function libs_valid(libraries)
+            {
+                for (const lib of libraries)
+                {
+                    if (!is_valid_str(lib.name) ||
+                        lib.fragsCSV === undefined)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return is_valid_str(this.project.protein) &&
+                is_valid_str(this.project.proposal) &&
+                this.project.crystalsCSV !== undefined &&
+                libs_valid(this.project.libraries);
+        },
+    },
+    methods: {
+        setCrystalsCSV(event)
+        {
+            this.project.crystalsCSV = event.target.files[0];
+        },
+        setFragsCSV(entryId, event)
+        {
+            /* find library by it's entry ID */
+            function getLibrary(libraries)
+            {
+                for (const library of libraries)
+                {
+                    if (ids.getId(library) == entryId)
+                    {
+                        return library;
+                    }
+                }
+            }
+            const library = getLibrary(this.project.libraries);
+            library.fragsCSV = event.target.files[0];
+        },
+        showTab(tabName)
+        {
+            this.ui.activeTab = tabName;
+        },
+        isActiveTab(tabName)
+        {
+            return this.ui.activeTab == tabName;
+        },
+        createProject()
+        {
+            postData(this.project);
+        },
+        addLibrary()
+        {
+            this.project.libraries.push({});
+        },
+        deleteLibrary(entryId)
+        {
+            this.project.libraries =
+                this.project.libraries.filter(obj => ids.getId(obj) != entryId);
+        },
+    },
+});
+}
+
+createVueApp().mount('#app');
+</script>
+
+{% endverbatim %}
+{% endblock %}

@@ -15,6 +15,11 @@
     width: 96px;
 }
 
+.btn-right
+{
+    float: right;
+}
+
 th
 {
     cursor: pointer;
@@ -33,9 +38,10 @@ tr:nth-child(even)
     background-color: #dddddd;
 }
 
-.selected_library
+.header
 {
-    display: flex;
+    display: grid;
+    grid-template-columns: max-content max-content 1fr;
     padding: 15px;
     font-size: 15px;
     align-items: center;
@@ -54,7 +60,7 @@ select
     <h4>Fragment Libraries</h4>
 </div>
 
-<div class="selected_library">
+<div class="header">
     <select id="libraries" onchange="show_library(this);">
         {% for library in libraries %}
             <option value="{{library.id}}">{{library.name}}</option>
@@ -66,6 +72,16 @@ select
     >
         {{libraries.0.name}}.csv
     </a>
+
+
+    <div>
+        <button
+            class="btn btn-right" onclick="location.href='/libraries/new'"
+            {% if not project  %}disabled{% endif %}
+        >
+            Import Library
+        </button>
+    </div>
 </div>
 
 <table id="fragments_list">
