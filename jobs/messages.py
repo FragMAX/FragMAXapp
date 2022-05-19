@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 from json import dumps, loads
 from datetime import datetime
@@ -15,6 +15,7 @@ class Job(JsonSerializable):
     def __init__(
         self,
         id,
+        project_id,
         name,
         program,
         arguments,
@@ -24,6 +25,7 @@ class Job(JsonSerializable):
         start_time: datetime = None,
     ):
         self.id = id
+        self.project_id = project_id
         self.name = name
         self.program = program
         self.arguments = arguments
@@ -43,6 +45,7 @@ class Job(JsonSerializable):
     def _as_dict(self):
         d = {
             "id": self.id,
+            "project_id": self.project_id,
             "name": self.name,
             "stdout": self.stdout,
             "stderr": self.stderr,
@@ -60,6 +63,7 @@ class Job(JsonSerializable):
 
         return Job(
             id=d["id"],
+            project_id=d["project_id"],
             name=d["name"],
             program=None,
             arguments=[],
@@ -87,14 +91,21 @@ class Job(JsonSerializable):
 class GetJobs(JsonSerializable):
     LABEL = "get_jobs"
 
+    def __init__(self, project_id: Optional[str]):
+        self.project_id = project_id
+
     def _as_dict(self):
-        return {
+        d = {
             "command": self.LABEL,
         }
+        if self.project_id:
+            d["project_id"] = str(self.project_id)
+
+        return d
 
     @staticmethod
-    def from_dict(_):
-        return GetJobs()
+    def from_dict(d):
+        return GetJobs(d.get("project_id"))
 
 
 class GetJobsReply(JsonSerializable):
@@ -122,20 +133,25 @@ class GetJobsReply(JsonSerializable):
 class StartJobs(JsonSerializable):
     LABEL = "start_jobs"
 
-    def __init__(self, name, jobs: List[dict]):
+    def __init__(self, project_id, name: str, jobs: List[dict]):
+        self.project_id = project_id
         self.name = name
         self.jobs = jobs
 
     def _as_dict(self):
         return {
             "command": self.LABEL,
-            "jobs_set": {"name": self.name, "jobs": self.jobs},
+            "jobs_set": {
+                "project_id": self.project_id,
+                "name": self.name,
+                "jobs": self.jobs,
+            },
         }
 
     @staticmethod
     def from_dict(json_dict):
         jobs_set = json_dict["jobs_set"]
-        return StartJobs(jobs_set["name"], jobs_set["jobs"])
+        return StartJobs(jobs_set["project_id"], jobs_set["name"], jobs_set["jobs"])
 
 
 class CancelJobs(JsonSerializable):
@@ -202,13 +218,13 @@ def _send_command(command):
         return deserialize_reply(reply)
 
 
-def post_start_jobs_command(name, jobs):
-    _send_command(StartJobs(name, jobs))
+def post_start_jobs_command(project_id, name, jobs):
+    _send_command(StartJobs(project_id, name, jobs))
 
 
 def post_cancel_jobs_command(job_ids):
     _send_command(CancelJobs(job_ids))
 
 
-def post_get_jobs_command():
-    return _send_command(GetJobs())
+def post_get_jobs_command(project_id: Optional[str]):
+    return _send_command(GetJobs(project_id))

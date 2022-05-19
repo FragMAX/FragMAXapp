@@ -975,7 +975,7 @@ def pandda_worker(project: Project, proc_tool, refine_tool, options, cif_method)
     #
     # submit all pandda script to the HPC
     #
-    jobs = JobsSet("PanDDa")
+    jobs = JobsSet(project, "PanDDa")
 
     for prep_script in prepare_scripts:
         jobs.add_job(prep_script)

@@ -45,7 +45,7 @@ def process(request):
 
     options = ProcessOptions(form.get_space_group(), form.get_cell_parameters())
 
-    jobs = JobsSet("process datasets")
+    jobs = JobsSet(project, "process datasets")
     hpc = get_hpc_runner()
 
     for pipeline in form.get_pipelines():
@@ -69,7 +69,7 @@ def refine(request):
 
     options = RefineOptions(form.pdb_file)
 
-    jobs = JobsSet("refine structures")
+    jobs = JobsSet(project, "refine structures")
     hpc = get_hpc_runner()
 
     for proc_result in form.get_process_results():
@@ -99,7 +99,7 @@ def ligfit(request):
 
     options = LigfitOptions(form.get_restrains_tool())
 
-    jobs = JobsSet("fit ligands")
+    jobs = JobsSet(project, "fit ligands")
     hpc = get_hpc_runner()
 
     for ref_res in form.get_refine_results():

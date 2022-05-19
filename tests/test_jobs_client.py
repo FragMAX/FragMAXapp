@@ -78,8 +78,10 @@ class TestGetJobs(TestCase, TempDirMixin):
         """
         sock_srv = self.setup_sock_server(
             '{"reply": "get_jobs", "jobs": ['
-            '{"id": "42", "name": "ajob", "stdout": "stdout-42", "stderr": "stderr-42", "start_time": 0.42}, '
-            '{"id": "43", "name": "pending_job", "stdout": "stdout-43", "stderr": "stderr-43"}]}'
+            '{"id": "42", "project_id": "1", "name": '
+            '"ajob", "stdout": "stdout-42", "stderr": "stderr-42", "start_time": 0.42}, '
+            '{"id": "43", "project_id": "1", "name": '
+            '"pending_job", "stdout": "stdout-43", "stderr": "stderr-43"}]}'
         )
 
         with patch("jobs.messages.conf.JOBSD_SOCKET", self.socket_path):

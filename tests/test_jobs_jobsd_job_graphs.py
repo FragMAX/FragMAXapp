@@ -45,6 +45,7 @@ class TestGetJobNodesTrees(TestCase):
         for n in range(3):
             job = dict(
                 id=f"{n}",
+                project_id="2",
                 name=f"job{n}",
                 program=f"prog{n}",
                 arguments=[],
@@ -61,7 +62,7 @@ class TestGetJobNodesTrees(TestCase):
         """
         check the case where jobs have no 'run_after' dependencies
         """
-        job_nodes = get_job_nodes_trees(self.job_dicts)
+        job_nodes = get_job_nodes_trees("2", self.job_dicts)
 
         # check the results
         self.assertTrue(equal_job_nodes_sets(job_nodes, self.job_nodes))
@@ -74,7 +75,7 @@ class TestGetJobNodesTrees(TestCase):
 
         self.job_dicts[0]["run_after"] = ["1", "2"]
 
-        job_nodes = get_job_nodes_trees(self.job_dicts)
+        job_nodes = get_job_nodes_trees("2", self.job_dicts)
 
         self.assertTrue(equal_job_nodes_sets(job_nodes, self.job_nodes))
 
@@ -103,7 +104,9 @@ class TestGetRootJobs(TestCase):
         self.jobs = []
         self.nodes = []
         for n in range(6):
-            job = Job(f"{n}", f"job{n}", f"prog{n}", [], f"stdout{n}", f"stderr{n}")
+            job = Job(
+                f"{n}", "3", f"job{n}", f"prog{n}", [], f"stdout{n}", f"stderr{n}"
+            )
             node = JobNode(job, run_on="local")
 
             self.jobs.append(job)

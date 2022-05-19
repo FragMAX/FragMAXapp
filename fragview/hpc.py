@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from django.conf import settings
 from fragview.sites import SITE
+from fragview.projects import Project
 from jobs import client
 
 
@@ -67,7 +68,7 @@ def _elapsed_time(start: datetime, end: datetime) -> Dict[str, int]:
     return dict(hours=hours, minutes=minutes, seconds=seconds)
 
 
-def get_jobs() -> List[Dict]:
+def get_jobs(project: Project) -> List[Dict]:
     def _run_time(start_time):
         if start_time is None:
             return None
@@ -81,7 +82,7 @@ def get_jobs() -> List[Dict]:
     # convenient for presenting to the user
     #
     jobs = []
-    for job in client.get_jobs():
+    for job in client.get_jobs(project.id):
         jobs.append(
             dict(
                 id=job.id,

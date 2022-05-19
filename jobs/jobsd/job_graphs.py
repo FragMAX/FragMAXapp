@@ -16,7 +16,7 @@ class JobNode:
         self.run_after = run_after
 
 
-def get_job_nodes_trees(jobs_list: List[dict]) -> Set[JobNode]:
+def get_job_nodes_trees(project_id, jobs_list: List[dict]) -> Set[JobNode]:
     """
     convert the flat list of jobs list, with ID references to a 'run_after' dependencies
     to a list of JobNode, with dependency linked to JobNode instances
@@ -30,6 +30,7 @@ def get_job_nodes_trees(jobs_list: List[dict]) -> Set[JobNode]:
             JobNode(
                 Job(
                     None,
+                    project_id,
                     job_desc["name"],
                     job_desc["program"],
                     job_desc["arguments"],

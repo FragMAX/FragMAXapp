@@ -9,7 +9,9 @@ from fragview import hpc
 
 
 def status(request):
-    return render(request, "hpcstatus.html", {"jobs": hpc.get_jobs()})
+    return render(
+        request, "hpcstatus.html", {"jobs": hpc.get_jobs(current_project(request))}
+    )
 
 
 def kill(request):

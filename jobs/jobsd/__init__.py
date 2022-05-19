@@ -101,8 +101,15 @@ class JobsTable:
 
         self.jobs_nodes.add(job_node)
 
-    def get_jobs(self) -> List[Job]:
-        return [node.job for node in self.jobs_nodes]
+    def get_jobs(self, project_id: Optional[str]) -> List[Job]:
+        def include_job(job):
+            if project_id is None:
+                # no project ID specified, include all jobs
+                return True
+
+            return job.project_id == project_id
+
+        return [node.job for node in self.jobs_nodes if include_job(node.job)]
 
     def _get_runner(self, job_node):
         return self.job_runners[job_node.run_on].run_job
@@ -176,7 +183,7 @@ async def run_jobs_roots(roots, jobs_table):
 async def start_jobs(command: StartJobs, jobs_table):
     log.info(f"starting '{command.name}' jobs set")
 
-    job_nodes = get_job_nodes_trees(command.jobs)
+    job_nodes = get_job_nodes_trees(command.project_id, command.jobs)
     for job_node in job_nodes:
         jobs_table.add_pending_job(job_node)
 
@@ -184,9 +191,9 @@ async def start_jobs(command: StartJobs, jobs_table):
     await run_jobs_roots(job_roots, jobs_table)
 
 
-def get_jobs(jobs_table: JobsTable):
+def get_jobs(project_id: Optional[str], jobs_table: JobsTable):
     reply = GetJobsReply()
-    reply.jobs = jobs_table.get_jobs()
+    reply.jobs = jobs_table.get_jobs(project_id)
 
     return reply
 
@@ -200,7 +207,7 @@ async def handle_command(command, jobs_table: JobsTable):
     jobs_table.command_received()
 
     if command.LABEL == "get_jobs":
-        return get_jobs(jobs_table)
+        return get_jobs(command.project_id, jobs_table)
     elif command.LABEL == "start_jobs":
         asyncio.create_task(start_jobs(command, jobs_table))
     elif command.LABEL == "cancel_jobs":

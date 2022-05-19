@@ -1,13 +1,14 @@
-from typing import List
+from typing import List, Tuple
 from enum import Enum
 from itertools import count
+from fragview.projects import Project
 from fragview.sites.plugin import BatchFile
 from jobs import messages
 from jobs.messages import Job
 
 
-def get_jobs() -> List[Job]:
-    reply = messages.post_get_jobs_command()
+def get_jobs(project_id=None) -> List[Job]:
+    reply = messages.post_get_jobs_command(project_id)
     return reply.jobs
 
 
@@ -29,9 +30,10 @@ class JobsSet:
         HPC = "hpc"
         LOCAL = "local"
 
-    def __init__(self, name):
+    def __init__(self, project: Project, name: str):
+        self._project_id = str(project.id)
         self._name = name
-        self._jobs = []
+        self._jobs: List[Tuple] = []
 
     def add_job(
         self,
@@ -66,4 +68,4 @@ class JobsSet:
 
             jobs_list.append(job_dict)
 
-        messages.post_start_jobs_command(self._name, jobs_list)
+        messages.post_start_jobs_command(self._project_id, self._name, jobs_list)
