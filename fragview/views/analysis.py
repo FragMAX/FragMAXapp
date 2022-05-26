@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import List, Iterator
 from django.shortcuts import render
 from fragview.projects import current_project, Project
 from fragview.views.wrap import (
@@ -50,10 +50,22 @@ def process(request):
     )
 
 
-def _get_processed_datasets(project: Project) -> Iterator[ProcessingInfo]:
-    for dataset in project.get_datasets():
-        for proc_res in project.get_datasets_process_results(dataset):
-            yield ProcessingInfo(proc_res)
+def _get_processed_datasets(project: Project) -> List[ProcessingInfo]:
+    def _sort_key(proc_res):
+        # sort by crystal id, run number, tool name and space group
+        return (
+            proc_res.crystal.id,
+            proc_res.dataset.run,
+            proc_res.tool_name(),
+            proc_res.space_group.short_name(),
+        )
+
+    def _get_proc_datasets():
+        for dataset in project.get_datasets():
+            for proc_res in project.get_datasets_process_results(dataset):
+                yield ProcessingInfo(proc_res)
+
+    return sorted(_get_proc_datasets(), key=_sort_key)
 
 
 def refine(request):
@@ -63,7 +75,7 @@ def refine(request):
         request,
         "analysis_refine.html",
         {
-            "proc_results": list(_get_processed_datasets(project)),
+            "proc_results": _get_processed_datasets(project),
             "pipelines": get_supported_pipelines(),
             "pdbs": wrap_pdbs(project.get_pdbs()),
         },
