@@ -1,4 +1,5 @@
 from itertools import count
+import jsonschema
 from django import test
 from django.test.client import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -57,38 +58,45 @@ FRAG_LIBS = {
 
 
 class TestProcessForm(ProjectTestCase):
-    ReqsFactory = RequestFactory()
-
     PROJECTS = [PROJECT]
+
+    REQ_JSON = (
+        b'{"datasets":["2","3"],'
+        b'"tools":[{"id":"dials","customParams":"dialsCust"},{"id":"xds"}],'
+        b'"spaceGroup":"P4",'
+        b'"cellParams":{"a":143.9,"b":85.5,"c":160.1,"alpha":90,"beta":90,"gamma":90}}'
+    )
+
+    REQ_AUTO_JSON = b'{"datasets":["1","3"],"tools":[{"id":"xds"},{"id":"xdsapp"}]}'
+
+    # missing 'tools' property
+    REQ_INVALID_JSON = b'{"datasets": ["1", "2"]}'
+
+    def test_invalid(self):
+        with self.assertRaisesRegexp(
+            jsonschema.exceptions.ValidationError, "'tools' is a required property"
+        ):
+            forms.ProcessForm(self.project, self.REQ_INVALID_JSON)
 
     @db_session
     def test_valid(self):
-        request = self.ReqsFactory.post(
-            "/",  # we don't really care about the URL here
-            dict(
-                datasets="2,3",
-                pipelines="dials,xds",
-                spaceGroup="P4",
-                cellParameters="143.9,85.5,160.1,90.0,90.0,90.0",
-            ),
-        )
-
-        proc_form = forms.ProcessForm(self.project, request.POST)
-        self.assertTrue(proc_form.is_valid())
+        proc_form = forms.ProcessForm(self.project, self.REQ_JSON)
 
         # check that we got expected datasets
-        dset_ids = set([dset.id for dset in proc_form.get_datasets()])
+        dset_ids = set([dset.id for dset in proc_form.datasets])
         self.assertSetEqual(dset_ids, {2, 3})
 
         # check that we got expected pipelines
-        self.assertSetEqual(set(proc_form.get_pipelines()), {Tool.DIALS, Tool.XDS})
+        self.assertSetEqual(
+            set(proc_form.tools), {(Tool.DIALS, "dialsCust"), (Tool.XDS, "")}
+        )
 
         # check space group
-        space_group = proc_form.get_space_group()
+        space_group = proc_form.space_group
         self.assertTrue(space_group.short_name, "P4")
 
         # check cell parameters
-        cell = proc_form.get_cell_parameters()
+        cell = proc_form.cell_params
         self.assertAlmostEquals(cell.a, 143.9)
         self.assertAlmostEquals(cell.b, 85.5)
         self.assertAlmostEquals(cell.c, 160.1)
@@ -98,32 +106,20 @@ class TestProcessForm(ProjectTestCase):
 
     @db_session
     def test_valid_auto(self):
-        """
-        test the case where auto space group and auto cell parameters are specified
-        """
-        request = self.ReqsFactory.post(
-            "/",  # we don't really care about the URL here
-            dict(
-                datasets="1,3",
-                pipelines="xds,xdsapp",
-            ),
-        )
-
-        proc_form = forms.ProcessForm(self.project, request.POST)
-        self.assertTrue(proc_form.is_valid())
+        proc_form = forms.ProcessForm(self.project, self.REQ_AUTO_JSON)
 
         # check that we got expected datasets
-        dset_ids = set([dset.id for dset in proc_form.get_datasets()])
+        dset_ids = set([dset.id for dset in proc_form.datasets])
         self.assertSetEqual(dset_ids, {1, 3})
 
         # check that we got expected pipelines
-        self.assertSetEqual(set(proc_form.get_pipelines()), {Tool.XDS, Tool.XDSAPP})
+        self.assertSetEqual(set(proc_form.tools), {(Tool.XDS, ""), (Tool.XDSAPP, "")})
 
         # no space group should be specified
-        self.assertIsNone(proc_form.get_space_group())
+        self.assertIsNone(proc_form.space_group)
 
         # no cell parameters should be specified
-        self.assertIsNone(proc_form.get_cell_parameters())
+        self.assertIsNone(proc_form.cell_params)
 
 
 class TestKillJobForm(test.TestCase):

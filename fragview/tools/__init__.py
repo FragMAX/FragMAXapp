@@ -41,7 +41,6 @@ class Tool(Enum):
 class ProcessOptions:
     space_group: Optional[SpaceGroup]
     cell: Optional[UnitCell]
-    # currently unused, as there is no UI for this
     custom_args: str = ""
     # hard-coded to true, as there is no UI for this
     friedel_law: bool = True

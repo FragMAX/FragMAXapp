@@ -39,22 +39,21 @@ def show_all(request):
 
 def process(request):
     project = current_project(request)
-    form = ProcessForm(project, request.POST)
-    if not form.is_valid():
-        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
-    options = ProcessOptions(form.get_space_group(), form.get_cell_parameters())
+    form = ProcessForm(project, request.body)
+    options = ProcessOptions(form.space_group, form.cell_params)
 
     jobs = JobsSet(project, "process datasets")
     hpc = get_hpc_runner()
 
-    for pipeline in form.get_pipelines():
-        for dataset in form.get_datasets():
-            batch = generate_process_batch(pipeline, project, dataset, options)
+    for tool, custom_params in form.tools:
+        for dataset in form.datasets:
+            options.custom_args = custom_params
+            batch = generate_process_batch(tool, project, dataset, options)
             batch.save()
             jobs.add_job(batch)
 
-            add_update_job(jobs, hpc, project, pipeline.get_name(), dataset, batch)
+            add_update_job(jobs, hpc, project, tool.get_name(), dataset, batch)
 
     jobs.submit()
 

@@ -1,5 +1,8 @@
 from typing import Optional, List, Dict
+import json
+import jsonschema
 from itertools import count
+from gemmi import UnitCell
 from django.forms import (
     Form,
     CharField,
@@ -9,7 +12,6 @@ from django.forms import (
     FileField,
     ValidationError,
 )
-from gemmi import UnitCell
 from fragview.tools import get_tool_by_name
 from fragview.models import Library
 from fragview.projects import Project
@@ -41,22 +43,60 @@ class _JobsForm(Form, _GetFieldMixin):
         return self._get_field("pipelines")
 
 
-class ProcessForm(_JobsForm):
-    datasets = CharField()
-    spaceGroup = CharField(required=False)
-    cellParameters = CharField(required=False)
+class ProcessForm:
+    SCHEMA = {
+        "type": "object",
+        "required": ["datasets", "tools"],
+        "properties": {
+            "datasets": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+            "tools": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "customParams": {"type": "string"},
+                    },
+                },
+            },
+            "spaceGroup": {
+                "type": "string",
+            },
+            "cellParams": {
+                "type": "object",
+                "required": ["a", "b", "c", "alpha", "beta", "gamma"],
+                "properties": {
+                    "a": {"type": "number"},
+                    "b": {"type": "number"},
+                    "c": {"type": "number"},
+                    "alpha": {"type": "number"},
+                    "beta": {"type": "number"},
+                    "gammma": {"type": "number"},
+                },
+            },
+        },
+    }
 
-    def clean_datasets(self):
-        def _lookup_datasets(dataset_ids: List):
-            for dataset_id in dataset_ids:
-                yield self.project.get_dataset(dataset_id)
+    def _validate_json(self, request_body: bytes):
+        data = json.loads(request_body.decode())
+        jsonschema.validate(data, self.SCHEMA)
 
-        dataset_ids = self._get_field("datasets").split(",")
-        return list(_lookup_datasets(dataset_ids))
+        return data
 
-    def clean_spaceGroup(self):
-        space_group_name = self.get_space_group()
-        if space_group_name == "":
+    @staticmethod
+    def _validate_datasets(project: Project, dataset_ids: List[str]):
+        for dataset_id in dataset_ids:
+            yield project.get_dataset(dataset_id)
+
+    @staticmethod
+    def _validate_tools(tools):
+        for tool in tools:
+            yield get_tool_by_name(tool["id"]), tool.get("customParams", "")
+
+    @staticmethod
+    def _validate_space_group(space_group_name: Optional[str]) -> Optional[SpaceGroup]:
+        if space_group_name is None:
             # no space group specified, aka 'auto' space group
             return None
 
@@ -68,24 +108,23 @@ class ProcessForm(_JobsForm):
 
         return space_group
 
-    def clean_cellParameters(self):
-        cell = self.get_cell_parameters()
-        if cell == "":
+    @staticmethod
+    def _validate_cell_params(cell: Optional[Dict]) -> Optional[UnitCell]:
+        if cell is None:
             # no cell parameters specified, aka 'auto' mode
             return None
 
-        # split cell parameters on comma, and convert to
-        a, b, c, alpha, beta, gamma = [float(v) for v in cell.split(",")]
-        return UnitCell(a, b, c, alpha, beta, gamma)
+        return UnitCell(
+            cell["a"], cell["b"], cell["c"], cell["alpha"], cell["beta"], cell["gamma"]
+        )
 
-    def get_datasets(self):
-        return self._get_field("datasets")
+    def __init__(self, project: Project, request_body: bytes):
+        data = self._validate_json(request_body)
 
-    def get_space_group(self) -> Optional[SpaceGroup]:
-        return self._get_field("spaceGroup")
-
-    def get_cell_parameters(self) -> Optional[UnitCell]:
-        return self._get_field("cellParameters")
+        self.datasets = list(self._validate_datasets(project, data["datasets"]))
+        self.tools = list(self._validate_tools(data["tools"]))
+        self.space_group = self._validate_space_group(data.get("spaceGroup"))
+        self.cell_params = self._validate_cell_params(data.get("cellParams"))
 
 
 class RefineForm(_JobsForm):

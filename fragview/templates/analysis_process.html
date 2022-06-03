@@ -1,6 +1,100 @@
 {% extends 'base.html' %}
 {% block title %}Process Datasets{% endblock %}
 {% block content %}
+<script src="/static/js/vue-3.2.32.global.prod.js"></script>
+
+<script>
+function NoneToNull(val)
+{
+    return val == "None" ? null : val;
+}
+
+class Dataset
+{
+    constructor(id, crystal, run, dials_result, xds_result,
+                xdsapp_result, autoproc_result, edna_result)
+    {
+        this.selected = false;
+        this.id = id;
+        this.crystal = crystal;
+        this.run = run;
+        this.dials_result = NoneToNull(dials_result);
+        this.xds_result = NoneToNull(xds_result);
+        this.xdsapp_result = NoneToNull(xdsapp_result);
+        this.autoproc_result = NoneToNull(autoproc_result);
+        this.edna_result = NoneToNull(edna_result);
+    }
+
+    processed()
+    {
+        if (this.dials_result ||
+            this.xds_result ||
+            this.xdsapp_result ||
+            this.autoproc_result ||
+            this.edna_result)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    name()
+    {
+        return `${this.crystal} (${this.run})`;
+    }
+}
+
+class Tool
+{
+    constructor(id, name)
+    {
+        this.selected = false;
+        this.customParams = "";
+        this.id = id;
+        this.name = name;
+    }
+}
+
+const CSRF_TOKEN = "{{csrf_token}}";
+
+const DATASETS = [
+    {% for dataset in datasets %}
+        new Dataset("{{dataset.id}}",
+                    "{{dataset.crystal}}",
+                    {{dataset.run}},
+                    "{{dataset.dials_result}}",
+                    "{{dataset.xds_result}}",
+                    "{{dataset.xdsapp_result}}",
+                    "{{dataset.autoproc_result}}",
+                    "{{dataset.edna_result}}"),
+    {% endfor %}
+];
+
+const TOOLS = [
+    {% if "xia2_dials" in pipelines %}
+        new Tool("dials", "XIA2/DIALS"),
+    {% endif %}
+    {% if "xia2_xds" in pipelines %}
+        new Tool("xds", "XIA2/XDS"),
+    {% endif %}
+    {% if "xdsapp" in pipelines %}
+        new Tool("xdsapp", "XDSAPP"),
+    {% endif %}
+];
+
+const SPACE_GROUP_SYSTEMS = [
+    {% for space_groups in space_group_systems %}
+        [
+            {% for space_group in space_groups %}
+                "{{space_group.short_name}}",
+            {% endfor %}
+        ],
+    {% endfor %}
+];
+
+</script>
+
 <style>
 .container
 {
@@ -57,17 +151,18 @@
 .ok
 {
     color: #82be00;
+    font-size: large;
 }
 
 .error
 {
     color: #f44336;
+    font-size: large;
 }
 
 /* The Modal (background) */
-.modal
+.modal-dialog
 {
-    display: none;                        /* Hidden by default */
     position: fixed;                      /* Stay in place */
     z-index: 2;                           /* Sit on top */
     padding-top: 8px;
@@ -150,731 +245,560 @@
     text-align: right;
 }
 
+.proc-res
+{
+    display: flex;
+    align-items: baseline;
+}
+
+.tool-name
+{
+    font-size: small;
+    padding: 6px;
+}
+
+.cust-params
+{
+    display: grid;
+    grid-template-columns: 160px 280px;
+    align-items: center;
+    padding-left: 36px;
+}
 </style>
-
-<!-- The 'Select Space Group' Modal -->
-<div class="modal" id="spaceGroupDialog">
-    <div class="modal-cont">
-        <div class="modal-header" style="background: WhiteSmoke">
-            <h5 class="modal-item">Select Space Group</h5>
-        </div>
-        {% for space_groups in space_group_systems %}
-            <div class="spacegroup-section">
-                {% for space_group in space_groups %}
-                <button class="btn-small modal-item"
-                        style="width: 90px; margin: 10px;"
-                        onclick="setSpaceGroup(this)">
-                    {{space_group.short_name}}
-                </button>
-                {% endfor %}
-            </div>
-        {% endfor %}
-        <div class="modal-header" style="background: WhiteSmoke">
-            <button class="btn-large modal-item" onclick="setSpaceGroup(this)">
-                Auto
-            </button>
-            <button class="btn-large modal-item" onclick="hideSpaceGroupDialog()">
-                Cancel
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- The 'Cell Parameters' Modal -->
-<div class="modal" id="cellParamsDialog">
-    <div class="modal-cont">
-        <div class="modal-header" style="background: WhiteSmoke">
-            <h5 class="modal-item">Enter Cell Parameters</h5>
-        </div>
-        <div class="cell-cont">
-            <div class="cell-section">
-                <div class="cell-label">
-                    a
-                </div>
-                <div>
-                    <input id="cell_a"/>
-                </div>
-                <div class="cell-label">
-                    b
-                </div>
-                <div>
-                    <input id="cell_b"/>
-                </div>
-                <div class="cell-label">
-                    c
-                </div>
-                <div>
-                    <input id="cell_c"/>
-                </div>
-                <div class="cell-label">
-                    α
-                </div>
-                <div>
-                    <input id="cell_alpha"/>
-                </div>
-                <div class="cell-label">
-                    β
-                </div>
-                <div>
-                    <input id="cell_beta"/>
-                </div>
-                <div class="cell-label">
-                    γ
-                </div>
-                <div>
-                    <input id="cell_gamma"/>
-                </div>
-            </div>
-        </div>
-        <div class="modal-header" style="background: WhiteSmoke">
-            <button id="cellOkButton" class="btn-large modal-item" disabled>
-                OK
-            </button>
-            <button id="cellAutoButton" class="btn-large modal-item">
-                Auto
-            </button>
-            <button class="btn-large modal-item" onclick="hideCellParamsDialog()">
-                Cancel
-            </button>
-        </div>
-    </div>
-</div>
 
 <div>
     <h4>Process Datasets</h4>
 </div>
 
-<div class="card tab">
-    <button id="datasetsButton" class="tablinks">
-        <i id="datasetsArrow" class="material-icons right">
-            arrow_drop_down
-        </i>
-        Datasets
+{% verbatim %}
+
+<div id="app">
+    <!-- The 'Select Space Group' Modal -->
+    <div v-if="ui.spaceGroupsVisible" class="modal-dialog">
+        <div class="modal-cont">
+            <div class="modal-header" style="background: WhiteSmoke">
+                <h5 class="modal-item">Select Space Group</h5>
+            </div>
+            <div v-for="spaceGroups in ui.spaceGroupSystems" class="spacegroup-section">
+                <button v-for="spaceGroup in spaceGroups"
+                        @click="setSpaceGroup(spaceGroup)"
+                        class="btn-small modal-item"
+                        style="width: 90px; margin: 10px;">
+                    {{spaceGroup}}
+                </button>
+            </div>
+            <div class="modal-header" style="background: WhiteSmoke">
+                <button @click="setSpaceGroup(null)"
+                        class="btn-large modal-item">
+                    Auto
+                </button>
+                <button @click="hideSpaceGroups" class="btn-large modal-item">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- The 'Cell Parameters' Modal -->
+    <div v-if="ui.cellParamsDialog" class="modal-dialog">
+        <div class="modal-cont">
+            <div class="modal-header" style="background: WhiteSmoke">
+                <h5 class="modal-item">Enter Cell Parameters</h5>
+            </div>
+            <div class="cell-cont">
+                <div class="cell-section">
+                    <div class="cell-label">
+                        a
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.a"/>
+                    </div>
+                    <div class="cell-label">
+                        b
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.b"/>
+                    </div>
+                    <div class="cell-label">
+                        c
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.c"/>
+                    </div>
+                    <div class="cell-label">
+                        α
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.alpha"/>
+                    </div>
+                    <div class="cell-label">
+                        β
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.beta"/>
+                    </div>
+                    <div class="cell-label">
+                        γ
+                    </div>
+                    <div>
+                        <input v-model="ui.cellParamsDialog.gamma"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-header" style="background: WhiteSmoke">
+                <button :disabled="!cellParamsDialogValid"
+                        @click="saveCellParams"
+                        class="btn-large modal-item">
+                    OK
+                </button>
+                <button @click="saveAutoCellParams" class="btn-large modal-item">
+                    Auto
+                </button>
+                <button @click="cancelCellParamsDialog" class="btn-large modal-item">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card tab">
+        <button @click="toggleDatasets" class="tablinks">
+            <i id="datasetsArrow" class="material-icons right">
+                {{datasetsListArrowStyle}}
+            </i>
+            Datasets
+        </button>
+    </div>
+
+    <div v-if="!ui.datasetsListShown" class="card">
+        <div class="card-content">
+            {{selectedDatasetsSummary}}
+        </div>
+    </div>
+
+    <div v-if="ui.datasetsListShown" class="card">
+        <div class="card-content">
+            <div class="card-title">
+                <button @click="selectUnprocessedDatasets" class="btn-small btn-right">
+                    select unprocessed
+                </button>
+            </div>
+            <table id="datasets">
+                <thead>
+                    <tr>
+                        <th>
+                            <label>
+                                <input v-model="allDatasetSelected"
+                                       class="filled-in dt-checkboxes"
+                                       type="checkbox"/>
+                                <span></span>
+                            </label>
+                        </th>
+                        <th>Crystal</th>
+                        <th>Run</th>
+                        <th>Processing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="dataset in datasets">
+                        <td>
+                            <label>
+                                <input v-model="dataset.selected"
+                                       class="filled-in dt-checkboxes"
+                                       type="checkbox"/>
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>{{dataset.crystal}}</td>
+                        <td>{{dataset.run}}</td>
+                        <td>
+                            <div align="left" style="white-space: nowrap; display: flex">
+                                <div v-if="dataset.dials_result" class="proc-res">
+                                    <div :class="dataset.dials_result">&#9679;</div>
+                                    <div class="tool-name">XIA2/DIALS</div>
+                                </div>
+                                <div v-if="dataset.xds_result" class="proc-res">
+                                    <div :class="dataset.xds_result">&#9679;</div>
+                                    <div class="tool-name">XIA2/XDS</div>
+                                </div>
+                                <div v-if="dataset.xdsapp_result" class="proc-res">
+                                    <div :class="dataset.xdsapp_result">&#9679;</div>
+                                    <div class="tool-name">XDSAPP</div>
+                                </div>
+                                <div v-if="dataset.autoproc_result" class="proc-res">
+                                    <div :class="dataset.autoproc_result">&#9679;</div>
+                                    <div class="tool-name">autoPROC</div>
+                                </div>
+                                <div v-if="dataset.edna_result" class="proc-res">
+                                    <div :class="dataset.edna_result">&#9679;</div>
+                                    <div class="tool-name">EDNA_proc</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card tab">
+        <button>Data Processing</button>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="card-title">
+                Process datasets with:
+            </div>
+            <div class="pipelines">
+                <div v-for="tool in tools">
+                    <div class="checkbox">
+                        <label>
+                            <input v-model="tool.selected"
+                                   class="processform filled-in dt-checkboxes"
+                                   type="checkbox"/>
+                            <span>{{tool.name}}</span>
+                        </label>
+                    </div>
+                    <div v-if="tool.selected" class="cust-params">
+                        Custom parameters
+                        <input v-model="tool.customParams"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pipeline-options">
+                <div>Space group</div>
+                <div>
+                    <button class="btn-small space-grp-button"
+                            @click="showSpaceGroups"
+                            type="button">
+                        {{spaceGroupName}}
+                    </button>
+                </div>
+                <div>Cell parameters</div>
+                <div>
+                    <button class="btn-small space-grp-button"
+                            @click="openCellParamsDialog"
+                            type="button">
+                        {{cellParamsText}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button @click="processDatasets" class="btn" :disabled="!valid">
+        Process Datasets
     </button>
 </div>
 
-<div id="datasetsSummary" class="card">
-    <div class="card-content">
-    </div>
-</div>
-
-<div id="datasetsList" class="card" style="display: none">
-    <div class="card-content">
-        <div class="card-title">
-            <button id="selectUnprocessedButton" class="btn-small btn-right">
-                select unprocessed
-            </button>
-        </div>
-        <table id="datasets">
-            <thead>
-                <tr>
-                    <th>
-                        <label>
-                            <input id="toggleSelected"
-                                   class="filled-in dt-checkboxes"
-                                   type="checkbox"/>
-                            <span></span>
-                        </label>
-                    </th>
-                    <th>Crystal</th>
-                    <th>Run</th>
-                    <th>Processing</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for dataset in datasets %}
-            <tr>
-                <td>
-                <label>
-                    <input class="filled-in dt-checkboxes"
-                           value="{{dataset.id}}"
-                           type="checkbox"/>
-                    <span></span>
-                </label>
-                </td>
-                <td>{{dataset.crystal}}</td>
-                <td>{{dataset.run}}</td>
-                <td>
-                    <div align="left" style="white-space: nowrap">
-                        {% if dataset.dials_result %}
-                            <font size="4" class="{{dataset.dials_result}}">&#9679;</font>
-                            <font size="2">XIA2/DIALS</font>
-                        {% endif %}
-
-                        {% if dataset.xds_result %}
-                            <font size="4" class="{{dataset.xds_result}}">&#9679;</font>
-                            <font size="2">XIA2/XDS</font>
-                        {% endif %}
-
-                        {% if dataset.xdsapp_result %}
-                            <font size="4" class="{{dataset.xdsapp_result}}">&#9679;</font>
-                            <font size="2">XDSAPP</font>
-                        {% endif %}
-
-                        {% if dataset.autoproc_result %}
-                            <font size="4" class="{{dataset.autoproc_result}}">&#9679;</font>
-                            <font size="2">autoPROC</font>
-                        {% endif %}
-
-                        {% if dataset.edna_result %}
-                            <font size="4" class="{{dataset.edna_result}}">&#9679;</font>
-                            <font size="2">EDNA_proc</font>
-                        {% endif %}
-
-                        {% if not dataset.processed %}
-                            unprocessed
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="card tab">
-    <button>Data Processing</button>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <div class="card-title">
-            Process datasets with:
-        </div>
-        <div id="pipelines" class="pipelines">
-        {% if "xia2_dials" in pipelines %}
-        <div class="checkbox">
-            <label>
-                <input class="processform filled-in dt-checkboxes"
-                    id="dials" type="checkbox"/>
-                <span>XIA2/DIALS</span>
-            </label>
-        </div>
-        {% endif %}
-        {% if "xia2_xds" in pipelines %}
-        <div class="checkbox">
-            <label>
-                <input class="processform filled-in dt-checkboxes"
-                    id="xds" type="checkbox"/>
-                <span>XIA2/XDS</span>
-            </label>
-        </div>
-        {% endif %}
-        {% if "xdsapp" in pipelines %}
-        <div class="checkbox">
-            <label>
-                <input class="processform filled-in dt-checkboxes"
-                    id="xdsapp" type="checkbox"/>
-                <span>XDSAPP</span>
-            </label>
-        </div>
-        {% endif %}
-    </div>
-        <div class="pipeline-options">
-            <div>Space group</div>
-            <div>
-                <button id="spaceGroupButton"
-                        class="btn-small space-grp-button"
-                        type="button">
-                    auto
-                </button>
-            </div>
-            <div>Cell parameters</div>
-            <div>
-                <button id="cellParamsButton"
-                        class="btn-small space-grp-button"
-                        type="button">
-                    auto
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<button id="processDatasetsButton" class="btn" disabled>
-    Process Datasets
-</button>
 
 <script>
-class DatasetRow
+function isEmpty(generator)
 {
-    constructor(htmlRow)
-    {
-        this.htmlRow = htmlRow;
-        this.cells = htmlRow.cells;
-    }
-
-    _getCheckboxCell()
-    {
-        return this.cells[0];
-    }
-
-    _getCrystalCell()
-    {
-        return this.cells[1];
-    }
-
-    _getRunCell()
-    {
-        return this.cells[2];
-    }
-
-    _getProcCell()
-    {
-        return this.cells[3];
-    }
-
-    getCheckbox()
-    {
-        const checkboxCell = this._getCheckboxCell();
-        return checkboxCell.getElementsByTagName("input")[0];
-    }
-
-    id()
-    {
-        return this.getCheckbox().value;
-    }
-
-    selected()
-    {
-        return this.getCheckbox().checked;
-    }
-
-    processed()
-    {
-        const procCell = this._getProcCell()
-        return procCell.innerText != "unprocessed";
-    }
-
-    name()
-    {
-        const crystal = this._getCrystalCell();
-        const run = this._getRunCell();
-        return `${crystal.innerText} (${run.innerText})`;
-    }
+    /* check if generator is 'empty' */
+    return generator.next().done;
 }
 
-function* datasets(onlySelected = false)
+function postJobs(datasets, tools, spaceGroup, cellParams, requestFinishedCB)
 {
-    const rows = document.getElementById("datasets").rows;
-    /* start at index 1, to skip header row */
-    for (let i = 1; i < rows.length; i += 1)
+    function getSelectedDatasetsIds()
     {
-        const dset = new DatasetRow(rows[i]);
-        if ((onlySelected && dset.selected()) || !onlySelected)
+        function *getIds()
         {
-            yield dset;
-        }
-    }
-}
-
-function* pipelineCheckboxes()
-{
-    const pipelineDiv = document.getElementById("pipelines");
-
-    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
-    {
-        yield checkbox;
-    }
-}
-
-function* getCellParamsInputs()
-{
-    const cont = document.getElementsByClassName("cell-section")[0];
-
-    for (const input of cont.getElementsByTagName("input"))
-    {
-        yield input;
-    }
-}
-
-function getSpaceGroupButton()
-{
-    return document.getElementById("spaceGroupButton");
-}
-
-function getCellParamsButton()
-{
-    return document.getElementById("cellParamsButton");
-}
-
-function getProcessDatasetsButton()
-{
-    return document.getElementById("processDatasetsButton");
-}
-
-function getCellOkButton()
-{
-    return document.getElementById("cellOkButton");
-}
-
-function setProcessDatasetsButtonEnabled(enabled)
-{
-    setButtonEnabled(getProcessDatasetsButton(), enabled);
-}
-
-function setButtonEnabled(button, enabled)
-{
-    if (enabled)
-    {
-        /* enable button */
-        button.removeAttribute("disabled");
-        return;
-    }
-
-    /* disable button */
-    button.setAttribute("disabled", "");
-}
-
-function updateProcessDatasetsButton()
-{
-    function datasetSelected()
-    {
-        /* check if 'selected datasets' generator is 'empty' */
-        const dsetsNext = datasets(true).next();
-        return !dsetsNext.done;
-    }
-
-    /* check if any of the pipelines are enabled */
-    function pipelineEnabled()
-    {
-        for (const checkbox of pipelineCheckboxes())
-        {
-            if (checkbox.checked)
+            for (const dataset of datasets)
             {
-                return true;
+                yield dataset.id;
             }
         }
 
-        /* none of the pipeline checkboxes are checked */
-        return false;
+        return Array.from(getIds());
     }
 
-    setProcessDatasetsButtonEnabled(pipelineEnabled() && datasetSelected());
-}
-
-function updateSelectedSummary()
-{
-    function getText()
+    function getSelectedTools()
     {
-        const dsets = Array.from(datasets(true));
-        if (dsets.length == 0)
+        function *get()
         {
-            return "(no datasets selected)";
-        }
-
-        let text = "";
-        for (const i of dsets)
-        {
-            if (text.length > 86)
+            for (const tool of tools)
             {
-                /* truncate selected datasets text */
-                text += `... (${dsets.length} datasets selected).`;
-                break;
-            }
+                toolObj = {id: tool.id};
+                if (tool.customParams != "")
+                {
+                    toolObj["customParams"] = tool.customParams;
+                }
 
-            text += `${i.name()} `;
-        }
-        return text;
-    }
-
-    const summaryDiv = document.getElementById("datasetsSummary").children[0];
-    summaryDiv.innerText = getText();
-}
-
-function selectUnprocessed()
-{
-    for (const dset of datasets())
-    {
-        if (!dset.processed())
-        {
-            const checkbox = dset.getCheckbox();
-            checkbox.checked = true;
-            checkbox.dispatchEvent(new Event("input"));
-        }
-    }
-}
-
-function toggleSelectedDatasets(toggleCheckbox)
-{
-    const checked = toggleCheckbox.checked;
-
-    for (const dset of datasets())
-    {
-        const checkbox = dset.getCheckbox();
-        checkbox.checked = checked;
-    }
-    updateProcessDatasetsButton();
-}
-
-function toggleDatasets()
-{
-    function unfold()
-    {
-        arrow.innerText = "arrow_drop_up";
-        list.style.display = "";
-        summary.style.display = "none";
-    }
-
-    function fold()
-    {
-        updateSelectedSummary();
-        arrow.innerText = "arrow_drop_down";
-
-        list.style.display = "none";
-        summary.style.display = "";
-    }
-
-    const arrow = document.getElementById("datasetsArrow");
-    const summary = document.getElementById("datasetsSummary");
-    const list = document.getElementById("datasetsList");
-
-    const folded = (arrow.innerText == "arrow_drop_down");
-
-    if (folded)
-    {
-        unfold();
-    }
-    else
-    {
-        fold();
-    }
-}
-
-function hideSpaceGroupDialog()
-{
-    const modal = document.getElementById("spaceGroupDialog");
-    modal.style.display = "none";
-}
-
-function setSpaceGroup(button)
-{
-    getSpaceGroupButton().innerText = button.innerText;
-    hideSpaceGroupDialog();
-}
-
-
-function showSpaceGroupDialog()
-{
-    const modal = document.getElementById("spaceGroupDialog");
-    modal.style.display = "block";
-}
-
-function hideCellParamsDialog()
-{
-    const modal = document.getElementById("cellParamsDialog");
-    modal.style.display = "none";
-}
-
-function showCellParamsDialog()
-{
-    const modal = document.getElementById("cellParamsDialog");
-    modal.style.display = "block";
-}
-
-function cellParamsChanged()
-{
-    function invalidVal(val)
-    {
-        if (val == "")
-        {
-            return true;
-        }
-        return isNaN(Number(val));
-    }
-
-    function allParamsValid()
-    {
-        for (const input of getCellParamsInputs())
-        {
-            if (invalidVal(input.value))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    const allValid = allParamsValid();
-    setButtonEnabled(getCellOkButton(), allValid);
-}
-
-function setCellParams()
-{
-    function val(id)
-    {
-        return document.getElementById(id).value;
-    }
-
-    const text = `${val("cell_a")},${val("cell_b")},${val("cell_c")},` +
-        `${val("cell_alpha")},${val("cell_beta")},${val("cell_gamma")}`;
-
-    getCellParamsButton().innerText = text;
-    hideCellParamsDialog()
-}
-
-function setAutoCellParams()
-{
-    getCellParamsButton().innerText = "auto";
-    hideCellParamsDialog()
-}
-
-function processDatasets()
-{
-    function getSelectedDatasets()
-    {
-        const dsetIds = new Set();
-        for (const dset of datasets(onlySelected=true))
-        {
-            dsetIds.add(dset.id());
-        }
-
-        return Array.from(dsetIds).join();
-    }
-
-    function getSelectedPipelines()
-    {
-        const pipes = new Set();
-        for (const pipeline of pipelineCheckboxes())
-        {
-            if (pipeline.checked)
-            {
-                pipes.add(pipeline.id);
+                yield toolObj;
             }
         }
 
-        return Array.from(pipes).join();
+        return Array.from(get());
     }
 
-    function appendSelectedSpaceGroup(data)
+    let headers = {
+        "Content-Type": "application/json",
+        "X-CSRFToken" : CSRF_TOKEN
+    };
+
+    let body = {
+        datasets: getSelectedDatasetsIds(),
+        tools: getSelectedTools(),
+    };
+
+    /* include space group if specified */
+    if (spaceGroup)
     {
-        const spaceGroup = getSpaceGroupButton().innerText;
-        if (spaceGroup == "AUTO")
-        {
-            return;
-        }
-        data.append("spaceGroup", spaceGroup);
+        body["spaceGroup"] = spaceGroup;
     }
 
-    function appendCellParams(data)
+    /* include cell parameters if specified */
+    if (cellParams)
     {
-        const cellParams = getCellParamsButton().innerText;
-        if (cellParams == "AUTO")
-        {
-            return;
-        }
-        data.append("cellParameters", cellParams);
+        body["cellParams"] = cellParams;
     }
-
-    /* disable button to avoid double clicks */
-    setProcessDatasetsButtonEnabled(false);
-
-    const data = new FormData();
-    data.append("csrfmiddlewaretoken", "{{csrf_token}}");
-    data.append("datasets", getSelectedDatasets());
-    data.append("pipelines", getSelectedPipelines());
-    appendSelectedSpaceGroup(data);
-    appendCellParams(data);
 
     fetch("/datasets/process",
     {
         method: "POST",
-        body: data,
+        headers: headers,
+        body: JSON.stringify(body),
     })
     .then(function(response)
     {
         if (!response.ok)
         {
             response.text().then(text => alert(text));
-            return;
         }
-        window.open("/jobs/status", "_blank");
-        setProcessDatasetsButtonEnabled(true);
+        else
+        {
+            window.open("/jobs/status", "_blank");
+        }
+        requestFinishedCB();
     })
     .catch(function(error)
     {
         alert(error.message);
+        requestFinishedCB();
     });
+
 }
 
-function updateToggleSelected()
+
+function createVueApp()
 {
-    function isAllSelected()
-    {
-        for (dset of datasets())
+return Vue.createApp({
+    data() {
+        return {
+            datasets: DATASETS,
+            tools: TOOLS,
+            spaceGroup: null, /* null is Auto */
+            cellParams: null, /* null is Auto */
+            ui: {
+                spaceGroupSystems: SPACE_GROUP_SYSTEMS,
+                spaceGroupsVisible: false,
+                cellParamsDialog: null,
+                datasetsListShown: false,
+                requestInProgress: false,
+            },
+            allDatasetSelected: false,
+        };
+    },
+    computed: {
+        datasetsListArrowStyle()
         {
-            if (!dset.selected())
+            if (this.ui.datasetsListShown)
             {
-                return false;
+                return "arrow_drop_up";
             }
-        }
+            return "arrow_drop_down";
+        },
+        selectedDatasetsSummary()
+        {
+            const dsets = Array.from(this.getSelectedDatasets());
+            if (dsets.length == 0)
+            {
+                return "(no datasets selected)";
+            }
 
-        /* no unselected dataset found */
-        return true;
-    }
+            let text = "";
+            for (const i of dsets)
+            {
+                if (text.length > 86)
+                {
+                    /* truncate selected datasets text */
+                    text += `... (${dsets.length} datasets selected).`;
+                    break;
+                }
 
-    document.getElementById("toggleSelected").checked = isAllSelected();
+                text += `${i.name()} `;
+            }
+            return text;
+        },
+        valid()
+        {
+            return !isEmpty(this.getSelectedDatasets()) &&
+                !isEmpty(this.getSelectedTools()) &&
+                !this.ui.requestInProgress;
+        },
+        spaceGroupName()
+        {
+            if (this.spaceGroup == null)
+            {
+                return "auto";
+            }
+            return this.spaceGroup;
+        },
+        cellParamsText()
+        {
+            if (this.cellParams == null)
+            {
+                return "auto";
+            }
+
+            const p = this.cellParams;
+            return `${p.a},${p.b},${p.c},${p.alpha},${p.beta},${p.gamma}`;
+        },
+        cellParamsDialogValid()
+        {
+            function validParam(param)
+            {
+                if (param == "")
+                {
+                    return false;
+                }
+
+                return !isNaN(Number(param));
+            }
+
+            const params = this.ui.cellParamsDialog;
+
+            return validParam(params.a) &&
+                validParam(params.b) &&
+                validParam(params.c) &&
+                validParam(params.alpha) &&
+                validParam(params.beta) &&
+                validParam(params.gamma);
+        },
+    },
+    watch: {
+        allDatasetSelected()
+        {
+            for (dataset of this.datasets)
+            {
+                dataset.selected = this.allDatasetSelected;
+            }
+        },
+    },
+    methods: {
+        *getSelectedDatasets()
+        {
+            for (const dataset of this.datasets)
+            {
+                if (dataset.selected)
+                {
+                    yield dataset;
+                }
+            }
+        },
+        *getSelectedTools()
+        {
+            for (const tool of this.tools)
+            {
+                if (tool.selected)
+                {
+                    yield tool;
+                }
+            }
+        },
+        toggleDatasets()
+        {
+            this.ui.datasetsListShown = !this.ui.datasetsListShown;
+        },
+        selectUnprocessedDatasets()
+        {
+            for (const dataset of this.datasets)
+            {
+                if (!dataset.processed())
+                {
+                    dataset.selected = true;
+                }
+            }
+        },
+        showSpaceGroups()
+        {
+            this.ui.spaceGroupsVisible = true;
+        },
+        hideSpaceGroups()
+        {
+            this.ui.spaceGroupsVisible = false;
+        },
+        setSpaceGroup(spaceGroup)
+        {
+            this.spaceGroup = spaceGroup;
+            this.hideSpaceGroups();
+        },
+        openCellParamsDialog()
+        {
+            console.log("openCellParamsDialog", this.cellParams);
+
+            if (this.cellParams != null)
+            {
+                this.ui.cellParamsDialog = {
+                    a: this.cellParams.a,
+                    b: this.cellParams.b,
+                    c: this.cellParams.c,
+                    alpha: this.cellParams.alpha,
+                    beta: this.cellParams.beta,
+                    gamma: this.cellParams.gamma,
+                };
+                return;
+            }
+
+            this.ui.cellParamsDialog = {
+                a: "",
+                b: "",
+                c: "",
+                alpha: "",
+                beta: "",
+                gamma: "",
+            };
+        },
+        cancelCellParamsDialog()
+        {
+            this.ui.cellParamsDialog = null;
+        },
+        saveAutoCellParams()
+        {
+            this.cellParams = null;
+            this.ui.cellParamsDialog = null;
+        },
+        saveCellParams()
+        {
+            const params = this.ui.cellParamsDialog;
+            this.cellParams = {
+                a: Number(params.a),
+                b: Number(params.b),
+                c: Number(params.c),
+                alpha: Number(params.alpha),
+                beta: Number(params.beta),
+                gamma: Number(params.gamma),
+            };
+            this.ui.cellParamsDialog = null;
+        },
+        processDatasets()
+        {
+            this.ui.requestInProgress = true;
+            postJobs(this.getSelectedDatasets(), this.getSelectedTools(),
+                     this.spaceGroup, this.cellParams,
+                     () => this.ui.requestInProgress = false);
+        },
+    },
+});
 }
 
-function datasetToggled()
-{
-    updateProcessDatasetsButton();
-    updateToggleSelected();
-}
-
-function setup()
-{
-    /* handle clicks on dataset's check boxes */
-    for (dset of datasets())
-    {
-        dset.getCheckbox().addEventListener("input", datasetToggled);
-    }
-
-    /* handle changes to selected pipelines */
-    for (const checkbox of pipelineCheckboxes())
-    {
-        checkbox.addEventListener("input", updateProcessDatasetsButton);
-    }
-
-    /* handle clicks on 'Datasets' button */
-    const datasetsButton = document.getElementById("datasetsButton");
-    datasetsButton.addEventListener("click", toggleDatasets);
-
-    /* handle clicks on 'selected unprocessed' button */
-    const unprocButton = document.getElementById("selectUnprocessedButton");
-    unprocButton.addEventListener("click", selectUnprocessed);
-
-    /* handle changes to 'toggle selected' dataset checkbox */
-    const toggleSelected = document.getElementById("toggleSelected");
-    toggleSelected.addEventListener("input",
-                    () => toggleSelectedDatasets(toggleSelected));
-
-    /* handle clicks on 'process datasets' button */
-    getProcessDatasetsButton().addEventListener("click", processDatasets);
-
-    /* handle clicks on 'space group' button */
-    getSpaceGroupButton().addEventListener("click", showSpaceGroupDialog);
-
-    /* handle clicks on 'cell parameters' button */
-    getCellParamsButton().addEventListener("click", showCellParamsDialog);
-
-    /* handle changes to cell parameter input fields */
-    for (const input of getCellParamsInputs())
-    {
-        input.addEventListener("input", cellParamsChanged);
-    }
-
-    /* handle clicks on cell param's OK button */
-    getCellOkButton().addEventListener("click", setCellParams);
-
-    /* handle clicks on cell param's AUTO button */
-    const cellAutoButton = document.getElementById("cellAutoButton");
-    cellAutoButton.addEventListener("click", setAutoCellParams);
-
-    updateSelectedSummary();
-}
-
-setup();
+createVueApp().mount('#app');
 </script>
+
+
+{% endverbatim %}
 {% endblock %}
