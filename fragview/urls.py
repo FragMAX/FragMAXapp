@@ -138,4 +138,6 @@ urlpatterns = [
     re_path("logs/htmldata/(?P<data_file>.*)$", logs.htmldata),
     # running commit, for tracking and trouble shooting
     path("commit", commit.show, name="commit"),
+    # hack to dump project details as JSON without authentication
+    path("hack/proj_details/<project_id>", details.dump_details),
 ]

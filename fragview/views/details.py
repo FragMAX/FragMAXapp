@@ -294,3 +294,10 @@ def details(request: HttpRequest):
 
     assert request.method == "POST"
     return _save_details(project, request.POST)
+
+
+def dump_details(request: HttpRequest, project_id):
+    from fragview.projects import get_project
+
+    proj = get_project(project_id)
+    return _load_details(proj)

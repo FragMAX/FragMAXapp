@@ -20,7 +20,8 @@ def login_required(get_response):
 
     def check_login(request):
         if not request.user.is_authenticated and \
-                request.path_info not in _open_urls():
+                request.path_info not in _open_urls() and \
+                not request.path_info.startswith("/hack/proj_details"):
             return redirect(login_url + "?next=" + request.path)
 
         return get_response(request)
@@ -63,6 +64,9 @@ def no_projects_redirect(get_response):
         if url.startswith("/project/"):
             return True
 
+        if url.startswith("/hack/proj_details"):
+            return True
+
         return False
 
     def check_current_project(request):
@@ -94,7 +98,8 @@ def key_required_redirect(get_response):
             urls.reverse("logout"),  # no current project when logging out
             urls.reverse("commit"),
             "/project",              # exclude all project management URLs
-            "/crypt/"                # crypt I/O use tokens rather then user authentication
+            "/crypt/",               # crypt I/O use tokens rather then user authentication
+            "/hack/proj_details"
         ]
 
         for excluded_prefix in excluded_prefixes:
