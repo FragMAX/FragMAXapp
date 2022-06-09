@@ -1,7 +1,7 @@
 import json
 from sys import stdout
 from pathlib import Path
-from shutil import copyfile, copytree
+from shutil import copytree
 from dataclasses import dataclass
 from pandas import read_csv
 from django.core.management.base import BaseCommand, CommandError
@@ -14,6 +14,7 @@ from fragview.status import (
     update_refine_tool_status,
     update_ligfit_tool_status,
 )
+from fragview.views.pdbs import _save_pdb, PDBAddError
 from projects.database import db_session
 from worker.project import setup_project
 
@@ -86,9 +87,9 @@ def _parse_datacollections_csv(datacollections_csv: Path) -> Crystals:
             _, frag_lib, frag_code = sample_id.split("-")
 
             #
-            # currently, we only support migrating 'F2XUniversal' projects
+            # currently, we only support migrating 'F2XUniversal' and 'F2XEntry' projects
             #
-            assert frag_lib == "F2XUniversal"
+            assert frag_lib in ["F2XUniversal", "F2XEntry"]
 
             # chop off the 'subwell' part, to get proper fragment code
             frag_code = frag_code[:-1]
@@ -109,7 +110,7 @@ def _parse_datacollections_csv(datacollections_csv: Path) -> Crystals:
 def _create_project(protein: str, proposal: str, crystals: Crystals) -> Project:
     user_proj = UserProject.create_new(protein, proposal)
     project_id = user_proj.id
-    setup_project(project_id, protein, proposal, crystals.as_list(), False, False)
+    setup_project(project_id, protein, proposal, crystals.as_list(), {}, False, False)
 
     return get_project(project_id)
 
@@ -123,10 +124,11 @@ def _import_models(project: Project, old_paths: OldPaths):
         if not node.name.lower().endswith(".pdb"):
             continue
 
-        dest = Path(project.models_dir, node.name)
-        _log(f"{node} -> {dest}")
-        copyfile(node, dest)
-        project.db.PDB(filename=node.name)
+        try:
+            _save_pdb(project, None, node.name, node.read_bytes())
+            _log(f"imported {node}")
+        except PDBAddError as ex:
+            _log(f"SKIPPING importing {node}, error importing: '{ex}'")
 
 
 def _dbg_cutoff(dsets):
