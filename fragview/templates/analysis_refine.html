@@ -60,6 +60,20 @@
     font-style: italic;
     color: grey;
 }
+
+.cust-params
+{
+    display: grid;
+    grid-template-columns: 160px 280px;
+    align-items: center;
+    padding-left: 36px;
+}
+
+.hidden
+{
+    display: none;
+}
+
 </style>
 
 <div>
@@ -175,6 +189,10 @@
                     <span>DIMPLE</span>
                 </label>
             </div>
+            <div id="dimpleCustParamsDiv" class="hidden">
+                Custom parameters
+                <input id="dimpleCustParams"/>
+            </div>
             {% endif %}
             {% if "fspipeline" in pipelines %}
             <div class="checkbox">
@@ -183,6 +201,10 @@
                            type="checkbox"/>
                     <span>fspipeline</span>
                 </label>
+            </div>
+            <div id="fspipelineCustParamsDiv" class="hidden">
+                Custom parameters
+                <input id="fspipelineCustParams"/>
             </div>
             {% endif %}
         </div>
@@ -194,6 +216,8 @@
 </button>
 
 <script>
+const CSRF_TOKEN = "{{csrf_token}}";
+
 /*
  * Checks if PDB and MTZ files are compatible with regard to
  * point group and cell volume.
@@ -367,9 +391,12 @@ function* pipelineCheckboxes()
 {
     const pipelineDiv = document.getElementById("pipelines");
 
-    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
+    for (const input of pipelineDiv.getElementsByTagName("input"))
     {
-        yield checkbox;
+        if (input.type == "checkbox")
+        {
+            yield input;
+        }
     }
 }
 
@@ -381,6 +408,16 @@ function getRefineStructuresButton()
 function setRefineStructuresButtonEnabled(enabled)
 {
     setElementDisabled(getRefineStructuresButton(), !enabled);
+}
+
+function toolCheckboxToggled(event)
+{
+    const custParamsDiv = document.getElementById(`${event.target.id}CustParamsDiv`);
+    const newClass = event.target.checked ? "cust-params" : "hidden";
+
+    custParamsDiv.className = newClass;
+
+    updateRefineStructuresButton();
 }
 
 function updateRefineStructuresButton()
@@ -619,7 +656,7 @@ function refineStructures()
     function getSelectedPDB()
     {
         const select = document.getElementById("pdbs");
-        return select.value;
+        return Number(select.value);
     }
 
     function getSelectedMTZs()
@@ -630,7 +667,7 @@ function refineStructures()
             mtzIds.add(mtz.id);
         }
 
-        return Array.from(mtzIds).join();
+        return Array.from(mtzIds);
     }
 
     function getSelectedPipelines()
@@ -640,26 +677,40 @@ function refineStructures()
         {
             if (pipeline.checked)
             {
-                pipes.add(pipeline.id);
+                const pipe = {id : pipeline.id};
+                const custParams = document.getElementById(`${pipe.id}CustParams`).value;
+
+                if (custParams != "")
+                {
+                    pipe["customParams"] = custParams;
+                }
+
+                pipes.add(pipe);
             }
         }
 
-        return Array.from(pipes).join();
+        return Array.from(pipes);
     }
+
+    let headers = {
+        "Content-Type": "application/json",
+        "X-CSRFToken" : CSRF_TOKEN,
+    };
+
+    let body = {
+        pdb: getSelectedPDB(),
+        datasets: getSelectedMTZs(),
+        tools: getSelectedPipelines(),
+    };
 
     /* disable button to avoid double clicks */
     setElementDisabled(getRefineStructuresButton(), true);
 
-    const data = new FormData();
-    data.append("csrfmiddlewaretoken", "{{csrf_token}}");
-    data.append("pdb", getSelectedPDB());
-    data.append("processResults", getSelectedMTZs());
-    data.append("pipelines", getSelectedPipelines());
-
     fetch("/datasets/refine",
     {
         method: "POST",
-        body: data,
+        headers: headers,
+        body: JSON.stringify(body),
     })
     .then(function(response)
     {
@@ -684,7 +735,7 @@ function setup()
     /* handle changes to selected pipelines */
     for (const checkbox of pipelineCheckboxes())
     {
-        checkbox.addEventListener("input", updateRefineStructuresButton);
+        checkbox.addEventListener("input", toolCheckboxToggled);
     }
 
     /* handle changes of selected PDB model */

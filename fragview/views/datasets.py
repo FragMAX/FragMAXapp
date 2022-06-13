@@ -62,28 +62,27 @@ def process(request):
 
 def refine(request):
     project = current_project(request)
-    form = RefineForm(project, request.POST)
-    if not form.is_valid():
-        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
+    form = RefineForm(project, request.body)
     options = RefineOptions(form.pdb_file)
 
     jobs = JobsSet(project, "refine structures")
     hpc = get_hpc_runner()
 
-    for proc_result in form.get_process_results():
+    for proc_result in form.datasets:
         dataset = proc_result.result.dataset
         mtz = get_result_mtz(project, proc_result)
         proc_tool = proc_result.result.tool
 
-        for pipeline in form.get_pipelines():
+        for tool, custom_params in form.tools:
+            options.custom_args = custom_params
             batch = generate_refine_batch(
-                pipeline, project, dataset, proc_tool, mtz, options
+                tool, project, dataset, proc_tool, mtz, options
             )
             batch.save()
 
             jobs.add_job(batch)
-            add_update_job(jobs, hpc, project, pipeline.get_name(), dataset, batch)
+            add_update_job(jobs, hpc, project, tool.get_name(), dataset, batch)
 
     jobs.submit()
 

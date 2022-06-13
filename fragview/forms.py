@@ -1,4 +1,5 @@
 from typing import Optional, List, Dict
+from pathlib import Path
 import json
 import jsonschema
 from itertools import count
@@ -25,25 +26,20 @@ class _GetFieldMixin:
         return self.cleaned_data[name]
 
 
-class _JobsForm(Form, _GetFieldMixin):
-    pipelines = CharField()
+class _JobsForm:
+    def _validate_json(self, request_body: bytes):
+        data = json.loads(request_body.decode())
+        jsonschema.validate(data, self.SCHEMA)  # type: ignore
 
-    def __init__(self, project: Project, data):
-        super().__init__(data)
-        self.project = project
+        return data
 
-    def clean_pipelines(self):
-        def _tool_enums():
-            for tool_name in self.get_pipelines().split(","):
-                yield get_tool_by_name(tool_name)
-
-        return list(_tool_enums())
-
-    def get_pipelines(self):
-        return self._get_field("pipelines")
+    @staticmethod
+    def _validate_tools(tools):
+        for tool in tools:
+            yield get_tool_by_name(tool["id"]), tool.get("customParams", "")
 
 
-class ProcessForm:
+class ProcessForm(_JobsForm):
     SCHEMA = {
         "type": "object",
         "required": ["datasets", "tools"],
@@ -78,21 +74,10 @@ class ProcessForm:
         },
     }
 
-    def _validate_json(self, request_body: bytes):
-        data = json.loads(request_body.decode())
-        jsonschema.validate(data, self.SCHEMA)
-
-        return data
-
     @staticmethod
     def _validate_datasets(project: Project, dataset_ids: List[str]):
         for dataset_id in dataset_ids:
             yield project.get_dataset(dataset_id)
-
-    @staticmethod
-    def _validate_tools(tools):
-        for tool in tools:
-            yield get_tool_by_name(tool["id"]), tool.get("customParams", "")
 
     @staticmethod
     def _validate_space_group(space_group_name: Optional[str]) -> Optional[SpaceGroup]:
@@ -128,31 +113,60 @@ class ProcessForm:
 
 
 class RefineForm(_JobsForm):
-    pdb = CharField()
-    # ID's of ProcessResult row, i.e. MTZ files to be refined
-    processResults = CharField()
+    SCHEMA = {
+        "type": "object",
+        "required": ["datasets", "tools", "pdb"],
+        "properties": {
+            "datasets": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+            "pdb": {"type": "number"},
+            "tools": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "customParams": {"type": "string"},
+                    },
+                },
+            },
+        },
+    }
 
-    def clean_pdb(self):
-        pdb_id = self._get_field("pdb")
-        pdb = self.project.get_pdb(pdb_id)
-        self.pdb_file = self.project.get_pdb_file(pdb)
+    @staticmethod
+    def _validate_pdb(project: Project, pdb_id: int) -> Path:
+        pdb = project.get_pdb(pdb_id)
+        return project.get_pdb_file(pdb)
 
-    def clean_processResults(self):
-        def _lookup_process_results(proc_res_ids: List):
-            for res_id in proc_res_ids:
-                yield self.project.get_process_result(res_id)
+    @staticmethod
+    def _validate_datasets(project: Project, dataset_ids: List[str]):
+        for res_id in dataset_ids:
+            yield project.get_process_result(res_id)
 
-        dataset_ids = self._get_field("processResults").split(",")
-        return list(_lookup_process_results(dataset_ids))
+    def __init__(self, project: Project, request_body: bytes):
+        data = self._validate_json(request_body)
 
-    def get_process_results(self):
-        return self._get_field("processResults")
+        self.pdb_file = self._validate_pdb(project, data["pdb"])
+        self.datasets = list(self._validate_datasets(project, data["datasets"]))
+        self.tools = list(self._validate_tools(data["tools"]))
 
 
-class LigfitForm(_JobsForm):
+class LigfitForm(Form, _GetFieldMixin):
+    pipelines = CharField()
     # ID's of RefineResult row
     refineResults = CharField()
     restrainsTool = CharField(required=False)
+
+    def __init__(self, project: Project, data):
+        super().__init__(data)
+        self.project = project
+
+    def clean_pipelines(self):
+        def _tool_enums():
+            for tool_name in self.get_pipelines().split(","):
+                yield get_tool_by_name(tool_name)
+
+        return list(_tool_enums())
 
     def clean_refineResults(self):
         def _lookup_refine_results(refine_res_ids: List):
@@ -170,6 +184,9 @@ class LigfitForm(_JobsForm):
 
     def get_restrains_tool(self):
         return self._get_field("restrainsTool")
+
+    def get_pipelines(self):
+        return self._get_field("pipelines")
 
 
 class PanddaProcessForm(Form, _GetFieldMixin):

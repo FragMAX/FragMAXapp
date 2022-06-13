@@ -49,7 +49,6 @@ class ProcessOptions:
 @dataclass
 class RefineOptions:
     pdb_file: Path
-    # currently unused, as there is no UI for this
     custom_args: str = ""
 
 
