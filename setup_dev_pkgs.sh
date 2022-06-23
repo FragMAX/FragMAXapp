@@ -7,7 +7,7 @@
 conda install --channel conda-forge \
     black=22.3.0 \
     flake8=3.9.2 \
-    mypy==0.910 \
+    mypy=0.961 \
     types-requests=2.25.1 \
     types-redis=3.5.2 \
     types-python-dateutil=0.1.6 \

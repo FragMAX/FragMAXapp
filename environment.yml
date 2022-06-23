@@ -17,6 +17,7 @@ dependencies:
   - xmltodict=0.12.0
   - pyyaml==5.4.1
   - pandas=1.2.4
+  - asyncssh==2.11.0
   - pip=20.3.3
   # for troubleshooting jobds lock-up issue
   - py-spy=0.3.10
@@ -25,6 +26,5 @@ dependencies:
     - pypdb==2.0
     - redlock==1.2.0
     - zipstream-new==1.1.7
-    - asyncssh==2.5.0
     - django-material==1.10.0
     - pony==0.7.14
