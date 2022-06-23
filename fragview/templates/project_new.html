@@ -326,6 +326,16 @@ return Vue.createApp({
                 return val !== undefined && val !== "";
             }
 
+            function is_proposal_valid(app)
+            {
+                if (!app.ui.proposalsEnabled)
+                {
+                    return true;
+                }
+
+                return is_valid_str(app.project.proposal);
+            }
+
             function libs_valid(libraries)
             {
                 for (const lib of libraries)
@@ -340,8 +350,9 @@ return Vue.createApp({
                 return true;
             }
 
+
             return is_valid_str(this.project.protein) &&
-                is_valid_str(this.project.proposal) &&
+                is_proposal_valid(this) &&
                 this.project.crystalsCSV !== undefined &&
                 libs_valid(this.project.libraries);
         },
