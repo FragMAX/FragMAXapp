@@ -1,0 +1,145 @@
+INFO:: Using Standard CCP4 Refmac dictionary from CLIBD_MON: /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/
+There are 166 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/list/mon_lib_list.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/ALA.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/ASP.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/ASN.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/c/CYS.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/g/GLN.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/g/GLY.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/g/GLU.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/p/PHE.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/h/HIS.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/i/ILE.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/l/LYS.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/l/LEU.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/m/MET.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/m/MSE.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/p/PRO.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/ARG.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/s/SER.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/t/THR.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/v/VAL.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/t/TRP.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/t/TYR.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/p/PO4.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/s/SO4.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/g/GOL.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/c/CIT.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/e/EDO.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/A.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/c/C.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/g/G.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/u/U.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/d/DA.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/d/DC.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/d/DG.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/d/DT.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/h/HOH.cif
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/n/NA.cif
+Spacegroup: P 1
+[1m(filter-fileselection-filenames-state)[0m
+[1m(get-active-map-drag-flag)[0m
+[1m(use-graphics-interface-state)[0m
+INFO:: coot.py imported
+Running python script /soft/pxsoft/64/ccp4/ccp4-7.1/lib/python2.7/site-packages/coot/coot_load_modules.py
+Good Evening Fragadm-user, Welcome to Coot version 0.9.5
+[1m(set-display-intro-string "Good Evening Fragadm-user, Welcome to Coot version 0.9.5")[0m
+[1m(use-graphics-interface-state)[0m
+[1m(filter-fileselection-filenames-state)[0m
+[1m(get-active-map-drag-flag)[0m
+[1m(use-graphics-interface-state)[0m
+Good evening fragadm-User. Welcome to Coot 0.9.5.
+[1m(set-display-intro-string "Good evening fragadm-User. Welcome to Coot 0.9.5")[0m
+[1m(set-display-lists-for-maps 1)[0m
+[1m(filter-fileselection-filenames-state)[0m
+[1m(get-active-map-drag-flag)[0m
+INFO:: There are 1 command line scripts to run
+    blobs.py
+Running python script blobs.py
+[1m(handle-read-draw-molecule-with-recentre "final_09_input.pdb" 1)[0m
+INFO:: Reading coordinate file: final_09_input.pdb
+INFO:: file final_09_input.pdb has been read.
+Spacegroup: P 1 2 1
+INFO:: using standard CCP4 Refmac dictionary to search for "NAD"
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/n/NAD.cif
+INFO:: using standard CCP4 Refmac dictionary to search for "ADE"
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/a/ADE.cif
+INFO:: using standard CCP4 Refmac dictionary to search for "K"
+There are 2 data in /soft/pxsoft/64/ccp4/ccp4-7.1/lib/data/monomers/k/K.cif
+INFO:: Found 1 models
+   Model 1 had 0 links
+in add_molecular_symmetry_matrices() made 0 biomt matrices
+INFO:: NCS chain comparison 466/466
+INFO:: NCS chain comparison 463/466
+INFO:: NCS chain comparison 463/466
+INFO:: NCS chain comparison 0/466
+INFO:: NCS chain comparison 0/466
+INFO:: NCS chain comparison 466/466
+INFO:: NCS chain comparison 466/466
+INFO:: NCS chain comparison 463/466
+INFO:: NCS chain comparison 463/466
+INFO:: NCS chain comparison 0/466
+INFO:: NCS chain comparison 0/466
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 4/4
+INFO:: NCS chain comparison 0/4
+INFO:: NCS chain comparison 0/12
+INFO:: NCS chain comparison 0/12
+INFO:: NCS chain comparison 0/12
+INFO:: NCS chain comparison 0/12
+INFO:: NCS chain comparison 0/12
+INFO:: NCS chain comparison 12/12
+  INFO:: fill_ghost_info Constructed 9 ghosts
+      Ghost 0 name: "NCS found from matching Chain B onto Chain A"
+      Ghost 1 name: "NCS found from matching Chain C onto Chain A"
+      Ghost 2 name: "NCS found from matching Chain D onto Chain A"
+      Ghost 3 name: "NCS found from matching Chain G onto Chain A"
+      Ghost 4 name: "NCS found from matching Chain H onto Chain A"
+      Ghost 5 name: "NCS found from matching Chain I onto Chain A"
+      Ghost 6 name: "NCS found from matching Chain J onto Chain A"
+      Ghost 7 name: "NCS found from matching Chain K onto Chain F"
+      Ghost 8 name: "NCS found from matching Chain L onto Chain E"
+Molecule 0 read successfully
+DEBUG:: there were 0 types with no dictionary 
+INFO:: backup file name coot-backup/final_09_input.pdb_Thu_Apr__7_19:56:18_2022_modification_0.pdb.gz
+INFO:: (result) TYR swapped atoms in [spec: 1 "B" 469 ""] TYR
+INFO:: (result) PHE swapped atoms in [spec: 1 "C" 332 ""] PHE
+INFO:: (result) PHE swapped atoms in [spec: 1 "G" 357 ""] PHE
+INFO:: (result) PHE swapped atoms in [spec: 1 "I" 106 ""] PHE
+INFO:: 4 residues had their atoms swapped
+[1m(make-and-draw-map "final_09_input.mtz" "2FOFCWT" "PH2FOFCWT" "" 0 0)[0m
+INFO:: making map from mtz filename final_09_input.mtz
+INFO:: Number of observed reflections: 253403
+INFO:: finding ASU unique map points with sampling rate 1.8
+INFO:: grid sampling...Nuvw = ( 200, 192, 324)
+INFO:: 0.18 seconds to read MTZ file
+INFO:: 0.104 seconds to initialize map
+INFO:: 0.266 seconds for FFT
+Pre-filter Map statistics: mean: -5.1735e-07 st.d: 0.248548
+Pre-filter Map statistics:  min: -0.792227 max: 1.96648
+INFO:: 0.037 seconds for statistics
+      Map extents: ..... 200 192 324 
+      Map mean: ........ -5.1735e-07
+      Map sigma: ....... 0.248548
+      Map maximum: ..... 1.96648
+      Map minimum: ..... -0.792227
+INFO:: 0.019 seconds for contour map
+INFO:: 0.606 seconds in total
+INFO:: Protein centre at: xyz = (    -6.463,    -6.668,     43.45)
+using sigma cut off 1.2
+INFO:: find_clusters map_rms is 0.248548
+INFO:: Using density cut-off: 0.298257 (1.2 sigma)  (mean -0.0351586 stdev: 0.125704)
+INFO:: Blobs with volume larger than 11 A^3 are too big to be considered waters.
+INFO:: Using water to protein distance limits: 2.4 3.2
+INFO:: Finding clusters...done
+-------------------------------------------------------------
+INFO:: cluster at xyz = (     -8.66,    -40.27,     59.35) is too big to be water
+INFO:: cluster at xyz = (     46.38,     -52.1,     50.19) is too big to be water
+INFO:: cluster at xyz = (    -9.753,    -17.56,     47.49) is too big to be water
+INFO:: cluster at xyz = (     -5.67,    -31.23,     7.807) is too big to be water
+INFO:: cluster at xyz = (    -6.521,     22.47,      33.3) is too big to be water
+INFO:: found 896 waters in water fitting
