@@ -42,7 +42,7 @@ class SitePlugin(plugin.SitePlugin):
     def get_dataset_metadata(
         self, project, dataset_dir: Path, crystal_id: str, run: int
     ) -> Optional[DatasetMetadata]:
-        cbf_file = Path(dataset_dir, f"{project.protein}-{crystal_id}_{run}_0001.cbf")
+        cbf_file = Path(dataset_dir, f"{crystal_id}_{run}_0001.cbf")
         return parse_metadata(cbf_file)
 
     def get_dataset_master_image(self, project, dataset) -> Path:
