@@ -1,16 +1,16 @@
-import re
 from typing import Iterator
+import re
 from pathlib import Path
-from gemmi import read_pdb
+from gemmi import read_pdb, Structure
 from fragview.fileio import read_text_lines
 from fragview.projects import Project
 from fragview.scraper import ToolStatus, RefineResult
 
-
-# regexp used to extract r-work, r-free, etc values from PDB comments
-REM_FINAL_RE = re.compile(
-    r"REMARK Final: r_work = ([0-9.]*) r_free = ([0-9.]*) bonds = ([0-9.]*) angles = ([0-9.]*)"
-)
+# regexp used to extract R-work, R-free, bonds and agnles values
+REM_R_WORK = re.compile(r"REMARK   3   R VALUE            \(WORKING SET\) : ([0-9\.]+)")
+REM_R_FREE = re.compile(r"REMARK   3   FREE R VALUE                     : ([0-9\.]+)")
+REM_BONDS = re.compile(r"REMARK   3    BOND      :  ([0-9\.]+)")
+REM_ANGLES = re.compile(r"REMARK   3    ANGLE     :  ([0-9\.]+)")
 
 # regexp used to extract blob coordinates from blobs.log files
 CLUSTER_RE = re.compile(
@@ -18,25 +18,35 @@ CLUSTER_RE = re.compile(
 )
 
 
-def _parse_pdb(pdb: Path):
-    struct = read_pdb(str(pdb))
+def _parse_stats(pdb: Structure):
     r_work = None
     r_free = None
     bonds = None
     angles = None
 
-    #
-    # look for 'REMARK Final:' remark line
-    # which specifies r-work, r-free, bonds and angles values
-    #
-    for rem in struct.raw_remarks:
-        match = REM_FINAL_RE.match(rem)
-        if match is None:
-            continue
+    for rem in pdb.raw_remarks:
+        match = REM_R_WORK.match(rem)
+        if match:
+            (r_work,) = match.groups()
 
-        # remark line found, get our values and end the loop
-        r_work, r_free, bonds, angles = match.groups()
-        break
+        match = REM_R_FREE.match(rem)
+        if match:
+            (r_free,) = match.groups()
+
+        match = REM_BONDS.match(rem)
+        if match:
+            (bonds,) = match.groups()
+
+        match = REM_ANGLES.match(rem)
+        if match:
+            (angles,) = match.groups()
+
+    return r_work, r_free, bonds, angles
+
+
+def _parse_pdb(pdb: Path):
+    struct = read_pdb(str(pdb))
+    r_work, r_free, bonds, angles = _parse_stats(struct)
 
     # remove all spaces from the space group specification,
     # e.g. 'P 1 21 1' becomes 'P1211'

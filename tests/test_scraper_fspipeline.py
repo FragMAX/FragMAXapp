@@ -95,3 +95,33 @@ class TestScrapeResults(ProjectTestCase):
         )
 
         self.assert_results(results, [expected])
+
+    @db_session
+    def test_phenix_v19_ok(self):
+        """
+        test scraping results of successful processing with
+        fspipeline using phenix package version 1.19.*
+        """
+        dataset = self.project.get_datasets().first()
+
+        self.setup_result_dir(dataset, "fspipe_phenix_v19.pdb")
+
+        results = list(scrape_results(self.project, dataset))
+        expected = RefineResult("xdsapp", "fspipeline")
+        expected.status = ToolStatus.SUCCESS
+        expected.space_group = "C121"
+        expected.resolution = 3.01
+        expected.r_work = "0.2212"
+        expected.r_free = "0.3966"
+        expected.rms_bonds = "0.016"
+        expected.rms_angles = "1.488"
+        expected.cell = UnitCell(112.41, 56.73, 83.22, 90, 102.18, 90)
+        expected.blobs = (
+            "[[-8.66, -40.27, 59.35], "
+            "[46.38, -52.1, 50.19], "
+            "[-9.753, -17.56, 47.49], "
+            "[-5.67, -31.23, 7.807], "
+            "[-6.521, 22.47, 33.3]]"
+        )
+
+        self.assert_results(results, [expected])
