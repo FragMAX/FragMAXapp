@@ -103,4 +103,4 @@ def get_log_files(project: Project, process_dir: Path):
 
 
 def get_result_mtz(process_dir: Path) -> Path:
-    return Path(process_dir, "DEFAULT", "scale", "AUTOMATIC_DEFAULT_scaled.mtz")
+    return Path(process_dir, "DEFAULT", "scale", "AUTOMATIC_DEFAULT_free.mtz")
