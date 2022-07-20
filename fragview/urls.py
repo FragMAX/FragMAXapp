@@ -100,7 +100,6 @@ urlpatterns = [
     path("pdbs/pandda/fitted/<dataset>/<method>", result_pdbs.pandda_fitted),
     path("pdbs/pandda/input/<dataset>/<method>", result_pdbs.pandda_input),
     # data analyse views
-    path("data_analysis/", analysis.processing_form, name="data_analysis"),
     path("analysis/process", analysis.process),
     path("analysis/refine", analysis.refine),
     path("analysis/ligfit", analysis.ligfit),

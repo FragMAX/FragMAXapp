@@ -11,25 +11,6 @@ from fragview.space_groups import by_system
 from fragview.sites.current import get_supported_pipelines, get_supported_ligand_tools
 
 
-def processing_form(request):
-    project = current_project(request)
-    default_ligand_tool, ligand_tools = get_supported_ligand_tools()
-
-    datasets = sorted(project.get_datasets(), key=lambda d: d.name)
-
-    return render(
-        request,
-        "data_analysis.html",
-        {
-            "pipelines": get_supported_pipelines(),
-            "datasets": datasets,
-            "default_ligand_tool": default_ligand_tool,
-            "ligand_tools": ligand_tools,
-            "space_group_systems": by_system(),
-        },
-    )
-
-
 # TODO: this is a copy'n'paste from datasets.py !!!
 def _get_dataset_info(project: Project) -> Iterator[DatasetInfo]:
     for dataset in sorted(project.get_datasets(), key=lambda d: d.name):
