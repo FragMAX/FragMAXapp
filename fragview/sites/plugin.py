@@ -122,8 +122,8 @@ class Pipeline:
     XIA2_XDS = "xia2_xds"
     DIMPLE = "dimple"
     FSPIPELINE = "fspipeline"
-    RHO_FIT = "rho_fit"
-    LIGAND_FIT = "ligand_fit"
+    RHO_FIT = "rhofit"
+    LIGAND_FIT = "ligandfit"
     PANDDA = "pandda"
 
 

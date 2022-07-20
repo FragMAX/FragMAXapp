@@ -8,7 +8,7 @@ from fragview.models import Library, Fragment
 from fragview.tools import Tool
 from projects.database import db_session
 from tests.utils import ProjectTestCase
-from tests.project_setup import Project, Crystal, DataSet
+from tests.project_setup import Project, Crystal, DataSet, Result
 
 PROPOSAL = "12345678"
 PROTEIN = "MyProt"
@@ -31,11 +31,22 @@ PROJECT = Project(
         Crystal("TRIM2-x0012", "VTL", "VT2"),
     ],
     datasets=[
+        DataSet("TRIM2-x0000", 1),
         DataSet("TRIM2-x0010", 1),
         DataSet("TRIM2-x0011", 1),
         DataSet("TRIM2-x0011", 2),
     ],
-    results=[],
+    results=[
+        Result(
+            dataset=("TRIM2-x0000", 1), tool="dimple", input_tool="xds", result="ok"
+        ),
+        Result(
+            dataset=("TRIM2-x0010", 1), tool="dimple", input_tool="xds", result="ok"
+        ),
+        Result(
+            dataset=("TRIM2-x0011", 1), tool="dimple", input_tool="xds", result="ok"
+        ),
+    ],
 )
 
 FRAG_LIB1_CSV = b"""fragmentCode,SMILES
@@ -120,6 +131,43 @@ class TestProcessForm(ProjectTestCase):
 
         # no cell parameters should be specified
         self.assertIsNone(proc_form.cell_params)
+
+
+class TestLigfitForm(ProjectTestCase):
+    PROJECTS = [PROJECT]
+
+    REQ_JSON = (
+        b'{"datasets":[2,3],'
+        b'"tools":[{"id":"rhofit"}, {"id":"ligandfit"}],'
+        b'"restrains_tool":"grade"}'
+    )
+
+    # 'tools' is not an array
+    REQ_INVALID_JSON = (
+        b'{"datasets": ["1", "2"], "tools": "oink", "restrains_tool": "grade"}'
+    )
+
+    def test_invalid(self):
+        with self.assertRaisesRegexp(
+            jsonschema.exceptions.ValidationError, "'oink' is not of type 'array'"
+        ):
+            forms.LigfitForm(self.project, self.REQ_INVALID_JSON)
+
+    @db_session
+    def test_valid(self):
+        ligfit_form = forms.LigfitForm(self.project, self.REQ_JSON)
+
+        # check that we got expected datasets (aka refine result
+        dset_ids = set([dset.id for dset in ligfit_form.datasets])
+        self.assertSetEqual(dset_ids, {2, 3})
+
+        # check that we got expected tools
+        self.assertSetEqual(
+            set(ligfit_form.tools), {(Tool.RHOFIT, ""), (Tool.LIGANDFIT, "")}
+        )
+
+        # check that we got expected restrains tool
+        self.assertEqual(ligfit_form.restrains_tool, Tool.GRADE)
 
 
 class TestKillJobForm(test.TestCase):

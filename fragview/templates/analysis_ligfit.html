@@ -1,6 +1,81 @@
 {% extends 'base.html' %}
 {% block title %}Fit Ligands{% endblock %}
 {% block content %}
+<script src="/static/js/vue-3.2.32.global.prod.js"></script>
+<script src="/static/js/utils.js"></script>
+<script>
+class RefineResult
+{
+    constructor(id, crystal, is_apo, run, pipelines, rhofit_result, ligandfit_result)
+    {
+        this.selected = false;
+        this.id = id;
+        this.crystal = crystal;
+        this.is_apo = (is_apo == "True");  /* convert from 'python boolean as string' to javascript boolean */
+        this.run = run;
+        this.pipelines = pipelines;
+        this.rhofit_result = NoneToNull(rhofit_result);
+        this.ligandfit_result = NoneToNull(ligandfit_result);
+    }
+
+    name()
+    {
+        return `${this.crystal} (${this.run})`;
+    }
+}
+
+class Tool
+{
+    constructor(id, name)
+    {
+        this.id = id;
+        this.name = name;
+        this.selected = false;
+    }
+}
+
+const CSRF_TOKEN = "{{csrf_token}}";
+
+const REFINE_RESULTS =
+[
+    {% for res in refine_results %}
+        new RefineResult(
+            {{res.id}},
+            "{{res.crystal.id}}",
+            "{{res.crystal.is_apo}}",
+            "{{res.dataset.run}}",
+            "{{res.process_tool}}/{{res.refine_tool}}",
+            "{{res.rhofit_result}}",
+            "{{res.ligandfit_result}}"),
+    {% endfor %}
+];
+
+const TOOLS = [
+    {% if "rhofit" in pipelines %}
+        new Tool("rhofit", "RhoFit"),
+    {% endif %}
+    {% if "ligandfit" in pipelines %}
+        new Tool("ligandfit", "LigandFit"),
+    {% endif %}
+];
+
+const RESTRAINS_TOOL_NAMES = {
+    acedrg: "AceDRG",
+    grade: "GRADE",
+    elbow: "eLBOW",
+};
+
+const DEFAULT_RESTRAINS_TOOL = "{{default_ligand_tool}}";
+
+const RESTRAINS_TOOLS = [
+    {% for rtool in ligand_tools %}
+        new Tool("{{rtool}}",
+                 RESTRAINS_TOOL_NAMES["{{rtool}}"]),
+    {% endfor %}
+];
+
+</script>
+
 <style>
 .container
 {
@@ -35,10 +110,22 @@
    margin-bottom: 12px;
 }
 
-.unselectable-dataset
+.unselectable_dataset
 {
     font-style: italic;
     color: grey;
+}
+
+.proc-res
+{
+    display: flex;
+    align-items: baseline;
+}
+
+.tool-name
+{
+    font-size: small;
+    padding: 6px;
 }
 
 .ok
@@ -56,501 +143,313 @@
     <h4>Fit Ligands</h4>
 </div>
 
-<div class="card tab">
-    <button id="datasetsButton" class="tablinks">
-        <i id="datasetsArrow" class="material-icons right">
-            arrow_drop_down
-        </i>
-        Datasets
+{% verbatim %}
+
+<div id="app">
+    <div class="card tab">
+        <button @click="toggleDatasets" class="tablinks">
+            <i class="material-icons right">
+                {{datasetsListArrowStyle}}
+            </i>
+            Datasets
+        </button>
+    </div>
+
+    <div v-if="!ui.datasetsListShown" class="card">
+        <div class="card-content">
+            {{selectedDatasetsSummary}}
+        </div>
+    </div>
+
+    <div v-if="ui.datasetsListShown" class="card">
+        <div class="card-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <label>
+                                <input v-model="allDatasetSelected"
+                                       class="filled-in dt-checkboxes"
+                                       type="checkbox"/>
+                                <span></span>
+                            </label>
+                        </th>
+                        <th>Crystal</th>
+                        <th>Run</th>
+                        <th>Pipelines</th>
+                        <th>Ligand Fitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="dataset in datasets"
+                        :class="{unselectable_dataset: dataset.is_apo}"
+                        :title="datasetTitle(dataset)"
+                    >
+                        <td>
+                            <label>
+                                <input v-model="dataset.selected"
+                                       class="filled-in dt-checkboxes"
+                                       type="checkbox"
+                                       :disabled="dataset.is_apo"
+                                />
+                                <span></span>
+                            </label>
+                        </td>
+                        <td>{{dataset.crystal}}</td>
+                        <td>{{dataset.run}}</td>
+                        <td>{{dataset.pipelines}}</td>
+                        <td>
+                            <div align="left" style="white-space: nowrap; display: flex">
+                                <div v-if="dataset.rhofit_result" class="proc-res">
+                                    <div :class="dataset.rhofit_result">&#9679;</div>
+                                    <div class="tool-name">RhoFit</div>
+                                </div>
+                                <div v-if="dataset.ligandfit_result" class="proc-res">
+                                    <div :class="dataset.ligandfit_result">&#9679;</div>
+                                    <div class="tool-name">LigandFit</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card tab">
+        <button>Ligand Fitting</button>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="card-title">
+                Fit ligands with:
+            </div>
+
+            <div class="pipelines">
+                <div v-for="tool in tools">
+                    <div class="checkbox">
+                        <label>
+                            <input v-model="tool.selected"
+                                   class="processform filled-in dt-checkboxes"
+                                   type="checkbox"/>
+                            <span>{{tool.name}}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-title">
+                Generate restrains with:
+            </div>
+
+            <div class="pipelines">
+                <div v-for="tool in restrains_tools">
+                    <label>
+                        <input :checked="tool.id == selected_restrains_tool"
+                               name="restrainsTool"
+                               type="radio"
+                               @click="restrains_tool_changed(tool.id)"/>
+                        <span>{{tool.name}}</span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <button @click="fitLigands" class="btn" :disabled="!valid">
+        Fit Ligands
     </button>
 </div>
 
-<div id="datasetsSummary" class="card">
-    <div class="card-content">
-        (no datasets selected)
-    </div>
-</div>
-
-<div id="datasetsList" class="card" style="display: none">
-    <div class="card-content">
-        <table id="datasets">
-            <thead>
-                <tr>
-                    <th>
-                        <label>
-                            <input id="toggleSelected"
-                                   class="filled-in dt-checkboxes"
-                                   type="checkbox"/>
-                            <span></span>
-                        </label>
-                    </th>
-                    <th>Crystal</th>
-                    <th>Run</th>
-                    <th>Pipelines</th>
-                    <th>Ligand Fitted</th>
-                </tr>
-            </thead>
-        </table>
-    </div>
-</div>
-
-<div class="card tab">
-    <button>Ligand Fitting</button>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <div class="card-title">
-            Fit ligands with:
-        </div>
-        <div id="pipelines" class="pipelines">
-            {% if "rho_fit" in pipelines %}
-            <div class="checkbox">
-                <label>
-                    <input class="processform filled-in dt-checkboxes"
-                        id="rhofit" type="checkbox"/>
-                    <span>RhoFit</span>
-                </label>
-            </div>
-            {% endif %}
-
-            {% if "ligand_fit" in pipelines %}
-            <div class="checkbox">
-                <label>
-                    <input class="processform filled-in dt-checkboxes"
-                        id="ligandfit" type="checkbox"/>
-                    <span>LigandFit</span>
-                </label>
-            </div>
-            {% endif %}
-        </div>
-        <div class="card-title">
-            Generate restrains with:
-        </div>
-        <div>
-            {% if "grade" in ligand_tools %}
-            <label>
-                <input id="grade" name="restrainsTool" type="radio"
-                       {% if default_ligand_tool == "grade" %}checked{% endif %}/>
-                <span>GRADE</span>
-            </label>
-            {% endif %}
-            {% if "acedrg" in ligand_tools %}
-            <label>
-                <input id="acedrg" name="restrainsTool" type="radio"
-                       {% if default_ligand_tool == "acedrg" %}checked{% endif %}/>
-                <span>AceDRG</span>
-            </label>
-            {% endif %}
-            {% if "elbow" in ligand_tools %}
-            <label>
-                <input id="elbow" name="restrainsTool" type="radio"
-                       {% if default_ligand_tool == "elbow" %}checked{% endif %}/>
-                <span>eLBOW</span>
-            </label>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<button id="fitLigandsButton" class="btn" disabled>
-    Fit Ligands
-</button>
-
 <script>
-class RefineResult
+function postJobs(datasets, tools, restrains_tool, requestFinishedCB)
 {
-    constructor(id, crystal, is_apo, run, pipelines, rhofit_result, ligandfit_result)
+    function getSelectedDatasetsIds()
     {
-        this.id = id;
-        this.crystal = crystal;
-        this.is_apo = (is_apo == "True");  /* convert from 'python boolean as string' to javascript boolean */
-        this.run = run;
-        this.pipelines = pipelines;
-        this.rhofit_result = rhofit_result;
-        this.ligandfit_result = ligandfit_result;
-
-        this.selected = false;
-    }
-
-    name()
-    {
-        return `${this.crystal} (${this.run})`;
-    }
-}
-
-const RefineResults =
-[
-    {% for res in refine_results %}
-        new RefineResult(
-            {{res.id}},
-            "{{res.crystal.id}}",
-            "{{res.crystal.is_apo}}",
-            "{{res.dataset.run}}",
-            "{{res.process_tool}}/{{res.refine_tool}}",
-            "{{res.rhofit_result}}",
-            "{{res.ligandfit_result}}"),
-    {% endfor %}
-]
-
-console.log(RefineResults);
-
-function* selectedResults()
-{
-    for (const res of RefineResults)
-    {
-        if (res.selected)
+        function *getIds()
         {
-            yield res;
-        }
-    }
-}
-
-function* pipelineCheckboxes()
-{
-    const pipelineDiv = document.getElementById("pipelines");
-
-    for (const checkbox of pipelineDiv.getElementsByTagName("input"))
-    {
-        yield checkbox;
-    }
-}
-
-function setElementDisabled(element, disabled)
-{
-    if (disabled)
-    {
-        /* disable element */
-        element.setAttribute("disabled", "");
-        return;
-    }
-
-    /* enable element */
-    element.removeAttribute("disabled");
-}
-
-function getFitLigandsButton()
-{
-    return document.getElementById("fitLigandsButton");
-}
-
-function setFitLigandsButtonEnabled(enabled)
-{
-    setElementDisabled(getFitLigandsButton(), !enabled);
-}
-
-function toggleSelectedDatasets(checkbox)
-{
-    const checked = checkbox.checked;
-
-    for (const res of RefineResults)
-    {
-        res.selected = checked;
-    }
-
-    populateDatasetsTable();
-    updateFitLigandsButton();
-}
-
-function updateFitLigandsButton()
-{
-    function datasetSelected()
-    {
-        /* check if 'selected results' generator is 'empty' */
-        const selRes = selectedResults().next();
-        return !selRes.done;
-    }
-
-    /* check if any of the pipelines are enabled */
-    function pipelineEnabled()
-    {
-        for (const checkbox of pipelineCheckboxes())
-        {
-            if (checkbox.checked)
+            for (const dataset of datasets)
             {
-                return true;
+                yield dataset.id;
             }
         }
 
-        /* none of the pipeline checkboxes are checked */
-        return false;
+        return Array.from(getIds());
     }
 
-    setFitLigandsButtonEnabled(pipelineEnabled() && datasetSelected());
-}
-
-function updateToggleSelected()
-{
-    let allSelected = true;
-
-    for (const res of RefineResults)
+    function getSelectedTools()
     {
-        if (!res.selected)
+        function *get()
         {
-            allSelected = false;
-            break;
-        }
-    }
-
-    document.getElementById("toggleSelected").checked = allSelected;
-}
-
-function datasetToggled(res, checkbox)
-{
-    res.selected = checkbox.checked;
-    updateToggleSelected();
-    updateFitLigandsButton();
-}
-
-function populateDatasetsTable()
-{
-    function removeTableBody(table)
-    {
-        /* we assume there is only one body element in this table */
-        const body = table.tBodies.item(0);
-        if (body != null) /* handle case no body, i.e. empy table */
-        {
-            body.remove();
-        }
-    }
-
-    function populateCheckboxCell(cell, res)
-    {
-        const label = document.createElement("label");
-
-        const input = document.createElement("input");
-        input.classList.add("filled-in", "dt-checkboxes");
-        input.setAttribute("type", "checkbox");
-        input.checked = res.selected;
-
-        if (res.is_apo)
-        {
-            input.setAttribute("disabled", "");
-        }
-
-        const span = document.createElement("span");
-
-        label.append(input);
-        label.append(span);
-
-        input.addEventListener("input", () => datasetToggled(res, input));
-
-        cell.append(label);
-    }
-
-    function populateLigandFitted(cell, res)
-    {
-        function addToolResult(div, toolName, result)
-        {
-            const font1 = document.createElement("font");
-            font1.classList.add(result);
-            font1.size = 4;
-            font1.innerText = "●";
-            div.append(font1);
-
-            div.append(" ");
-
-            const font2 = document.createElement("font");
-            font2.size = 2;
-            font2.innerText = toolName;
-            div.append(font2);
-        }
-
-        const div = document.createElement("div");
-
-        if (res.rhofit_result != "None")
-        {
-            addToolResult(div, "RhoFit ", res.rhofit_result);
-        }
-
-        if (res.ligandfit_result != "None")
-        {
-            addToolResult(div, "LigandFit", res.ligandfit_result);
-        }
-
-        cell.append(div);
-    }
-
-    function populateRow(row, res)
-    {
-        if (res.is_apo)
-        {
-            row.classList.add("unselectable-dataset");
-            row.setAttribute("title", `can't fit ligand to an APO crystal\n`);
-        }
-        populateCheckboxCell(row.insertCell(), res);
-        row.insertCell().innerText = res.crystal;
-        row.insertCell().innerText = res.run;
-        row.insertCell().innerText = res.pipelines;
-        populateLigandFitted(row.insertCell(), res);
-    }
-
-    const table = document.getElementById("datasets");
-
-    /* 'empty' table by removing it's body */
-    removeTableBody(table);
-
-    /* populate table using newly created body element */
-    const body = table.createTBody();
-    for (const res of RefineResults)
-    {
-        populateRow(body.insertRow(), res);
-    }
-}
-
-function updateSelectedSummary()
-{
-    function getText()
-    {
-        const results = Array.from(selectedResults());
-
-        if (results.length == 0)
-        {
-            return "(no datasets selected)";
-        }
-
-        let text = "";
-        for (const res of results)
-        {
-            if (text.length > 86)
+            for (const tool of tools)
             {
-                /* truncate selected datasets text */
-                text += `... (${results.length} datasets selected).`;
-                break;
-            }
-
-            text += `${res.name()} `;
-        }
-        return text;
-    }
-
-    const summaryDiv = document.getElementById("datasetsSummary").children[0];
-    summaryDiv.innerText = getText();
-}
-
-function toggleDatasets()
-{
-    function unfold()
-    {
-        arrow.innerText = "arrow_drop_up";
-        list.style.display = "";
-        summary.style.display = "none";
-    }
-
-    function fold()
-    {
-        updateSelectedSummary();
-        arrow.innerText = "arrow_drop_down";
-
-        list.style.display = "none";
-        summary.style.display = "";
-    }
-
-    const arrow = document.getElementById("datasetsArrow");
-    const summary = document.getElementById("datasetsSummary");
-    const list = document.getElementById("datasetsList");
-
-    const folded = (arrow.innerText == "arrow_drop_down");
-
-    if (folded)
-    {
-        unfold();
-    }
-    else
-    {
-        fold();
-    }
-}
-
-function fitLigands()
-{
-    function getSelectedRefineResults()
-    {
-        function* selectedIds()
-        {
-            for (const res of selectedResults())
-            {
-                yield res.id;
-            }
-        }
-        return Array.from(selectedIds()).join();
-    }
-
-    function getSelectedPipelines()
-    {
-        const pipes = new Set();
-        for (const pipeline of pipelineCheckboxes())
-        {
-            if (pipeline.checked)
-            {
-                pipes.add(pipeline.id);
+                yield {id: tool.id};
             }
         }
 
-        return Array.from(pipes).join();
+        return Array.from(get());
     }
 
-    function getRestrainsTool()
-    {
-        return document.querySelector("input[name=restrainsTool]:checked").id;
-    }
+    let headers = {
+        "Content-Type": "application/json",
+        "X-CSRFToken" : CSRF_TOKEN,
+    };
 
-    /* disable button to avoid double clicks */
-    setElementDisabled(getFitLigandsButton(), true);
-
-    const data = new FormData();
-    data.append("csrfmiddlewaretoken", "{{csrf_token}}");
-    data.append("refineResults", getSelectedRefineResults());
-    data.append("pipelines", getSelectedPipelines());
-    data.append("restrainsTool", getRestrainsTool());
-
-    console.log(Array.from(data.entries()));
+    let body = {
+        datasets: getSelectedDatasetsIds(),
+        tools: getSelectedTools(),
+        restrains_tool: restrains_tool,
+    };
 
     fetch("/datasets/ligfit",
     {
         method: "POST",
-        body: data,
+        headers: headers,
+        body: JSON.stringify(body),
     })
     .then(function(response)
     {
         if (!response.ok)
         {
             response.text().then(text => alert(text));
-            return;
         }
-        window.open("/jobs/status", "_blank");
-        setElementDisabled(getFitLigandsButton(), false);
+        else
+        {
+            window.open("/jobs/status", "_blank");
+        }
+        requestFinishedCB();
     })
     .catch(function(error)
     {
         alert(error.message);
+        requestFinishedCB();
     });
 }
 
-
-function setup()
+function createVueApp()
 {
-    populateDatasetsTable();
+return Vue.createApp({
+    data() {
+        return {
+            datasets: REFINE_RESULTS,
+            tools: TOOLS,
+            restrains_tools: RESTRAINS_TOOLS,
+            selected_restrains_tool: DEFAULT_RESTRAINS_TOOL,
+            ui: {
+                datasetsListShown: false,
+                requestInProgress: false,
+            },
+            allDatasetSelected: false,
+        };
+    },
+    computed: {
+        datasetsListArrowStyle()
+        {
+            if (this.ui.datasetsListShown)
+            {
+                return "arrow_drop_up";
+            }
+            return "arrow_drop_down";
+        },
+        selectedDatasetsSummary()
+        {
+            const dsets = Array.from(this.getSelectedDatasets());
+            if (dsets.length == 0)
+            {
+                return "(no datasets selected)";
+            }
 
-    /* handle changes to selected pipelines */
-    for (const checkbox of pipelineCheckboxes())
-    {
-        checkbox.addEventListener("input", updateFitLigandsButton);
-    }
+            let text = "";
+            for (const i of dsets)
+            {
+                if (text.length > 86)
+                {
+                    /* truncate selected datasets text */
+                    text += `... (${dsets.length} datasets selected).`;
+                    break;
+                }
 
-    /* handle changes to 'toggle selected' datasets checkbox */
-    document.getElementById("toggleSelected").addEventListener(
-        "input",
-        () => toggleSelectedDatasets(toggleSelected));
+                text += `${i.name()} `;
+            }
+            return text;
 
-    /* handle clicks on 'Datasets' button */
-    const datasetsButton = document.getElementById("datasetsButton");
-    datasetsButton.addEventListener("click", toggleDatasets);
+        },
+        valid()
+        {
+            return !isEmpty(this.getSelectedDatasets()) &&
+                !isEmpty(this.getSelectedTools()) &&
+                !this.ui.requestInProgress;
 
-    /* handle clicks on 'fit ligands' button */
-    getFitLigandsButton().addEventListener("click", fitLigands);
+        },
+    },
+    watch: {
+        allDatasetSelected()
+        {
+            for (dataset of this.datasets)
+            {
+                if (dataset.is_apo)
+                {
+                    continue;
+                }
+                dataset.selected = this.allDatasetSelected;
+            }
+        },
+    },
+    methods: {
+        restrains_tool_changed(tool_id)
+        {
+            this.selected_restrains_tool = tool_id;
+        },
+        datasetTitle(dataset)
+        {
+            if (dataset.is_apo)
+            {
+                return "can't fit ligand to an APO crystal";
+            }
+            return null;
+        },
+        *getSelectedDatasets()
+        {
+            for (const dataset of this.datasets)
+            {
+                if (dataset.selected)
+                {
+                    yield dataset;
+                }
+            }
+        },
+        *getSelectedTools()
+        {
+            for (const tool of this.tools)
+            {
+                if (tool.selected)
+                {
+                    yield tool;
+                }
+            }
+        },
+        toggleDatasets()
+        {
+            this.ui.datasetsListShown = !this.ui.datasetsListShown;
+        },
+        fitLigands()
+        {
+            this.ui.requestInProgress = true;
+            postJobs(this.getSelectedDatasets(),
+                     this.getSelectedTools(),
+                     this.selected_restrains_tool,
+                     () => this.ui.requestInProgress = false);
+        },
+    },
+});
 }
 
-setup();
+createVueApp().mount('#app');
 </script>
+
+{% endverbatim %}
+
 {% endblock %}

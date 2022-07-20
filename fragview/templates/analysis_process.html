@@ -2,13 +2,9 @@
 {% block title %}Process Datasets{% endblock %}
 {% block content %}
 <script src="/static/js/vue-3.2.32.global.prod.js"></script>
+<script src="/static/js/utils.js"></script>
 
 <script>
-function NoneToNull(val)
-{
-    return val == "None" ? null : val;
-}
-
 class Dataset
 {
     constructor(id, crystal, run, dials_result, xds_result,
@@ -50,7 +46,6 @@ class Tool
     constructor(id, name)
     {
         this.selected = false;
-        this.customParams = "";
         this.id = id;
         this.name = name;
     }
@@ -363,7 +358,7 @@ const SPACE_GROUP_SYSTEMS = [
 
     <div class="card tab">
         <button @click="toggleDatasets" class="tablinks">
-            <i id="datasetsArrow" class="material-icons right">
+            <i class="material-icons right">
                 {{datasetsListArrowStyle}}
             </i>
             Datasets
@@ -495,12 +490,6 @@ const SPACE_GROUP_SYSTEMS = [
 
 
 <script>
-function isEmpty(generator)
-{
-    /* check if generator is 'empty' */
-    return generator.next().done;
-}
-
 function postJobs(datasets, tools, spaceGroup, cellParams, requestFinishedCB)
 {
     function getSelectedDatasetsIds()

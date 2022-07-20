@@ -151,42 +151,37 @@ class RefineForm(_JobsForm):
         self.tools = list(self._validate_tools(data["tools"]))
 
 
-class LigfitForm(Form, _GetFieldMixin):
-    pipelines = CharField()
-    # ID's of RefineResult row
-    refineResults = CharField()
-    restrainsTool = CharField(required=False)
+class LigfitForm(_JobsForm):
+    SCHEMA = {
+        "type": "object",
+        "required": ["datasets", "tools", "restrains_tool"],
+        "properties": {
+            "datasets": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+            "tools": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                    },
+                },
+            },
+            "restrains_tool": {"type": "string"},
+        },
+    }
 
-    def __init__(self, project: Project, data):
-        super().__init__(data)
-        self.project = project
+    @staticmethod
+    def _validate_datasets(project: Project, dataset_ids: List[str]):
+        for res_id in dataset_ids:
+            yield project.get_refine_result(res_id)
 
-    def clean_pipelines(self):
-        def _tool_enums():
-            for tool_name in self.get_pipelines().split(","):
-                yield get_tool_by_name(tool_name)
+    def __init__(self, project: Project, request_body: bytes):
+        data = self._validate_json(request_body)
 
-        return list(_tool_enums())
-
-    def clean_refineResults(self):
-        def _lookup_refine_results(refine_res_ids: List):
-            for res_id in refine_res_ids:
-                yield self.project.get_refine_result(res_id)
-
-        res_ids = self._get_field("refineResults").split(",")
-        return list(_lookup_refine_results(res_ids))
-
-    def clean_restrainsTool(self):
-        return get_tool_by_name(self._get_field("restrainsTool"))
-
-    def get_refine_results(self):
-        return self._get_field("refineResults")
-
-    def get_restrains_tool(self):
-        return self._get_field("restrainsTool")
-
-    def get_pipelines(self):
-        return self._get_field("pipelines")
+        self.datasets = list(self._validate_datasets(project, data["datasets"]))
+        self.tools = list(self._validate_tools(data["tools"]))
+        self.restrains_tool = get_tool_by_name(data["restrains_tool"])
 
 
 class PanddaProcessForm(Form, _GetFieldMixin):

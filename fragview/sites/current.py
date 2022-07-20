@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Set
+from typing import Iterable, List, Optional, Set, Tuple
 from pathlib import Path
 from fragview.sites import SITE
 from fragview.sites.plugin import DatasetMetadata, HPC
@@ -26,8 +26,11 @@ def get_supported_pipelines() -> Set[str]:
     return SITE.get_supported_pipelines()
 
 
-def get_supported_ligand_tools():
-    return SITE.get_supported_ligand_tools()
+def get_supported_ligand_tools() -> Tuple[str, List[str]]:
+    default, tools = SITE.get_supported_ligand_tools()
+    # sort ligand tools, to get a predictable order for the UI
+    tools = sorted(list(tools))
+    return default, tools
 
 
 #

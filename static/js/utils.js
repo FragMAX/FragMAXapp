@@ -29,3 +29,16 @@ function wrapWithIds(items)
     }
     return entries;
 }
+
+/*
+ * check if generator is 'empty'
+ */
+function isEmpty(generator)
+{
+    return generator.next().done;
+}
+
+function NoneToNull(val)
+{
+    return val == "None" ? null : val;
+}

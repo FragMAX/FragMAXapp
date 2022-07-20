@@ -1,6 +1,6 @@
 from typing import Iterator
 from django.shortcuts import render
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponse
 from fragview.projects import current_project
 from fragview.projects import Project
 from fragview.forms import ProcessForm, RefineForm, LigfitForm
@@ -91,21 +91,18 @@ def refine(request):
 
 def ligfit(request):
     project = current_project(request)
-    form = LigfitForm(project, request.POST)
-    if not form.is_valid():
-        return HttpResponseBadRequest(f"invalid processing arguments {form.errors}")
 
-    options = LigfitOptions(form.get_restrains_tool())
-
+    form = LigfitForm(project, request.body)
+    options = LigfitOptions(form.restrains_tool)
     jobs = JobsSet(project, "fit ligands")
     hpc = get_hpc_runner()
 
-    for ref_res in form.get_refine_results():
+    for ref_res in form.datasets:
         result_dir = project.get_refine_result_dir(ref_res)
         dataset = ref_res.dataset
         fragment = get_crystals_fragment(dataset.crystal)
 
-        for pipeline in form.get_pipelines():
+        for pipeline, _ in form.tools:
             batch = generate_ligfit_batch(
                 project,
                 pipeline,
