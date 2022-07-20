@@ -142,14 +142,18 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="top-options">Ligand Restrains</th>
+                                    <th class="top-options">Ligand Restrains {{default_ligand_tool}}</th>
                                     <td class="top-options">
                                         <div class="col s12 required inline">
                                             {% if "grade" in ligand_tools %}
                                             <div class="radio">
                                                 <label>
                                                     <input class="with-gap" type="radio" value="grade"
-                                                           name="restrainsTool" checked="checked">
+                                                           name="restrainsTool"
+                                                           {% if default_ligand_tool == "grade" %}
+                                                           checked="checked"
+                                                           {% endif %}
+                                                    >
                                                     <span class="item-label">GRADE</span>
                                                 </label>
                                             </div>
@@ -158,7 +162,11 @@
                                             <div class="radio">
                                                 <label>
                                                     <input class="with-gap" type="radio" value="elbow"
-                                                           name="restrainsTool">
+                                                           name="restrainsTool"
+                                                           {% if default_ligand_tool == "elbow" %}
+                                                           checked="checked"
+                                                           {% endif %}
+                                                    >
                                                     <span class="item-label">eLBOW</span>
                                                 </label>
                                             </div>
