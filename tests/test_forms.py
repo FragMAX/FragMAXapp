@@ -37,6 +37,10 @@ PROJECT = Project(
         DataSet("TRIM2-x0011", 2),
     ],
     results=[
+        # process results
+        Result(dataset=("TRIM2-x0000", 1), tool="xds", input_tool=None, result="ok"),
+        Result(dataset=("TRIM2-x0010", 1), tool="xds", input_tool=None, result="ok"),
+        # refine results
         Result(
             dataset=("TRIM2-x0000", 1), tool="dimple", input_tool="xds", result="ok"
         ),
@@ -133,6 +137,45 @@ class TestProcessForm(ProjectTestCase):
         self.assertIsNone(proc_form.cell_params)
 
 
+class TestRefineForm(ProjectTestCase):
+    PROJECTS = [PROJECT]
+
+    PDB_FILE_NAME = "kovbasa.pdb"
+
+    REQ_JSON = (
+        b'{"datasets":[1,2],'
+        b'"tools":[{"id":"dimple","customParams":"custDimp"}, {"id":"fspipeline"}],'
+        b'"pdb":1}'
+    )
+
+    # 'pdb' is missing
+    REQ_INVALID_JSON = b'{"datasets": ["1", "2"], "tools":[{"id":"dimple"}]}'
+
+    def test_invalid(self):
+        with self.assertRaisesRegexp(
+            jsonschema.exceptions.ValidationError, "'pdb' is a required property"
+        ):
+            forms.RefineForm(self.project, self.REQ_INVALID_JSON)
+
+    @db_session
+    def test_valid(self):
+        self.add_pdb(self.PDB_FILE_NAME)
+
+        refine_form = forms.RefineForm(self.project, self.REQ_JSON)
+
+        # check that we got expected datasets (aka process result)
+        dset_ids = set([dset.id for dset in refine_form.datasets])
+        self.assertSetEqual(dset_ids, {1, 2})
+
+        # check that we got expected tools
+        self.assertSetEqual(
+            set(refine_form.tools), {(Tool.DIMPLE, "custDimp"), (Tool.FSPIPELINE, "")}
+        )
+
+        # check that we got expected PDB
+        self.assertEqual(refine_form.pdb_file.name, self.PDB_FILE_NAME)
+
+
 class TestLigfitForm(ProjectTestCase):
     PROJECTS = [PROJECT]
 
@@ -157,7 +200,7 @@ class TestLigfitForm(ProjectTestCase):
     def test_valid(self):
         ligfit_form = forms.LigfitForm(self.project, self.REQ_JSON)
 
-        # check that we got expected datasets (aka refine result
+        # check that we got expected datasets (aka refine result)
         dset_ids = set([dset.id for dset in ligfit_form.datasets])
         self.assertSetEqual(dset_ids, {2, 3})
 
