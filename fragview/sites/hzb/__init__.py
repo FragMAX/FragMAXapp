@@ -26,10 +26,14 @@ class SitePlugin(plugin.SitePlugin):
     HPC_JOBS_RUNNER = "local"
 
     def get_project_dir(self, project) -> Path:
-        return Path(settings.PROJECTS_ROOT_DIR, project.proposal, "fragmax")
+        return Path(
+            settings.PROJECTS_ROOT_DIR, project.proposal, "fragmax", f"proj{project.id}"
+        )
 
     def get_project_dataset_dirs(self, project) -> Iterable[Path]:
-        protein_dir = Path(self.get_project_dir(project).parent, "raw", project.protein)
+        protein_dir = Path(
+            settings.PROJECTS_ROOT_DIR, project.proposal, "raw", project.protein
+        )
         return protein_dir.iterdir()
 
     def get_dataset_runs(self, data_dir: Path) -> Iterable[int]:

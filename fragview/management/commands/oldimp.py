@@ -45,7 +45,14 @@ def _check_file(path: Path):
 
 
 def _get_old_paths(protein, proposal, shift) -> OldPaths:
-    fragmax_dir = Path("/data/visitors/biomax", proposal, shift, "fragmax")
+    import local_site
+
+    if local_site.SITE == "HZB":
+        fragmax_dir = Path("/data/fragmaxrpc/user/", proposal, "fragmax")
+    else:
+        assert local_site.SITE == "MAXIV"
+        fragmax_dir = Path("/data/visitors/biomax", proposal, shift, "fragmax")
+
     _check_dir(fragmax_dir)
 
     process_dir = Path(fragmax_dir, "process", protein)

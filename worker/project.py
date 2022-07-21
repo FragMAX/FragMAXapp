@@ -201,7 +201,7 @@ def _setup_project_folders(project: Project):
     project_dir = project.project_dir
 
     # make the root directory
-    project_dir.mkdir()
+    project_dir.mkdir(parents=True)
 
     # look-up proposal group ID
     proposal_group = grp.getgrnam(SITE.get_group_name(project))
