@@ -7,6 +7,7 @@ from pandas import read_csv
 from django.core.management.base import BaseCommand, CommandError
 from fragview.models import UserProject
 from fragview.crystals import Crystals, Crystal
+from fragview.fraglibs import parse_fraglib_yml
 from fragview.projects import Project, get_project
 from fragview.scraper import REFINE_TOOLS, LIGFIT_TOOLS
 from fragview.status import (
@@ -15,8 +16,13 @@ from fragview.status import (
     update_ligfit_tool_status,
 )
 from fragview.views.pdbs import _save_pdb, PDBAddError
+from fragview.management.commands import olddb
 from projects.database import db_session
 from worker.project import setup_project
+
+STANDARD_FRAG_LIBS = ["F2XUniversal", "F2XEntry"]
+
+OLD_DB_FILE = "dummy"
 
 
 @dataclass
@@ -82,7 +88,20 @@ def _get_old_paths(protein, proposal, shift) -> OldPaths:
     )
 
 
-def _parse_datacollections_csv(datacollections_csv: Path) -> Crystals:
+def _load_frag_library(protein: str, proposal: str):
+    db = olddb.bind(OLD_DB_FILE)
+
+    with db_session:
+        proj = olddb.lookup_project(db, protein, proposal)
+        lib = proj.library
+
+        frags = {f.name: f.smiles for f in lib.fragments}
+        return lib.name, frags
+
+
+def _parse_datacollections_csv(
+    datacollections_csv: Path, library_name: str
+) -> Crystals:
     def _gen_crystals():
         csv = read_csv(datacollections_csv)
 
@@ -91,21 +110,20 @@ def _parse_datacollections_csv(datacollections_csv: Path) -> Crystals:
             sample_ids.add(row.imagePrefix)
 
         for sample_id in sample_ids:
-            _, frag_lib, frag_code = sample_id.split("-")
+            _, _, frag_code = sample_id.split("-")
 
-            #
-            # currently, we only support migrating 'F2XUniversal' and 'F2XEntry' projects
-            #
-            assert frag_lib in ["F2XUniversal", "F2XEntry"]
+            _log(f"{sample_id=} {frag_code=}")
 
-            # chop off the 'subwell' part, to get proper fragment code
-            frag_code = frag_code[:-1]
-
-            _log(f"{sample_id=} {frag_lib=} {frag_code=}")
+            if library_name in STANDARD_FRAG_LIBS:
+                # for F2XUniversal and F2XEntry you need to
+                # chop off the 'subwell' part, to get proper fragment code
+                frag_code = frag_code[:-1]
 
             if frag_code.lower().startswith("apo"):
                 frag_lib = None
                 frag_code = None
+            else:
+                frag_lib = library_name
 
             yield Crystal(
                 SampleID=sample_id, FragmentLibrary=frag_lib, FragmentCode=frag_code
@@ -114,10 +132,14 @@ def _parse_datacollections_csv(datacollections_csv: Path) -> Crystals:
     return Crystals(list(_gen_crystals()))
 
 
-def _create_project(protein: str, proposal: str, crystals: Crystals) -> Project:
+def _create_project(
+    protein: str, proposal: str, crystals: Crystals, library
+) -> Project:
     user_proj = UserProject.create_new(protein, proposal)
     project_id = user_proj.id
-    setup_project(project_id, protein, proposal, crystals.as_list(), {}, False, False)
+    setup_project(
+        project_id, protein, proposal, crystals.as_list(), library, False, False
+    )
 
     return get_project(project_id)
 
@@ -132,8 +154,8 @@ def _import_models(project: Project, old_paths: OldPaths):
             continue
 
         try:
+            _log(f"importing {node}")
             _save_pdb(project, None, node.name, node.read_bytes())
-            _log(f"imported {node}")
         except PDBAddError as ex:
             _log(f"SKIPPING importing {node}, error importing: '{ex}'")
 
@@ -250,6 +272,24 @@ def _migrate_pandda(project: Project, old_paths: OldPaths):
         _migrate_pandda_selection_json(Path(dest, "selection.json"))
 
 
+def _modified_standard_lib(lib_name: str, frags) -> bool:
+    if lib_name not in STANDARD_FRAG_LIBS:
+        # this is not a standard frags lib
+        return False
+
+    assert lib_name == "F2XEntry"  # only supported for F2XEntry library
+    yaml_file = Path(Path(__file__).parent, "data", f"{lib_name}.yml")
+    _, std_frags = parse_fraglib_yml(yaml_file)
+
+    for frag_code in frags.keys():
+        frag_code = frag_code[:-1]
+        if frag_code not in std_frags:
+            print(f"no fragment code '{frag_code}' in {lib_name}")
+            return True
+
+    return False
+
+
 class Command(BaseCommand):
     help = "Import old project"
 
@@ -258,25 +298,27 @@ class Command(BaseCommand):
         parser.add_argument("proposal", type=str)
         parser.add_argument("shift", type=str)
 
-    @db_session
-    def _handle(self, *args, **options):
-        protein = options["protein"]
-        proposal = options["proposal"]
-        shift = options["shift"]
-        old_paths = _get_old_paths(protein, proposal, shift)
-        project = get_project("8")
-
-        _migrate_pandda(project, old_paths)
-
     def handle(self, *args, **options):
         protein = options["protein"]
         proposal = options["proposal"]
         shift = options["shift"]
 
         old_paths = _get_old_paths(protein, proposal, shift)
-        crystals = _parse_datacollections_csv(old_paths.datacollections_csv)
+        lib_name, frags = _load_frag_library(protein, proposal)
 
-        project = _create_project(protein, proposal, crystals)
+        if _modified_standard_lib(lib_name, frags):
+            lib_name += "Plus"
+            print(f"extended standard lib detected, renaming to '{lib_name}'")
+
+        crystals = _parse_datacollections_csv(old_paths.datacollections_csv, lib_name)
+
+        if lib_name in STANDARD_FRAG_LIBS:
+            print(f"'{lib_name}' is the standard lib, not adding!")
+            lib = {}
+        else:
+            lib = {lib_name: frags}
+
+        project = _create_project(protein, proposal, crystals, lib)
         with db_session:
             _import_models(project, old_paths)
             _migrate_proc_tool(project, old_paths, "xds")
