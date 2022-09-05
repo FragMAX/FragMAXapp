@@ -4,6 +4,8 @@
 #
 
 import fragview.management.commands.jobs  # noqa F401
+import fragview.management.commands.lsproj  # noqa F401
+import fragview.management.commands.rmproj  # noqa F401
 import fragview.management.commands.addlib  # noqa F401
 import fragview.management.commands.update  # noqa F401
 import fragview.management.commands.adduser  # noqa F401
@@ -16,8 +18,6 @@ import fragview.tools.fspipeline  # noqa F401
 import fragview.scraper.dials  # noqa F401
 import fragview.scraper.dimple  # noqa F401
 import fragview.scraper.fspipeline  # noqa F401
-import fragview.scraper.edna  # noqa F401
 import fragview.scraper.xds  # noqa F401
-import fragview.scraper.xdsapp  # noqa F401
 import jobs.jobsd.local  # noqa F401
 import jobs.jobsd.slurm  # noqa F401

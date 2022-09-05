@@ -1,5 +1,7 @@
+from pathlib import Path
 from django.urls import reverse
 from django.shortcuts import render, redirect
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from fragview.models import UserProject, PendingProject, Library
 from fragview.forms import ProjectForm
@@ -8,6 +10,7 @@ from fragview.projects import current_project
 from fragview.views.utils import get_project_libraries
 from fragview.views.wrap import Wrapper
 from fragview.sites import current
+from projects.database import get_project_db_file
 from worker import setup_project
 
 
@@ -120,6 +123,15 @@ def delete(_, id):
         lib.delete()
 
     proj.delete()
+
+    #
+    # rename the project DB file, for easy ocular identification
+    # of removed projects in the DB folder
+    #
+    proj_db = get_project_db_file(settings.PROJECTS_DB_DIR, id)
+    proj_db_deleted = Path(proj_db.parent, f"{proj_db.name}-deleted")
+    renamed = proj_db.rename(proj_db_deleted)
+    print(f"{proj_db} -> {renamed}")
 
     return HttpResponse(f"ok")
 
