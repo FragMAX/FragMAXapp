@@ -18,6 +18,10 @@ CLUSTER_RE = re.compile(
 )
 
 
+class PDBParseError(Exception):
+    pass
+
+
 def _parse_stats(pdb: Structure):
     r_work = None
     r_free = None
@@ -45,7 +49,12 @@ def _parse_stats(pdb: Structure):
 
 
 def _parse_pdb(pdb: Path):
-    struct = read_pdb(str(pdb))
+    try:
+        struct = read_pdb(str(pdb))
+    except RuntimeError as ex:
+        # gemmi raises RuntimeError on parsing errors
+        raise PDBParseError(f"error parsing '{pdb}': {ex}")
+
     r_work, r_free, bonds, angles = _parse_stats(struct)
 
     # remove all spaces from the space group specification,
@@ -98,17 +107,23 @@ def _get_results(project, dataset, results_dir: Path) -> RefineResult:
     if result.status == ToolStatus.FAILURE:
         return result
 
-    (
-        result.space_group,
-        result.resolution,
-        result.r_work,
-        result.r_free,
-        result.rms_bonds,
-        result.rms_angles,
-        result.cell,
-    ) = _parse_pdb(final_pdb)
+    try:
+        (
+            result.space_group,
+            result.resolution,
+            result.r_work,
+            result.r_free,
+            result.rms_bonds,
+            result.rms_angles,
+            result.cell,
+        ) = _parse_pdb(final_pdb)
 
-    result.blobs = _scrape_blobs(project, results_dir)
+        result.blobs = _scrape_blobs(project, results_dir)
+    except PDBParseError as ex:
+        # dump parse error to aid trouble shooting
+        print(f"{ex}")
+        # treat this fspipeline run as failed
+        result.status = ToolStatus.FAILURE
 
     return result
 

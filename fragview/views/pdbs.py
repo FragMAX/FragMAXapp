@@ -69,7 +69,11 @@ def _save_pdb(project: Project, pdb_id: Optional[str], filename: str, pdb_data: 
     #
     # parse the PDB file
     #
-    pdb = read_pdb_string(str(pdb_data.decode()))
+    try:
+        pdb = read_pdb_string(str(pdb_data.decode()))
+    except RuntimeError as ex:
+        # gemmi raises RuntimeError on parsing errors
+        raise PDBAddError(f"PDB parse error: {ex}")
 
     space_group = pdb.find_spacegroup()
 
