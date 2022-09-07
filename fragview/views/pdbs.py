@@ -71,6 +71,8 @@ def _save_pdb(project: Project, pdb_id: Optional[str], filename: str, pdb_data: 
     #
     try:
         pdb = read_pdb_string(str(pdb_data.decode()))
+    except UnicodeDecodeError as ex:
+        raise PDBAddError(f"Error decoding file: {ex}")
     except RuntimeError as ex:
         # gemmi raises RuntimeError on parsing errors
         raise PDBAddError(f"PDB parse error: {ex}")
