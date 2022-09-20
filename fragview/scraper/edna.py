@@ -46,9 +46,7 @@ def _find_results(project: Project, dataset):
     return None, None
 
 
-def _parse_statistics(project: Project, edna_dir: Path, dataset, stats: ProcStats):
-    log_file = Path(edna_dir, f"ep_{dataset.name}_aimless_anom.log")
-
+def _parse_statistics(log_file: Path, stats: ProcStats):
     with open(log_file, "r", encoding="utf-8") as r:
         log = r.readlines()
 
@@ -96,9 +94,16 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
         stats.status = ToolStatus.FAILURE
         return stats
 
+    log_file = Path(edna_dir, f"ep_{dataset.name}_aimless_anom.log")
+    if not log_file.is_file():
+        # if there is no aimless log, then probably aimless failed somehow,
+        # treat it as failure
+        stats.status = ToolStatus.FAILURE
+        return stats
+
     stats.status = ToolStatus.SUCCESS
 
-    _parse_statistics(project, edna_dir, dataset, stats)
+    _parse_statistics(log_file, stats)
     load_mtz_stats(mtz_file, stats)
     stats.isa = _scrape_isa(project, dataset)
 

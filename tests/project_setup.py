@@ -93,7 +93,7 @@ def populate_project_db(project, project_desc: Project):
             crystal=crystal,
             run=dataset.run,
             # some hardcoded dummy values for now
-            data_root_dir="/dummy/path",
+            data_root_dir="20211125",
             detector="EIGER 16M",
             resolution=1.2,
             images=1800,
