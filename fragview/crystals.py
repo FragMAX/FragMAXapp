@@ -1,7 +1,7 @@
 """
 crystals list CSV file parser
 """
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Iterable
 from pandas import read_csv, DataFrame
 from pandas.errors import ParserError
 from fragview.fraglibs import LibraryType
@@ -35,7 +35,7 @@ class Crystal:
         return Fragment(self.FragmentLibrary, self.FragmentCode)
 
     @staticmethod
-    def column_names():
+    def column_names() -> Iterable[str]:
         for field in fields(Crystal):
             yield field.name
 
@@ -66,23 +66,6 @@ class Crystals:
         return _iterator(self._crystals)
 
     @staticmethod
-    def from_data_frame(crystals: DataFrame):
-        def _rows_as_crystal_tuples():
-            for line_num, crystal in crystals.iterrows():
-                sample_id = _sanitize_str(crystal.SampleID)
-                # make sure SampleID is specified
-                if sample_id is None:
-                    raise InvalidCrystalsCSV("Empty SampleID specified.")
-
-                yield Crystal(
-                    sample_id,
-                    _sanitize_str(crystal.FragmentLibrary),
-                    _sanitize_str(crystal.FragmentCode),
-                )
-
-        return Crystals(list(_rows_as_crystal_tuples()))
-
-    @staticmethod
     def from_list(crystals) -> "Crystals":
         def _as_crystal_typles():
             for crystal in crystals:
@@ -110,25 +93,6 @@ def _sanitize_str(val: str) -> Optional[str]:
 def _columns_err(names):
     plural = "s" if len(names) > 1 else ""
     return f"column{plural}: {', '.join(names)}."
-
-
-def _check_column_names(data: DataFrame):
-    """
-    check that the loaded CSV have all correct column names
-    """
-    column_names = set(data.columns.to_list())
-
-    required = set(Crystal.column_names())
-
-    missing = required - column_names
-    if missing:
-        err_msg = f"Missing {_columns_err(missing)}"
-        raise InvalidCrystalsCSV(err_msg)
-
-    unexpected = column_names - required
-    if unexpected:
-        err_msg = f"Unexpected {_columns_err(unexpected)}"
-        raise InvalidCrystalsCSV(err_msg)
 
 
 def _check_fragment(frag_libs: Dict[str, LibraryType], crystal: Crystal):
@@ -174,6 +138,64 @@ def _check_fragments(frag_libs: Dict[str, LibraryType], crystals: Crystals):
         _check_fragment(frag_libs, crystal)
 
 
+def _data_frame_to_crystals(
+    sample_id_idx: int, fraglib_idx: int, frag_code_idx: int, crystals: DataFrame
+) -> Crystals:
+    def _rows_as_crystal_tuples():
+        for line_num, crystal in crystals.iterrows():
+            sample_id = _sanitize_str(crystal[sample_id_idx])
+            # make sure SampleID is specified
+            if sample_id is None:
+                raise InvalidCrystalsCSV("Empty SampleID specified.")
+
+            yield Crystal(
+                sample_id,
+                _sanitize_str(crystal[fraglib_idx]),
+                _sanitize_str(crystal[frag_code_idx]),
+            )
+
+    return Crystals(list(_rows_as_crystal_tuples()))
+
+
+def _get_column_indices(csv: DataFrame):
+    """
+    looks up indices for each column name in a case-insensitive way
+
+    will raise InvalidCrystalsCSV exception
+    on unexpected or missing columns
+    """
+    indices: Dict[str, Optional[int]] = {
+        name.lower(): None for name in Crystal.column_names()
+    }
+
+    unexpected = []
+    for idx, col_name in enumerate(csv.columns):
+        name = col_name.lower()
+
+        if name not in indices:
+            unexpected.append(col_name)
+            continue
+
+        indices[name] = idx
+
+    if unexpected:
+        err_msg = f"Unexpected {_columns_err(unexpected)}"
+        raise InvalidCrystalsCSV(err_msg)
+
+    #
+    # check if any columns are missing
+    #
+    missing = []
+    for name in Crystal.column_names():
+        if indices[name.lower()] is None:
+            missing.append(name)
+    if missing:
+        err_msg = f"Missing {_columns_err(missing)}"
+        raise InvalidCrystalsCSV(err_msg)
+
+    return indices["sampleid"], indices["fragmentlibrary"], indices["fragmentcode"]
+
+
 def parse_crystals_csv(frag_libs: Dict[str, LibraryType], csv_data) -> Crystals:
     """
     Parse specified data as 'Crystals CSV' file.
@@ -192,9 +214,8 @@ def parse_crystals_csv(frag_libs: Dict[str, LibraryType], csv_data) -> Crystals:
     except ParserError as e:
         raise InvalidCrystalsCSV(f"{e}")
 
-    _check_column_names(csv)
-
-    crystals = Crystals.from_data_frame(csv)
+    sample_id_idx, fraglib_idx, frag_code_idx = _get_column_indices(csv)
+    crystals = _data_frame_to_crystals(sample_id_idx, fraglib_idx, frag_code_idx, csv)
     _check_fragments(frag_libs, crystals)
 
     return crystals

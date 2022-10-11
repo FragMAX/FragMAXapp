@@ -184,7 +184,9 @@ class TestValidateCrystalsCSV(_CrystalsViewTester):
             IMPORT_URL, dict(method="upload_file", crystals_csv_file=invalid_csv)
         )
 
-        self.assert_bad_request(resp, f"Could not parse Crystals CSV.\nMissing columns")
+        self.assert_bad_request(
+            resp, f"Could not parse Crystals CSV.\nUnexpected columns"
+        )
 
 
 class TestImportView(_CrystalsViewTester):

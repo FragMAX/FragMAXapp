@@ -10,8 +10,22 @@ MID2-x0018,FragMAXlib,VT00249
 MID2-x0019,,
 """
 
-MISSING_REQ_COLUMS = b"""Col1,Col2
-v1,v2"""
+CASES_COLS = b"""sampleID,fragmentLibrary,fragmentCode
+MID2-x0017,FragMAXlib,VT00249
+"""
+
+CASES_COLS2 = b"""samPleid,fraGmentLibrARy,fraGmentCoDE
+MID2-x0018,FragMAXlib,VT00249
+MID2-x0019,,
+"""
+
+ORDER_COLS = b"""fragmentLibrary,sampleID,fragmentCode
+FragMAXlib,MID2-x0018,VT00249
+,MID2-x0019,
+"""
+
+MISSING_REQ_COLUMS = b"""SampleID
+v1"""
 
 UNEXPECTED_COLUMN = b"""SampleID,FragmentCode,FragmentLibrary,Suprise
 val1,val2,val3,val4
@@ -57,6 +71,64 @@ class TestParse(TestCase):
                     "FragmentLibrary": "FragMAXlib",
                     "FragmentCode": "VT00249",
                 },
+                {
+                    "SampleID": "MID2-x0018",
+                    "FragmentLibrary": "FragMAXlib",
+                    "FragmentCode": "VT00249",
+                },
+                {
+                    "SampleID": "MID2-x0019",
+                    "FragmentLibrary": None,
+                    "FragmentCode": None,
+                },
+            ],
+        )
+
+    def test_cases(self):
+        """
+        test CSV with different casing of the column names
+        """
+        crystals = parse_crystals_csv(self.LIBRARIES, BytesIO(CASES_COLS))
+        self.assertListEqual(
+            crystals.as_list(),
+            [
+                {
+                    "SampleID": "MID2-x0017",
+                    "FragmentLibrary": "FragMAXlib",
+                    "FragmentCode": "VT00249",
+                },
+            ],
+        )
+
+    def test_cases2(self):
+        """
+        test CSV with yet another case of capitalization of the column names
+        """
+        crystals = parse_crystals_csv(self.LIBRARIES, BytesIO(CASES_COLS2))
+        self.assertListEqual(
+            crystals.as_list(),
+            [
+                {
+                    "SampleID": "MID2-x0018",
+                    "FragmentLibrary": "FragMAXlib",
+                    "FragmentCode": "VT00249",
+                },
+                {
+                    "SampleID": "MID2-x0019",
+                    "FragmentLibrary": None,
+                    "FragmentCode": None,
+                },
+            ],
+        )
+
+    def test_order_cols(self):
+        """
+        test CSV file with a 'different' order of columns
+        """
+        crystals = parse_crystals_csv(self.LIBRARIES, BytesIO(ORDER_COLS))
+        self.assertListEqual(
+            crystals.as_list(),
+            [
                 {
                     "SampleID": "MID2-x0018",
                     "FragmentLibrary": "FragMAXlib",
