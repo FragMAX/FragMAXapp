@@ -66,7 +66,7 @@ COPY projects projects/
 COPY jobs jobs/
 COPY worker worker/
 COPY static static/
-COPY conf.py jobsd.py manage.py deploy/migrate_db.sh ./
+COPY conf.py jobsd.py manage.py ./
 # docker images are for now hard-coded for 'MAXIV' site
 COPY deploy/local_site.py-maxiv local_site.py
 # hack to serve css, js etc files from the 'material' package via nginx
@@ -75,10 +75,10 @@ RUN ln -s /opt/conda/envs/FragMAX/lib/python3.8/site-packages/material/static/ma
 RUN ln -s /volume/db .
 RUN ln -s /volume/local_conf.py .
 
-# change owernershop of all app files to biomax-service:MAX-Lab
+# change owernershop of all app files to fragmax-service:MAX-Lab
 # use hardcoded UID/GID as we don't have access to symbolic names
 # when building the container
-RUN chown -R 1990:1300 /app
+RUN chown -R 91121:1300 /app
 
 #
 # configure Nginx to serve FragMAX webapp
@@ -87,8 +87,8 @@ COPY deploy/uwsgi_params .
 COPY deploy/fragmax_nginx.conf /etc/nginx/sites-available
 RUN ln -s /etc/nginx/sites-available/fragmax_nginx.conf /etc/nginx/sites-enabled/
 RUN rm /etc/nginx/sites-enabled/default
-# run nginx workers as biomax-service user
-RUN sed -i 's/user .*;/user biomax-service MAX-Lab;/' /etc/nginx/nginx.conf
+# run nginx workers as fragmax-service user
+RUN sed -i 's/user .*;/user fragmax-service MAX-Lab;/' /etc/nginx/nginx.conf
 
 # configure supervisord to start all required daemons
 COPY deploy/supervisord.conf /etc/supervisor/supervisord.conf

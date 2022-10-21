@@ -28,7 +28,7 @@ cp /init_volume/fragmax.key /volume/cert
 mkdir /volume/db
 
 # set all files to be owned by biomax-service:MAX-Lab
-chown -R 1990:1300 /volume
+chown -R 91121:1300 /volume
 """
 
 
