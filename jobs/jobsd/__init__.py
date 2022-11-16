@@ -4,14 +4,19 @@ import signal
 import logging
 import asyncio
 import argparse
-from typing import Set, Dict, List, Optional, Any
-from asyncio import Event
+from typing import Set, Dict, Optional, Tuple
+from asyncio import Event, Task
 from asyncio.streams import StreamReader, StreamWriter
 from contextlib import asynccontextmanager
-from jobs.messages import deserialize_command, Job, GetJobsReply, StartJobs, CancelJobs
+from jobs.messages import deserialize_command, StartJobsSet, CancelJobs
 from jobs.jobsd.runner import JobFailedException
-from jobs.jobsd.job_graphs import get_job_nodes_trees, get_root_jobs, JobNode
-from jobs.jobsd.jobids import JobIDs
+from jobs.jobsd.nodes import (
+    get_job_nodes,
+    get_root_nodes,
+    mark_job_started,
+    mark_job_finished,
+    JobNode,
+)
 from jobs.jobsd.runners import get_runners
 import conf
 
@@ -73,11 +78,30 @@ def _get_throttle(max_cpus):
     return NOPThrottle()
 
 
+class _JobTasks:
+    def __init__(self):
+        self._tasks: Dict[Tuple[str, str], Task] = {}
+
+    def add(self, project_id, job_id, task: Task):
+        self._tasks[(project_id, job_id)] = task
+
+    def get(self, project_id, job_id) -> Optional[Task]:
+        return self._tasks.get((project_id, job_id))
+
+    def remove(self, project_id, job_id):
+        """
+        remove a task with specified IDs combo
+        if task is not found, this becomes a NOP
+        """
+        task_key = (project_id, job_id)
+        if task_key in self._tasks:
+            del self._tasks[task_key]
+
+
 class JobsTable:
     def __init__(self, job_runners, max_cpus: Optional[int]):
-        self.job_ids = JobIDs(conf.DATABASE_DIR)
         self.jobs_nodes: Set[JobNode] = set()
-        self.job_tasks: Dict[str, Any] = {}
+        self.job_tasks = _JobTasks()
         self.job_runners = job_runners
         self.throttle = _get_throttle(max_cpus)
 
@@ -86,59 +110,38 @@ class JobsTable:
             runner.command_received()
 
     def add_pending_job(self, job_node: JobNode):
-        def _expand_path_template(path, job_id):
-            """
-            emulate slurms's '%j' template,
-            i.e. replace it with job ID
-            """
-            return path.replace("%j", f"{job_id}")
-
-        job_id = self.job_ids.next()
-
-        job_node.job.id = job_id
-        job_node.job.stdout = _expand_path_template(job_node.job.stdout, job_id)
-        job_node.job.stderr = _expand_path_template(job_node.job.stderr, job_id)
-
         self.jobs_nodes.add(job_node)
-
-    def get_jobs(self, project_id: Optional[str]) -> List[Job]:
-        def include_job(job):
-            if project_id is None:
-                # no project ID specified, include all jobs
-                return True
-
-            return job.project_id == project_id
-
-        return [node.job for node in self.jobs_nodes if include_job(node.job)]
 
     def _get_runner(self, job_node):
         return self.job_runners[job_node.run_on].run_job
 
     async def _throttled_runner(self, job_node):
-        job = job_node.job
         runner = self._get_runner(job_node)
 
-        async with self.throttle.jobs_limit(job.cpus):
-            job.mark_as_started()
-            await runner(job.program, job.arguments, job.stdout, job.stderr)
+        async with self.throttle.jobs_limit(job_node.cpus):
+            mark_job_started(job_node)
+            await runner(
+                job_node.program, job_node.arguments, job_node.stdout, job_node.stderr
+            )
 
     def start_job(self, job_node: JobNode):
-        log.info(f"run job '{job_node.job.name}' on {job_node.run_on}")
+        log.info(f"run job '{job_node.description}' on {job_node.run_on}")
         job_task = asyncio.create_task(self._throttled_runner(job_node))
 
-        self.job_tasks[job_node.job.id] = job_task
+        self.job_tasks.add(job_node.project_id, job_node.db_job_id, job_task)
 
         return job_task
 
-    def cancel_job(self, job_id):
-        log.info(f"canceling job {job_id}")
-        if job_id not in self.job_tasks:
-            log.info(f"unknown job {job_id}")
+    def cancel_job(self, project_id, job_id):
+        log.info(f"canceling job {project_id}-{job_id}")
+
+        job_task = self.job_tasks.get(project_id, job_id)
+        if job_task is None:
+            log.info(f"unknown job {project_id}-{job_id}")
             return
 
-        job_task = self.job_tasks[job_id]
         if job_task.done():
-            log.info(f"job {job_id} already finished")
+            log.info(f"job {project_id}-{job_id} already finished")
             return
 
         job_task.cancel()
@@ -146,18 +149,19 @@ class JobsTable:
     def job_finished(self, job_node: JobNode):
         # if the job is running,
         # remove it's asyncio task entry
-        job_id = job_node.job.id
-        if job_id in self.job_tasks:
-            del self.job_tasks[job_id]
+        self.job_tasks.remove(job_node.project_id, job_node.db_job_id)
 
         # remove the job node entry
         self.jobs_nodes.remove(job_node)
+
+        # mark it as finished in db
+        mark_job_finished(job_node)
 
 
 async def run_jobs_tree(root: JobNode, jobs_table: JobsTable):
     try:
         # run all dependencies
-        co = [run_jobs_tree(dep, jobs_table) for dep in root.run_after]
+        co = [run_jobs_tree(dep, jobs_table) for dep in root.previous_jobs]
         await asyncio.gather(*co)
 
         # run this job
@@ -180,36 +184,27 @@ async def run_jobs_roots(roots, jobs_table):
         pass
 
 
-async def start_jobs(command: StartJobs, jobs_table):
-    log.info(f"starting '{command.name}' jobs set")
+async def start_jobs_set(command: StartJobsSet, jobs_table):
+    log.info(f"starting jobs set with ID {command.project_id}-{command.jobs_set_id}")
 
-    job_nodes = get_job_nodes_trees(command.project_id, command.jobs)
-    for job_node in job_nodes:
-        jobs_table.add_pending_job(job_node)
+    job_nodes = get_job_nodes(command.project_id, command.jobs_set_id)
+    for node in job_nodes:
+        jobs_table.add_pending_job(node)
 
-    job_roots = get_root_jobs(job_nodes)
-    await run_jobs_roots(job_roots, jobs_table)
-
-
-def get_jobs(project_id: Optional[str], jobs_table: JobsTable):
-    reply = GetJobsReply()
-    reply.jobs = jobs_table.get_jobs(project_id)
-
-    return reply
+    root_nodes = get_root_nodes(job_nodes)
+    await run_jobs_roots(root_nodes, jobs_table)
 
 
 def cancel_jobs(command: CancelJobs, jobs_table: JobsTable):
     for job_id in command.job_ids:
-        jobs_table.cancel_job(job_id)
+        jobs_table.cancel_job(command.project_id, job_id)
 
 
 async def handle_command(command, jobs_table: JobsTable):
     jobs_table.command_received()
 
-    if command.LABEL == "get_jobs":
-        return get_jobs(command.project_id, jobs_table)
-    elif command.LABEL == "start_jobs":
-        asyncio.create_task(start_jobs(command, jobs_table))
+    if command.LABEL == "start_jobs_set":
+        asyncio.create_task(start_jobs_set(command, jobs_table))
     elif command.LABEL == "cancel_jobs":
         cancel_jobs(command, jobs_table)
     else:

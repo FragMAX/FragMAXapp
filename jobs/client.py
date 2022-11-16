@@ -1,28 +1,37 @@
 from typing import List, Tuple
 from enum import Enum
-from itertools import count
-from fragview.projects import Project
+from pony import orm
+from fragview.projects import Project, get_project
 from fragview.sites.plugin import BatchFile
+from projects.database import db_session
 from jobs import messages
-from jobs.messages import Job
 
 
-def get_jobs(project_id=None) -> List[Job]:
-    reply = messages.post_get_jobs_command(project_id)
-    return reply.jobs
+def cancel_jobs(project_id, job_ids: List[str]):
+    messages.post_cancel_jobs_command(str(project_id), job_ids)
 
 
-def cancel_jobs(job_ids: List[str]):
-    messages.post_cancel_jobs_command(job_ids)
+def _expand_logs_path_template(jobs_set):
+    """
+    expand log path template for all jobs in specified 'jobs set'
 
+    Note, this function assumes that:
+      1) all the jobs in 'jobs set' are committed to DB
+      2) an active DB session exist
+    """
 
-def _assign_ids(jobs):
-    jobs_id = {}
+    def _expand_template(template: str, job_id):
+        """
+        emulate slurms's '%j' template,
+        i.e. replace it with job ID
+        """
+        return template.replace("%j", f"{job_id}")
 
-    for id, job in zip(count(), jobs):
-        jobs_id[job] = f"{id}"
+    for job in jobs_set.jobs:
+        job.stdout = _expand_template(job.stdout, job.id)
+        job.stderr = _expand_template(job.stderr, job.id)
 
-    return jobs_id
+    orm.commit()
 
 
 class JobsSet:
@@ -44,28 +53,42 @@ class JobsSet:
     ):
         self._jobs.append((batch_file, arguments, run_after, run_on))
 
-    def submit(self):
-        job_ids = _assign_ids([job[0] for job in self._jobs])
+    def _write_to_db(self):
+        batch2job = {}
 
-        jobs_list = []
-        for job, arguments, run_after, run_on in self._jobs:
-            job_dict = dict(
-                name=job._name,
-                program=job._filename,
-                arguments=arguments,
+        db = get_project(self._project_id).db
+        jobs_set = db.JobsSet(description=self._name)
+
+        for batch_file, arguments, run_after, run_on in self._jobs:
+            args = dict(
+                jobs_set=jobs_set,
+                description=batch_file._name,
+                program=batch_file._filename,
+                stdout=batch_file._stdout,
+                stderr=batch_file._stderr,
                 run_on=run_on.value,
-                stdout=job._stdout,
-                stderr=job._stderr,
-                id=job_ids[job],
             )
 
-            if job._cpus:
-                job_dict["cpus"] = job._cpus
+            if batch_file._cpus:
+                args["cpus"] = batch_file._cpus
 
-            run_after_ids = [f"{job_ids[job]}" for job in run_after]
-            if run_after_ids:
-                job_dict["run_after"] = run_after_ids
+            job = db.Job(**args)
+            job.set_arguments(arguments)
 
-            jobs_list.append(job_dict)
+            batch2job[batch_file] = job
 
-        messages.post_start_jobs_command(self._project_id, self._name, jobs_list)
+        # store 'run_after' dependencies in the database
+        for batch_file, _, run_after, _ in self._jobs:
+            job = batch2job[batch_file]
+            job.previous_jobs = [batch2job[dep] for dep in run_after]
+
+        orm.commit()
+
+        return jobs_set
+
+    @db_session
+    def submit(self):
+        jobs_set = self._write_to_db()
+        _expand_logs_path_template(jobs_set)
+
+        messages.post_start_jobs_set_command(self._project_id, jobs_set.id)

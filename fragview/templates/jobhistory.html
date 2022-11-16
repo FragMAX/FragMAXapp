@@ -62,18 +62,16 @@
       <thead>
         <tr>
           <th>LOG FILE</th>
-          <th>JOB ID</th>
           <th>DATE</th>
           <th>Output file</th>
           <th>Error file</th>
         </tr>
       </thead>
       <tbody>
-        {% for logName,jID,cDate,err,out in logHistory %}
+        {% for logName,cDate,out,err in logHistory %}
 
         <tr>
           <td>{{logName}}</td>
-          <td>{{jID}}</td>
           <td>{{cDate|date:"Y-m-d H:i:s"}}</td>
 
           <td>

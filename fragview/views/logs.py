@@ -35,7 +35,7 @@ def _show_html_log(request, html_file_url):
     render a HTML log
     """
     project = current_project(request)
-    rel_path = html_file_url.relative_to(project.project_dir)
+    rel_path = html_file_url.relative_to(project.logs_dir)
     html_file_url = f"/logs/htmldata/{rel_path}"
 
     return render(request, "html_log.html", {"html_url": html_file_url})
@@ -58,7 +58,7 @@ def _show_text_log(request, proj, download_url, log_path):
 
 def show(request, log_file):
     project = current_project(request)
-    log_path = Path(project.project_dir, log_file)
+    log_path = Path(project.logs_dir, log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)
@@ -71,7 +71,7 @@ def show(request, log_file):
 
 def download(request, log_file):
     project = current_project(request)
-    log_path = Path(project.project_dir, log_file)
+    log_path = Path(project.logs_dir, log_file)
 
     if not log_path.is_file():
         return _log_not_found_resp(log_file)

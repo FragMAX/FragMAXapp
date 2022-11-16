@@ -57,6 +57,7 @@ def _get_project_desc(user_proj: UserProject) -> ProjectDesc:
     return ProjectDesc(
         project_id=str(user_proj.id),
         project_db_file=project_db_file,
+        project_dir=project_dir,
         models_dir=Path(project_dir, "models"),
     )
 
