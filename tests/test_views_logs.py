@@ -19,10 +19,10 @@ class TestLogs(ProjectTestCase, ViewTesterMixin):
         #
         # create dummy log files
         #
-        self.text_log = Path(self.project.project_dir, TEXT_LOG)
+        self.text_log = Path(self.project.logs_dir, TEXT_LOG)
         self.text_log.write_bytes(TEXT_LOG_BODY)
 
-        self.html_log = Path(self.project.project_dir, HTML_LOG)
+        self.html_log = Path(self.project.logs_dir, HTML_LOG)
         self.html_log.touch()
 
     def tearDown(self):

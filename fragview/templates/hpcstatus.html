@@ -66,7 +66,6 @@
     <table class="table bordered">
       <thead>
         <tr>
-          <th>JOB ID</th>
           <th>NAME</th>
           <th>TIME</th>
           <th>Output file</th>
@@ -84,7 +83,6 @@
         {% for job in jobs %}
 
         <tr>
-          <td>{{job.id}}</td>
           <td>{{job.name}}</td>
           <td>
             {% with t=job.run_time %}
@@ -96,12 +94,12 @@
             {% endwith %}
           </td>
           <td>
-            <a href="/logs/show/logs/{{job.stdout}}" target="blank">
+            <a href="/logs/show/{{job.stdout}}" target="blank">
               {{job.stdout}}
             </a>
           </td>
           <td>
-            <a href="/logs/show/logs/{{job.stderr}}" target="blank">
+            <a href="/logs/show/{{job.stderr}}" target="blank">
               {{job.stderr}}
             </a>
           </td>

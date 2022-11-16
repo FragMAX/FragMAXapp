@@ -3,6 +3,7 @@ import conf
 from pathlib import Path
 from datetime import datetime
 from django.conf import settings
+from pony.orm import select
 from fragview.sites import SITE, current
 from fragview.proposals import get_proposals
 from fragview.encryption import generate_key
@@ -155,6 +156,14 @@ class Project:
             return None
 
         return earliest.first().start_time, latest.first().end_time
+
+    def get_running_jobs(self):
+        return select(job for job in self.db.Job if job.finished is None)
+
+    def get_finished_jobs(self):
+        return select(job for job in self.db.Job if job.finished is not None).order_by(
+            desc(self.db.Job.finished)
+        )
 
     #
     # File system access

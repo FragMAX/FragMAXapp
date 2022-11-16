@@ -1,8 +1,10 @@
 import typing
+from typing import List
 from datetime import datetime
+from itertools import count
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
 
-LATEST_SCHEMA_VERSION = "2"
+LATEST_SCHEMA_VERSION = "3"
 
 
 def _define_entities(db):
@@ -340,3 +342,57 @@ def _define_entities(db):
         # blobs, if available, stored as JSON encoded list of coordinates
         # NOTE: currenty ligfit tool derived blobs are not used anywhere in the application
         blobs = Optional(str)
+
+    class JobsSet(db.Entity):
+        id = PrimaryKey(int, auto=True)
+        description = Required(str)
+        jobs = Set(lambda: Job)
+
+    class Job(db.Entity):
+        id = PrimaryKey(int, auto=True)
+
+        jobs_set = Required(JobsSet)
+        description = Required(str)
+
+        program = Required(str)
+        arguments = Set(lambda: JobArgument)
+        stdout = Required(str)
+        stderr = Required(str)
+
+        # number of CPU to reserve for this job
+        cpus = Required(int, default=0)
+
+        run_on = Required(str)
+
+        # jobs that must finish before running this job
+        previous_jobs = Set("Job", reverse="next_jobs")
+
+        # jobs that can run after this job is finished
+        next_jobs = Set("Job", reverse="previous_jobs")
+
+        #
+        # time when job was started
+        # will be None if the job have not started yet
+        #
+        started = Optional(datetime)
+
+        #
+        # time when job finished running,
+        # will be None if the job have not finished yet
+        #
+        finished = Optional(datetime)
+
+        def set_arguments(self, arguments: List[str]):
+            for idx, arg in zip(count(), arguments):
+                db.JobArgument(job=self, index=idx, value=arg)
+
+        def get_arguments(self) -> List[str]:
+            args = self.arguments.order_by(JobArgument.index)  # type: ignore
+            return [arg.value for arg in args]
+
+    class JobArgument(db.Entity):
+        job = Required(Job)
+        index = Required(int)
+        PrimaryKey(job, index)
+
+        value = Required(str)

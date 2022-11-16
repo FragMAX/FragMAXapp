@@ -1,12 +1,7 @@
 import sys
 import subprocess
-from typing import Dict, List
-from datetime import datetime
-from pathlib import Path
 from django.conf import settings
 from fragview.sites import SITE
-from fragview.projects import Project
-from jobs import client
 
 
 def _ssh_on_frontend(command):
@@ -49,55 +44,6 @@ def frontend_run(command, forward=True):
         _forward_output(stderr, sys.stderr)
     else:
         return stdout, stderr
-
-
-def _elapsed_time(start: datetime, end: datetime) -> Dict[str, int]:
-    """
-    calculate time elapsed from start to end time,
-    returns elapsed time divided into hours, minutes and seconds
-    """
-    delta = end - start
-
-    # let's use seconds precision
-    seconds_delta = delta.seconds
-
-    seconds = seconds_delta % 60
-    minutes = (seconds_delta // 60) % 60
-    hours = seconds_delta // 3600
-
-    return dict(hours=hours, minutes=minutes, seconds=seconds)
-
-
-def get_jobs(project: Project) -> List[Dict]:
-    def _run_time(start_time):
-        if start_time is None:
-            return None
-
-        return _elapsed_time(start_time, now)
-
-    now = datetime.now()
-
-    #
-    # convert Jobs table into a format that is more
-    # convenient for presenting to the user
-    #
-    jobs = []
-    for job in client.get_jobs(project.id):
-        jobs.append(
-            dict(
-                id=job.id,
-                name=job.name,
-                stdout=Path(job.stdout).name,
-                stderr=Path(job.stderr).name,
-                run_time=_run_time(job.start_time),
-            )
-        )
-
-    return jobs
-
-
-def cancel_jobs(job_ids):
-    client.cancel_jobs(job_ids)
 
 
 def run_sbatch(sbatch_script, sbatch_options=None):
