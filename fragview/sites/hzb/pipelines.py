@@ -54,8 +54,8 @@ class PipelineCommands(plugin.PipelineCommands):
     def get_fspipeline_commands(self, pdb, custom_parameters):
         return (
             [
-                'source "/soft/pxsoft/64/phenix/phenix-1.19-4092/phenix-1.19-4092/phenix_env.csh"',
-                f"/soft/pxsoft/64/anaconda3/bin/python /data/fragmaxbin/fspipeline/v20220710/fspipeline.py "
+                'source "/soft/pxsoft/64/phenix/phenix-1.20.1-4487/phenix_env.csh"',
+                f"/soft/pxsoft/64/anaconda3/bin/python /data/fragmaxbin/fspipeline/v20221121/fspipeline.py "
                 f"--fragmaxapp --sa=false --refine={pdb} "
                 f'--exclude="dimple fspipeline buster unmerged rhofit ligfit truncate" '
                 f"--cpu=1 {custom_parameters}",
