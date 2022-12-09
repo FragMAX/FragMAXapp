@@ -43,6 +43,7 @@ def _migrate_project(
 @dataclass
 class FauxProject:
     id: int
+    proposal: str
 
 
 def _get_project_desc(user_proj: UserProject) -> ProjectDesc:
@@ -51,7 +52,9 @@ def _get_project_desc(user_proj: UserProject) -> ProjectDesc:
     # we can't use real Project class instance here,
     # because creating such object will fail due to changed database schema
     #
-    project_dir = get_project_dir(FauxProject(id=user_proj.id))
+    project_dir = get_project_dir(
+        FauxProject(id=user_proj.id, proposal=user_proj.proposal)
+    )
     project_db_file = get_project_db_file(settings.PROJECTS_DB_DIR, user_proj.id)
 
     return ProjectDesc(
