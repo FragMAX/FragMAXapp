@@ -127,3 +127,7 @@ def get_dimple_command(dstmtz, custom_parameters):
 
 def get_fspipeline_commands(pdb, custom_parameters):
     return _get_pipe_cmds().get_fspipeline_commands(pdb, custom_parameters)
+
+
+def get_giant_datasets_cluster_command() -> str:
+    return _get_pipe_cmds().get_giant_datasets_cluster_command()

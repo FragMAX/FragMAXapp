@@ -62,3 +62,6 @@ class PipelineCommands(plugin.PipelineCommands):
             ],
             1,
         )
+
+    def get_giant_datasets_cluster_command(self) -> str:
+        return "giant.datasets.cluster"

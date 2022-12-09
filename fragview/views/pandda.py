@@ -18,7 +18,10 @@ from fragview.forms import PanddaProcessForm
 from fragview.mtz import read_info
 from fragview.views import crypt_shell
 from fragview.sites import SITE
-from fragview.sites.current import add_pandda_init_commands
+from fragview.sites.current import (
+    add_pandda_init_commands,
+    get_giant_datasets_cluster_command,
+)
 from fragview.fileio import read_text_lines
 from fragview.views.utils import png_http_response, start_thread, get_crystals_fragment
 from fragview.projects import (
@@ -818,11 +821,11 @@ def _write_main_script(
 
     pandda_script = project_script(project, PANDDA_WORKER)
 
-    giant_cluster = "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"
     if options["reprocessZmap"]:
         pandda_cluster = ""
     else:
-        pandda_cluster = f"{giant_cluster} ./*/final.pdb pdb_label=foldername"
+        cmd = get_giant_datasets_cluster_command()
+        pandda_cluster = f"{cmd} ./*/final.pdb pdb_label=foldername"
 
     hpc = SITE.get_hpc_runner()
     batch = hpc.new_batch_file(

@@ -182,6 +182,9 @@ class PipelineCommands:
     def get_fspipeline_commands(self, pdb, custom_parameters):
         raise NotImplementedError()
 
+    def get_giant_datasets_cluster_command(self) -> str:
+        raise NotImplementedError()
+
 
 class HPC:
     def new_batch_file(self, job_name, script_name, stdout, stderr, cpus=None):
