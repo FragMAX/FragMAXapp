@@ -1,22 +1,7 @@
-proj_dbs TODO list:
+Upgrade to python 3.10.8
 
-* nail down CSV format
-* store files inside /data/visitors/fragmax
-
-Ping Thomas & Andreas, etc.
-
-* add support for re-synchorinizarion of the data
-
-Add re-synchoronization button that will look for new datasets for all the crystals defined in the project. This is to support creating project before data collection. Add some UI that will show for each crysals what datasets have been found.
-
-* implement 'private fragment libs'
-
-To support use case where users have thier own secrete fragments.
-
-* fix the 'Project Info' page.
-
-Look over the fields on Project -> Project Info page. Add support for saving the fields in the database. This data can be used for example during group deposition.
-
-* make sure the 'crystal', 'dataset' and 'runs' are handled properly.
-
-Once Tobias and Sandesh have collected data according the proper rules, make sure that the app does the right thing with the generated files with the regard to how crystal, dataset and runs concepts are handled and presented to the user.
+* remove all encryption stuff, drop pycryptodomex package
+* figure out how to use celery=5.2.7
+* upgrade these packages:
+  - rdkit
+  - fabio
