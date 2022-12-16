@@ -269,7 +269,6 @@ class ProjectForm(Form):
     proposal = CharField()
     crystals = FileField()
     autoproc = BooleanField(required=False)
-    encrypted = BooleanField(required=False)
 
     def _clean_fraglibs(self):
         def _get_libs():
@@ -323,7 +322,6 @@ class ProjectForm(Form):
             cdata["crystals"],
             cdata["libraries"],
             cdata["autoproc"],
-            cdata["encrypted"],
         )
 
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 from fragview.projects import Project, project_log_path, project_script
-from fragview.views import crypt_shell
 from fragview.tools import RefineOptions
+from fragview.fileio import upload_dir
 from fragview.versions import BUSTER_MOD, PHENIX_MOD
 from fragview.sites.plugin import BatchFile, Duration, DataSize
 from fragview.sites.current import get_hpc_runner, get_dimple_command
@@ -31,14 +31,12 @@ def generate_batch(
         mem_per_cpu=DataSize(gigabyte=5),
     )
 
-    batch.add_commands(crypt_shell.crypt_cmd(project))
-
     batch.assign_variable("WORK_DIR", "`mktemp -d`")
 
     batch.add_commands(
         "cd $WORK_DIR",
-        crypt_shell.fetch_file(project, options.pdb_file, "model.pdb"),
-        crypt_shell.fetch_file(project, input_mtz, "input.mtz"),
+        f"cp {options.pdb_file} model.pdb",
+        f"cp {input_mtz} input.mtz",
     )
 
     # TODO: load tool specific modules?
@@ -50,7 +48,7 @@ def generate_batch(
         cmd,
         "# upload results\n",
         f"rm $WORK_DIR/model.pdb\n",
-        f"{crypt_shell.upload_dir(project, '$WORK_DIR', results_dir)}",
+        f"{upload_dir('$WORK_DIR', results_dir)}",
         "cd",
         "rm -rf $WORK_DIR",
     )

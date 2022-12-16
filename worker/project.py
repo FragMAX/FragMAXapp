@@ -29,13 +29,12 @@ def setup_project(
     crystals: List[Dict[str, str]],
     libraries: Dict[str, LibraryType],
     import_autoproc: bool,
-    encrypted: bool,
 ):
     try:
         print(f"setting up project, ID {project_id}: {protein} ({proposal})")
         user_proj = UserProject.get(project_id)
 
-        project = create_project(project_id, proposal, protein, encrypted)
+        project = create_project(project_id, proposal, protein)
 
         with db_session:
             _create_frag_libs(project, libraries)
@@ -176,11 +175,7 @@ def _copy_script_files(project: Project, script_files):
 
 
 def _copy_scripts(project):
-    script_files = [PANDDA_WORKER]
-    if project.encrypted:
-        script_files += ["crypt_files.py", "crypt_files.sh"]
-
-    _copy_script_files(project, script_files)
+    _copy_script_files(project, [PANDDA_WORKER])
 
 
 def _create_frag_libs(project: Project, libraries: Dict[str, Dict[str, str]]):

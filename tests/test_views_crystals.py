@@ -11,7 +11,6 @@ IMPORT_URL = "/crystals/import"
 PROJECT = Project(
     proposal="20190242",
     protein="TRIM2",
-    encrypted=False,
     crystals=[
         Crystal("TRIM2-x0000", None, None),  # Apo crystal
         Crystal("TRIM2-x0010", "VTL", "VT0"),

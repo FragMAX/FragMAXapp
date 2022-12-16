@@ -41,7 +41,6 @@ class TestLibrary(ProjectTestCase):
         Project(
             protein="Nsp5",
             proposal="20180453",
-            encrypted=False,
             datasets=[],
             crystals=[],
             results=[],
@@ -49,7 +48,6 @@ class TestLibrary(ProjectTestCase):
         Project(
             protein="MID2",
             proposal="20180453",
-            encrypted=False,
             datasets=[],
             crystals=[],
             results=[],

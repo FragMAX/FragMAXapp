@@ -1,10 +1,6 @@
 from typing import Iterable, Optional, Dict
-import binascii
-from base64 import b64encode, b64decode
 from django.contrib.auth.models import AbstractBaseUser
-from fragview import encryption
 from fragview.projects import Project, get_project
-from fragview.encryption import generate_token, now_utc
 from django.db.models import (
     Q,
     Model,
@@ -12,8 +8,6 @@ from django.db.models import (
     TextField,
     ForeignKey,
     BooleanField,
-    BinaryField,
-    DateTimeField,
     OneToOneField,
     UniqueConstraint,
     SET_NULL,
@@ -144,66 +138,6 @@ class UserProject(Model):
 
     def set_failed(self, error_message: str):
         self.pendingproject.set_failed(error_message)
-
-
-class AccessToken(Model):
-    class ParseError(Exception):
-        pass
-
-    # project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    project_id = TextField()
-    token = BinaryField(max_length=encryption.TOKEN_SIZE)
-    valid_until = DateTimeField()
-
-    def is_valid(self, now=None) -> bool:
-        if now is None:
-            now = now_utc()
-
-        return self.valid_until > now
-
-    @staticmethod
-    def _token_by_proj_id(project_id: str):
-        return AccessToken.objects.filter(project_id=project_id)
-
-    @staticmethod
-    def _purge_old_tokens(project_id: str):
-        now = now_utc()
-
-        for token in AccessToken._token_by_proj_id(project_id):
-            if not token.is_valid(now):
-                token.delete()
-
-    @staticmethod
-    def get_project_token(project_id: str) -> Optional["AccessToken"]:
-        AccessToken._purge_old_tokens(project_id)
-        return AccessToken._token_by_proj_id(project_id).first()
-
-    @staticmethod
-    def create_new(project_id: str) -> "AccessToken":
-        tok, valid_until = generate_token()
-        return AccessToken.objects.create(
-            project_id=project_id, token=tok, valid_until=valid_until
-        )
-
-    @staticmethod
-    def get_from_base64(b64_token):
-        try:
-            tok = b64decode(b64_token)
-        except (binascii.Error, ValueError):
-            # could not parse base64 string
-            raise AccessToken.ParseError()
-
-        token = AccessToken.objects.get(token=tok)
-        if token is None or not token.is_valid():
-            return None
-
-        return token
-
-    def as_base64(self):
-        """
-        get this token as base64 encoded string
-        """
-        return b64encode(self.token).decode()
 
 
 class PendingProject(Model):

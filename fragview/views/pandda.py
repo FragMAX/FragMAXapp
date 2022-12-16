@@ -16,13 +16,12 @@ from django.http import (
 from fragview import versions
 from fragview.forms import PanddaProcessForm
 from fragview.mtz import read_info
-from fragview.views import crypt_shell
 from fragview.sites import SITE
 from fragview.sites.current import (
     add_pandda_init_commands,
     get_giant_datasets_cluster_command,
 )
-from fragview.fileio import read_text_lines
+from fragview.fileio import read_text_lines, upload_dir
 from fragview.views.utils import png_http_response, start_thread, get_crystals_fragment
 from fragview.projects import (
     Project,
@@ -691,7 +690,7 @@ def cluster_image(request, method, cluster):
     if not png_path.is_file():
         return HttpResponseNotFound(f"no dendrogram image for {method}/{cluster} found")
 
-    return png_http_response(project, png_path)
+    return png_http_response(png_path)
 
 
 def analyse(request, method=None):
@@ -841,45 +840,22 @@ def _write_main_script(
         nodes=1,
     )
 
-    if project.encrypted:
-        # TODO: implement this?
-        raise NotImplementedError("pandda for encrypted projects")
-        # batch.add_command(crypt_shell.crypt_cmd(project))
-        # batch.assign_variable("WORK_DIR", "`mktemp -d`")
-        # batch.add_commands(
-        #     "cd $WORK_DIR", crypt_shell.fetch_dir(project, data_dir, ".")
-        # )
-        #
-        # batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
-        # batch.add_commands(
-        #     pandda_cluster,
-        #     f'python {pandda_script} . {project.protein} "{options}"',
-        #     crypt_shell.upload_dir(
-        #         project, "$WORK_DIR/pandda", path.join(data_dir, "pandda")
-        #     ),
-        #     crypt_shell.upload_dir(
-        #         project,
-        #         "$WORK_DIR/clustered-datasets",
-        #         path.join(data_dir, "clustered-datasets"),
-        #     ),
-        # )
-    else:
-        batch.add_command(f"cd {pandda_dir}")
+    batch.add_command(f"cd {pandda_dir}")
 
-        add_pandda_init_commands(batch)
+    add_pandda_init_commands(batch)
 
-        batch.add_commands(
-            pandda_cluster,
-            f'python {pandda_script} {pandda_dir} {project.protein} "{options}"',
-            f"chmod -R 777 {project.pandda_dir}",
-        )
+    batch.add_commands(
+        pandda_cluster,
+        f'python {pandda_script} {pandda_dir} {project.protein} "{options}"',
+        f"chmod -R 777 {project.pandda_dir}",
+    )
 
-        # add commands to fix symlinks
-        ln_command = '\'ln -f "$(readlink -m "$0")" "$0"\' {} \\;'
-        batch.add_commands(
-            f"cd {project.pandda_dir}; find -type l -iname *-pandda-input.* -exec bash -c {ln_command}",
-            f"cd {project.pandda_dir}; find -type l -iname *pandda-model.pdb -exec bash -c {ln_command}",
-        )
+    # add commands to fix symlinks
+    ln_command = '\'ln -f "$(readlink -m "$0")" "$0"\' {} \\;'
+    batch.add_commands(
+        f"cd {project.pandda_dir}; find -type l -iname *-pandda-input.* -exec bash -c {ln_command}",
+        f"cd {project.pandda_dir}; find -type l -iname *pandda-model.pdb -exec bash -c {ln_command}",
+    )
 
     batch.save()
     return batch
@@ -951,9 +927,7 @@ def pandda_worker(project: Project, proc_tool, refine_tool, options, cif_method)
 
             selection.add(refine_result.dataset.name, final_pdb)
 
-            res_high, free_r_flag, native_f, sigma_fp = read_info(
-                project, str(final_mtz)
-            )
+            res_high, free_r_flag, native_f, sigma_fp = read_info(str(final_mtz))
 
             script = _write_prepare_script(
                 project,
@@ -1016,13 +990,12 @@ def _write_prepare_script(
     )
     batch.set_options(time=Duration(minutes=15), memory=DataSize(gigabyte=5))
 
-    batch.add_command(crypt_shell.crypt_cmd(project))
     batch.assign_variable("DEST_DIR", output_dir)
     batch.assign_variable("WORK_DIR", "`mktemp -d`")
     batch.add_commands(
         "cd $WORK_DIR",
-        crypt_shell.fetch_file(project, pdb, "final.pdb"),
-        crypt_shell.fetch_file(project, mtz, "final.mtz"),
+        f"cp {pdb} final.pdb",
+        f"cp {mtz} final.mtz",
     )
 
     batch.purge_modules()
@@ -1055,7 +1028,7 @@ def _write_prepare_script(
         "mv final.mtz final_original.mtz",
         "mv final_map_coeffs.mtz final.mtz",
         "rm -rf $DEST_DIR",
-        crypt_shell.upload_dir(project, "$WORK_DIR", "$DEST_DIR"),
+        upload_dir("$WORK_DIR", "$DEST_DIR"),
         "rm -rf $WORK_DIR",
     )
 

@@ -6,7 +6,6 @@ from django.conf import settings
 from pony.orm import select
 from fragview.sites import SITE, current
 from fragview.proposals import get_proposals
-from fragview.encryption import generate_key
 from fragview.sites.plugin import DatasetMetadata
 from projects.database import (
     create_project_db,
@@ -58,24 +57,6 @@ class Project:
     def details(self):
         # there should only be one row in Details table
         return self.db.Details.select().first()
-
-    @property
-    def encrypted(self) -> bool:
-        return self._project_model.encrypted
-
-    @property
-    def encryption_key(self):
-        return self._project_model.encryption_key
-
-    @encryption_key.setter
-    def encryption_key(self, key):
-        self._project_model.encryption_key = key
-
-    def has_encryption_key(self) -> bool:
-        return self.encryption_key is not None
-
-    def forget_key(self):
-        self._project_model.encryption_key = None
 
     def get_crystal(self, crystal_id: str):
         return self.db.Crystal.get(id=crystal_id)
@@ -317,14 +298,9 @@ def create_project(
     project_id: str,
     proposal: str,
     protein: str,
-    encrypted: bool,
 ) -> Project:
 
-    # generation encryption key, for encrypted projects
-    encryption_key = generate_key() if encrypted else None
-    proj_db = create_project_db(
-        settings.PROJECTS_DB_DIR, project_id, proposal, protein, encryption_key
-    )
+    proj_db = create_project_db(settings.PROJECTS_DB_DIR, project_id, proposal, protein)
 
     return Project(proj_db, project_id)
 

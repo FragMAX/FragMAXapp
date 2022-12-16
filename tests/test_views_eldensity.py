@@ -12,7 +12,6 @@ class TestMapView(ProjectTestCase, ViewTesterMixin):
         Project(
             proposal="20190242",
             protein="Prtk",
-            encrypted=False,
             crystals=[Crystal("X01", "VTL", "VT0")],
             datasets=[DataSet("X01", 1)],
             results=[

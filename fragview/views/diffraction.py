@@ -33,4 +33,4 @@ def image(request, dataset_id: str, angle: str):
         cmd = get_diffraction_picture_command(project, dataset, int(angle), jpeg_file)
         make_diffraction_jpeg.delay(cmd).wait()
 
-    return jpeg_http_response(project, jpeg_file)
+    return jpeg_http_response(jpeg_file)

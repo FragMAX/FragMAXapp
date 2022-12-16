@@ -1,20 +1,16 @@
 import os
 import stat
 import unittest
-from pathlib import Path
 from unittest.mock import Mock, patch
 from os import path
 from tempfile import TemporaryDirectory
 from tests.utils import TempDirMixin
-from fragview import encryption
 from fragview.fileio import (
     open_proj_file,
     read_proj_file,
     read_text_lines,
     write_script,
 )
-from tests.utils import ProjectTestCase, Project
-from projects.database import db_session
 
 FILE_NAME = "some.file"
 DUMMY_DATA = b"""
@@ -37,15 +33,14 @@ def _expected_lines():
     return DUMMY_DATA.decode().split("\n")
 
 
-class _IOTester(unittest.TestCase):
+class TestIO(unittest.TestCase):
+    """
+    test file I/O utility functions
+    """
+
     def setUp(self):
         self.proj = Mock()
-        self.proj.encrypted = self.ENCRYPTED
         self.proj.data_path.return_value = "/"
-
-        if self.ENCRYPTED:
-            self.key = encryption.generate_key()
-            self.proj.encryptionkey.key = self.key
 
         self.temp_dir = TemporaryDirectory()
 
@@ -54,100 +49,30 @@ class _IOTester(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-
-class EncryptedTest(ProjectTestCase):
-    """
-    test file I/O utility functions on a encrypted project
-    """
-
-    PROJECTS = [
-        Project(
-            protein="AR",
-            proposal="2020102",
-            encrypted=True,
-            crystals=[],
-            datasets=[],
-            results=[],
-        )
-    ]
-
-    def setUp(self):
-        super().setUp()
-
-        self.file_path = Path(self.project.project_dir, FILE_NAME)
-
-    @db_session
     def test_open_proj_file(self):
         """
-        test open_proj_file() on encrypted project
-        """
-        with open_proj_file(self.project, self.file_path) as f:
-            f.write(DUMMY_DATA)
-
-        # check that it was correctly written, encrypted
-        data = encryption.decrypt(self.project.encryption_key, self.file_path)
-        self.assertEqual(data, DUMMY_DATA)
-
-    @db_session
-    def test_read_proj_file(self):
-        """
-        test open_proj_file() on encrypted project
-        """
-        # write test file
-        with encryption.EncryptedFile(self.project.encryption_key, self.file_path) as f:
-            f.write(DUMMY_DATA)
-
-        # check that encrypted file is decrypted correctly
-        data = read_proj_file(self.project, self.file_path)
-        self.assertEqual(data, DUMMY_DATA)
-
-    @db_session
-    def test_read_text_lines(self):
-        """
-        test read_text_lines() on encrypted project
-        """
-        # write test file
-        with encryption.EncryptedFile(self.project.encryption_key, self.file_path) as f:
-            f.write(DUMMY_DATA)
-
-        # read file's lines
-        lines = read_text_lines(self.project, self.file_path)
-
-        # check that we get expected lines
-        self.assertListEqual(list(lines), _expected_lines())
-
-
-class PlaintextTest(_IOTester):
-    """
-    test file I/O utility functions on a un-encrypted (plaintext) project
-    """
-
-    ENCRYPTED = False
-
-    def test_open_proj_file(self):
-        """
-        test open_proj_file() on un-encrypted project
+        test open_proj_file()
         """
         with open_proj_file(self.proj, self.file_path) as f:
             f.write(DUMMY_DATA)
 
-        # check that it was correctly written, unencrypted
+        # check that it was correctly written
         self.assertEqual(_read_file(self.file_path), DUMMY_DATA)
 
     def test_read_proj_file(self):
         """
-        test read_proj_file() on un-encrypted project
+        test read_proj_file()
         """
         # write test file
         _write_file(self.file_path)
 
-        # check that plaintext file is read correctly
-        data = read_proj_file(self.proj, self.file_path)
+        # check that the file is read correctly
+        data = read_proj_file(self.file_path)
         self.assertEqual(data, DUMMY_DATA)
 
     def test_read_text_lines(self):
         """
-        test read_text_lines() on un-encrypted project
+        test read_text_lines()
         """
         # write test file
         _write_file(self.file_path)

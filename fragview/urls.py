@@ -15,9 +15,7 @@ from fragview.views import (
     libraries,
     crystals,
     fragment,
-    crypt,
     result_pdbs,
-    encryption,
     download,
     dataset_info,
     logs,
@@ -80,11 +78,6 @@ urlpatterns = [
     # project details (for PDB deposition) view
     path("project/details/ui", details.ui),
     path("project/details", details.details),
-    # encryption key management views
-    path("encryption/", encryption.show, name="encryption"),
-    path("encryption/key/", encryption.download_key),
-    path("encryption/key/upload/", encryption.upload_key),
-    path("encryption/key/forget/", encryption.forget_key),
     # PDBs management views
     path("pdbs/", pdbs.list, name="manage_pdbs"),
     path("pdb/<int:id>", pdbs.edit),
@@ -127,7 +120,6 @@ urlpatterns = [
         name="density_map",
     ),
     path("fragment/<fragment_id>/image", fragment.svg, name="fragment_svg"),
-    path("crypt/", crypt.index),
     # tools specific logs
     # TODO: remove tool specific logs views?
     path("logs/autoproc/show/<dataset>/<log_file>", logs.show_autoproc),

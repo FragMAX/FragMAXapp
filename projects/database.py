@@ -1,4 +1,3 @@
-from typing import Optional
 from pathlib import Path
 from pony.orm import Database, db_session
 from projects.models import _define_entities
@@ -36,7 +35,6 @@ def create_project_db(
     project_id: str,
     proposal: str,
     protein: str,
-    encryption_key: Optional[bytes],
 ) -> Database:
     db_file = get_project_db_file(projects_db_dir, project_id)
     if db_file.is_file():
@@ -47,13 +45,7 @@ def create_project_db(
 
     db = _bind(db_file, create_tables=True)
     with db_session:
-        encrypted = encryption_key is not None
-        db.Project(
-            protein=protein,
-            proposal=proposal,
-            encrypted=encrypted,
-            encryption_key=encryption_key,
-        )
+        db.Project(protein=protein, proposal=proposal)
         db.Details(deposit_pandda=False)
 
     return db

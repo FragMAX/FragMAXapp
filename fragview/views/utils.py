@@ -18,16 +18,16 @@ def scrsplit(a, n):
     return [x for x in lst if x]
 
 
-def binary_http_response(proj, file_path, content_type):
-    return HttpResponse(read_proj_file(proj, file_path), content_type=content_type)
+def binary_http_response(file_path, content_type):
+    return HttpResponse(read_proj_file(file_path), content_type=content_type)
 
 
-def jpeg_http_response(proj, file_path):
-    return binary_http_response(proj, file_path, "image/jpeg")
+def jpeg_http_response(file_path):
+    return binary_http_response(file_path, "image/jpeg")
 
 
-def png_http_response(proj, file_path):
-    return binary_http_response(proj, file_path, "image/png")
+def png_http_response(file_path):
+    return binary_http_response(file_path, "image/png")
 
 
 def download_http_response(file_path, filename=None):

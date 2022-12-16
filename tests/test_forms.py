@@ -23,7 +23,6 @@ F003,,
 PROJECT = Project(
     proposal="20190242",
     protein="TRIM2",
-    encrypted=False,
     crystals=[
         Crystal("TRIM2-x0000", None, None),  # Apo crystal
         Crystal("TRIM2-x0010", "VTL", "VT0"),
@@ -299,13 +298,11 @@ class TestProjectForm(_SetUpFragLibMixin, ProjectTestCase):
             crystals,
             libraries,
             autoproc,
-            encrypt,
         ) = proj_form.get_values()
 
         self.assertEqual(protein, PROTEIN)
         self.assertEqual(proposal, PROPOSAL)
         self.assertTrue(autoproc)
-        self.assertFalse(encrypt)
         self.assertDictEqual(
             libraries,
             {},
@@ -348,13 +345,11 @@ class TestProjectForm(_SetUpFragLibMixin, ProjectTestCase):
             crystals,
             libraries,
             autoproc,
-            encrypt,
         ) = proj_form.get_values()
 
         self.assertEqual(protein, PROTEIN)
         self.assertEqual(proposal, PROPOSAL)
         self.assertTrue(autoproc)
-        self.assertFalse(encrypt)
         self.assertDictEqual(
             libraries,
             {
