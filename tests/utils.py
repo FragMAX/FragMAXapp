@@ -7,7 +7,6 @@ import shutil
 import tempfile
 from fragview import auth
 from django import test
-from fragview.projects import get_project
 from fragview.models import UserProject
 from projects.database import db_session
 from tests.project_setup import create_temp_project, Project
@@ -40,7 +39,6 @@ class ViewTesterMixin:
     PROJECT1 = Project(
         protein="PrtK",
         proposal=PROP1,
-        encrypted=False,
         datasets=[],
         crystals=[],
         results=[],
@@ -129,7 +127,6 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
         Project(
             protein="Nsp5",
             proposal="20180453",
-            encrypted=False,
             datasets=[],
             crystals=[],
             results=[],
@@ -171,12 +168,6 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
             unit_cell_beta=107.79,
             unit_cell_gamma=90.0,
         )
-
-    @db_session
-    def forget_key(self):
-        with db_session:
-            project = get_project(self.project.id)
-            project.forget_key()
 
     def _setup_temp_project(self):
         self.projects = []

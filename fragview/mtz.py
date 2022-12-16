@@ -1,5 +1,4 @@
 import gemmi
-from fragview.fileio import temp_decrypted
 
 # expected Free-R-flag column labels
 FREE_R_FLAG = ["FreeR_flag", "R-free-flags"]
@@ -47,12 +46,10 @@ def _get_column_labels(mtz):
     return res_labels
 
 
-def read_info(proj, mtz_file):
+def read_info(mtz_file):
     """
     get high resolution and labels for Free-R-flag, native F and Sigma(F)
     columns from the specified MTZ file
     """
-    with temp_decrypted(proj, mtz_file) as fpath:
-        mtz = gemmi.read_mtz_file(fpath)
-
+    mtz = gemmi.read_mtz_file(mtz_file)
     return (mtz.resolution_high(), *_get_column_labels(mtz))

@@ -58,7 +58,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "fragview.middleware.login_required",
     "fragview.middleware.no_projects_redirect",
-    "fragview.middleware.key_required_redirect",
 ]
 
 ROOT_URLCONF = "fragmax.urls"
@@ -118,8 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 AUTHENTICATION_BACKENDS = [SITE.AUTH_BACKEND]
-
-OPEN_URLS = ["/crypt/"]
 
 # ISPyBBackend authentication settings
 ISPYB_AUTH_HOST = "ispyb.maxiv.lu.se"

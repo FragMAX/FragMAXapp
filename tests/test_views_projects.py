@@ -22,7 +22,6 @@ class TestListProjects(ProjectTestCase, ViewTesterMixin):
         Project(
             protein="PRT",
             proposal="20180453",
-            encrypted=False,
             crystals=[
                 Crystal("X01", "TstLib", "VT0"),
             ],
@@ -34,7 +33,6 @@ class TestListProjects(ProjectTestCase, ViewTesterMixin):
         Project(
             protein="AST",
             proposal="20284208",
-            encrypted=False,
             crystals=[
                 Crystal("X02", "TstLib", "VT1"),
             ],
@@ -183,7 +181,6 @@ class TestNew(ProjectTestCase, ViewTesterMixin):
             ],
             {},
             False,
-            False,
         )
 
 
@@ -192,7 +189,6 @@ class TestSetCurrent(ProjectTestCase, ViewTesterMixin):
         Project(
             protein="PRT",
             proposal="20180453",
-            encrypted=False,
             crystals=[],
             datasets=[],
             results=[],
@@ -200,7 +196,6 @@ class TestSetCurrent(ProjectTestCase, ViewTesterMixin):
         Project(
             protein="AST",
             proposal="20284208",
-            encrypted=False,
             crystals=[],
             datasets=[],
             results=[],

@@ -1,8 +1,6 @@
 from pathlib import Path
-from fragview.fileio import open_proj_file
 from projects.database import db_session
 from tests.utils import ViewTesterMixin, ProjectTestCase
-from tests.project_setup import Project
 
 
 class _ClusterImageTestCase(ProjectTestCase, ViewTesterMixin):
@@ -50,34 +48,3 @@ class TestClusterImagePlainText(_ClusterImageTestCase):
         resp = self.client.get(self._get_url())
 
         self.assert_not_found_response(resp, "^no dendrogram image for")
-
-
-class TestClusterImageEncrypted(_ClusterImageTestCase):
-    PROJECTS = [
-        Project(
-            protein="Nsp5",
-            proposal="20180453",
-            encrypted=True,
-            datasets=[],
-            crystals=[],
-            results=[],
-        )
-    ]
-
-    @db_session
-    def test_png_encrypted(self):
-        """
-        test fetching cluster PNG image for encrypted project
-        """
-        #
-        # store the PNG encrypted in the correct sub-folder
-        #
-        png_path = self._get_png_path()
-        png_path.parent.mkdir(parents=True)
-
-        with open_proj_file(self.project, png_path) as f:
-            f.write(self.DUMMY_PNG_DATA)
-
-        # check that we got correctly decrypted PNG response
-        resp = self.client.get(self._get_url())
-        self.assert_response_equals(resp, 200, self.DUMMY_PNG_DATA, self.PNG_MIME)

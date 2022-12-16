@@ -6,7 +6,7 @@ from fragview.proposals import get_proposals
 
 
 def _open_urls():
-    return [settings.LOGIN_URL] + settings.OPEN_URLS
+    return [settings.LOGIN_URL]
 
 
 def login_required(get_response):
@@ -77,45 +77,3 @@ def no_projects_redirect(get_response):
         return get_response(request)
 
     return check_current_project
-
-
-def key_required_redirect(get_response):
-    """
-    middleware that check if currently selected is in encrypted mode
-    and does not have it's encryption key uploaded, in that case
-    redirect user to key upload page
-    """
-    def _is_excluded_url(url):
-        excluded_prefixes = [
-            "/encryption/",          # avoid redirection loop
-            settings.LOGIN_URL,      # no user thus no current project
-            "/libraries",            # makes possible to browse libraries without existing project
-            "/fragment",
-            urls.reverse("logout"),  # no current project when logging out
-            urls.reverse("commit"),
-            "/project",              # exclude all project management URLs
-            "/crypt/"                # crypt I/O use tokens rather then user authentication
-        ]
-
-        for excluded_prefix in excluded_prefixes:
-            if url.startswith(excluded_prefix):
-                return True
-
-        return False
-
-    def _key_needed(request):
-        proposals = get_proposals(request)
-        project = request.user.get_current_project(proposals)
-
-        if not project.encrypted:
-            return False
-
-        return not project.has_encryption_key()
-
-    def check_encryption_key(request):
-        if _is_excluded_url(request.path_info) or not _key_needed(request):
-            return get_response(request)
-
-        return redirect(urls.reverse("encryption"))
-
-    return check_encryption_key

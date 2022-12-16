@@ -79,14 +79,14 @@ def new(request):
     if current.proposals_disabled():
         # make a mutable copy of POST arguments dict
         post_args = post_args.copy()
-        # put down current user name as 'proposal'
+        # put down current user-name as 'proposal'
         post_args["proposal"] = request.user.username
 
     form = ProjectForm(post_args, request.FILES)
     if not form.is_valid():
         return HttpResponseBadRequest(form.get_error_message())
 
-    protein, proposal, crystals, libraries, import_autoproc, encrypt = form.get_values()
+    protein, proposal, crystals, libraries, import_autoproc = form.get_values()
 
     proj = UserProject.create_new(protein, proposal)
 
@@ -97,7 +97,6 @@ def new(request):
         crystals.as_list(),
         libraries,
         import_autoproc,
-        encrypt,
     )
 
     return HttpResponse("ok")

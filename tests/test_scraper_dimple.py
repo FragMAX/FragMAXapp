@@ -13,8 +13,6 @@ class TestScrapeBlobs(TestCase, TempDirMixin):
 
     def setUp(self):
         self.project = Mock()
-        self.project.encrypted = False
-
         self.setup_temp_dir()
 
     def tearDown(self):

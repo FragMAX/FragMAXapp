@@ -1,6 +1,5 @@
 Upgrade to python 3.10.8
 
-* remove all encryption stuff, drop pycryptodomex package
 * figure out how to use celery=5.2.7
 * upgrade these packages:
   - rdkit

@@ -9,7 +9,6 @@ import fragview.management.commands.rmproj  # noqa F401
 import fragview.management.commands.addlib  # noqa F401
 import fragview.management.commands.update  # noqa F401
 import fragview.management.commands.adduser  # noqa F401
-import fragview.management.commands.gettoken  # noqa F401
 import fragview.management.commands.migprojs  # noqa F401
 import fragview.sites.hzb  # noqa F401
 import fragview.sites.hzb.cbf  # noqa F401

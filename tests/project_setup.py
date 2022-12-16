@@ -10,7 +10,7 @@ DUMMY_START_TIME = datetime(2019, 10, 22, 12, 30)
 DUMMY_END_TIME = datetime(2019, 10, 22, 12, 31)
 
 Project = namedtuple(
-    "Project", ["protein", "proposal", "encrypted", "crystals", "datasets", "results"]
+    "Project", ["protein", "proposal", "crystals", "datasets", "results"]
 )
 Crystal = namedtuple("Crystal", ["sample_id", "library_name", "fragment_code"])
 DataSet = namedtuple("DataSet", ["crystal_id", "run"])
@@ -189,7 +189,6 @@ def create_temp_project(projects_db_dir: Path, project_desc: Project):
         user_proj.id,
         project_desc.proposal,
         project_desc.protein,
-        project_desc.encrypted,
     )
 
     _populate_fragments_db(project_desc)

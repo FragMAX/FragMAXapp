@@ -34,9 +34,9 @@ def page(request):
                   {"pandda_dirs": _get_method_dirs(project)})
 
 
-def _dir_archive_entries(proj, root_dir):
-    def _file_data(proj, file_path):
-        yield read_proj_file(proj, file_path)
+def _dir_archive_entries(root_dir):
+    def _file_data(file_path):
+        yield read_proj_file(file_path)
 
     for dirpath, _, filenames in os.walk(root_dir):
         for filename in filenames:
@@ -53,7 +53,7 @@ def _dir_archive_entries(proj, root_dir):
                 #
                 continue
 
-            yield arch_path, _file_data(proj, abs_path)
+            yield arch_path, _file_data(abs_path)
 
 
 def _zipstream_pandda_dirs(project, pandda_dirs):
@@ -64,7 +64,7 @@ def _zipstream_pandda_dirs(project, pandda_dirs):
     for dir in pandda_dirs:
         abs_path = path.join(project.pandda_dir, dir)
 
-        for n, data in _dir_archive_entries(project, abs_path):
+        for n, data in _dir_archive_entries(abs_path):
             z.write_iter(path.join(dir, n), data)
 
     return z

@@ -137,9 +137,7 @@ def _create_project(
 ) -> Project:
     user_proj = UserProject.create_new(protein, proposal)
     project_id = user_proj.id
-    setup_project(
-        project_id, protein, proposal, crystals.as_list(), library, False, False
-    )
+    setup_project(project_id, protein, proposal, crystals.as_list(), library, False)
 
     return get_project(project_id)
 

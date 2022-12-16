@@ -12,17 +12,12 @@ exclude = '''
   fragmax/urls.py |
   deploy/create_vol.py |
   fragview/auth/ispyb.py |
-  fragview/autoproc.py |
-  fragview/fileio.py |
   fragview/middleware.py |
   fragview/cbf.py |
-  fragview/views/crypt.py |
   fragview/views/download.py |
-  fragview/views/misc.py |
   manage.py |
   tests/test_auth_ispyb.py |
   tests/test_views_fragment.py |
-  tests/test_worker_cpp4.py |
   tests/test_middleware.py
 )
 '''

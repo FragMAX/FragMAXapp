@@ -13,4 +13,4 @@ def show(request, dataset_id, snapshot_index):
         )
 
     snapshot_path = project.get_dataset_snapshot_path(snapshot)
-    return jpeg_http_response(project, snapshot_path)
+    return jpeg_http_response(snapshot_path)

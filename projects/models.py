@@ -4,7 +4,7 @@ from datetime import datetime
 from itertools import count
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
 
-LATEST_SCHEMA_VERSION = "3"
+LATEST_SCHEMA_VERSION = "4"
 
 
 def _define_entities(db):
@@ -59,8 +59,6 @@ def _define_entities(db):
     class Project(db.Entity):
         proposal = PrimaryKey(str)
         protein = Required(str)
-        encrypted = Required(bool)
-        encryption_key = Optional(bytes)
         # store hard-coded 'database schema version' value,
         # to aid future migrations to modified schemas
         db_schema_version = Required(str, default=LATEST_SCHEMA_VERSION)

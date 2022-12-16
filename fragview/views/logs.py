@@ -27,7 +27,7 @@ def htmldata(request, data_file):
     if not log_path.is_file():
         return HttpResponseNotFound()
 
-    return HttpResponse(read_proj_file(project, log_path))
+    return HttpResponse(read_proj_file(log_path))
 
 
 def _show_html_log(request, html_file_url):
@@ -77,7 +77,7 @@ def download(request, log_file):
         return _log_not_found_resp(log_file)
 
     return HttpResponse(
-        read_proj_file(project, log_path),
+        read_proj_file(log_path),
         content_type="application/octet-stream",
     )
 
@@ -90,7 +90,7 @@ def imported_htmldata(request, data_file):
     if not log_path.is_file():
         return HttpResponseNotFound()
 
-    return HttpResponse(read_proj_file(proj, log_path))
+    return HttpResponse(read_proj_file(log_path))
 
 
 def _show_imported_html_log(request, log_file):

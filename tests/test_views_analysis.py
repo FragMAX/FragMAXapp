@@ -9,7 +9,6 @@ class TestProcessView(ProjectTestCase, ViewTesterMixin):
         Project(
             protein="MID2",
             proposal="20180453",
-            encrypted=False,
             crystals=[
                 Crystal("MID2-x01", "TstLib", "VT0"),
                 Crystal("MID2-x02", "TstLib", "VT0"),

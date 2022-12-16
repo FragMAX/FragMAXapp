@@ -15,7 +15,6 @@ class TestParseResultsLog(TestCase):
         self.stats.status = ToolStatus.SUCCESS
 
         self.project = Mock()
-        self.project.encrypted = False
 
     def test_xdsapp2(self):
         """
