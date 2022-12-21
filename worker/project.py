@@ -21,7 +21,7 @@ from fragview.projects import (
 )
 
 
-@celery.task
+@celery.shared_task
 def setup_project(
     project_id: str,
     protein: str,
@@ -53,7 +53,7 @@ def setup_project(
         raise e
 
 
-@celery.task
+@celery.shared_task
 def import_crystals(project_id: str, crystals: List[Dict[str, str]]):
     try:
         print(f"importing crystals to project ID: {project_id}")

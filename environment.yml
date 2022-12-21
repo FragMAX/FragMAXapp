@@ -10,7 +10,7 @@ dependencies:
   - gemmi=0.5.7
   - rdkit=2019.09.3
   - fabio=2022.12.1
-  - celery=4.4.6
+  - celery=5.2.7
   - redis-server=6.2.6
   - redis-py=3.5.2
   - xmltodict=0.12.0
