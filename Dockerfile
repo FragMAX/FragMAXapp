@@ -1,5 +1,11 @@
 FROM ubuntu:18.04
+
 ENV PYTHONUNBUFFERED 1
+
+# for some reason this is needed for 'micromamba activate ...'
+ENV MAMBA_EXE="/usr/local/bin/micromamba"
+# configure where micromamba stores it's files
+ENV MAMBA_ROOT_PREFIX "/opt/mamba"
 
 # add path to adxv command
 ENV PATH="/mxn/groups/biomax/wmxsoft/xds_related:${PATH}"
@@ -31,28 +37,18 @@ RUN apt-get update \
         nginx \
         # adxv dependency
         libgomp1 \
-        # used to add 'conda' deb repository
-        wget \
-        gpg
+        # micromamba requires CA certificates when downloading packages
+        ca-certificates
 
-#
-# add 'conda' deb repository
-#
-RUN wget --quiet  --output-document=- https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | \
-        gpg --dearmor > conda.gpg \
-    && install -o root -g root -m 644 conda.gpg /usr/share/keyrings/conda-archive-keyring.gpg
-COPY deploy/conda.list /etc/apt/sources.list.d/
 
-# install 'conda' command
-RUN apt-get update \
-    && apt-get install conda
+COPY deploy/micromamba/micromamba-1.1.0-0.tar.bz2 /tmp
+RUN cd /usr/local && tar xvjf /tmp/micromamba-1.1.0-0.tar.bz2  bin/micromamba
 
 # create the FragMAX conda environment
 COPY environment.yml /tmp
-RUN . /opt/conda/etc/profile.d/conda.sh \
-    && conda env create -f /tmp/environment.yml \
-    && conda activate FragMAX \
-    && conda install -c conda-forge uwsgi=2.0.20
+RUN micromamba shell init --shell=bash
+RUN micromamba create -f /tmp/environment.yml
+RUN micromamba install -p /opt/mamba/envs/FragMAX -c conda-forge uwsgi=2.0.20
 
 RUN mkdir /app
 
@@ -70,7 +66,7 @@ COPY conf.py jobsd.py manage.py ./
 # docker images are for now hard-coded for 'MAXIV' site
 COPY deploy/local_site.py-maxiv local_site.py
 # hack to serve css, js etc files from the 'material' package via nginx
-RUN ln -s /opt/conda/envs/FragMAX/lib/python3.8/site-packages/material/static/material static/material
+RUN ln -s /opt/mamba/envs/FragMAX/lib/python3.10/site-packages/material/static/material static/material
 # the django database and site settings file are stored in a volume which is mounted at '/volume' at
 RUN ln -s /volume/db .
 RUN ln -s /volume/local_conf.py .
