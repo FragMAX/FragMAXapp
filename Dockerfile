@@ -23,6 +23,8 @@ RUN apt-get update \
     && apt-get -y  install \
         # for troubleshooting
         tmux nano less \
+        # for installing forked pony from git repository
+        git \
         # for LDAP authentication
         nslcd \
         # for accessing HPC
