@@ -21,7 +21,7 @@ def _get_space_group_cell_argument(options: ProcessOptions):
         # no (aka 'auto') space group specified
         return ""
 
-    return f"--spacegroup={space_group.number}{_cell_arg()}"
+    return f"--spacegroup='{space_group.number}{_cell_arg()}'"
 
 
 def _get_friedel_argument(options: ProcessOptions):
