@@ -1,7 +1,6 @@
 from typing import Union
 import os
 import stat
-from os import path
 from pathlib import Path
 from fragview.projects import Project
 
@@ -92,16 +91,6 @@ def subdirs(root_dir, depth):
     for chld in _iterdirs(root_dir):
         for sub in subdirs(chld, sublevel):
             yield sub
-
-
-def remove_file(file_path):
-    """
-    remove file if it exists
-    """
-    if not path.isfile(file_path):
-        return
-
-    os.remove(file_path)
 
 
 def upload_dir(src_dir, res_dir):
