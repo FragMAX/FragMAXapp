@@ -1,3 +1,4 @@
+from pathlib import Path
 from fragview.tools import ProcessOptions
 from fragview.projects import Project, project_log_path, project_script
 from fragview.versions import DIALS_MOD, XDS_MOD
@@ -42,7 +43,9 @@ def generate_batch(project: Project, dataset, options: ProcessOptions) -> BatchF
     batch.purge_modules()
     batch.load_modules(PRESTO_MODULES)
 
-    dest_dir = project.get_dataset_process_dir(dataset)
-    batch.add_commands(f"mkdir -p {dest_dir}/xds", f"cd {dest_dir}/xds", *xds_commands)
+    xds_dir = Path(project.get_dataset_process_dir(dataset), "xds")
+    batch.add_commands(
+        f"rm -rf {xds_dir}", f"mkdir -p {xds_dir}", f"cd {xds_dir}", *xds_commands
+    )
 
     return batch

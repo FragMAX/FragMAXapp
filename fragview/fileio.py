@@ -105,4 +105,4 @@ def remove_file(file_path):
 
 
 def upload_dir(src_dir, res_dir):
-    return f"mkdir -p {res_dir}\nrsync -r {src_dir}/* {res_dir}\n"
+    return f"mkdir -p {res_dir}\nrsync --recursive --delete {src_dir}/* {res_dir}\n"

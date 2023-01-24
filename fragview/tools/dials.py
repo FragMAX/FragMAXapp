@@ -1,3 +1,4 @@
+from pathlib import Path
 from fragview.tools import ProcessOptions
 from fragview.versions import DIALS_MOD
 from fragview.projects import Project, project_log_path, project_script
@@ -42,18 +43,20 @@ def generate_batch(project: Project, dataset, options: ProcessOptions) -> BatchF
     batch.purge_modules()
     batch.load_modules(PRESTO_MODULES)
 
-    dest_dir = project.get_dataset_process_dir(dataset)
+    dials_dir = Path(project.get_dataset_process_dir(dataset), "dials")
+
     batch.add_commands(
-        f"mkdir -p {dest_dir}/dials",
-        f"cd {dest_dir}/dials",
+        f"rm -rf {dials_dir}",
+        f"mkdir -p {dials_dir}",
+        f"cd {dials_dir}",
         *dials_commands,
     )
 
     batch.add_commands(
         "echo 'remove .refl files, to conserve disk space'",
-        f"rm -rfv {dest_dir}/dials/DataFiles/*.refl",
-        f"rm -rfv {dest_dir}/dials/DEFAULT/scale/*.refl",
-        f"rm -rfv {dest_dir}/dials/DEFAULT/SAD/*/*/*.refl",
+        f"rm -rfv {dials_dir}/DataFiles/*.refl",
+        f"rm -rfv {dials_dir}/DEFAULT/scale/*.refl",
+        f"rm -rfv {dials_dir}/DEFAULT/SAD/*/*/*.refl",
     )
 
     return batch

@@ -58,9 +58,12 @@ def generate_batch(project: Project, dataset, options: ProcessOptions) -> BatchF
     batch.purge_modules()
     batch.load_modules(PRESTO_MODULES)
 
+    xdsapp_dir = f"{dest_dir}/xdsapp"
+
     batch.add_commands(
-        f"mkdir -p {dest_dir}/xdsapp",
-        f"cd {dest_dir}/xdsapp",
+        f"rm -rf {xdsapp_dir}",
+        f"mkdir -p {xdsapp_dir}",
+        f"cd {xdsapp_dir}",
         xdsapp_command,
     )
 
