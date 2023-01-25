@@ -17,7 +17,6 @@ def to_svg(smiles):
 
     Drawer = Draw.rdMolDraw2D.MolDraw2DSVG(SVG_WIDTTH, SVG_HEIGHT)
     Drawer.drawOptions().clearBackground = False  # make the SVG transparent
-    Drawer.SetFontSize(1)
     Drawer.DrawMolecule(mc_mol)
     Drawer.FinishDrawing()
 
