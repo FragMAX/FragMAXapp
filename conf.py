@@ -28,7 +28,7 @@ JOBSD_SOCKET = str(Path(DATABASE_DIR, "jobsd.sock"))
 # SLURM front-end host ssh settings
 SLURM_FRONT_END = {
     "host": "offline-fe1",
-    "user": "biomax-service",
+    "user": "fragmax-service",
     "key_file": "/volume/ssh/id_rsa",
 }
 
