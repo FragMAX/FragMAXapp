@@ -17,8 +17,8 @@ def get_cell_argument(cell: Optional[UnitCell]) -> str:
         return ""
 
     return (
-        f"unit_cell={cell.a}, {cell.b}, {cell.c}, "
-        f"{cell.alpha}, {cell.beta}, {cell.gamma}"
+        f"xia2.settings.unit_cell={cell.a},{cell.b},{cell.c},"
+        f"{cell.alpha},{cell.beta},{cell.gamma}"
     )
 
 
