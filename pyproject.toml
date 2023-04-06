@@ -34,6 +34,7 @@ exclude = "worker/data/pandda_prepare_runs.py|fragview/migrations/|static/"
         "rdkit",
         "rdkit.Chem",
         "gemmi",
+        "fabio.cbfimage",
         "pandas",
         "pandas.errors",
         "celery",

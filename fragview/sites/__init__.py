@@ -2,13 +2,18 @@ from importlib import import_module
 from fragview.sites.plugin import SitePlugin
 
 
-def _load_site_plugin():
+def get_site_name() -> str:
     import local_site
 
+    return local_site.SITE.lower()
+
+
+def _load_site_plugin():
+    site_name = get_site_name()
     try:
-        site_module = import_module(f"fragview.sites.{local_site.SITE.lower()}")
+        site_module = import_module(f"fragview.sites.{site_name}")
     except ModuleNotFoundError as e:
-        raise ValueError(f"Error loading site-plugin for '{local_site.SITE}': {e}")
+        raise ValueError(f"Error loading site-plugin for '{site_name}': {e}")
 
     return site_module.SitePlugin()
 

@@ -94,6 +94,7 @@ def populate_project_db(project, project_desc: Project):
             run=dataset.run,
             # some hardcoded dummy values for now
             data_root_dir="20211125",
+            beamline="BioMAX",
             detector="EIGER 16M",
             resolution=1.2,
             images=1800,

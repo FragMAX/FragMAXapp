@@ -144,4 +144,11 @@ def _get_dataset_metadata(
         return None
 
     # parse the located XML file
-    return parse_xsdata_file(xml_file)
+    meta_data = parse_xsdata_file(xml_file)
+
+    # we only support data collected at BioMAX
+    # assert that dataset comes from /data/*/biomax directory
+    assert dataset_dir.parents[-4].name.lower() == "biomax"
+    meta_data.beamline = "BioMAX"
+
+    return meta_data

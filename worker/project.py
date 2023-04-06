@@ -108,6 +108,7 @@ def _add_datasets(project: Project):
                 crystal=crystal,
                 data_root_dir=str(shift_dir),
                 run=run,
+                beamline=meta_data.beamline,
                 detector=meta_data.detector,
                 resolution=meta_data.resolution,
                 images=meta_data.images,

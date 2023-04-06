@@ -26,6 +26,7 @@ class DatasetMetadata:
     beam_size_at_sample_x: float
     beam_size_at_sample_y: float
     snapshot_indices: list[int] = field(default_factory=list)
+    beamline: Optional[str] = None
 
 
 class SitePlugin:
@@ -69,7 +70,7 @@ class SitePlugin:
     ) -> list[str]:
         raise NotImplementedError()
 
-    def get_beamline_info(self):
+    def get_beamline_info(self) -> "BeamlineInfo":
         raise NotImplementedError()
 
     def get_hpc_runner(self) -> "HPC":
@@ -138,8 +139,6 @@ class LigandTool:
 
 
 class BeamlineInfo:
-    # beamline's name
-    name: str
     detector_type: str
     detector_pixel_size: str
     focusing_optics: str

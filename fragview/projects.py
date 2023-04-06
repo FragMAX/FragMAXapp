@@ -314,9 +314,9 @@ def get_dataset_runs(data_dir: Path) -> Iterable[int]:
 
 
 def get_dataset_metadata(
-    project, dataset_dir: Path, crystal_id: str, run: int
+    project, dataset_raw_dir: Path, crystal_id: str, run: int
 ) -> Optional[DatasetMetadata]:
-    return current.get_dataset_metadata(project, dataset_dir, crystal_id, run)
+    return current.get_dataset_metadata(project, dataset_raw_dir, crystal_id, run)
 
 
 def current_project(request) -> Project:

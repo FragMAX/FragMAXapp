@@ -3,7 +3,7 @@ from datetime import datetime
 from itertools import count
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
 
-LATEST_SCHEMA_VERSION = "4"
+LATEST_SCHEMA_VERSION = "5"
 
 
 def _define_entities(db):
@@ -108,6 +108,9 @@ def _define_entities(db):
 
         # limit to unique combinations of crystal, run and 'shift'
         composite_key(data_root_dir, crystal, run)
+
+        # the beamline name where this dataset was collected
+        beamline = Required(str)
 
         # the detector type used to capture the dataset, e.g. PILATUS3 2M
         detector = Required(str)
