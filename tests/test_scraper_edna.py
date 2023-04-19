@@ -102,7 +102,7 @@ class TestScrapeEdna(ProjectTestCase):
     @db_session
     def test_failure_no_mtz(self):
         """
-        case when not MTZ file was generated
+        case when no MTZ file was generated
         """
         dataset = self.project.get_dataset(1)
 

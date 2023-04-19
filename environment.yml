@@ -7,7 +7,7 @@ dependencies:
   - natsort=6.0.0
   - requests=2.25.1
   - jsonschema=4.4.0
-  - gemmi=0.5.7
+  - gemmi=0.6.0
   - rdkit=2022.03.1
   - fabio=2022.12.1
   - celery=5.2.7

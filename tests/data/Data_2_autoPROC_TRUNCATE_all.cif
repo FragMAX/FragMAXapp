@@ -1,0 +1,284 @@
+data_2_truncate
+
+_pdbx_audit_conform.dict_name     mmcif_pdbx.dic
+_pdbx_audit_conform.dict_version  5.339
+_pdbx_audit_conform.dict_location http://mmcif.wwpdb.org/dictionaries/ascii/mmcif_pdbx_v50.dic
+
+loop_
+_audit.revision_id
+_audit.creation_date
+_audit.creation_method
+'initial' 2023-03-26 ' Created automatically by autoPROC + MRFANA version 1.0.5 (20230222) '
+
+
+_exptl_crystal.id 1
+_exptl_crystal.description xxxx
+
+_diffrn.id 1
+_diffrn.ambient_temp .
+_diffrn.crystal_id 1
+_diffrn.details
+;   merged and scaled data post-processed by TRUNCATE for conversion from intensities to structure factor amplitudes and anomalous data.
+;
+
+loop_
+_software.pdbx_ordinal
+_software.name
+_software.version
+_software.date
+_software.type
+_software.location
+_software.classification
+_software.description
+1 autoPROC '?' '?' 'package' 'https://www.globalphasing.com/' 'data processing' 'Automated data processing system'
+2 XDS 'Jan 10, 2022' '2022-02-20' 'package' 'https://xds.mpimf-heidelberg.mpg.de/' 'data processing' 'Data integration and processing'
+3 AIMLESS '0.7.9' '20220610' 'program' 'https://www.ccp4.ac.uk/' 'data scaling' 'Data scaling'
+4 TRUNCATE '8.0.004' '?' 'program' 'https://www.ccp4.ac.uk/' 'data processing' 'Obtain structure factor amplitudes from intensities'
+
+_entry.id xxxx
+
+_diffrn_radiation_wavelength.id 1
+_diffrn_radiation_wavelength.wavelength 0.9184
+
+_cell.entry_id xxxx
+_cell.length_a     72.0530
+_cell.length_b     72.0530
+_cell.length_c    151.6090
+_cell.angle_alpha  90.0000
+_cell.angle_beta   90.0000
+_cell.angle_gamma  90.0000
+
+_symmetry.entry_id xxxx
+_symmetry.space_group_name_H-M 'P 41 21 2'
+_symmetry.Int_Tables_number 92
+
+
+_reflns.pdbx_ordinal 1
+_reflns.details
+;
+Some remarks regarding the mmCIF items written, the PDB Exchange Dictionary (PDBx/mmCIF) Version 5.0 supporting the data files in the current PDB archive (dictionary version 5.325, last updated 2020-04-13: http://mmcif.wwpdb.org/dictionaries/mmcif_pdbx_v50.dic/Index/) and the actual quantities provided by MRFANA (https://github.com/githubgphl/MRFANA) from the autoPROC package (https://www.globalphasing.com/autoproc/). In general, the mmCIF categories here should provide items that are currently used in the PDB archive. If there are alternatives, the one recommended by the PDB developers has been selected.
+
+The distinction between *_all and *_obs quantities is not always clear: often only one version is actively used within the PDB archive (or is the one recommended by PDB developers). The intention of distinguishing between classes of reflections before and after some kind of observation criterion was applied, can in principle be useful - but such criteria change in various ways throughout the data processing steps (rejection of overloaded or too partial reflections, outlier/misfit rejections during scaling etc) and there is no retrospect computation of data scaling/merging statistics for the reflections used in the final refinement (where another observation criterion might have been applied). Typical data processing will usually only provide one version of statistics at various stages and these are given in the recommended item here, irrespective of the "_all" and "_obs" connotation, see e.g. the use of _reflns.pdbx_Rmerge_I_obs, _reflns.pdbx_Rrim_I_all and _reflns.pdbx_Rpim_I_all.
+
+Please note that all statistics related to "merged intensities" (or "merging") are based on inverse-variance weighting of the individual measurements making up a symmetry-unique reflection. This is standard for several decades now, even if some of the dictionary definitions seem to suggest that a simple "mean" or "average" intensity is being used instead.
+
+R-values are always given for all symmetry-equivalent reflections following Friedel's law, i.e. Bijvoet pairs are not treated separately (since we want to describe the overall mean intensity and not the mean I(+) and I(-) here).
+
+The Rrim metric is identical to the Rmeas R-value and only differs in name.
+
+_reflns.pdbx_number_measured_all is the number of measured intensities just before the final merging step (at which point no additional rejection takes place).
+
+_reflns.number_obs is the number of symmetry-unique observations, i.e. the result of merging those measurements via inverse-variance weighting.
+
+_reflns.pdbx_netI_over_sigmaI is based on the merged intensities (_reflns.number_obs) as expected.
+
+_reflns.pdbx_redundancy is synonymous with "multiplicity".
+
+The per-shell item _reflns_shell.number_measured_all corresponds to the overall value _reflns.pdbx_number_measured_all.
+
+The per-shell item _reflns_shell.number_unique_all corresponds to the overall value _reflns.number_obs.
+
+The per-shell item _reflns_shell.percent_possible_all corresponds to the overall value _reflns.percent_possible_obs.
+
+The per-shell item _reflns_shell.meanI_over_sigI_obs corresponds to the overall value given as _reflns.pdbx_netI_over_sigmaI. But be aware of the incorrect definition of the former in the current dictionary!
+;
+_reflns.entry_id xxxx
+_reflns.pdbx_diffrn_id 1
+_reflns.d_resolution_low 65.077
+_reflns.d_resolution_high 1.139
+_reflns.pdbx_Rmerge_I_obs 0.0917
+_reflns.pdbx_Rrim_I_all 0.0935
+_reflns.pdbx_Rpim_I_all 0.0182
+_reflns.pdbx_number_measured_all 3763099
+_reflns.number_obs 145993
+_reflns.pdbx_netI_over_sigmaI 16.48
+_reflns.percent_possible_obs 100.0
+_reflns.pdbx_redundancy 25.78
+_reflns.pdbx_CC_half 0.999
+_reflns.pdbx_percent_possible_anomalous 100.0
+_reflns.pdbx_redundancy_anomalous 13.44
+_reflns.pdbx_CC_half_anomalous -0.085
+_reflns.pdbx_absDiff_over_sigma_anomalous 0.805
+
+loop_
+_reflns_shell.pdbx_ordinal
+_reflns_shell.d_res_low
+_reflns_shell.d_res_high
+_reflns_shell.number_measured_all
+_reflns_shell.number_measured_obs
+_reflns_shell.number_unique_all
+_reflns_shell.number_unique_obs
+_reflns_shell.percent_possible_all
+_reflns_shell.Rmerge_I_obs
+_reflns_shell.pdbx_Rrim_I_all
+_reflns_shell.pdbx_Rpim_I_all
+_reflns_shell.pdbx_redundancy
+_reflns_shell.meanI_over_sigI_obs
+_reflns_shell.pdbx_CC_half
+_reflns_shell.pdbx_percent_possible_anomalous
+_reflns_shell.pdbx_redundancy_anomalous
+_reflns_shell.pdbx_CC_half_anomalous
+_reflns_shell.pdbx_absDiff_over_sigma_anomalous
+ 1 65.077 3.091 204964 204964 7835 7835 99.9 0.0607 0.0620 0.0121 26.16 60.34 0.998 100.0 14.71 -0.102 1.202
+ 2 3.091 2.453 202061 202061 7489 7489 100.0 0.0572 0.0583 0.0112 26.98 53.86 0.999 100.0 14.44 0.000 1.216
+ 3 2.453 2.143 204104 204104 7416 7416 100.0 0.0670 0.0682 0.0129 27.52 47.16 0.998 100.0 14.58 -0.035 1.135
+ 4 2.143 1.947 199554 199554 7332 7332 100.0 0.0786 0.0800 0.0152 27.22 39.57 0.998 100.0 14.34 -0.030 1.022
+ 5 1.947 1.807 194040 194040 7338 7338 100.0 0.1081 0.1102 0.0214 26.44 29.95 0.998 100.0 13.86 0.077 0.963
+ 6 1.807 1.701 194997 194997 7305 7305 100.0 0.1492 0.1521 0.0293 26.69 22.24 0.996 100.0 13.96 0.077 0.889
+ 7 1.701 1.616 195351 195351 7287 7287 100.0 0.2034 0.2074 0.0399 26.81 17.03 0.995 100.0 13.99 0.009 0.825
+ 8 1.616 1.545 196249 196249 7281 7281 100.0 0.2821 0.2875 0.0551 26.95 12.83 0.992 100.0 14.02 0.007 0.769
+ 9 1.545 1.486 196751 196751 7286 7286 100.0 0.3984 0.4060 0.0777 27.00 9.50 0.986 100.0 14.02 0.041 0.757
+ 10 1.486 1.435 195434 195434 7227 7227 100.0 0.5744 0.5854 0.1121 27.04 6.93 0.976 100.0 14.03 0.009 0.707
+ 11 1.435 1.390 194935 194935 7251 7251 100.0 0.7630 0.7776 0.1493 26.88 5.29 0.957 100.0 13.91 -0.016 0.698
+ 12 1.390 1.350 194032 194032 7257 7257 100.0 1.0216 1.0412 0.2005 26.74 4.14 0.932 100.0 13.86 0.013 0.682
+ 13 1.350 1.314 191727 191727 7213 7213 100.0 1.2549 1.2792 0.2470 26.58 3.39 0.903 100.0 13.73 0.002 0.677
+ 14 1.314 1.282 191496 191496 7229 7229 100.0 1.6880 1.7208 0.3329 26.49 2.63 0.857 100.0 13.69 -0.011 0.676
+ 15 1.282 1.253 191387 191387 7216 7216 100.0 2.1024 2.1432 0.4142 26.52 2.12 0.808 100.0 13.69 -0.022 0.667
+ 16 1.253 1.227 191368 191368 7211 7211 100.0 2.5726 2.6224 0.5068 26.54 1.78 0.748 100.0 13.69 -0.023 0.659
+ 17 1.227 1.202 190560 190560 7174 7174 100.0 3.2170 3.2793 0.6336 26.56 1.48 0.672 100.0 13.69 0.014 0.655
+ 18 1.202 1.179 173708 173708 7229 7229 100.0 3.7774 3.8586 0.7828 24.03 1.21 0.579 100.0 12.38 0.011 0.659
+ 19 1.179 1.158 140168 140168 7194 7194 100.0 4.3802 4.4974 1.0127 19.48 0.93 0.442 100.0 10.01 -0.016 0.658
+ 20 1.158 1.139 120213 120213 7223 7223 100.0 5.1245 5.2858 1.2849 16.64 0.72 0.357 100.0 8.57 -0.006 0.656
+
+
+data_2_truncate_early
+
+_pdbx_audit_conform.dict_name     mmcif_pdbx.dic
+_pdbx_audit_conform.dict_version  5.339
+_pdbx_audit_conform.dict_location http://mmcif.wwpdb.org/dictionaries/ascii/mmcif_pdbx_v50.dic
+
+loop_
+_audit.revision_id
+_audit.creation_date
+_audit.creation_method
+'initial' 2023-03-26 ' Created automatically by autoPROC + MRFANA version 1.0.5 (20230222) '
+
+
+_exptl_crystal.id 1
+_exptl_crystal.description xxxx
+
+_diffrn.id 1
+_diffrn.ambient_temp .
+_diffrn.crystal_id 1
+_diffrn.details
+;   merged and scaled EARLY (potentially least radiation-damaged) data post-processed by TRUNCATE for conversion from intensities to structure factor amplitudes - useful for radiation-damage detection/description maps (as e.g. done in BUSTER).
+;
+
+loop_
+_software.pdbx_ordinal
+_software.name
+_software.version
+_software.date
+_software.type
+_software.location
+_software.classification
+_software.description
+1 autoPROC '?' '?' 'package' 'https://www.globalphasing.com/' 'data processing' 'Automated data processing system'
+2 XDS 'Jan 10, 2022' '2022-02-20' 'package' 'https://xds.mpimf-heidelberg.mpg.de/' 'data processing' 'Data integration and processing'
+3 AIMLESS '0.7.9' '20220610' 'program' 'https://www.ccp4.ac.uk/' 'data scaling' 'Data scaling'
+4 TRUNCATE '8.0.004' '?' 'program' 'https://www.ccp4.ac.uk/' 'data processing' 'Obtain structure factor amplitudes from intensities'
+
+_entry.id xxxx
+
+_diffrn_radiation_wavelength.id 1
+_diffrn_radiation_wavelength.wavelength 0.9184
+
+_cell.entry_id xxxx
+_cell.length_a     72.0530
+_cell.length_b     72.0530
+_cell.length_c    151.6090
+_cell.angle_alpha  90.0000
+_cell.angle_beta   90.0000
+_cell.angle_gamma  90.0000
+
+_symmetry.entry_id xxxx
+_symmetry.space_group_name_H-M 'P 41 21 2'
+_symmetry.Int_Tables_number 92
+
+
+_reflns.pdbx_ordinal 1
+_reflns.details
+;
+Some remarks regarding the mmCIF items written, the PDB Exchange Dictionary (PDBx/mmCIF) Version 5.0 supporting the data files in the current PDB archive (dictionary version 5.325, last updated 2020-04-13: http://mmcif.wwpdb.org/dictionaries/mmcif_pdbx_v50.dic/Index/) and the actual quantities provided by MRFANA (https://github.com/githubgphl/MRFANA) from the autoPROC package (https://www.globalphasing.com/autoproc/). In general, the mmCIF categories here should provide items that are currently used in the PDB archive. If there are alternatives, the one recommended by the PDB developers has been selected.
+
+The distinction between *_all and *_obs quantities is not always clear: often only one version is actively used within the PDB archive (or is the one recommended by PDB developers). The intention of distinguishing between classes of reflections before and after some kind of observation criterion was applied, can in principle be useful - but such criteria change in various ways throughout the data processing steps (rejection of overloaded or too partial reflections, outlier/misfit rejections during scaling etc) and there is no retrospect computation of data scaling/merging statistics for the reflections used in the final refinement (where another observation criterion might have been applied). Typical data processing will usually only provide one version of statistics at various stages and these are given in the recommended item here, irrespective of the "_all" and "_obs" connotation, see e.g. the use of _reflns.pdbx_Rmerge_I_obs, _reflns.pdbx_Rrim_I_all and _reflns.pdbx_Rpim_I_all.
+
+Please note that all statistics related to "merged intensities" (or "merging") are based on inverse-variance weighting of the individual measurements making up a symmetry-unique reflection. This is standard for several decades now, even if some of the dictionary definitions seem to suggest that a simple "mean" or "average" intensity is being used instead.
+
+R-values are always given for all symmetry-equivalent reflections following Friedel's law, i.e. Bijvoet pairs are not treated separately (since we want to describe the overall mean intensity and not the mean I(+) and I(-) here).
+
+The Rrim metric is identical to the Rmeas R-value and only differs in name.
+
+_reflns.pdbx_number_measured_all is the number of measured intensities just before the final merging step (at which point no additional rejection takes place).
+
+_reflns.number_obs is the number of symmetry-unique observations, i.e. the result of merging those measurements via inverse-variance weighting.
+
+_reflns.pdbx_netI_over_sigmaI is based on the merged intensities (_reflns.number_obs) as expected.
+
+_reflns.pdbx_redundancy is synonymous with "multiplicity".
+
+The per-shell item _reflns_shell.number_measured_all corresponds to the overall value _reflns.pdbx_number_measured_all.
+
+The per-shell item _reflns_shell.number_unique_all corresponds to the overall value _reflns.number_obs.
+
+The per-shell item _reflns_shell.percent_possible_all corresponds to the overall value _reflns.percent_possible_obs.
+
+The per-shell item _reflns_shell.meanI_over_sigI_obs corresponds to the overall value given as _reflns.pdbx_netI_over_sigmaI. But be aware of the incorrect definition of the former in the current dictionary!
+;
+_reflns.entry_id xxxx
+_reflns.pdbx_diffrn_id 1
+_reflns.d_resolution_low 65.077
+_reflns.d_resolution_high 1.139
+_reflns.pdbx_Rmerge_I_obs 0.0783
+_reflns.pdbx_Rrim_I_all 0.0858
+_reflns.pdbx_Rpim_I_all 0.0339
+_reflns.pdbx_number_measured_all 773149
+_reflns.number_obs 138703
+_reflns.pdbx_netI_over_sigmaI 7.82
+_reflns.percent_possible_obs 95.0
+_reflns.pdbx_redundancy 5.57
+_reflns.pdbx_CC_half 0.997
+_reflns.pdbx_percent_possible_anomalous 93.6
+_reflns.pdbx_redundancy_anomalous 2.95
+_reflns.pdbx_CC_half_anomalous -0.096
+_reflns.pdbx_absDiff_over_sigma_anomalous 0.717
+
+loop_
+_reflns_shell.pdbx_ordinal
+_reflns_shell.d_res_low
+_reflns_shell.d_res_high
+_reflns_shell.number_measured_all
+_reflns_shell.number_measured_obs
+_reflns_shell.number_unique_all
+_reflns_shell.number_unique_obs
+_reflns_shell.percent_possible_all
+_reflns_shell.Rmerge_I_obs
+_reflns_shell.pdbx_Rrim_I_all
+_reflns_shell.pdbx_Rpim_I_all
+_reflns_shell.pdbx_redundancy
+_reflns_shell.meanI_over_sigI_obs
+_reflns_shell.pdbx_CC_half
+_reflns_shell.pdbx_percent_possible_anomalous
+_reflns_shell.pdbx_redundancy_anomalous
+_reflns_shell.pdbx_CC_half_anomalous
+_reflns_shell.pdbx_absDiff_over_sigma_anomalous
+ 1 65.077 3.091 42038 42038 6737 6737 86.0 0.0583 0.0637 0.0246 6.24 29.20 0.995 89.7 3.43 -0.098 0.808
+ 2 3.091 2.453 41554 41554 6735 6735 89.9 0.0535 0.0583 0.0225 6.17 25.63 0.997 89.0 3.36 -0.285 0.809
+ 3 2.453 2.143 41930 41930 6767 6767 91.2 0.0624 0.0680 0.0262 6.20 22.43 0.997 90.5 3.33 -0.218 0.808
+ 4 2.143 1.947 40989 40989 6751 6751 92.1 0.0726 0.0792 0.0308 6.07 19.03 0.995 91.8 3.23 -0.078 0.787
+ 5 1.947 1.807 39982 39982 6860 6860 93.5 0.0925 0.1014 0.0402 5.83 14.74 0.992 90.7 3.15 -0.006 0.797
+ 6 1.807 1.701 40062 40062 6862 6862 93.9 0.1242 0.1363 0.0545 5.84 11.09 0.988 91.7 3.13 0.029 0.764
+ 7 1.701 1.616 40156 40156 6896 6896 94.6 0.1621 0.1782 0.0717 5.82 8.70 0.982 92.9 3.10 0.020 0.754
+ 8 1.616 1.545 40273 40273 6922 6922 95.1 0.2231 0.2454 0.0990 5.82 6.58 0.969 94.2 3.06 0.005 0.723
+ 9 1.545 1.486 40468 40468 6972 6972 95.7 0.3054 0.3363 0.1362 5.80 4.97 0.943 95.4 3.03 -0.002 0.705
+ 10 1.486 1.435 40101 40101 6926 6926 95.8 0.4284 0.4718 0.1914 5.79 3.68 0.903 95.7 3.02 0.005 0.699
+ 11 1.435 1.390 40021 40021 6974 6974 96.2 0.5631 0.6204 0.2528 5.74 2.85 0.847 95.5 3.00 0.003 0.698
+ 12 1.390 1.350 39959 39959 7019 7019 96.7 0.7316 0.8065 0.3294 5.69 2.25 0.764 95.6 2.99 0.004 0.682
+ 13 1.350 1.314 39368 39368 6994 6994 97.0 0.8878 0.9798 0.4030 5.63 1.85 0.692 95.8 2.95 -0.006 0.682
+ 14 1.314 1.282 39319 39319 7026 7026 97.2 1.1375 1.2560 0.5183 5.60 1.50 0.615 96.0 2.93 0.016 0.682
+ 15 1.282 1.253 39399 39399 7033 7033 97.5 1.4434 1.5933 0.6576 5.60 1.18 0.540 96.3 2.93 -0.006 0.668
+ 16 1.253 1.227 39335 39335 7013 7013 97.3 1.7013 1.8806 0.7805 5.61 1.03 0.408 97.1 2.91 0.007 0.669
+ 17 1.227 1.202 39061 39061 7008 7008 97.7 2.1184 2.3430 0.9753 5.57 0.84 0.323 97.0 2.90 0.024 0.676
+ 18 1.202 1.179 35624 35624 7070 7070 97.8 2.3458 2.6200 1.1315 5.04 0.71 0.220 95.6 2.64 -0.040 0.659
+ 19 1.179 1.158 28810 28810 7048 7048 98.0 2.5653 2.9449 1.3998 4.09 0.54 0.181 94.2 2.15 0.004 0.663
+ 20 1.158 1.139 24700 24700 7090 7090 98.1 2.9008 3.4141 1.7419 3.48 0.41 0.136 85.9 1.91 -0.024 0.655

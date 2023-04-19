@@ -1,10 +1,10 @@
-from typing import Iterable, Optional, TextIO
+from typing import Iterable, Optional
 from pathlib import Path
+from gemmi import cif
 from fragview.projects import Project
 from fragview.scraper import ToolStatus, ProcStats
 from fragview.scraper.utils import get_files_by_suffixes, load_mtz_stats
 
-ERROR_MSG = '<div class="errorheader">ERROR</div>'
 LOG_FILE_SUFFIXES = ["lp", "log", "xml", "html"]
 
 
@@ -18,7 +18,9 @@ def _get_summary_report(project: Project, dataset) -> Optional[Path]:
         "autoPROC",
     )
 
-    glob = autoproc_res_dir.glob(str(Path("cn*", "AutoPROCv1_0_anom", "summary.html")))
+    glob = autoproc_res_dir.glob(
+        str(Path("cn*", "AutoPROCv1_0_noanom", "summary.html"))
+    )
 
     summary_file = next(glob, None)
     if summary_file is not None and summary_file.is_file():
@@ -65,82 +67,107 @@ def get_result_mtz(project: Project, dataset):
     return None
 
 
-def _parse_statistics(stats: ProcStats, report):
-    with open(report, "r", encoding="utf-8") as r:
-        log = r.readlines()
+def _parse_cif(stats: ProcStats, cif_path: str):
+    def get_cells(block, loop_tag, *indices):
+        def gen():
+            col = block.find_loop(loop_tag)
+            for idx in indices:
+                yield col[idx]
 
-    for n, line in enumerate(log):
-        if "Low resolution limit  " in line:
-            stats.low_resolution_overall, stats.low_resolution_out = (
-                line.split()[3],
-                line.split()[5],
-            )
-        if "High resolution limit  " in line:
-            stats.high_resolution_out, stats.high_resolution_overall = (
-                line.split()[3],
-                line.split()[5],
-            )
-        if "Total number of observations  " in line:
-            stats.reflections = line.split()[-3]
-        if "Total number unique  " in line:
-            stats.unique_reflections = line.split()[-3]
-        if "Multiplicity  " in line:
-            stats.multiplicity = line.split()[1]
-        if "Mean(I)/sd(I)" in line:
-            stats.i_sig_average = line.split()[1]
-            stats.i_sig_out = line.split()[-1]
-        if "Completeness (ellipsoidal)" in line or "Completeness (spherical)" in line:
-            stats.completeness_average = line.split()[2]
-            stats.completeness_out = line.split()[-1]
-        if "Rmeas   (all I+ & I-)" in line:
-            stats.r_meas_average = line.split()[-3]
-            stats.r_meas_out = line.split()[-1]
-        elif "Rmeas" in line:
-            stats.r_meas_average = line.split()[-3]
-            stats.r_meas_out = line.split()[-1]
-        if "CRYSTAL MOSAICITY (DEGREES)" in line:
-            stats.mosaicity = line.split()[-1]
-        if "ISa (" in line:
-            stats.isa = log[n + 1].split()[-1]
+        return list(gen())
 
-    return stats
+    def get_block():
+        # find a block named  *_truncate,
+        # the name prefix seems to vary, e.g.
+        # '2_truncate' or '_01_truncate'
+        for block in cif.read_file(cif_path):
+            if block.name.endswith("truncate"):
+                return block
 
+        assert False, f"{cif_path}: no *truncate block found"
 
-def _scrape_summary_html(summary_file: Path) -> ToolStatus:
-    with summary_file.open() as f:
-        for line in f.readlines():
-            if ERROR_MSG in line:
-                return ToolStatus.FAILURE
+    block = get_block()
 
-    return ToolStatus.SUCCESS
+    stats.low_resolution_overall = block.find_value("_reflns.d_resolution_low")
+    stats.low_resolution_inner, stats.low_resolution_out = get_cells(
+        block, "_reflns_shell.d_res_low", 0, -1
+    )
+
+    stats.high_resolution_overall = block.find_value("_reflns.d_resolution_high")
+    stats.high_resolution_inner, stats.high_resolution_out = get_cells(
+        block, "_reflns_shell.d_res_high", 0, -1
+    )
+
+    stats.reflections = block.find_value("_reflns.pdbx_number_measured_all")
+    stats.unique_reflections = block.find_value("_reflns.number_obs")
+    stats.multiplicity = block.find_value("_reflns.pdbx_redundancy")
+    stats.i_sig_average = block.find_value("_reflns.pdbx_netI_over_sigmaI")
+    (stats.i_sig_out,) = get_cells(block, "_reflns_shell.meanI_over_sigI_obs", -1)
+    stats.completeness_average = block.find_value("_reflns.percent_possible_obs")
+    (stats.completeness_out,) = get_cells(
+        block, "_reflns_shell.percent_possible_all", -1
+    )
+    stats.r_meas_average = block.find_value("_reflns.pdbx_Rmerge_I_obs")
+    (stats.r_meas_out,) = get_cells(block, "_reflns_shell.Rmerge_I_obs", -1)
 
 
-def _parse_summary_html(summary_html: TextIO):
-    # look for line containing
-    for line in summary_html:
-        if "ISa (see" not in line:
-            continue
+def _parse_statistics(stats: ProcStats, res_dir: Path):
+    def is_cif_parse_error(ex: Exception):
+        # check if exception seems to be one of the expected
+        # CIF parsing errors from gemmi
+        msg = str(ex)
+        if msg.endswith("Wrong number of values in the loop"):
+            return True
 
-        break
+        if ": duplicate tag" in msg:
+            return True
 
-    # line after the 'ISa (see' contains our value
-    next_line = next(summary_html)
-    _, isa = next_line.rsplit(maxsplit=1)
-    return isa
+        return False
+
+    cif = next(res_dir.glob("Data_*autoPROC_TRUNCATE_all.cif"), None)
+    if cif is None:
+        # CIF file not found, assuming processing error
+        stats.status = ToolStatus.FAILURE
+        return
+
+    try:
+        _parse_cif(stats, str(cif))
+        stats.status = ToolStatus.SUCCESS
+    except (ValueError, RuntimeError) as e:
+        if is_cif_parse_error(e):
+            print(f"warning: CIF parse error {e}")
+            stats.status = ToolStatus.FAILURE
+            return
+
+        # unexpected exception, re-raise
+        raise e
 
 
 def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
+    #
+    # Following logic is applied for figuring out state of an autoPROC processing
+    # for a dataset.
+    #
+    # If no 'summary.html' is found,
+    # we assume autoPROC have not been run for this dataset
+    #
+    # If 'summary.html' is found, but 'Data_*autoPROC_TRUNCATE_all.cif'  or MTZ file is missing,
+    # we assume autoPROC have failed to process this dataset.
+    #
+    # If we fail to parse CIF file, we flag this as a failure.
+    #
+    # Otherwise, we consider processing successful.
+    #
+
     summary_report = _get_summary_report(project, dataset)
     if summary_report is None:
         return None
 
     stats = ProcStats("autoproc")
-    stats.status = _scrape_summary_html(summary_report)
+    _parse_statistics(stats, summary_report.parent)
 
     if stats.status != ToolStatus.SUCCESS:
         return stats
-
-    _parse_statistics(stats, summary_report)
 
     mtz = get_result_mtz(project, dataset)
     if mtz is None:
