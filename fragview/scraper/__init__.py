@@ -30,10 +30,20 @@ class ProcStats:
         self.space_group = None
         self.unique_reflections = None
         self.reflections = None
-        self.low_resolution_average = None
+
+        # low resolution limit overall
+        self.low_resolution_overall = None
+        # low resolution limit inner shell
+        self.low_resolution_inner = None  # TODO store this value in the database
+        # low resolution limit outer shell
         self.low_resolution_out = None
-        self.high_resolution_average = None
+        # high resolution limit overall
+        self.high_resolution_overall = None
+        # high resolution limit inner shell
+        self.high_resolution_inner = None  # TODO store this value in the database
+        # high resolution limit outer shell
         self.high_resolution_out = None
+
         self.unit_cell_a = None
         self.unit_cell_b = None
         self.unit_cell_c = None

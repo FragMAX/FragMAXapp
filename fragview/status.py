@@ -88,8 +88,8 @@ def _update_proc_result_entry(project: Project, result_entry, result: ProcStats)
             unit_cell_alpha=result.unit_cell_alpha,
             unit_cell_beta=result.unit_cell_beta,
             unit_cell_gamma=result.unit_cell_gamma,
-            low_resolution_average=result.low_resolution_average,
-            high_resolution_average=result.high_resolution_average,
+            low_resolution_average=result.low_resolution_overall,
+            high_resolution_average=result.high_resolution_overall,
             low_resolution_out=result.low_resolution_out,
             high_resolution_out=result.high_resolution_out,
             reflections=result.reflections,
@@ -113,8 +113,8 @@ def _update_proc_result_entry(project: Project, result_entry, result: ProcStats)
     proc_res.unit_cell_alpha = result.unit_cell_alpha
     proc_res.unit_cell_beta = result.unit_cell_beta
     proc_res.unit_cell_gamma = result.unit_cell_gamma
-    proc_res.low_resolution_average = result.low_resolution_average
-    proc_res.high_resolution_average = result.high_resolution_average
+    proc_res.low_resolution_average = result.low_resolution_overall
+    proc_res.high_resolution_average = result.high_resolution_overall
     proc_res.low_resolution_out = result.low_resolution_out
     proc_res.high_resolution_out = result.high_resolution_out
     proc_res.reflections = result.reflections

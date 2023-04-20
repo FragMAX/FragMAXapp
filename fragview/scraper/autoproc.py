@@ -71,12 +71,12 @@ def _parse_statistics(stats: ProcStats, report):
 
     for n, line in enumerate(log):
         if "Low resolution limit  " in line:
-            stats.low_resolution_average, stats.low_resolution_out = (
+            stats.low_resolution_overall, stats.low_resolution_out = (
                 line.split()[3],
                 line.split()[5],
             )
         if "High resolution limit  " in line:
-            stats.high_resolution_out, stats.high_resolution_average = (
+            stats.high_resolution_out, stats.high_resolution_overall = (
                 line.split()[3],
                 line.split()[5],
             )

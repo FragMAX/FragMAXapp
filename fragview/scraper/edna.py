@@ -56,10 +56,10 @@ def _parse_statistics(log_file: Path, stats: ProcStats):
         if "Total number of observations" in line:
             stats.reflections = line.split()[-3]
         if "Low resolution limit" in line:
-            stats.low_resolution_average = line.split()[3]
+            stats.low_resolution_overall = line.split()[3]
             stats.low_resolution_out = line.split()[-1]
         if "High resolution limit" in line:
-            stats.high_resolution_average = line.split()[3]
+            stats.high_resolution_overall = line.split()[3]
             stats.high_resolution_out = line.split()[-1]
         if "Multiplicity" in line:
             stats.multiplicity = line.split()[1]

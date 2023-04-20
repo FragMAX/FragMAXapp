@@ -43,10 +43,10 @@ def _scrape_outcome(project: Project, logs_dir: Path) -> Optional[ToolStatus]:
 def _parse_xia2_html(project: Project, xia2_html: Path, stats: ProcStats):
     for line in read_text_lines(project, xia2_html):
         if "High resolution limit  " in line:
-            stats.high_resolution_average = line.split()[-3]
+            stats.high_resolution_overall = line.split()[-3]
             stats.high_resolution_out = line.split()[-1]
         if "Low resolution limit  " in line:
-            stats.low_resolution_average = line.split()[-3]
+            stats.low_resolution_overall = line.split()[-3]
             stats.low_resolution_out = line.split()[-1]
         if "Completeness  " in line:
             stats.completeness_average = line.split()[-3]

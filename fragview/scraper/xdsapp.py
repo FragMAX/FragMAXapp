@@ -71,8 +71,8 @@ def _parse_results_log(project: Project, results_file: Path, stats: ProcStats):
 
         if line.startswith(RESOLUTION):
             (
-                stats.low_resolution_average,
-                stats.high_resolution_average,
+                stats.low_resolution_overall,
+                stats.high_resolution_overall,
                 stats.low_resolution_out,
                 stats.high_resolution_out,
             ) = _parse_line(line, RESOLUTION, _resolution)
