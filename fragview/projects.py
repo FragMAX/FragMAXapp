@@ -87,7 +87,7 @@ class Project:
     # if both 'id' and 'filename' are specified,
     # look for PDB where both id and filename matches
     #
-    def get_pdb(self, id: int = None, filename: str = None):
+    def get_pdb(self, id: Optional[int] = None, filename: Optional[str] = None):
         assert id is not None or filename is not None
 
         get_args: Dict[str, Union[int, str]] = {}

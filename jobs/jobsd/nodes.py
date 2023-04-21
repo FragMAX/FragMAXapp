@@ -7,8 +7,8 @@ import conf
 class JobNode:
     def __init__(
         self,
-        project_id,
-        db_job_id,
+        project_id: str,
+        db_job_id: str,
         description,
         program,
         arguments,
@@ -24,11 +24,11 @@ class JobNode:
         self.stderr = stderr
         self.cpus = cpus
         self.run_on = run_on
-        self.previous_jobs = []
+        self.previous_jobs: list[JobNode] = []
 
         # DB reference
-        self.project_id: str = project_id
-        self.db_job_id: str = db_job_id
+        self.project_id = project_id
+        self.db_job_id = db_job_id
 
 
 def _get_db(project_id):

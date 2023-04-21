@@ -199,7 +199,12 @@ class Duration:
     represents a time duration
     """
 
-    def __init__(self, hours: int = None, minutes: int = None, seconds: int = None):
+    def __init__(
+        self,
+        hours: Optional[int] = None,
+        minutes: Optional[int] = None,
+        seconds: Optional[int] = None,
+    ):
         def between_0_and_60(val):
             return 60 > val >= 0
 
@@ -225,7 +230,10 @@ class Duration:
 
 class DataSize:
     def __init__(
-        self, gigabyte: int = None, megabyte: int = None, kilobyte: int = None
+        self,
+        gigabyte: Optional[int] = None,
+        megabyte: Optional[int] = None,
+        kilobyte: Optional[int] = None,
     ):
         def set_res(val, unit):
             if val is None:
@@ -261,12 +269,12 @@ class BatchFile:
 
     def set_options(
         self,
-        time: Duration = None,
+        time: Optional[Duration] = None,
         exclusive=None,
         nodes=None,
         partition=None,
-        mem_per_cpu: DataSize = None,
-        memory: DataSize = None,
+        mem_per_cpu: Optional[DataSize] = None,
+        memory: Optional[DataSize] = None,
     ):
         """
         time - a limit on the total run time of the batch file

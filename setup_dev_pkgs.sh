@@ -4,10 +4,11 @@
 # install package used for development and CI checks
 #
 
-conda install --channel conda-forge \
+micromamba install --channel conda-forge \
     black=22.3.0 \
     flake8=3.9.2 \
-    mypy=0.961 \
+    coverage=6.5.0 \
+    mypy=1.2.0 \
     types-requests=2.25.1 \
     types-redis=3.5.2 \
     types-python-dateutil=0.1.6 \

@@ -79,7 +79,7 @@ def _get_throttle(max_cpus):
 
 
 class _JobTasks:
-    def __init__(self):
+    def __init__(self) -> None:
         self._tasks: Dict[Tuple[str, str], Task] = {}
 
     def add(self, project_id, job_id, task: Task):
