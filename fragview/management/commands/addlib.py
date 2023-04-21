@@ -1,10 +1,9 @@
-from typing import Dict
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from fragview.fraglibs import parse_fraglib_yml, create_db_library, LibraryAlreadyExist
 
 
-def _create_library(name: str, fragments: Dict[str, str]):
+def _create_library(name: str, fragments: dict[str, str]):
     try:
         create_db_library(None, name, fragments)
     except LibraryAlreadyExist as e:

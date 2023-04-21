@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import Optional
 import re
 import fabio
 from re import Pattern
@@ -24,7 +24,7 @@ FLUX_RE = re.compile(r"^# Flux (\d*e\+\d+)")
 BEAM_XY_RE = re.compile(r"^# Beam_xy \((\d*\.\d+), (\d*\.\d+)\) pixels")
 
 
-def _get_array_data_header(cbf_file: Path) -> List[str]:
+def _get_array_data_header(cbf_file: Path) -> list[str]:
     with fabio.open(str(cbf_file)) as img:
         array_data = img.header["_array_data.header_contents"]
         return array_data.splitlines()
@@ -79,7 +79,7 @@ def _parse_detector(line: str) -> str:
     return _match(DETECTOR_RE, line, "detector")
 
 
-def _parse_beam_xy(line: str) -> Tuple[float, float]:
+def _parse_beam_xy(line: str) -> tuple[float, float]:
     match = BEAM_XY_RE.match(line)
     if match is None or len(match.groups()) != 2:
         raise CbfHeaderParseError(f"error parsing beam xy from '{line}'")

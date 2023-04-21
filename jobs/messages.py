@@ -1,4 +1,3 @@
-from typing import List
 from json import dumps, loads
 import socket
 import conf
@@ -81,5 +80,5 @@ def post_start_jobs_set_command(project_id, jobs_set_id):
     _send_command(StartJobsSet(project_id, jobs_set_id))
 
 
-def post_cancel_jobs_command(project_id: str, job_ids: List[str]):
+def post_cancel_jobs_command(project_id: str, job_ids: list[str]):
     _send_command(CancelJobs(project_id, job_ids))

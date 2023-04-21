@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from enum import Enum, auto
 from pathlib import Path
 from gemmi import UnitCell
@@ -104,5 +104,5 @@ def generate_ligfit_batch(
     )
 
 
-def get_ligand_restrains_commands(tool: Tool, smiles: str, output: Path) -> List[str]:
+def get_ligand_restrains_commands(tool: Tool, smiles: str, output: Path) -> list[str]:
     return _tool_plugin(tool).get_ligand_restrains_commands(smiles, output)

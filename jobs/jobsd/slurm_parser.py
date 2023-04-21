@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple
+from typing import Iterable
 import re
 
 SBATCH_REPLY = re.compile(r"^Submitted batch job (\d+)")
@@ -22,7 +22,7 @@ SACCT_STATUS_LINE = re.compile(
 )
 
 
-def parse_sacct_reply(reply: str) -> Iterable[Tuple[str, str]]:
+def parse_sacct_reply(reply: str) -> Iterable[tuple[str, str]]:
     def as_lines(output):
         for line in output.splitlines():
             yield line

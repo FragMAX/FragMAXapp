@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple, Optional, Dict, Union
+from typing import Iterable, Optional, Union
 import conf
 from pathlib import Path
 from datetime import datetime
@@ -90,7 +90,7 @@ class Project:
     def get_pdb(self, id: Optional[int] = None, filename: Optional[str] = None):
         assert id is not None or filename is not None
 
-        get_args: Dict[str, Union[int, str]] = {}
+        get_args: dict[str, Union[int, str]] = {}
         if id:
             get_args["id"] = id
         if filename:
@@ -123,7 +123,7 @@ class Project:
 
         return self.db.DataSetSnapshot.get(dataset=dataset, index=index)
 
-    def get_data_collection_dates(self) -> Optional[Tuple[datetime, datetime]]:
+    def get_data_collection_dates(self) -> Optional[tuple[datetime, datetime]]:
         """
         get datetime(s) for when earliest and latest dataset was recorded
 

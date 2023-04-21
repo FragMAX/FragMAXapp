@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 
 # TODO: investigate if we can read this number from HDF5 files somehow
@@ -8,7 +7,7 @@ FRAMES_PER_FILE = 100
 
 def get_diffraction_pic_command(
     project, dataset, angle: int, dest_pic_file: Path
-) -> List[str]:
+) -> list[str]:
     first_frame = int(angle / dataset.angle_increment)
     file_num = (first_frame // FRAMES_PER_FILE) + 1
     slab_num = (first_frame % FRAMES_PER_FILE) + 1

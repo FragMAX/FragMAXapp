@@ -1,4 +1,3 @@
-from typing import List, Set
 from datetime import datetime
 from projects.database import get_project_db, db_session
 import conf
@@ -53,7 +52,7 @@ def mark_job_finished(job_node: JobNode):
 
 
 @db_session
-def get_job_nodes(project_id, jobs_set_id) -> List[JobNode]:
+def get_job_nodes(project_id, jobs_set_id) -> list[JobNode]:
     """
     read from database specified jobs set and return
     all job as JobNode objects
@@ -87,7 +86,7 @@ def get_job_nodes(project_id, jobs_set_id) -> List[JobNode]:
     return nodes
 
 
-def get_root_nodes(job_nodes: List[JobNode]) -> Set[JobNode]:
+def get_root_nodes(job_nodes: list[JobNode]) -> set[JobNode]:
     roots = set(job_nodes)
 
     for node in job_nodes:

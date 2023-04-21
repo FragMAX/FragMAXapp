@@ -1,4 +1,3 @@
-from typing import List
 from pathlib import Path
 from dataclasses import dataclass
 from gemmi import read_pdb
@@ -71,7 +70,7 @@ def _recreate_table(db: Database):
     ).close()
 
 
-def _repopulate_table(db: Database, pdb_rows: List[PDBRow]):
+def _repopulate_table(db: Database, pdb_rows: list[PDBRow]):
     for row in pdb_rows:
         db.execute(
             "insert into PDB("

@@ -1,4 +1,3 @@
-from typing import List
 from os import path
 from pathlib import Path
 import unittest
@@ -44,7 +43,7 @@ class ViewTesterMixin:
         results=[],
     )
 
-    def setup_client(self, user_proposals: List[str] = []):
+    def setup_client(self, user_proposals: list[str] = []):
         """
         setup test HTTP client which is logged in with a user 'dummy'
         that have access to PROP1 and PROP2 proposals
@@ -123,7 +122,7 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
     """
 
     # default temp project
-    PROJECTS: List[Project] = [
+    PROJECTS: list[Project] = [
         Project(
             protein="Nsp5",
             proposal="20180453",
@@ -134,7 +133,7 @@ class ProjectTestCase(test.TestCase, TempDirMixin):
     ]
 
     @property
-    def proposals(self) -> List[str]:
+    def proposals(self) -> list[str]:
         """
         list of proposals for all created projects
         """

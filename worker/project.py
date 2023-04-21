@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import Optional
 import os
 import grp
 import stat
@@ -26,8 +26,8 @@ def setup_project(
     project_id: str,
     protein: str,
     proposal: str,
-    crystals: List[Dict[str, str]],
-    libraries: Dict[str, LibraryType],
+    crystals: list[dict[str, str]],
+    libraries: dict[str, LibraryType],
     import_autoproc: bool,
 ):
     try:
@@ -54,7 +54,7 @@ def setup_project(
 
 
 @celery.shared_task
-def import_crystals(project_id: str, crystals: List[Dict[str, str]]):
+def import_crystals(project_id: str, crystals: list[dict[str, str]]):
     try:
         print(f"importing crystals to project ID: {project_id}")
 
@@ -178,7 +178,7 @@ def _copy_scripts(project):
     _copy_script_files(project, [PANDDA_WORKER])
 
 
-def _create_frag_libs(project: Project, libraries: Dict[str, Dict[str, str]]):
+def _create_frag_libs(project: Project, libraries: dict[str, dict[str, str]]):
     for name, fragments in libraries.items():
         create_db_library(project, name, fragments)
 

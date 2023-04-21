@@ -1,4 +1,3 @@
-from typing import List
 import shutil
 from pathlib import Path
 from tests.utils import ProjectTestCase, data_file_path
@@ -60,7 +59,7 @@ class TestScrapeResults(ProjectTestCase):
         self.assertAlmostEqual(first.cell.gamma, second.cell.gamma)
         self.assertEqual(first.blobs, second.blobs)
 
-    def assert_results(self, first: List[RefineResult], second: List[RefineResult]):
+    def assert_results(self, first: list[RefineResult], second: list[RefineResult]):
         self.assertEqual(len(first), len(second))
         for res1, res2 in zip(first, second):
             self.assert_result(res1, res2)

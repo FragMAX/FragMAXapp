@@ -1,4 +1,3 @@
-from typing import Dict
 from fragview.sites import SITE
 from jobs.jobsd.runner import Runner
 
@@ -30,5 +29,5 @@ def _get_hpc_runner() -> Runner:
     assert False, f"unexpected runner type {runner_name}"
 
 
-def get_runners() -> Dict[str, Runner]:
+def get_runners() -> dict[str, Runner]:
     return dict(local=_local_runner(), hpc=_get_hpc_runner())

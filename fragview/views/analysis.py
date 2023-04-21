@@ -1,4 +1,4 @@
-from typing import List, Iterator
+from typing import Iterator
 from django.shortcuts import render
 from fragview.projects import current_project, Project
 from fragview.views.wrap import (
@@ -31,7 +31,7 @@ def process(request):
     )
 
 
-def _get_processed_datasets(project: Project) -> List[ProcessingInfo]:
+def _get_processed_datasets(project: Project) -> list[ProcessingInfo]:
     def _sort_key(proc_res):
         # sort by crystal id, run number, tool name and space group
         return (

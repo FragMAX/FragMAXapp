@@ -1,4 +1,3 @@
-from typing import Dict, List
 from datetime import datetime
 from pathlib import Path
 from django.shortcuts import render, redirect, reverse
@@ -9,7 +8,7 @@ from fragview.forms import KillJobForm
 from jobs import client
 
 
-def _elapsed_time(start: datetime, end: datetime) -> Dict[str, int]:
+def _elapsed_time(start: datetime, end: datetime) -> dict[str, int]:
     """
     calculate time elapsed from start to end time,
     returns elapsed time divided into hours, minutes and seconds
@@ -26,7 +25,7 @@ def _elapsed_time(start: datetime, end: datetime) -> Dict[str, int]:
     return dict(hours=hours, minutes=minutes, seconds=seconds)
 
 
-def _get_jobs(project: Project) -> List[Dict]:
+def _get_jobs(project: Project) -> list[dict]:
     def _run_time(start_time):
         if start_time is None:
             return None

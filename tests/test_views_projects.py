@@ -1,4 +1,3 @@
-from typing import List
 import unittest
 from unittest import mock
 from fragview import crystals
@@ -100,7 +99,7 @@ def _crystals_csv_mock(csv_content):
 
 
 class TestNew(ProjectTestCase, ViewTesterMixin):
-    PROJECTS: List = []
+    PROJECTS: list = []
     CRYSTALS = [
         crystals.Crystal(
             SampleID="X0000",

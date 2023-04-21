@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Iterable, Optional
 from pathlib import Path
 from fragview.sites import SITE
 from fragview.sites.plugin import DatasetMetadata, HPC
@@ -22,11 +22,11 @@ def proposals_disabled() -> bool:
     return "proposals" in SITE.DISABLED_FEATURES
 
 
-def get_supported_pipelines() -> Set[str]:
+def get_supported_pipelines() -> set[str]:
     return SITE.get_supported_pipelines()
 
 
-def get_supported_ligand_tools() -> Tuple[str, List[str]]:
+def get_supported_ligand_tools() -> tuple[str, list[str]]:
     default, tools = SITE.get_supported_ligand_tools()
     # sort ligand tools, to get a predictable order for the UI
     tools = sorted(list(tools))
@@ -40,7 +40,7 @@ def get_supported_ligand_tools() -> Tuple[str, List[str]]:
 
 def get_diffraction_picture_command(
     project, dataset, angle: int, dest_pic_file
-) -> List[str]:
+) -> list[str]:
     """
     shell command that will generate a diffraction picture (e.g. jpeg file) for
     specified angle of a dataset

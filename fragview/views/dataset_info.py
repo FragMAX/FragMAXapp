@@ -1,4 +1,4 @@
-from typing import Iterator, Iterable, Dict, List
+from typing import Iterator, Iterable
 from pathlib import Path
 from django.shortcuts import render
 from fragview.projects import Project, current_project
@@ -44,7 +44,7 @@ def _get_processing_info(project: Project, dataset) -> Iterator[ProcessingInfo]:
         yield ProcessingInfo(proc_res)
 
 
-def _get_processing_logs(project: Project, dataset) -> Dict[str, Iterable[Path]]:
+def _get_processing_logs(project: Project, dataset) -> dict[str, Iterable[Path]]:
     logs = {}
     for tool in PROC_TOOLS:
         if dataset.tool_result(tool) is None:
@@ -67,7 +67,7 @@ def _get_refine_logs(project: Project, dataset):
 
         logs[ref_tool][proc_tool] = log_files
 
-    logs: Dict[str, List] = {}
+    logs: dict[str, list] = {}
 
     for ref_result in project.get_datasets_refine_results(dataset):
         log_files = get_refine_log_files(

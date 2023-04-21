@@ -1,5 +1,4 @@
 import typing
-from typing import List
 from datetime import datetime
 from itertools import count
 from pony.orm import PrimaryKey, Required, Optional, Set, composite_key, desc
@@ -380,11 +379,11 @@ def _define_entities(db):
         #
         finished = Optional(datetime)
 
-        def set_arguments(self, arguments: List[str]):
+        def set_arguments(self, arguments: list[str]):
             for idx, arg in zip(count(), arguments):
                 db.JobArgument(job=self, index=idx, value=arg)
 
-        def get_arguments(self) -> List[str]:
+        def get_arguments(self) -> list[str]:
             args = self.arguments.order_by(JobArgument.index)  # type: ignore
             return [arg.value for arg in args]
 

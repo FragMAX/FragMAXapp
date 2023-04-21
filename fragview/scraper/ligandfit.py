@@ -1,7 +1,7 @@
 """
 scrape PHENIX ligandfit logs
 """
-from typing import Union, Tuple, TextIO, Iterator
+from typing import Union, TextIO, Iterator
 from pathlib import Path
 from fragview.fileio import subdirs
 from fragview.scraper import ToolStatus, LigfitResult
@@ -11,7 +11,7 @@ SCORE_LINE = " cc_overall "
 BLOB_LINE = " lig_xyz "
 
 
-def _no_results() -> Tuple[None, None]:
+def _no_results() -> tuple[None, None]:
     return None, None
 
 
@@ -43,7 +43,7 @@ def _parse_ligfit_log(ligfit_log: TextIO):
     return score, blob
 
 
-def scrape_score_blob(result_dir: Path) -> Union[Tuple[None, None]]:
+def scrape_score_blob(result_dir: Path) -> Union[tuple[None, None]]:
     """
     scrape ligfit score and ligand blob coordinates
     """

@@ -1,7 +1,7 @@
 """
 crystals list CSV file parser
 """
-from typing import List, Optional, Dict, Iterable
+from typing import Optional, Iterable
 from pandas import read_csv, DataFrame
 from pandas.errors import ParserError
 from fragview.fraglibs import LibraryType
@@ -39,7 +39,7 @@ class Crystal:
         for field in fields(Crystal):
             yield field.name
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         cols_dict = {}
         for column_name in self.column_names():
             cols_dict[column_name] = getattr(self, column_name)
@@ -48,7 +48,7 @@ class Crystal:
 
 
 class Crystals:
-    def __init__(self, crystals: List[Crystal]):
+    def __init__(self, crystals: list[Crystal]):
         self._crystals = crystals
 
     def as_list(self):
@@ -95,7 +95,7 @@ def _columns_err(names):
     return f"column{plural}: {', '.join(names)}."
 
 
-def _check_fragment(frag_libs: Dict[str, LibraryType], crystal: Crystal):
+def _check_fragment(frag_libs: dict[str, LibraryType], crystal: Crystal):
     """
     that that we can look-up specified fragment code in the specified
     library
@@ -129,7 +129,7 @@ def _check_fragment(frag_libs: Dict[str, LibraryType], crystal: Crystal):
         )
 
 
-def _check_fragments(frag_libs: Dict[str, LibraryType], crystals: Crystals):
+def _check_fragments(frag_libs: dict[str, LibraryType], crystals: Crystals):
     """
     check that all specified fragments have a known
     library name and fragment code
@@ -164,7 +164,7 @@ def _get_column_indices(csv: DataFrame):
     will raise InvalidCrystalsCSV exception
     on unexpected or missing columns
     """
-    indices: Dict[str, Optional[int]] = {
+    indices: dict[str, Optional[int]] = {
         name.lower(): None for name in Crystal.column_names()
     }
 
@@ -196,7 +196,7 @@ def _get_column_indices(csv: DataFrame):
     return indices["sampleid"], indices["fragmentlibrary"], indices["fragmentcode"]
 
 
-def parse_crystals_csv(frag_libs: Dict[str, LibraryType], csv_data) -> Crystals:
+def parse_crystals_csv(frag_libs: dict[str, LibraryType], csv_data) -> Crystals:
     """
     Parse specified data as 'Crystals CSV' file.
 

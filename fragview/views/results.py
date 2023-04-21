@@ -1,5 +1,5 @@
 import pandas
-from typing import Iterator, Dict, List
+from typing import Iterator
 from django.http import HttpResponse
 from django.shortcuts import render
 from fragview.projects import current_project, Project
@@ -20,7 +20,7 @@ def show(request):
     )
 
 
-def _get_results_data(project, columns: List[str]) -> pandas.DataFrame:
+def _get_results_data(project, columns: list[str]) -> pandas.DataFrame:
     """
     put refine result statistics data into a pandas data frame
 
@@ -41,7 +41,7 @@ def _get_results_data(project, columns: List[str]) -> pandas.DataFrame:
     """
     names = []
     datasets = []
-    vals: Dict[str, List] = {col_name: [] for col_name in columns}
+    vals: dict[str, list] = {col_name: [] for col_name in columns}
 
     for ref_res in project.get_refine_results():
         names.append(ref_res.name)

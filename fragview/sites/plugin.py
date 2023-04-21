@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterable, Set
+from typing import Optional, Iterable
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -25,13 +25,13 @@ class DatasetMetadata:
     flux: float
     beam_size_at_sample_x: float
     beam_size_at_sample_y: float
-    snapshot_indices: List[int] = field(default_factory=list)
+    snapshot_indices: list[int] = field(default_factory=list)
 
 
 class SitePlugin:
     NAME: str
     LOGO: str
-    DISABLED_FEATURES: List[str] = []
+    DISABLED_FEATURES: list[str] = []
     ACCOUNT_STYLE: Optional[str] = None
     AUTH_BACKEND: str
     # root path to where proposals data is stored
@@ -66,7 +66,7 @@ class SitePlugin:
 
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
-    ) -> List[str]:
+    ) -> list[str]:
         raise NotImplementedError()
 
     def get_beamline_info(self):
@@ -88,7 +88,7 @@ class SitePlugin:
         """
         raise NotImplementedError()
 
-    def get_supported_pipelines(self) -> Set[str]:
+    def get_supported_pipelines(self) -> set[str]:
         """
         return set of pipelines supported by this site,
         must be a set() of Pipeline class's fields

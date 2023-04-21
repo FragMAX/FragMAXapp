@@ -1,4 +1,3 @@
-from typing import List, Tuple
 from enum import Enum
 from pony import orm
 from fragview.projects import Project, get_project
@@ -7,7 +6,7 @@ from projects.database import db_session
 from jobs import messages
 
 
-def cancel_jobs(project_id, job_ids: List[str]):
+def cancel_jobs(project_id, job_ids: list[str]):
     messages.post_cancel_jobs_command(str(project_id), job_ids)
 
 
@@ -42,13 +41,13 @@ class JobsSet:
     def __init__(self, project: Project, name: str):
         self._project_id = str(project.id)
         self._name = name
-        self._jobs: List[Tuple] = []
+        self._jobs: list[tuple] = []
 
     def add_job(
         self,
         batch_file: BatchFile,
-        arguments: List[str] = [],
-        run_after: List[BatchFile] = [],
+        arguments: list[str] = [],
+        run_after: list[BatchFile] = [],
         run_on: Destination = Destination.HPC,
     ):
         self._jobs.append((batch_file, arguments, run_after, run_on))

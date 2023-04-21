@@ -1,7 +1,6 @@
 from typing import Optional
 from os import path
 from threading import Thread
-from typing import Set
 from django.http import HttpResponse, Http404, FileResponse
 from fragview.fileio import read_proj_file
 from fragview.models import Library, Fragment
@@ -92,7 +91,7 @@ def get_fragment_by_id(fragment_id: str) -> Fragment:
     return fragment
 
 
-def get_project_libraries(project: Project) -> Set[Library]:
+def get_project_libraries(project: Project) -> set[Library]:
     libs = set()
 
     for crystal in project.get_crystals():

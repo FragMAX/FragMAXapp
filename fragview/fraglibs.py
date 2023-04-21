@@ -1,7 +1,7 @@
 """
 parsing and validation of Fragment Library CSV and YML files
 """
-from typing import Dict, Tuple, Optional
+from typing import Optional
 import yaml
 from pathlib import Path
 from pandas import read_csv, DataFrame
@@ -12,7 +12,7 @@ from fragview.projects import Project
 
 CSV_COLUMN_NAMES = {"fragmentCode", "SMILES"}
 
-LibraryType = Dict[str, str]
+LibraryType = dict[str, str]
 
 
 class InvalidLibraryCSV(Exception):
@@ -24,7 +24,7 @@ class LibraryAlreadyExist(Exception):
 
 
 @transaction.atomic
-def create_db_library(project: Optional[Project], name: str, fragments: Dict[str, str]):
+def create_db_library(project: Optional[Project], name: str, fragments: dict[str, str]):
     # check if this library already exist
     if models.Library.get_all(project).filter(name=name).exists():
         raise LibraryAlreadyExist(
@@ -41,7 +41,7 @@ def create_db_library(project: Optional[Project], name: str, fragments: Dict[str
         models.Fragment(library=lib, code=code, smiles=smiles).save()
 
 
-def parse_fraglib_yml(yml_file: Path) -> Tuple[str, Dict[str, str]]:
+def parse_fraglib_yml(yml_file: Path) -> tuple[str, dict[str, str]]:
     def _load_yml():
         with yml_file.open() as f:
             return yaml.safe_load(f)

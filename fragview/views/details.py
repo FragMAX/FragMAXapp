@@ -1,7 +1,6 @@
 #
 # project details for PDB deposition
 #
-from typing import List, Dict
 import json
 import jsonschema
 from json import JSONDecodeError
@@ -105,7 +104,7 @@ def ui(request: HttpRequest):
     )
 
 
-def _scientist_db_to_dict(scientist) -> Dict:
+def _scientist_db_to_dict(scientist) -> dict:
     if scientist is None:
         return {}
 
@@ -186,10 +185,10 @@ def _load_details(project: Project) -> JsonResponse:
 
 def _save_scientists(
     project: Project,
-    principal_investigator: Dict,
-    responsible_scientists: List[Dict],
+    principal_investigator: dict,
+    responsible_scientists: list[dict],
 ):
-    def save_scientist(scientist: Dict):
+    def save_scientist(scientist: dict):
         return project.db.Scientist(
             orcid=scientist.get("ORCID", ""),
             salutation=scientist.get("Salutation", ""),
@@ -216,7 +215,7 @@ def _save_scientists(
         save_scientist(scientist)
 
 
-def _save_authors(project: Project, authors: List[Dict]):
+def _save_authors(project: Project, authors: list[dict]):
     for author in project.db.Author.select():
         author.delete()
 
@@ -227,7 +226,7 @@ def _save_authors(project: Project, authors: List[Dict]):
         )
 
 
-def _save_entities(project: Project, entities: List[Dict]):
+def _save_entities(project: Project, entities: list[dict]):
     for entity in project.db.ProteinEntity.select():
         entity.delete()
 
@@ -238,7 +237,7 @@ def _save_entities(project: Project, entities: List[Dict]):
         )
 
 
-def _save_funding(project: Project, funding: List[Dict]):
+def _save_funding(project: Project, funding: list[dict]):
     for forg in project.db.Funding.select():
         forg.delete()
 

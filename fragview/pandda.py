@@ -1,5 +1,5 @@
 import csv
-from typing import List, Optional, Iterable, Iterator, Tuple
+from typing import Optional, Iterable, Iterator
 import re
 import json
 import pandas
@@ -96,7 +96,7 @@ class Inspects:
     @staticmethod
     def find(
         pandda_dir: Path, inspect: Inspect
-    ) -> Tuple[Optional[Inspect], Optional[Inspect]]:
+    ) -> tuple[Optional[Inspect], Optional[Inspect]]:
         inspects = Inspects._inspect_objs(pandda_dir)
         previous = None
         while ins := next(inspects, None):
@@ -110,10 +110,10 @@ class Inspects:
 class PanddaMethodReports:
     def __init__(
         self,
-        report_dates: List[str],
+        report_dates: list[str],
         coot_command: str,
         selected_datasets: PanddaSelectedDatasets,
-        dendrogram: List[str],
+        dendrogram: list[str],
     ):
         self.report_dates = report_dates
         self.coot_command = coot_command
@@ -162,7 +162,7 @@ class PanddaAnalyseSites(_PanddaCSVParser):
     # e.g. "(1.34, -2.44, 0.01)"
     TRIPLE_RE = re.compile(r"\(([^,_]+), *([^,_]+), *([^,_]+)\)")
 
-    def get_native_centroids(self) -> Iterable[List[float]]:
+    def get_native_centroids(self) -> Iterable[list[float]]:
         def parse_tripple(text):
             match = self.TRIPLE_RE.match(text)
             nums = [float(v) for v in match.groups()]

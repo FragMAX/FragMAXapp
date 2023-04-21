@@ -1,4 +1,3 @@
-from typing import Set
 from fragview.models import User, Library, UserProject, PendingProject
 from django.test import TestCase
 from tests.utils import ProjectTestCase
@@ -63,7 +62,7 @@ class TestLibrary(ProjectTestCase):
         lib = Library(name="private", project_id=self.project.id)
         lib.save()
 
-    def _assert_libs(self, libs, expected_names: Set[str]):
+    def _assert_libs(self, libs, expected_names: set[str]):
         got_names = {lib.name for lib in libs}
         self.assertSetEqual(got_names, expected_names)
 

@@ -1,4 +1,4 @@
-from typing import Optional, Iterable, List
+from typing import Optional, Iterable
 from pathlib import Path
 from gemmi import read_mtz_file
 from fragview.scraper import ProcStats
@@ -6,7 +6,7 @@ from fragview.space_groups import space_group_to_db_format
 
 
 def get_files_by_suffixes(
-    dir: Path, file_suffixes: List[str]
+    dir: Path, file_suffixes: list[str]
 ) -> Optional[Iterable[Path]]:
     for child in dir.iterdir():
         if not child.is_file():

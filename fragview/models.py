@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Dict
+from typing import Iterable, Optional
 from django.contrib.auth.models import AbstractBaseUser
 from fragview.projects import Project, get_project
 from django.db.models import (
@@ -34,7 +34,7 @@ class Library(Model):
     def get_fragments(self):
         return self.fragment_set.all()
 
-    def as_dict(self) -> Dict[str, str]:
+    def as_dict(self) -> dict[str, str]:
         frags = {}
         for frag in self.get_fragments():
             frags[frag.code] = frag.smiles

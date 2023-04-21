@@ -4,7 +4,7 @@ import signal
 import logging
 import asyncio
 import argparse
-from typing import Set, Dict, Optional, Tuple
+from typing import Optional
 from asyncio import Event, Task
 from asyncio.streams import StreamReader, StreamWriter
 from contextlib import asynccontextmanager
@@ -80,7 +80,7 @@ def _get_throttle(max_cpus):
 
 class _JobTasks:
     def __init__(self) -> None:
-        self._tasks: Dict[Tuple[str, str], Task] = {}
+        self._tasks: dict[tuple[str, str], Task] = {}
 
     def add(self, project_id, job_id, task: Task):
         self._tasks[(project_id, job_id)] = task
@@ -100,7 +100,7 @@ class _JobTasks:
 
 class JobsTable:
     def __init__(self, job_runners, max_cpus: Optional[int]):
-        self.jobs_nodes: Set[JobNode] = set()
+        self.jobs_nodes: set[JobNode] = set()
         self.job_tasks = _JobTasks()
         self.job_runners = job_runners
         self.throttle = _get_throttle(max_cpus)

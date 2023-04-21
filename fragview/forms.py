@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional
 from pathlib import Path
 import json
 import jsonschema
@@ -75,7 +75,7 @@ class ProcessForm(_JobsForm):
     }
 
     @staticmethod
-    def _validate_datasets(project: Project, dataset_ids: List[str]):
+    def _validate_datasets(project: Project, dataset_ids: list[str]):
         for dataset_id in dataset_ids:
             yield project.get_dataset(dataset_id)
 
@@ -94,7 +94,7 @@ class ProcessForm(_JobsForm):
         return space_group
 
     @staticmethod
-    def _validate_cell_params(cell: Optional[Dict]) -> Optional[UnitCell]:
+    def _validate_cell_params(cell: Optional[dict]) -> Optional[UnitCell]:
         if cell is None:
             # no cell parameters specified, aka 'auto' mode
             return None
@@ -139,7 +139,7 @@ class RefineForm(_JobsForm):
         return project.get_pdb_file(pdb)
 
     @staticmethod
-    def _validate_datasets(project: Project, dataset_ids: List[str]):
+    def _validate_datasets(project: Project, dataset_ids: list[str]):
         for res_id in dataset_ids:
             yield project.get_process_result(res_id)
 
@@ -172,7 +172,7 @@ class LigfitForm(_JobsForm):
     }
 
     @staticmethod
-    def _validate_datasets(project: Project, dataset_ids: List[str]):
+    def _validate_datasets(project: Project, dataset_ids: list[str]):
         for res_id in dataset_ids:
             yield project.get_refine_result(res_id)
 
@@ -257,7 +257,7 @@ class KillJobForm(Form):
         return self.cleaned_data["job_ids"]
 
 
-def _append_db_libs(project: Optional[Project], libs: Dict) -> Dict:
+def _append_db_libs(project: Optional[Project], libs: dict) -> dict:
     for lib in Library.get_all(project):
         libs[lib.name] = lib.as_dict()
 

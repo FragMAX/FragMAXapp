@@ -1,4 +1,4 @@
-from typing import List, Iterable, Optional
+from typing import Iterable, Optional
 from pathlib import Path
 from itertools import count
 from django.conf import settings
@@ -53,7 +53,7 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
-    ) -> List[str]:
+    ) -> list[str]:
         return get_diffraction_pic_command(project, dataset, angle, dest_pic_file)
 
     def get_beamline_info(self):

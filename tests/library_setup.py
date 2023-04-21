@@ -1,4 +1,3 @@
-from typing import List
 from dataclasses import dataclass
 from fragview import models
 
@@ -12,7 +11,7 @@ class Fragment:
 @dataclass
 class Library:
     name: str
-    fragments: List[Fragment]
+    fragments: list[Fragment]
 
 
 def create_library(library: Library):
