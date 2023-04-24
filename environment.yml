@@ -19,8 +19,6 @@ dependencies:
   - asyncssh==2.11.0
   - pip=20.3.3
   # - pony=0.7.16
-  # for troubleshooting jobds lock-up issue
-  - py-spy=0.3.10
   - pip:
     - git+https://github.com/elmjag/pony.git@disable_cache
     - django-static-jquery==2.1.4
