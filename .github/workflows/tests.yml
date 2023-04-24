@@ -1,0 +1,21 @@
+name: run-checks
+on: [push]
+jobs:
+  run-checks:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/provision-with-micromamba@main
+      - name: install development packages
+        shell: bash -l {0}
+        run: |
+          ./setup_dev_pkgs.sh
+      # for now, tests assume we are deployed at MAXIV
+      - run: cp deploy/local_site.py-maxiv local_site.py
+      # set-up 'local config' for tests
+      - run: cp local_conf.py-test local_conf.py
+      - name: run checks and tests
+        shell: bash -l {0}
+        run: |
+          make
