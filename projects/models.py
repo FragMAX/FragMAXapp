@@ -245,10 +245,8 @@ def _define_entities(db):
         unit_cell_alpha = Required(float)
         unit_cell_beta = Required(float)
         unit_cell_gamma = Required(float)
-        # TODO: rename to 'low_resolution_overall'
-        low_resolution_average = Required(float)
-        # TODO: rename to 'high_resolution_overall'
-        high_resolution_average = Required(float)
+        low_resolution_overall = Required(float)
+        high_resolution_overall = Required(float)
         low_resolution_out = Required(float)
         high_resolution_out = Required(float)
         # TODO: add these two columns

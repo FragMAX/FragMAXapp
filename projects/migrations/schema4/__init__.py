@@ -7,9 +7,20 @@ def add_beamline_column(db: Database):
     ).close()
 
 
+def rename_proc_columns(db: Database):
+    db.execute(
+        "alter table ProcessResult rename low_resolution_average to low_resolution_overall"
+    ).close()
+
+    db.execute(
+        "alter table ProcessResult rename high_resolution_average to high_resolution_overall"
+    ).close()
+
+
 @db_session
 def migrate(db: Database, project_desc):
     """
     migrate project database from schema ver 4 to ver 5
     """
     add_beamline_column(db)
+    rename_proc_columns(db)

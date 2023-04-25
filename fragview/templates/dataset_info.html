@@ -374,7 +374,7 @@
                         {% for entry in processing_stats %}
                         <td style="text-align:center">
                             <div>
-                                {{entry.low_resolution_average|floatformat:2}} - {{entry.high_resolution_average|floatformat:2}}
+                                {{entry.low_resolution_overall|floatformat:2}} - {{entry.high_resolution_overall|floatformat:2}}
                             </div>
                             <div>
                                 ({{entry.low_resolution_out|floatformat:2}} - {{entry.high_resolution_out|floatformat:2}})
