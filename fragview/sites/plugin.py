@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 @dataclass
 class DatasetMetadata:
     detector: str
-    resolution: float
     images: int
     start_time: datetime
     end_time: Optional[datetime]

@@ -45,7 +45,6 @@ def parse_xsdata_file(xmlfile: Path) -> DatasetMetadata:
         # hard-code detector for now as there is only
         # one MX detector in operation at MAXIV
         detector="EIGER 16M",
-        resolution=_float("resolution"),
         images=_int("numberOfImages"),
         start_time=_datetime("startTime"),
         end_time=_datetime("endTime"),

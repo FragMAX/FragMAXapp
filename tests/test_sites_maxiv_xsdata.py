@@ -19,7 +19,6 @@ class TestParseXsdataFile(unittest.TestCase):
         self.assertAlmostEqual(metadata.flux, 2.7e12)
         self.assertAlmostEqual(metadata.wavelength, 9.762530e-01)
         self.assertAlmostEqual(metadata.exposure_time, 1.100000e-02)
-        self.assertAlmostEqual(metadata.resolution, 1.600000e00)
         self.assertAlmostEqual(metadata.beam_size_at_sample_x, 5.000000e01)
         self.assertAlmostEqual(metadata.beam_size_at_sample_y, 5.000000e01)
         self.assertAlmostEqual(metadata.angle_increment, 1.000000e-01)

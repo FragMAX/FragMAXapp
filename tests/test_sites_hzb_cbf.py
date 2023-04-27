@@ -63,7 +63,6 @@ class TestParseMetadata(TestCase):
 
         # check parsed metadata
         self.assertEquals(res.detector, "PILATUS3 2M")
-        self.assertAlmostEqual(res.resolution, 1.3)
         self.assertEquals(res.images, 3600)
         self.assertEquals(res.start_time, datetime(2019, 11, 29, 13, 14, 55))
         self.assertIsNone(res.end_time)

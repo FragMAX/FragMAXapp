@@ -17,6 +17,10 @@ def rename_proc_columns(db: Database):
     ).close()
 
 
+def drop_dataset_resolution_column(db: Database):
+    db.execute("alter table DataSet drop column resolution").close()
+
+
 @db_session
 def migrate(db: Database, project_desc):
     """
@@ -24,3 +28,4 @@ def migrate(db: Database, project_desc):
     """
     add_beamline_column(db)
     rename_proc_columns(db)
+    drop_dataset_resolution_column(db)

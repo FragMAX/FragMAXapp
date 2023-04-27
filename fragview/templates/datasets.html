@@ -161,7 +161,6 @@
             <th onclick="sort_score(this);">Processing</th>
             <th onclick="sort_score(this);">Refinement</th>
             <th onclick="sort_score(this);">Ligand Fit</th>
-            <th onclick="sort_alpha(this);">Resolution</sub> [&Aring;]</th>
             <th onclick="sort_alpha(this);">Frames</th>
             <th>Crystal Picture</th>
             <th>Ligand</th>
@@ -256,10 +255,6 @@
                     <font size="2">LigandFit</font>
                 </p>
                 {% endif %}
-            </td>
-
-            <td>
-                <p>{{dataset.resolution|floatformat:2}}</p>
             </td>
 
             <td>

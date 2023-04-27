@@ -136,9 +136,9 @@ def parse_metadata(cbf_file: Path) -> Optional[DatasetMetadata]:
 
     detector, beamline = _parse_detector(header[DETECTOR_LINE_NO])
 
-    val = _parse_detector_distance(header[DETECTOR_DISTANCE_LINE_NO])
-    detector_distance = val * 1000
-    resolution = val * 8.178158027176648
+    detector_distance = (
+        _parse_detector_distance(header[DETECTOR_DISTANCE_LINE_NO]) * 1000
+    )
 
     beam_size_at_sample_x, beam_size_at_sample_y = _parse_beam_xy(
         header[BEAM_XY_LINE_NO]
@@ -147,7 +147,6 @@ def parse_metadata(cbf_file: Path) -> Optional[DatasetMetadata]:
     return DatasetMetadata(
         beamline=beamline,
         detector=detector,
-        resolution=resolution,
         images=_parse_images(header[IMAGES_LINE_NO]),
         start_time=_parse_datetime(header[START_TIME_LINE_NO]),
         end_time=None,

@@ -110,7 +110,6 @@ def _add_datasets(project: Project):
                 run=run,
                 beamline=meta_data.beamline,
                 detector=meta_data.detector,
-                resolution=meta_data.resolution,
                 images=meta_data.images,
                 start_time=meta_data.start_time,
                 end_time=meta_data.end_time,

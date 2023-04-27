@@ -96,7 +96,6 @@ def populate_project_db(project, project_desc: Project):
             data_root_dir="20211125",
             beamline="BioMAX",
             detector="EIGER 16M",
-            resolution=1.2,
             images=1800,
             start_time=DUMMY_START_TIME,
             end_time=DUMMY_END_TIME,

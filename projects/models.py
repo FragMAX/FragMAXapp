@@ -115,9 +115,6 @@ def _define_entities(db):
         # the detector type used to capture the dataset, e.g. PILATUS3 2M
         detector = Required(str)
 
-        # resolution at the edge of images, in Ångström
-        resolution = Required(float)
-
         # number of collected diffraction images
         images = Required(int)
 
