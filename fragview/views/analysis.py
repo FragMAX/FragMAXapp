@@ -44,6 +44,13 @@ def _get_processed_datasets(project: Project) -> list[ProcessingInfo]:
     def _get_proc_datasets():
         for dataset in project.get_datasets():
             for proc_res in project.get_datasets_process_results(dataset):
+                if proc_res.result.result != "ok":
+                    # only include 'ok' results
+                    # This to handle the cases when a dataset that was previously process successfully,
+                    # was reprocessed and the result was failure. In that case, we will have an 'ProcessResult'
+                    # entry in the DB, but the result will be 'error'.
+                    # TODO: purge 'ProcessResult' entries if re-processing ends up in error
+                    continue
                 yield ProcessingInfo(proc_res)
 
     return sorted(_get_proc_datasets(), key=_sort_key)
