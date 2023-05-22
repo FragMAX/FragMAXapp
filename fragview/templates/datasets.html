@@ -345,16 +345,17 @@
 
     function _get_alpha_comparer(th) {
         const idx = th.cellIndex;
-        const ascending = th.ascending = !th.ascending;
+
+        th.descending = !th.descending;
 
         return function (left, right) {
             lstr = left.cells[idx].textContent.toString();
             rstr = right.cells[idx].textContent.toString();
 
-            if (ascending) {
-                return lstr.localeCompare(rstr);
+            if (th.descending) {
+                return rstr.localeCompare(lstr);
             }
-            return rstr.localeCompare(lstr);
+            return lstr.localeCompare(rstr);
         }
     }
 

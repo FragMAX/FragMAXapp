@@ -28,12 +28,13 @@ def _get_dataset_info(project: Project) -> Iterator[DatasetInfo]:
 def show_all(request):
     project = current_project(request)
 
+    # show datasets initially sorted by name
+    datasets = sorted(_get_dataset_info(project), key=lambda ds: ds.name)
+
     return render(
         request,
         "datasets.html",
-        {
-            "datasets": _get_dataset_info(project),
-        },
+        {"datasets": datasets},
     )
 
 
