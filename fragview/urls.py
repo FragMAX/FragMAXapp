@@ -120,14 +120,17 @@ urlpatterns = [
         name="density_map",
     ),
     path("fragment/<fragment_id>/image", fragment.svg, name="fragment_svg"),
-    # tools specific logs
-    # TODO: remove tool specific logs views?
-    path("logs/autoproc/show/<dataset>/<log_file>", logs.show_autoproc),
-    re_path("logs/imported/htmldata/(?P<data_file>.*)$", logs.imported_htmldata),
-    # generic logs
-    re_path("^logs/show/(?P<log_file>.*)$", logs.show),
-    re_path("logs/download/(?P<log_file>.*)$", logs.download),
-    re_path("logs/htmldata/(?P<data_file>.*)$", logs.htmldata),
-    # running commit, for tracking and trouble shooting
+    # dataset processing logs
+    re_path(r"logs/dset/(?P<dataset_id>\d+)/(?P<log_file>.*)$", logs.show_dset),
+    re_path(
+        r"logs/dset/download/(?P<dataset_id>\d+)/(?P<log_file>.*)$", logs.download_dset
+    ),
+    re_path(
+        r"logs/dset/htmldata/(?P<dataset_id>\d+)/(?P<data_file>.*)$", logs.htmldata_dset
+    ),
+    # jobs logs
+    re_path("logs/job/show/(?P<log_file>.*)$", logs.show_job),
+    re_path("logs/job/download/(?P<log_file>.*)$", logs.download_job),
+    # running commit, for tracking and troubleshooting
     path("commit", commit.show, name="commit"),
 ]

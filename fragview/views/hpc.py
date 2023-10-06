@@ -55,7 +55,7 @@ def _get_jobs(project: Project) -> list[dict]:
 
 def status(request):
     return render(
-        request, "hpcstatus.html", {"jobs": _get_jobs(current_project(request))}
+        request, "job_status.html", {"jobs": _get_jobs(current_project(request))}
     )
 
 

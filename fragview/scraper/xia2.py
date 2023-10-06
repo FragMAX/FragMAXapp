@@ -85,8 +85,7 @@ def scrape_results(project: Project, logs_dir: Path) -> Optional[ProcStats]:
     return stats
 
 
-def get_log_files(project: Project, process_dir: Path):
-    project_dir = project.project_dir
+def get_log_files(process_dir: Path):
     logs_dir = Path(process_dir, "LogFiles")
 
     if not logs_dir.is_dir():
@@ -99,7 +98,7 @@ def get_log_files(project: Project, process_dir: Path):
 
         suffix = node.suffix[1:].lower()
         if suffix in LOG_FILE_SUFFIXES:
-            yield node.relative_to(project_dir)
+            yield node
 
 
 def get_result_mtz(process_dir: Path) -> Path:

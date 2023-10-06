@@ -44,6 +44,29 @@ def _get_processing_info(project: Project, dataset) -> Iterator[ProcessingInfo]:
         yield ProcessingInfo(proc_res)
 
 
+def _get_relative_path(project: Project, dataset, log_file: Path) -> Path:
+    dset_root_dir = project.get_dataset_root_dir(dataset)
+    if log_file.is_relative_to(dset_root_dir):
+        return log_file.relative_to(dset_root_dir)
+
+    dset_proc_dir = project.get_dataset_process_dir(dataset)
+    if log_file.is_relative_to(dset_proc_dir):
+        return log_file.relative_to(dset_proc_dir)
+
+    dset_res_dir = project.get_dataset_results_dir(dataset)
+    if log_file.is_relative_to(dset_res_dir):
+        return log_file.relative_to(dset_res_dir)
+
+    assert False, f"unexpected path {log_file}"
+
+
+def _as_relative_paths(
+    project: Project, dataset, log_files: Iterable[Path]
+) -> Iterable[Path]:
+    for log_file in log_files:
+        yield _get_relative_path(project, dataset, log_file)
+
+
 def _get_processing_logs(project: Project, dataset) -> dict[str, Iterable[Path]]:
     logs = {}
     for tool in PROC_TOOLS:
@@ -55,7 +78,7 @@ def _get_processing_logs(project: Project, dataset) -> dict[str, Iterable[Path]]
             # no log files found
             continue
 
-        logs[tool] = log_files
+        logs[tool] = _as_relative_paths(project, dataset, log_files)
 
     return logs
 
@@ -65,7 +88,7 @@ def _get_refine_logs(project: Project, dataset):
         if ref_tool not in logs:
             logs[ref_tool] = {}
 
-        logs[ref_tool][proc_tool] = log_files
+        logs[ref_tool][proc_tool] = _as_relative_paths(project, dataset, log_files)
 
     logs: dict[str, list] = {}
 

@@ -742,7 +742,7 @@
                 <div class="card-title logtab">EDNA_proc Logs</div>
                 {% for log_file in proc_logs.edna %}
                     <div>
-                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                        <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                             {{log_file.name}}
                         </a>
                     </div>
@@ -752,7 +752,7 @@
                 <div class="card-title logtab">XIA2/DIALS Logs</div>
                 {% for log_file in proc_logs.dials %}
                     <div>
-                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                        <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                             {{log_file.name}}
                         </a>
                     </div>
@@ -762,7 +762,7 @@
                 <div class="card-title logtab">XIA2/XDS Logs</div>
                 {% for log_file in proc_logs.xds %}
                     <div>
-                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                        <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                             {{log_file.name}}
                         </a>
                     </div>
@@ -772,7 +772,7 @@
                 <div class="card-title logtab">XDSAPP Logs</div>
                 {% for log_file in proc_logs.xdsapp %}
                     <div>
-                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                        <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                             {{log_file.name}}
                         </a>
                     </div>
@@ -782,7 +782,7 @@
                 <div class="card-title logtab">autoPROC Logs</div>
                 {% for log_file in proc_logs.autoproc %}
                     <div>
-                        <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                        <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                             {{log_file.name}}
                         </a>
                     </div>
@@ -816,7 +816,7 @@
                     <div id="autoproc-dimple-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.dimple.autoproc %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -825,7 +825,7 @@
                     <div id="enda-dimple-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.dimple.edna %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -834,7 +834,7 @@
                     <div id="dials-dimple-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.dimple.dials %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -843,7 +843,7 @@
                     <div id="xds-dimple-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.dimple.xds %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -852,7 +852,7 @@
                     <div id="xdsapp-dimple-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.dimple.xdsapp %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -884,7 +884,7 @@
                     <div id="autoproc-fspipeline-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.fspipeline.autoproc %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -893,7 +893,7 @@
                     <div id="enda-fspipeline-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.fspipeline.edna %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -902,7 +902,7 @@
                     <div id="xds-fspipeline-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.fspipeline.xds %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>
@@ -911,7 +911,7 @@
                     <div id="xdsapp-fspipeline-v" class="tabcontent-vertical">
                         {% for log_file in refine_logs.fspipeline.xdsapp %}
                             <div>
-                                <a href="/logs/show/{{log_file}}" class="log-name" target="_blank">
+                                <a href="/logs/dset/{{dataset.id}}/{{log_file}}" class="log-name" target="_blank">
                                     {{log_file.name}}
                                 </a>
                             </div>

@@ -40,7 +40,7 @@ def scrape_results(project: Project, dataset) -> Optional[ProcStats]:
 
 
 def get_processing_log_files(project: Project, dataset) -> Optional[Iterable[int]]:
-    return xia2.get_log_files(project, _get_xds_dir(project, dataset))
+    return xia2.get_log_files(_get_xds_dir(project, dataset))
 
 
 def get_result_mtz(project: Project, dataset) -> Path:
