@@ -119,25 +119,25 @@ def _define_entities(db):
         images = Required(int)
 
         # data collection start and end times, in UTC time
-        start_time = Required(datetime)
+        start_time = Optional(datetime)
         end_time = Optional(datetime)
 
         # beam transmission
-        transmission = Required(float)
+        transmission = Optional(float)
 
         wavelength = Required(float)
         start_angle = Required(float)
         angle_increment = Required(float)
-        exposure_time = Required(float)
+        exposure_time = Optional(float)
         detector_distance = Required(float)
         xbeam = Optional(float)
         ybeam = Optional(float)
-        flux = Required(float)
-        beam_shape = Required(str)
+        flux = Optional(float)
+        beam_shape = Optional(str)
         slit_gap_horizontal = Optional(float)
         slit_gap_vertical = Optional(float)
-        beam_size_at_sample_x = Required(float)
-        beam_size_at_sample_y = Required(float)
+        beam_size_at_sample_x = Optional(float)
+        beam_size_at_sample_y = Optional(float)
 
         # references records of this dataset processed with some tool
         result = Set(lambda: Result)  # type: ignore

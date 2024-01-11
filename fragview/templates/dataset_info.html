@@ -560,10 +560,12 @@
                                 <td style="font-weight: bold;"># of images</td>
                                 <td>{{dataset.images}}</td>
                             </tr>
+                            {% if dataset.start_time %}
                             <tr>
                                 <td style="font-weight: bold;">Start time</td>
                                 <td>{{dataset.start_time|date:"Y-m-d H:i:s"}} (UTC)</td>
                             </tr>
+                            {% endif %}
                             {% if dataset.end_time %}
                             <tr>
                                 <td style="font-weight: bold;">End time</td>
@@ -594,14 +596,18 @@
                                 <td style="font-weight: bold;">Total rotation</td>
                                 <td>{{total_rotation|floatformat:1}}°</td>
                             </tr>
+                            {% if dataset.exposure_time %}
                             <tr>
                                 <td style="font-weight: bold;">Exposure time</td>
                                 <td>{{dataset.exposure_time|floatformat:3}} s</td>
                             </tr>
+                            {% endif%}
+                            {% if dataset.total_exposure %}
                             <tr>
                                 <td style="font-weight: bold;">Total Exposure time</td>
-                                <td>{{total_exposure|floatformat:2}} s</td>
+                                <td>{{dataset.total_exposure|floatformat:2}} s</td>
                             </tr>
+                            {% endif %}
                             <tr>
                                 <td style="font-weight: bold;">Detector distance</td>
                                 <td>{{dataset.detector_distance|floatformat:2}} mm</td>
@@ -665,14 +671,18 @@
                                 <td>{{beamline.monochrom_type}}</td>
                             </tr>
                             {% endif %}
+                            {% if dataset.beam_shape %}
                             <tr>
                                 <td style="font-weight: bold;">Beam shape</td>
                                 <td>{{dataset.beam_shape}}</td>
                             </tr>
+                            {% endif %}
+                            {% if dataset.transmission %}
                             <tr>
                                 <td style="font-weight: bold;">Beam transmission</td>
                                 <td>{{dataset.transmission|floatformat:3}}%</td>
                             </tr>
+                            {% endif %}
                             {% if dataset.slit_gap_horizontal %}
                             <tr>
                                 <td style="font-weight: bold;">Slit gap hor</td>
@@ -685,14 +695,18 @@
                                 <td>{{dataset.slit_gap_vertical|floatformat:1}} μm</td>
                             </tr>
                             {% endif %}
+                            {% if dataset.flux %}
                             <tr>
                                 <td style="font-weight: bold;">Flux (estimated)</td>
                                 <td>{{dataset.flux|stringformat:".3e"}} ph/s</td>
                             </tr>
+                            {% endif %}
+                            {% if dataset.beam_size_at_sample_x and dataset.beam_size_at_sample_y %}
                             <tr>
                                 <td style="font-weight: bold;">Beam size at sample (HxV)</td>
                                 <td>{{dataset.beam_size_at_sample_x|floatformat:1}} μm x {{dataset.beam_size_at_sample_y|floatformat:1}} μm</td>
                             </tr>
+                            {% endif %}
                             {% if beamline.beam_divergence %}
                             <tr>
                                 <td style="font-weight: bold;">Beam divergence (HxV)</td>

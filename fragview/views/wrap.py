@@ -81,6 +81,13 @@ class DatasetInfo(Wrapper):
 
         return "error"
 
+    def total_exposure(self):
+        if self.exposure_time is None:
+            # exposure time not available, can't calculate total exposure
+            return None
+
+        return self.exposure_time * self.images
+
     def processed(self) -> bool:
         return len(self.orig.result) > 0
 

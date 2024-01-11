@@ -6,26 +6,26 @@ from dataclasses import dataclass, field
 
 @dataclass
 class DatasetMetadata:
+    beamline: str
     detector: str
     images: int
-    start_time: datetime
-    end_time: Optional[datetime]
     wavelength: float
     start_angle: float
     angle_increment: float
-    exposure_time: float
     detector_distance: float
     xbeam: Optional[float]
     ybeam: Optional[float]
-    beam_shape: str
-    transmission: float
-    slit_gap_horizontal: Optional[float]
-    slit_gap_vertical: Optional[float]
-    flux: float
-    beam_size_at_sample_x: float
-    beam_size_at_sample_y: float
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    exposure_time: Optional[float] = None
+    beam_shape: Optional[str] = None
+    transmission: Optional[float] = None
+    slit_gap_horizontal: Optional[float] = None
+    slit_gap_vertical: Optional[float] = None
+    flux: Optional[float] = None
+    beam_size_at_sample_x: Optional[float] = None
+    beam_size_at_sample_y: Optional[float] = None
     snapshot_indices: list[int] = field(default_factory=list)
-    beamline: Optional[str] = None
 
 
 class SitePlugin:

@@ -5,7 +5,7 @@ from django.conf import settings
 from fragview import versions
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool, DatasetMetadata
-from fragview.sites.maxiv.xsdata import parse_xsdata_file
+from fragview.sites.maxiv.h5_metadata import read_metadata
 from fragview.sites.maxiv.diffractions import get_diffraction_pic_command
 from fragview.sites.maxiv.pipelines import PipelineCommands
 from fragview.sites.maxiv.beamline import BeamlineInfo
@@ -40,7 +40,8 @@ class SitePlugin(plugin.SitePlugin):
     def get_dataset_metadata(
         self, project, dataset_dir: Path, crystal_id: str, run: int
     ) -> Optional[DatasetMetadata]:
-        return _get_dataset_metadata(project, dataset_dir, crystal_id, run)
+        master_file = Path(dataset_dir, f"{crystal_id}_{run}_master.h5")
+        return read_metadata(master_file)
 
     def get_dataset_master_image(self, project, dataset) -> Path:
         return Path(
@@ -107,48 +108,3 @@ def _get_raw_dirs(project) -> Iterable[Path]:
         protein_dir = Path(shift_dir, "raw", project.protein)
         if protein_dir.is_dir():
             yield protein_dir
-
-
-def _get_dataset_metadata(
-    project, dataset_dir: Path, crystal_id: str, run: int
-) -> Optional[DatasetMetadata]:
-
-    #
-    # figure out path to the dataset's meta-data XML file
-    #
-    shift_dir = dataset_dir.parents[2].relative_to(project.proposal_dir)
-    fastdp_dir = Path(
-        project.proposal_dir,
-        shift_dir,
-        "process",
-        project.protein,
-        f"{crystal_id}",
-        f"xds_{crystal_id}_{run}_1",
-        "fastdp",
-    )
-
-    xml_file = next(
-        fastdp_dir.glob(
-            str(
-                Path(
-                    "cn*",
-                    "ISPyBRetrieveDataCollectionv1_4",
-                    "ISPyBRetrieveDataCollectionv1_4_dataOutput.xml",
-                )
-            )
-        ),
-        None,
-    )
-    if xml_file is None:
-        # no meta-data found for specified dataset
-        return None
-
-    # parse the located XML file
-    meta_data = parse_xsdata_file(xml_file)
-
-    # we only support data collected at BioMAX
-    # assert that dataset comes from /data/*/biomax directory
-    assert dataset_dir.parents[-4].name.lower() == "biomax"
-    meta_data.beamline = "BioMAX"
-
-    return meta_data

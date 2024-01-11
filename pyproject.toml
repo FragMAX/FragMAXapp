@@ -27,6 +27,7 @@ exclude = "worker/data/pandda_prepare_runs.py|fragview/migrations/|static/"
 
 [[tool.mypy.overrides]]
     module = [
+        "h5py",
         "pony",
         "pony.orm",
         "pypdb",

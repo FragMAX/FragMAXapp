@@ -120,7 +120,9 @@ def _add_datasets(project: Project):
                 detector_distance=meta_data.detector_distance,
                 xbeam=meta_data.xbeam,
                 ybeam=meta_data.ybeam,
-                beam_shape=meta_data.beam_shape,
+                # pony ORM does not like setting string field to None,
+                # so we use empty string as a stand-in for None here
+                beam_shape="" if meta_data.beam_shape is None else meta_data.beam_shape,
                 transmission=meta_data.transmission,
                 slit_gap_horizontal=meta_data.slit_gap_horizontal,
                 slit_gap_vertical=meta_data.slit_gap_vertical,
