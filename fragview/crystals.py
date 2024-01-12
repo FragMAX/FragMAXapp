@@ -143,15 +143,15 @@ def _data_frame_to_crystals(
 ) -> Crystals:
     def _rows_as_crystal_tuples():
         for line_num, crystal in crystals.iterrows():
-            sample_id = _sanitize_str(crystal[sample_id_idx])
+            sample_id = _sanitize_str(crystal.iloc[sample_id_idx])
             # make sure SampleID is specified
             if sample_id is None:
                 raise InvalidCrystalsCSV("Empty SampleID specified.")
 
             yield Crystal(
                 sample_id,
-                _sanitize_str(crystal[fraglib_idx]),
-                _sanitize_str(crystal[frag_code_idx]),
+                _sanitize_str(crystal.iloc[fraglib_idx]),
+                _sanitize_str(crystal.iloc[frag_code_idx]),
             )
 
     return Crystals(list(_rows_as_crystal_tuples()))
