@@ -871,7 +871,8 @@ def _get_refine_results(project: Project, dataset, proc_tool=None, refine_tool=N
 
     def result_match(refine_result):
         return (
-            refine_result.dataset == dataset
+            refine_result.result.result == "ok"
+            and refine_result.dataset == dataset
             and (refine_tool is None or refine_result.result.tool == refine_tool)
             and (proc_tool is None or refine_result.result.input.tool == proc_tool)
         )
