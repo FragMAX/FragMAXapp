@@ -4,6 +4,7 @@ import json
 import jsonschema
 from itertools import count
 from gemmi import UnitCell
+import pony.orm
 from django.forms import (
     Form,
     CharField,
@@ -180,6 +181,38 @@ class LigfitForm(_JobsForm):
         self.datasets = list(self._validate_datasets(project, data["datasets"]))
         self.tools = list(self._validate_tools(data["tools"]))
         self.restrains_tool = get_tool_by_name(data["restrains_tool"])
+
+
+class PanddaForm(_JobsForm):
+    SCHEMA = {
+        "type": "object",
+        "required": ["proc", "refine"],
+        "properties": {
+            "proc": {"type": "string"},
+            "refine": {"type": "string"},
+        },
+    }
+
+    def __init__(self, project: Project, request_body: bytes):
+        data = self._validate_json(request_body)
+        self.proc_tool = data["proc"]
+        self.refine_tool = data["refine"]
+        self.refine_results = self._refine_results(project)
+
+    def _refine_results(self, project: Project):
+        """
+        get refine results produced with processing tool {self.proc_tool}
+        and refine tool {self.refine_tool}
+        """
+
+        def result_match(refine_result):
+            return (
+                refine_result.result.result == "ok"
+                and refine_result.result.tool == self.refine_tool
+                and refine_result.result.input.tool == self.proc_tool
+            )
+
+        return pony.orm.select(r for r in project.db.RefineResult if result_match(r))
 
 
 class KillJobForm(Form):

@@ -4,6 +4,16 @@ from django.http import HttpResponse, Http404, FileResponse
 from fragview.fileio import read_proj_file
 from fragview.models import Library, Fragment
 from fragview.projects import Project
+from fragview.tools import get_tool_ul_label
+
+
+class ToolsCombo:
+    def __init__(self, proc_tool: str, refine_tool: str):
+        self.proc = proc_tool
+        self.refine = refine_tool
+        self.ui_label = (
+            f"{get_tool_ul_label(proc_tool)} - {get_tool_ul_label(refine_tool)}"
+        )
 
 
 def binary_http_response(file_path, content_type):

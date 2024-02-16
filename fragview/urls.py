@@ -75,6 +75,7 @@ urlpatterns = [
     path("datasets/process", datasets.process),
     path("datasets/refine", datasets.refine),
     path("datasets/ligfit", datasets.ligfit),
+    path("datasets/pandda", datasets.pandda),
     path("hpc/kill/", hpc.kill),
     path("jobs/status", hpc.status, name="hpcstatus"),
     path("jobs/history", hpc.jobhistory, name="jobhistory"),

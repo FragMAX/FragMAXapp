@@ -1,9 +1,8 @@
 from typing import Iterator
 from django.shortcuts import render
 from django.http import HttpResponse
-from fragview.projects import current_project
-from fragview.projects import Project
-from fragview.forms import ProcessForm, RefineForm, LigfitForm
+from fragview.projects import current_project, Project
+from fragview.forms import ProcessForm, RefineForm, LigfitForm, PanddaForm
 from fragview.tools import (
     ProcessOptions,
     RefineOptions,
@@ -17,6 +16,7 @@ from fragview.views.wrap import DatasetInfo
 from fragview.sites.current import get_hpc_runner
 from fragview.views.utils import get_crystals_fragment
 from fragview.views.update_jobs import add_update_job
+from fragview.pandda import create_pandda_jobs
 from jobs.client import JobsSet
 
 
@@ -120,5 +120,14 @@ def ligfit(request):
             add_update_job(jobs, hpc, project, pipeline.get_name(), dataset, batch)
 
     jobs.submit()
+
+    return HttpResponse("ok")
+
+
+def pandda(request):
+    project = current_project(request)
+    form = PanddaForm(project, request.body)
+
+    create_pandda_jobs(project, form.proc_tool, form.refine_tool, form.refine_results)
 
     return HttpResponse("ok")

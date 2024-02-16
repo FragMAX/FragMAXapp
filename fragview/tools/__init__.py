@@ -16,6 +16,8 @@ class UnknownToolNameException(Exception):
 
 class Tool(Enum):
     # process tools
+    AUTOPROC = auto()
+    EDNA = auto()
     DIALS = auto()
     XDS = auto()
     XDSAPP = auto()
@@ -35,6 +37,17 @@ class Tool(Enum):
 
     def get_name(self):
         return self.name.lower()
+
+
+TOOL_UI_LABELS = {
+    Tool.AUTOPROC: "autoPROC",
+    Tool.EDNA: "EDNA_proc",
+    Tool.DIALS: "XIA2/DIALS",
+    Tool.XDS: "XIA2/XDS",
+    Tool.XDSAPP: "XDSAPP",
+    Tool.DIMPLE: "DIMPLE",
+    Tool.FSPIPELINE: "fspipeline",
+}
 
 
 @dataclass
@@ -63,6 +76,10 @@ def get_tool_by_name(name: str) -> Tool:
             return tool
 
     raise UnknownToolNameException(name)
+
+
+def get_tool_ul_label(name: str) -> str:
+    return TOOL_UI_LABELS[get_tool_by_name(name)]
 
 
 def _tool_plugin(tool: Tool):

@@ -7,6 +7,7 @@ from fragview.views.wrap import (
     wrap_pdbs,
     wrap_refine_results,
 )
+from fragview.views.utils import ToolsCombo
 from fragview.space_groups import by_system
 from fragview.sites.current import get_supported_pipelines, get_supported_ligand_tools
 
@@ -89,14 +90,24 @@ def ligfit(request):
 
 
 def pandda(request):
-    default_ligand_tool, ligand_tools = get_supported_ligand_tools()
+    def get_dataset_combos(proj):
+        combos = set()
+
+        for res in proj.get_refine_results():
+            combos.add((res.process_tool, res.refine_tool))
+
+        for proc_tool, refine_tool in combos:
+            yield ToolsCombo(proc_tool, refine_tool)
+
+        return combos
+
+    combos = get_dataset_combos(current_project(request))
+    combos = sorted(combos, key=lambda k: k.ui_label.lower())
 
     return render(
         request,
         "analysis_pandda.html",
         {
-            "pipelines": get_supported_pipelines(),
-            "default_ligand_tool": default_ligand_tool,
-            "ligand_tools": ligand_tools,
+            "dataset_combos": combos,
         },
     )
