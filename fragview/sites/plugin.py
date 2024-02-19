@@ -57,13 +57,6 @@ class SitePlugin:
     def get_dataset_master_image(self, project, dataset) -> Path:
         raise NotImplementedError()
 
-    def add_pandda_init_commands(self, batch):
-        """
-        add site specific commands to prepare environment
-        for running PanDDA commands
-        """
-        raise NotImplementedError()
-
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
     ) -> list[str]:
@@ -103,14 +96,6 @@ class SitePlugin:
         raise NotImplementedError()
 
     def get_pipeline_commands(self):
-        raise NotImplementedError()
-
-    def get_pandda_inspect_commands(self, pandda_path) -> str:
-        """
-        The shell commands for launching pandda inspect tool.
-        We show this command to the user on the 'pandda analyse' page as
-        instructions on how to run pandda inspect for a given analysis result.
-        """
         raise NotImplementedError()
 
 
@@ -178,9 +163,6 @@ class PipelineCommands:
         raise NotImplementedError()
 
     def get_fspipeline_commands(self, pdb, custom_parameters):
-        raise NotImplementedError()
-
-    def get_giant_datasets_cluster_command(self) -> str:
         raise NotImplementedError()
 
 

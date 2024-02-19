@@ -52,11 +52,6 @@ class SitePlugin(plugin.SitePlugin):
     def get_dataset_master_image(self, project, dataset) -> Path:
         return get_dataset_frame_image(project, dataset, 1)
 
-    def add_pandda_init_commands(self, batch):
-        batch.add_command(
-            "source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh"
-        )
-
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
     ) -> list[str]:
@@ -90,19 +85,3 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_pipeline_commands(self):
         return PipelineCommands()
-
-    def get_pandda_inspect_commands(self, pandda_path) -> str:
-        #
-        # generate a pandda path relative to the user's home directory
-        #
-        # we can't use pandda_path as-is for launching pandda.inspect,
-        # as fragmax directory is mounted differently on other computers
-        #
-        pandda_path = Path(pandda_path)
-        parent = pandda_path.parents[len(pandda_path.parents) - 5]
-        cd_path = Path("~", pandda_path.relative_to(parent), "pandda")
-
-        return (
-            f'tcsh -c "source /soft/pxsoft/64/ccp4/ccp4-6.5.0/ccp4-7.0/bin/ccp4.setup-csh; '
-            f'cd {cd_path}; pandda.inspect"'
-        )

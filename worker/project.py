@@ -11,7 +11,6 @@ from fragview.crystals import Crystals, Crystal
 from fragview.fraglibs import create_db_library, LibraryType
 from fragview.models import UserProject, Fragment
 from fragview.status import scrape_imported_autoproc_status
-from fragview.projects import PANDDA_WORKER
 from fragview.projects import (
     create_project,
     get_project,
@@ -176,10 +175,6 @@ def _copy_script_files(project: Project, script_files):
         shutil.copy(src_file, dst_file)
 
 
-def _copy_scripts(project):
-    _copy_script_files(project, [PANDDA_WORKER])
-
-
 def _create_frag_libs(project: Project, libraries: dict[str, dict[str, str]]):
     for name, fragments in libraries.items():
         create_db_library(project, name, fragments)
@@ -225,6 +220,3 @@ def _setup_project_folders(project: Project):
     project.process_dir.mkdir()
     project.results_dir.mkdir()
     project.models_dir.mkdir()
-
-    # copy our help scripts to project's directory
-    _copy_scripts(project)

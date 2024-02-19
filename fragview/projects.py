@@ -16,8 +16,6 @@ from projects.database import (
 # make this exception available for import as 'fragview.projects.ProjectNotFound'
 from projects.database import ProjectNotFound  # noqa F401
 
-PANDDA_WORKER = "pandda_prepare_runs.py"
-
 
 class Project:
     """
@@ -218,29 +216,6 @@ class Project:
     @property
     def system_logs_dir(self) -> Path:
         return Path(self.logs_dir, "system")
-
-    def pandda_method_dir(self, method: str) -> Path:
-        return Path(self.pandda_dir, method)
-
-    def pandda_processed_datasets_dir(self, method: str) -> Path:
-        """
-        path to PanDDa 'processed datasets' directory for specified method
-        """
-        return Path(
-            self.pandda_method_dir(method),
-            "pandda",
-            "processed_datasets",
-        )
-
-    def pandda_processed_dataset_dir(self, method: str, dataset_name: str) -> Path:
-        """
-        path to PanDDa 'processed datasets' directory for
-        specified method and dataset
-        """
-        return Path(
-            self.pandda_processed_datasets_dir(method),
-            dataset_name,
-        )
 
     def get_log_path(self, log_file) -> Path:
         return Path(self.logs_dir, log_file)

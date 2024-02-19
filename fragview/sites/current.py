@@ -54,14 +54,6 @@ def get_dataset_metadata(
     return SITE.get_dataset_metadata(project, dataset_dir, crystal_id, run)
 
 
-def add_pandda_init_commands(batch):
-    SITE.add_pandda_init_commands(batch)
-
-
-def get_pandda_inspect_commands(method_dir: Path) -> str:
-    return SITE.get_pandda_inspect_commands(method_dir)
-
-
 def get_hpc_runner() -> HPC:
     return SITE.get_hpc_runner()
 
@@ -127,7 +119,3 @@ def get_dimple_command(dstmtz, custom_parameters):
 
 def get_fspipeline_commands(pdb, custom_parameters):
     return _get_pipe_cmds().get_fspipeline_commands(pdb, custom_parameters)
-
-
-def get_giant_datasets_cluster_command() -> str:
-    return _get_pipe_cmds().get_giant_datasets_cluster_command()

@@ -35,28 +35,3 @@ def ligand(request, result_id):
         assert False, f"unexpected ligand fitting tool {tool}"
 
     return download_http_response(pdb_path)
-
-
-def pandda_fitted(request, dataset: str, method: str):
-    project = current_project(request)
-
-    modelled_structures_dir = Path(
-        project.pandda_processed_dataset_dir(method, dataset),
-        "modelled_structures",
-    )
-
-    #
-    # pick 'fitted-vNNNN.pdb' file, with highest NNNN number
-    #
-    pdb_path = max(modelled_structures_dir.glob("*fitted*.pdb"))
-
-    return download_http_response(pdb_path)
-
-
-def pandda_input(request, dataset, method):
-    project = current_project(request)
-
-    processed_dir = project.pandda_processed_dataset_dir(method, dataset)
-    pdb_path = next(processed_dir.glob("*pandda-input.pdb"))
-
-    return download_http_response(pdb_path)

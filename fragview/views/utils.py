@@ -1,20 +1,9 @@
 from typing import Optional
 from os import path
-from threading import Thread
 from django.http import HttpResponse, Http404, FileResponse
 from fragview.fileio import read_proj_file
 from fragview.models import Library, Fragment
 from fragview.projects import Project
-
-
-def start_thread(func, *func_args):
-    Thread(target=func, args=func_args, daemon=True).start()
-
-
-def scrsplit(a, n):
-    k, m = divmod(len(a), n)
-    lst = (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))
-    return [x for x in lst if x]
 
 
 def binary_http_response(file_path, content_type):
@@ -23,10 +12,6 @@ def binary_http_response(file_path, content_type):
 
 def jpeg_http_response(file_path):
     return binary_http_response(file_path, "image/jpeg")
-
-
-def png_http_response(file_path):
-    return binary_http_response(file_path, "image/png")
 
 
 def download_http_response(file_path, filename=None):
@@ -50,10 +35,6 @@ def get_dataset_by_id(project: Project, dataset_id):
         raise Http404(f"no dataset with id '{dataset_id}' exist")
 
     return dataset
-
-
-def get_dataset_by_name(project: Project, dataset_name: str):
-    return project.db.DataSet.get(lambda d: d.name == dataset_name)
 
 
 def get_refine_result_by_id(project: Project, result_id):

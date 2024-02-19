@@ -2,7 +2,6 @@ from typing import Iterable, Optional
 from pathlib import Path
 from itertools import count
 from django.conf import settings
-from fragview import versions
 from fragview.sites import plugin
 from fragview.sites.plugin import Pipeline, LigandTool, DatasetMetadata
 from fragview.sites.maxiv.h5_metadata import read_metadata
@@ -49,9 +48,6 @@ class SitePlugin(plugin.SitePlugin):
             f"{dataset.name}_master.h5",
         )
 
-    def add_pandda_init_commands(self, batch):
-        batch.load_modules(["gopresto", versions.CCP4_MOD, versions.PYMOL_MOD])
-
     def get_diffraction_picture_command(
         self, project, dataset, angle: int, dest_pic_file
     ) -> list[str]:
@@ -95,12 +91,6 @@ class SitePlugin(plugin.SitePlugin):
 
     def get_pipeline_commands(self):
         return PipelineCommands()
-
-    def get_pandda_inspect_commands(self, pandda_path) -> str:
-        return (
-            f"module load gopresto CCP4/7.0.072-SHELX-ARP-8.0-0a-PReSTO;"
-            f" cd {pandda_path}/pandda; pandda.inspect"
-        )
 
 
 def _get_raw_dirs(project) -> Iterable[Path]:

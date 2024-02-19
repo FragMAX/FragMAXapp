@@ -78,6 +78,3 @@ class PipelineCommands(plugin.PipelineCommands):
             ],
             2,
         )
-
-    def get_giant_datasets_cluster_command(self) -> str:
-        return "/mxn/groups/biomax/wmxsoft/pandda/bin/giant.datasets.cluster"

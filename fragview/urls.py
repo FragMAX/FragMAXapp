@@ -8,7 +8,6 @@ from fragview.views import (
     results,
     density,
     analysis,
-    pandda,
     pdbs,
     diffraction,
     eldensity,
@@ -36,28 +35,6 @@ urlpatterns = [
     path("results/cellparams", results.cellparams),
     path("density/<result_id>", density.show, name="density"),
     path("dual_density/<result_id>", density.compare_poses, name="dual_density"),
-    path("pandda_density/", density.pandda, name="pandda_density"),
-    path(
-        "pandda_densityC/<method>/<dataset_name>/<site_idx>/<event_idx>",
-        density.pandda_consensus,
-        name="pandda_densityC",
-    ),
-    path(
-        "pandda_densityA/<method>/<dataset_name>",
-        density.pandda_analyse,
-        name="pandda_densityA",
-    ),
-    # show pandda analysis reports for latest processed methods
-    path("pandda_analyse/", pandda.analyse, name="pandda_analyse"),
-    # show pandda analysis reports for specified method
-    path("pandda_analyse/<method>", pandda.analyse, name="pandda_analyse"),
-    path("pandda_inspect/", pandda.inspect, name="pandda_inspect"),
-    path("pandda/process", pandda.process),
-    # pandda cluster dendrogram images
-    path("pandda/cluster/<method>/<cluster>/image", pandda.cluster_image),
-    # pandda HTML report for a specific analysis run
-    path("pandda/analysis/report/<method>/<date>", pandda.analysis_report),
-    path("pandda/analysis/delete/<method>/<date>", pandda.delete_report),
     # fragment libraries views
     path("libraries/show", libraries.show, name="libraries"),
     path("libraries/new", libraries.new, name="libraries"),
@@ -90,8 +67,6 @@ urlpatterns = [
     # generated PDB access views
     path("pdbs/refined/<result_id>", result_pdbs.refined),
     path("pdbs/ligand/<result_id>", result_pdbs.ligand),
-    path("pdbs/pandda/fitted/<dataset>/<method>", result_pdbs.pandda_fitted),
-    path("pdbs/pandda/input/<dataset>/<method>", result_pdbs.pandda_input),
     # data analyse views
     path("analysis/process", analysis.process),
     path("analysis/refine", analysis.refine),
@@ -108,12 +83,7 @@ urlpatterns = [
         diffraction.image,
         name="diffraction_image",
     ),
-    # pandda generated density maps
-    path("density_map/pandda/<dataset>/<method>/zmap", eldensity.pandda_consensus_zmap),
-    path("density_map/pandda/<dataset>/<method>/bdc", eldensity.pandda_bdc),
-    path("density_map/pandda/<dataset>/<method>/average", eldensity.pandda_average),
-    path("density_map/pandda/<dataset>/<method>/input", eldensity.pandda_input),
-    # MTZs, note: must be listed after 'density_map/pandda' URLs
+    # MTZs
     path(
         "density_map/refined/<result_id>/<type>",
         eldensity.refined_map,
