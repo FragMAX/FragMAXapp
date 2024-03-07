@@ -18,7 +18,7 @@ def parse_sbatch_reply(reply: str) -> str:
 SACCT_HEADER_REXP = re.compile(r"\s*JobID\s.+State.+")
 SACCT_SEPARATOR_REXP = re.compile(r"(?:-+\s*)+.*")
 SACCT_STATUS_LINE = re.compile(
-    r"^(\d+)\s.*(COMPLETED|RUNNING|PENDING|CANCELLED|FAILED|OUT_OF_ME\+).*"
+    r"^(\d+)\s.*(COMPLETED|RUNNING|PENDING|CANCELLED|FAILED|OUT_OF_ME\+|TIMEOUT).*"
 )
 
 
