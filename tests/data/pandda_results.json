@@ -1,0 +1,907 @@
+{
+  "dataset_records": {
+    "analysed_resolution": {
+      "Gal8N-x0001_1": 1.9,
+      "Gal8N-x0002_1": 1.75,
+      "Gal8N-x0003_1": 1.55,
+      "Gal8N-x0004_1": 1.45,
+      "Gal8N-x0005_2": 1.45,
+      "Gal8N-x0006_2": 1.45,
+      "Gal8N-x0008_3": 1.45,
+      "Gal8N-x0009_3": 1.45,
+      "Gal8N-x0010_3": 1.45,
+      "Gal8N-x0011_3": 1.45,
+      "Gal8N-x0012_3": 1.45,
+      "Gal8N-x0013_3": 1.45,
+      "Gal8N-x0014_3": 1.55,
+      "Gal8N-x0015_3": 1.45,
+      "Gal8N-x0016_3": 1.5,
+      "Gal8N-x0017_3": 1.45,
+      "Gal8N-x0018_3": 1.5
+    },
+    "high_resolution": {
+      "Gal8N-x0001_1": 1.89,
+      "Gal8N-x0002_1": 1.75,
+      "Gal8N-x0003_1": 1.55,
+      "Gal8N-x0004_1": 1.39,
+      "Gal8N-x0005_2": 1.4,
+      "Gal8N-x0006_2": 1.42,
+      "Gal8N-x0008_3": 1.35,
+      "Gal8N-x0009_3": 1.32,
+      "Gal8N-x0010_3": 1.43,
+      "Gal8N-x0011_3": 1.4,
+      "Gal8N-x0012_3": 1.35,
+      "Gal8N-x0013_3": 1.36,
+      "Gal8N-x0014_3": 1.51,
+      "Gal8N-x0015_3": 1.42,
+      "Gal8N-x0016_3": 1.46,
+      "Gal8N-x0017_3": 1.32,
+      "Gal8N-x0018_3": 1.49
+    },
+    "low_resolution": {
+      "Gal8N-x0001_1": 36.54,
+      "Gal8N-x0002_1": 36.88,
+      "Gal8N-x0003_1": 36.91,
+      "Gal8N-x0004_1": 36.79,
+      "Gal8N-x0005_2": 36.9,
+      "Gal8N-x0006_2": 36.9,
+      "Gal8N-x0008_3": 36.87,
+      "Gal8N-x0009_3": 36.86,
+      "Gal8N-x0010_3": 42.43,
+      "Gal8N-x0011_3": 35.06,
+      "Gal8N-x0012_3": 42.43,
+      "Gal8N-x0013_3": 36.82,
+      "Gal8N-x0014_3": 36.68,
+      "Gal8N-x0015_3": 36.83,
+      "Gal8N-x0016_3": 36.85,
+      "Gal8N-x0017_3": 42.44,
+      "Gal8N-x0018_3": 42.39
+    },
+    "map_uncertainty": {
+      "Gal8N-x0001_1": 0.44,
+      "Gal8N-x0002_1": 0.236,
+      "Gal8N-x0003_1": 0.18,
+      "Gal8N-x0004_1": 0.117,
+      "Gal8N-x0005_2": 0.159,
+      "Gal8N-x0006_2": 0.146,
+      "Gal8N-x0008_3": 0.114,
+      "Gal8N-x0009_3": 0.287,
+      "Gal8N-x0010_3": 0.22,
+      "Gal8N-x0011_3": 0.102,
+      "Gal8N-x0012_3": 0.114,
+      "Gal8N-x0013_3": 0.129,
+      "Gal8N-x0014_3": 0.57,
+      "Gal8N-x0015_3": 0.102,
+      "Gal8N-x0016_3": 0.112,
+      "Gal8N-x0017_3": 0.138,
+      "Gal8N-x0018_3": 0.17
+    },
+    "r_free": {
+      "Gal8N-x0001_1": 0.28651,
+      "Gal8N-x0002_1": 0.3032,
+      "Gal8N-x0003_1": 0.29378,
+      "Gal8N-x0004_1": 0.28246,
+      "Gal8N-x0005_2": 0.30003,
+      "Gal8N-x0006_2": 0.30137,
+      "Gal8N-x0008_3": 0.29153,
+      "Gal8N-x0009_3": 0.28245,
+      "Gal8N-x0010_3": 0.29528,
+      "Gal8N-x0011_3": 0.29047,
+      "Gal8N-x0012_3": 0.29453,
+      "Gal8N-x0013_3": 0.29075,
+      "Gal8N-x0014_3": 0.35534,
+      "Gal8N-x0015_3": 0.29177,
+      "Gal8N-x0016_3": 0.29193,
+      "Gal8N-x0017_3": 0.29398,
+      "Gal8N-x0018_3": 0.28634
+    },
+    "r_free/r_work": {
+      "Gal8N-x0001_1": 1.2674629506746296,
+      "Gal8N-x0002_1": 1.173874327306516,
+      "Gal8N-x0003_1": 1.1271485573971762,
+      "Gal8N-x0004_1": 1.1099497013517763,
+      "Gal8N-x0005_2": 1.1135730987640575,
+      "Gal8N-x0006_2": 1.1429817574999053,
+      "Gal8N-x0008_3": 1.1155626985038074,
+      "Gal8N-x0009_3": 1.0766152086906802,
+      "Gal8N-x0010_3": 1.096553773024361,
+      "Gal8N-x0011_3": 1.108156569510148,
+      "Gal8N-x0012_3": 1.1016232794733694,
+      "Gal8N-x0013_3": 1.0990776442125956,
+      "Gal8N-x0014_3": 1.2085572410040133,
+      "Gal8N-x0015_3": 1.119136204978712,
+      "Gal8N-x0016_3": 1.121169060603733,
+      "Gal8N-x0017_3": 1.110867593712213,
+      "Gal8N-x0018_3": 1.1355488578680202
+    },
+    "r_work": {
+      "Gal8N-x0001_1": 0.22605,
+      "Gal8N-x0002_1": 0.25829,
+      "Gal8N-x0003_1": 0.26064,
+      "Gal8N-x0004_1": 0.25448,
+      "Gal8N-x0005_2": 0.26943,
+      "Gal8N-x0006_2": 0.26367,
+      "Gal8N-x0008_3": 0.26133,
+      "Gal8N-x0009_3": 0.26235,
+      "Gal8N-x0010_3": 0.26928,
+      "Gal8N-x0011_3": 0.26212,
+      "Gal8N-x0012_3": 0.26736,
+      "Gal8N-x0013_3": 0.26454,
+      "Gal8N-x0014_3": 0.29402,
+      "Gal8N-x0015_3": 0.26071,
+      "Gal8N-x0016_3": 0.26038,
+      "Gal8N-x0017_3": 0.26464,
+      "Gal8N-x0018_3": 0.25216
+    },
+    "space_group": {
+      "Gal8N-x0001_1": "P 21 21 21",
+      "Gal8N-x0002_1": "P 21 21 21",
+      "Gal8N-x0003_1": "P 21 21 21",
+      "Gal8N-x0004_1": "P 21 21 21",
+      "Gal8N-x0005_2": "P 21 21 21",
+      "Gal8N-x0006_2": "P 21 21 21",
+      "Gal8N-x0008_3": "P 21 21 21",
+      "Gal8N-x0009_3": "P 21 21 21",
+      "Gal8N-x0010_3": "P 21 21 21",
+      "Gal8N-x0011_3": "P 21 21 21",
+      "Gal8N-x0012_3": "P 21 21 21",
+      "Gal8N-x0013_3": "P 21 21 21",
+      "Gal8N-x0014_3": "P 21 21 21",
+      "Gal8N-x0015_3": "P 21 21 21",
+      "Gal8N-x0016_3": "P 21 21 21",
+      "Gal8N-x0017_3": "P 21 21 21",
+      "Gal8N-x0018_3": "P 21 21 21"
+    },
+    "test": {
+      "Gal8N-x0001_1": true,
+      "Gal8N-x0002_1": true,
+      "Gal8N-x0003_1": true,
+      "Gal8N-x0004_1": true,
+      "Gal8N-x0005_2": true,
+      "Gal8N-x0006_2": true,
+      "Gal8N-x0008_3": true,
+      "Gal8N-x0009_3": true,
+      "Gal8N-x0010_3": true,
+      "Gal8N-x0011_3": true,
+      "Gal8N-x0012_3": true,
+      "Gal8N-x0013_3": true,
+      "Gal8N-x0014_3": true,
+      "Gal8N-x0015_3": true,
+      "Gal8N-x0016_3": true,
+      "Gal8N-x0017_3": true,
+      "Gal8N-x0018_3": true
+    },
+    "train": {
+      "Gal8N-x0001_1": true,
+      "Gal8N-x0002_1": true,
+      "Gal8N-x0003_1": true,
+      "Gal8N-x0004_1": true,
+      "Gal8N-x0005_2": true,
+      "Gal8N-x0006_2": true,
+      "Gal8N-x0008_3": true,
+      "Gal8N-x0009_3": true,
+      "Gal8N-x0010_3": true,
+      "Gal8N-x0011_3": true,
+      "Gal8N-x0012_3": true,
+      "Gal8N-x0013_3": true,
+      "Gal8N-x0014_3": true,
+      "Gal8N-x0015_3": true,
+      "Gal8N-x0016_3": true,
+      "Gal8N-x0017_3": true,
+      "Gal8N-x0018_3": true
+    },
+    "unit_cell": {
+      "Gal8N-x0001_1": [
+        53.904,
+        61.758,
+        83.469,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0002_1": [
+        54.294,
+        62.187,
+        84.992,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0003_1": [
+        54.352,
+        62.271,
+        84.929,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0004_1": [
+        54.173,
+        61.982,
+        84.802,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0005_2": [
+        54.361,
+        62.243,
+        84.827,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0006_2": [
+        54.311,
+        62.279,
+        84.979,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0008_3": [
+        54.34,
+        62.116,
+        84.823,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0009_3": [
+        54.321,
+        62.026,
+        85.006,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0010_3": [
+        53.992,
+        62.108,
+        84.795,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0011_3": [
+        54.298,
+        62.096,
+        84.869,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0012_3": [
+        54.275,
+        62.128,
+        84.785,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0013_3": [
+        54.247,
+        61.966,
+        84.963,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0014_3": [
+        53.989,
+        61.815,
+        84.631,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0015_3": [
+        54.253,
+        62.092,
+        84.791,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0016_3": [
+        54.295,
+        62.089,
+        84.899,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0017_3": [
+        54.234,
+        61.999,
+        84.813,
+        90.0,
+        90.0,
+        90.0
+      ],
+      "Gal8N-x0018_3": [
+        54.156,
+        61.913,
+        84.708,
+        90.0,
+        90.0,
+        90.0
+      ]
+    }
+  },
+  "events": [
+    {
+      "dtag": "Gal8N-x0009_3",
+      "event_idx": 0,
+      "event_num": 1,
+      "site_idx": 0,
+      "site_num": 1,
+      "event_fraction": 0.34,
+      "bdc": 0.66,
+      "z_peak": 4.012,
+      "z_mean": 3.205,
+      "cluster_size": 171,
+      "xyz_peak": [
+        1.226,
+        13.426,
+        24.76
+      ],
+      "xyz_centroid": [
+        0.54,
+        12.14,
+        26.266
+      ],
+      "xyz_peak_ref": [
+        -1.388,
+        -13.237,
+        25.04
+      ],
+      "xyz_centroid_ref": [
+        -0.713,
+        -11.939,
+        26.54
+      ],
+      "map_uncertainty": 0.287,
+      "global_correlation": 0.939,
+      "local_correlation": 0.671,
+      "map_resolution": 1.45
+    },
+    {
+      "dtag": "Gal8N-x0010_3",
+      "event_idx": 0,
+      "event_num": 1,
+      "site_idx": 1,
+      "site_num": 2,
+      "event_fraction": 0.43,
+      "bdc": 0.57,
+      "z_peak": 3.857,
+      "z_mean": 3.008,
+      "cluster_size": 146,
+      "xyz_peak": [
+        -43.326,
+        -5.422,
+        21.98
+      ],
+      "xyz_centroid": [
+        -41.637,
+        -3.556,
+        22.641
+      ],
+      "xyz_peak_ref": [
+        -43.388,
+        -5.237,
+        22.04
+      ],
+      "xyz_centroid_ref": [
+        -41.693,
+        -3.374,
+        22.694
+      ],
+      "map_uncertainty": 0.22,
+      "global_correlation": 0.967,
+      "local_correlation": 0.81,
+      "map_resolution": 1.45
+    },
+    {
+      "dtag": "Gal8N-x0010_3",
+      "event_idx": 1,
+      "event_num": 2,
+      "site_idx": 2,
+      "site_num": 3,
+      "event_fraction": 0.33,
+      "bdc": 0.67,
+      "z_peak": 3.718,
+      "z_mean": 3.072,
+      "cluster_size": 251,
+      "xyz_peak": [
+        -45.345,
+        1.627,
+        11.986
+      ],
+      "xyz_centroid": [
+        -45.966,
+        0.676,
+        11.597
+      ],
+      "xyz_peak_ref": [
+        -45.388,
+        1.763,
+        12.04
+      ],
+      "xyz_centroid_ref": [
+        -46.045,
+        0.787,
+        11.63
+      ],
+      "map_uncertainty": 0.22,
+      "global_correlation": 0.967,
+      "local_correlation": 0.81,
+      "map_resolution": 1.45
+    }
+  ],
+  "output_files": {
+    "dataset_files": {
+      "Gal8N-x0001_1": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0001_1/Gal8N-x0001_1-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0001_1/Gal8N-x0001_1-pandda-input.pdb"
+      },
+      "Gal8N-x0002_1": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0002_1/Gal8N-x0002_1-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0002_1/Gal8N-x0002_1-pandda-input.pdb"
+      },
+      "Gal8N-x0003_1": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0003_1/Gal8N-x0003_1-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0003_1/Gal8N-x0003_1-pandda-input.pdb"
+      },
+      "Gal8N-x0004_1": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0004_1/Gal8N-x0004_1-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0004_1/Gal8N-x0004_1-pandda-input.pdb"
+      },
+      "Gal8N-x0005_2": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0005_2/Gal8N-x0005_2-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0005_2/Gal8N-x0005_2-pandda-input.pdb"
+      },
+      "Gal8N-x0006_2": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0006_2/Gal8N-x0006_2-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0006_2/Gal8N-x0006_2-pandda-input.pdb"
+      },
+      "Gal8N-x0008_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0008_3/Gal8N-x0008_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0008_3/Gal8N-x0008_3-pandda-input.pdb"
+      },
+      "Gal8N-x0009_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0009_3/Gal8N-x0009_3-pandda-input.mtz",
+        "event_data": {
+          "1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0009_3/Gal8N-x0009_3-pandda-output-event-001.mtz"
+        },
+        "ligands": [],
+        "output_data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0009_3/Gal8N-x0009_3-pandda-output.mtz",
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0009_3/Gal8N-x0009_3-pandda-input.pdb"
+      },
+      "Gal8N-x0010_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0010_3/Gal8N-x0010_3-pandda-input.mtz",
+        "event_data": {
+          "1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0010_3/Gal8N-x0010_3-pandda-output-event-001.mtz",
+          "2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0010_3/Gal8N-x0010_3-pandda-output-event-002.mtz"
+        },
+        "ligands": [],
+        "output_data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0010_3/Gal8N-x0010_3-pandda-output.mtz",
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0010_3/Gal8N-x0010_3-pandda-input.pdb"
+      },
+      "Gal8N-x0011_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0011_3/Gal8N-x0011_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0011_3/Gal8N-x0011_3-pandda-input.pdb"
+      },
+      "Gal8N-x0012_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0012_3/Gal8N-x0012_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0012_3/Gal8N-x0012_3-pandda-input.pdb"
+      },
+      "Gal8N-x0013_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0013_3/Gal8N-x0013_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0013_3/Gal8N-x0013_3-pandda-input.pdb"
+      },
+      "Gal8N-x0014_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0014_3/Gal8N-x0014_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0014_3/Gal8N-x0014_3-pandda-input.pdb"
+      },
+      "Gal8N-x0015_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0015_3/Gal8N-x0015_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0015_3/Gal8N-x0015_3-pandda-input.pdb"
+      },
+      "Gal8N-x0016_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0016_3/Gal8N-x0016_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0016_3/Gal8N-x0016_3-pandda-input.pdb"
+      },
+      "Gal8N-x0017_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0017_3/Gal8N-x0017_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0017_3/Gal8N-x0017_3-pandda-input.pdb"
+      },
+      "Gal8N-x0018_3": {
+        "data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0018_3/Gal8N-x0018_3-pandda-input.mtz",
+        "ligands": [],
+        "structure": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/processed_datasets/Gal8N-x0018_3/Gal8N-x0018_3-pandda-input.pdb"
+      }
+    },
+    "graphs": {
+      "analysed_resolution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/analysed_resolutions.png",
+      "bdc_estimation": {
+        "Gal8N-x0009_3": {
+          "1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/dataset_graphs/Gal8N-x0009_3-event001.png"
+        },
+        "Gal8N-x0010_3": {
+          "1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/dataset_graphs/Gal8N-x0010_3-event001.png",
+          "2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/dataset_graphs/Gal8N-x0010_3-event002.png"
+        }
+      },
+      "event_fractions": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/event_fractions.png",
+      "event_resolutions": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/event_resolutions.png",
+      "events_back": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/all_events_back.png",
+      "events_front": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/all_events_front.png",
+      "map_distribution": {
+        "Gal8N-x0001_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.7500000000000009-1.900000000000001/dataset_graphs/Gal8N-x0001_1-distribution.png",
+        "Gal8N-x0002_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5500000000000007-1.7500000000000009/dataset_graphs/Gal8N-x0002_1-distribution.png",
+        "Gal8N-x0003_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0003_1-distribution.png",
+        "Gal8N-x0004_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0004_1-distribution.png",
+        "Gal8N-x0005_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0005_2-distribution.png",
+        "Gal8N-x0006_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0006_2-distribution.png",
+        "Gal8N-x0008_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0008_3-distribution.png",
+        "Gal8N-x0009_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0009_3-distribution.png",
+        "Gal8N-x0010_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0010_3-distribution.png",
+        "Gal8N-x0011_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0011_3-distribution.png",
+        "Gal8N-x0012_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0012_3-distribution.png",
+        "Gal8N-x0013_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0013_3-distribution.png",
+        "Gal8N-x0014_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0014_3-distribution.png",
+        "Gal8N-x0015_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0015_3-distribution.png",
+        "Gal8N-x0016_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0016_3-distribution.png",
+        "Gal8N-x0017_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0017_3-distribution.png",
+        "Gal8N-x0018_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0018_3-distribution.png"
+      },
+      "map_scatter": {
+        "Gal8N-x0001_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.7500000000000009-1.900000000000001/dataset_graphs/Gal8N-x0001_1-scatter.png",
+        "Gal8N-x0002_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5500000000000007-1.7500000000000009/dataset_graphs/Gal8N-x0002_1-scatter.png",
+        "Gal8N-x0003_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0003_1-scatter.png",
+        "Gal8N-x0004_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0004_1-scatter.png",
+        "Gal8N-x0005_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0005_2-scatter.png",
+        "Gal8N-x0006_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0006_2-scatter.png",
+        "Gal8N-x0008_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0008_3-scatter.png",
+        "Gal8N-x0009_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0009_3-scatter.png",
+        "Gal8N-x0010_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0010_3-scatter.png",
+        "Gal8N-x0011_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0011_3-scatter.png",
+        "Gal8N-x0012_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0012_3-scatter.png",
+        "Gal8N-x0013_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0013_3-scatter.png",
+        "Gal8N-x0014_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0014_3-scatter.png",
+        "Gal8N-x0015_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0015_3-scatter.png",
+        "Gal8N-x0016_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0016_3-scatter.png",
+        "Gal8N-x0017_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0017_3-scatter.png",
+        "Gal8N-x0018_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0018_3-scatter.png"
+      },
+      "map_uncertainties": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/map_uncertainties.png",
+      "qq_plot": {
+        "Gal8N-x0001_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.7500000000000009-1.900000000000001/dataset_graphs/Gal8N-x0001_1-qqplot.png",
+        "Gal8N-x0002_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5500000000000007-1.7500000000000009/dataset_graphs/Gal8N-x0002_1-qqplot.png",
+        "Gal8N-x0003_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0003_1-qqplot.png",
+        "Gal8N-x0004_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0004_1-qqplot.png",
+        "Gal8N-x0005_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0005_2-qqplot.png",
+        "Gal8N-x0006_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0006_2-qqplot.png",
+        "Gal8N-x0008_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0008_3-qqplot.png",
+        "Gal8N-x0009_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0009_3-qqplot.png",
+        "Gal8N-x0010_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0010_3-qqplot.png",
+        "Gal8N-x0011_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0011_3-qqplot.png",
+        "Gal8N-x0012_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0012_3-qqplot.png",
+        "Gal8N-x0013_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0013_3-qqplot.png",
+        "Gal8N-x0014_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_graphs/Gal8N-x0014_3-qqplot.png",
+        "Gal8N-x0015_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0015_3-qqplot.png",
+        "Gal8N-x0016_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0016_3-qqplot.png",
+        "Gal8N-x0017_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_graphs/Gal8N-x0017_3-qqplot.png",
+        "Gal8N-x0018_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_graphs/Gal8N-x0018_3-qqplot.png"
+      },
+      "resolution_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_resolutions.png",
+      "rfactor_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_rfactors.png",
+      "shells": {
+        "shell-0.0-1.4500000000000006": {
+          "statistical_map_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/statistical_map_distributions.png",
+          "uncertainty_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-0.0-1.4500000000000006/dataset_uncertainty_distribution.png"
+        },
+        "shell-1.4500000000000006-1.5000000000000007": {
+          "statistical_map_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/statistical_map_distributions.png",
+          "uncertainty_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.4500000000000006-1.5000000000000007/dataset_uncertainty_distribution.png"
+        },
+        "shell-1.5000000000000007-1.5500000000000007": {
+          "statistical_map_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/statistical_map_distributions.png",
+          "uncertainty_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5000000000000007-1.5500000000000007/dataset_uncertainty_distribution.png"
+        },
+        "shell-1.5500000000000007-1.7500000000000009": {
+          "statistical_map_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5500000000000007-1.7500000000000009/statistical_map_distributions.png",
+          "uncertainty_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.5500000000000007-1.7500000000000009/dataset_uncertainty_distribution.png"
+        },
+        "shell-1.7500000000000009-1.900000000000001": {
+          "statistical_map_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.7500000000000009-1.900000000000001/statistical_map_distributions.png",
+          "uncertainty_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/analysis/shell-1.7500000000000009-1.900000000000001/dataset_uncertainty_distribution.png"
+        }
+      },
+      "site_events": {
+        "1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/analyse_events_site_1.png",
+        "2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/analyse_events_site_2.png",
+        "3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/graphs/analyse_events_site_3.png"
+      },
+      "unit_cell_distribution": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_unitcells.png",
+      "wilson_plot": {
+        "Gal8N-x0001_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0001_1-wilson.png",
+        "Gal8N-x0002_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0002_1-wilson.png",
+        "Gal8N-x0003_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0003_1-wilson.png",
+        "Gal8N-x0004_1": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0004_1-wilson.png",
+        "Gal8N-x0005_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0005_2-wilson.png",
+        "Gal8N-x0006_2": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0006_2-wilson.png",
+        "Gal8N-x0008_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0008_3-wilson.png",
+        "Gal8N-x0009_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0009_3-wilson.png",
+        "Gal8N-x0010_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0010_3-wilson.png",
+        "Gal8N-x0011_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0011_3-wilson.png",
+        "Gal8N-x0012_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0012_3-wilson.png",
+        "Gal8N-x0013_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0013_3-wilson.png",
+        "Gal8N-x0014_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0014_3-wilson.png",
+        "Gal8N-x0015_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0015_3-wilson.png",
+        "Gal8N-x0016_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0016_3-wilson.png",
+        "Gal8N-x0017_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0017_3-wilson.png",
+        "Gal8N-x0018_3": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/dataset_graphs/Gal8N-x0018_3-wilson.png"
+      }
+    },
+    "html": {
+      "analyse_html": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/html/pandda_analyse.html",
+      "dataset_html": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/html/pandda_initial.html",
+      "inspect_html": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/html/pandda_inspect.html",
+      "main_html": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/html/pandda_main.html"
+    },
+    "reference_files": {
+      "reference_data": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/input/Gal8N-x0017_3/final.mtz",
+      "reference_model": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/input/Gal8N-x0017_3/final.pdb"
+    },
+    "tables": {
+      "dataset_info": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/dataset_summary/input_datasets_info.csv",
+      "dataset_table": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/pandda_analyse_datasets.csv",
+      "events_table": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/pandda_analyse_events.csv",
+      "sites_table": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/results/pandda_analyse_sites.csv"
+    }
+  },
+  "shell_records": [
+    {
+      "label": "shell-0.0-1.4500000000000006",
+      "json_path": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/shells/shell-0.0-1.4500000000000006-results.json",
+      "resolution_high": 0.0,
+      "resolution_low": 1.45,
+      "map_resolution": 1.45,
+      "train": [
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0017_3"
+      ],
+      "test": [
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0017_3"
+      ],
+      "map_uncertainty": {
+        "Gal8N-x0017_3": 0.1376147288914496,
+        "Gal8N-x0009_3": 0.2867808637988944,
+        "Gal8N-x0008_3": 0.11402494033736522,
+        "Gal8N-x0012_3": 0.11361401117676316,
+        "Gal8N-x0013_3": 0.12923494323394547,
+        "Gal8N-x0004_1": 0.11702315887603036,
+        "Gal8N-x0011_3": 0.10154907233015241,
+        "Gal8N-x0005_2": 0.15900536469369111,
+        "Gal8N-x0015_3": 0.10232729849209837,
+        "Gal8N-x0006_2": 0.14633399025326052,
+        "Gal8N-x0010_3": 0.2203556950642991
+      }
+    },
+    {
+      "label": "shell-1.4500000000000006-1.5000000000000007",
+      "json_path": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/shells/shell-1.4500000000000006-1.5000000000000007-results.json",
+      "resolution_high": 1.45,
+      "resolution_low": 1.5,
+      "map_resolution": 1.5,
+      "train": [
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0016_3",
+        "Gal8N-x0017_3",
+        "Gal8N-x0018_3"
+      ],
+      "test": [
+        "Gal8N-x0016_3",
+        "Gal8N-x0018_3"
+      ],
+      "map_uncertainty": {
+        "Gal8N-x0017_3": 0.13335588694360828,
+        "Gal8N-x0009_3": 0.2941240793813506,
+        "Gal8N-x0008_3": 0.11392432425739,
+        "Gal8N-x0012_3": 0.11899853818812024,
+        "Gal8N-x0013_3": 0.12617206930846775,
+        "Gal8N-x0004_1": 0.11370625016316423,
+        "Gal8N-x0011_3": 0.10120802510069798,
+        "Gal8N-x0005_2": 0.16515950934013504,
+        "Gal8N-x0015_3": 0.0977154646297234,
+        "Gal8N-x0006_2": 0.1509270000020379,
+        "Gal8N-x0010_3": 0.21599767671619663,
+        "Gal8N-x0016_3": 0.11232198224868208,
+        "Gal8N-x0018_3": 0.17026658184492294
+      }
+    },
+    {
+      "label": "shell-1.5000000000000007-1.5500000000000007",
+      "json_path": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/shells/shell-1.5000000000000007-1.5500000000000007-results.json",
+      "resolution_high": 1.5,
+      "resolution_low": 1.55,
+      "map_resolution": 1.55,
+      "train": [
+        "Gal8N-x0003_1",
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0014_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0016_3",
+        "Gal8N-x0017_3",
+        "Gal8N-x0018_3"
+      ],
+      "test": [
+        "Gal8N-x0003_1",
+        "Gal8N-x0014_3"
+      ],
+      "map_uncertainty": {
+        "Gal8N-x0017_3": 0.14514117978969515,
+        "Gal8N-x0009_3": 0.29087380639435745,
+        "Gal8N-x0008_3": 0.1256595828970162,
+        "Gal8N-x0012_3": 0.1308978199993677,
+        "Gal8N-x0013_3": 0.13840856857813436,
+        "Gal8N-x0004_1": 0.12476025387190563,
+        "Gal8N-x0011_3": 0.11374000708502996,
+        "Gal8N-x0005_2": 0.16654047071605718,
+        "Gal8N-x0015_3": 0.10972150721645121,
+        "Gal8N-x0006_2": 0.1525954459469629,
+        "Gal8N-x0010_3": 0.21381585542517215,
+        "Gal8N-x0016_3": 0.11864044991624055,
+        "Gal8N-x0018_3": 0.1718131777727846,
+        "Gal8N-x0014_3": 0.56987761730856,
+        "Gal8N-x0003_1": 0.1800827721794754
+      }
+    },
+    {
+      "label": "shell-1.5500000000000007-1.7500000000000009",
+      "json_path": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/shells/shell-1.5500000000000007-1.7500000000000009-results.json",
+      "resolution_high": 1.55,
+      "resolution_low": 1.75,
+      "map_resolution": 1.75,
+      "train": [
+        "Gal8N-x0002_1",
+        "Gal8N-x0003_1",
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0014_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0016_3",
+        "Gal8N-x0017_3",
+        "Gal8N-x0018_3"
+      ],
+      "test": [
+        "Gal8N-x0002_1"
+      ],
+      "map_uncertainty": {
+        "Gal8N-x0017_3": 0.14421418285272916,
+        "Gal8N-x0009_3": 0.2848618874320927,
+        "Gal8N-x0008_3": 0.12358482562883204,
+        "Gal8N-x0012_3": 0.1298770234087834,
+        "Gal8N-x0013_3": 0.13671964407312112,
+        "Gal8N-x0004_1": 0.12459275910607383,
+        "Gal8N-x0011_3": 0.11320571086478909,
+        "Gal8N-x0005_2": 0.16280129264440327,
+        "Gal8N-x0015_3": 0.10920974837517451,
+        "Gal8N-x0006_2": 0.14801584394119055,
+        "Gal8N-x0010_3": 0.21057911236345875,
+        "Gal8N-x0016_3": 0.1150168760324451,
+        "Gal8N-x0018_3": 0.1680452524292916,
+        "Gal8N-x0014_3": 0.558939279416325,
+        "Gal8N-x0003_1": 0.1658473734799953,
+        "Gal8N-x0002_1": 0.23597659469650883
+      }
+    },
+    {
+      "label": "shell-1.7500000000000009-1.900000000000001",
+      "json_path": "/data/staff/biomax/elmir/fragmax-lnx/proj1/pandda/dials-dimple/result/shells/shell-1.7500000000000009-1.900000000000001-results.json",
+      "resolution_high": 1.75,
+      "resolution_low": 1.9,
+      "map_resolution": 1.9,
+      "train": [
+        "Gal8N-x0001_1",
+        "Gal8N-x0002_1",
+        "Gal8N-x0003_1",
+        "Gal8N-x0004_1",
+        "Gal8N-x0005_2",
+        "Gal8N-x0006_2",
+        "Gal8N-x0008_3",
+        "Gal8N-x0009_3",
+        "Gal8N-x0010_3",
+        "Gal8N-x0011_3",
+        "Gal8N-x0012_3",
+        "Gal8N-x0013_3",
+        "Gal8N-x0014_3",
+        "Gal8N-x0015_3",
+        "Gal8N-x0016_3",
+        "Gal8N-x0017_3",
+        "Gal8N-x0018_3"
+      ],
+      "test": [
+        "Gal8N-x0001_1"
+      ],
+      "map_uncertainty": {
+        "Gal8N-x0017_3": 0.15059904829678253,
+        "Gal8N-x0009_3": 0.2818190781411806,
+        "Gal8N-x0008_3": 0.13269855635808314,
+        "Gal8N-x0012_3": 0.13902356967591636,
+        "Gal8N-x0013_3": 0.14446704621558845,
+        "Gal8N-x0004_1": 0.13100696147013874,
+        "Gal8N-x0011_3": 0.1225105104321874,
+        "Gal8N-x0005_2": 0.16926559133803543,
+        "Gal8N-x0015_3": 0.11779578949946992,
+        "Gal8N-x0006_2": 0.15612638050748784,
+        "Gal8N-x0010_3": 0.20768105304014747,
+        "Gal8N-x0016_3": 0.12458084805384428,
+        "Gal8N-x0018_3": 0.16795039872106243,
+        "Gal8N-x0014_3": 0.5333423780608018,
+        "Gal8N-x0003_1": 0.1694868964962674,
+        "Gal8N-x0002_1": 0.22456176030643313,
+        "Gal8N-x0001_1": 0.4400180454027541
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ from fragview.views import (
     results,
     density,
     analysis,
+    pandda,
     pdbs,
     diffraction,
     eldensity,
@@ -35,6 +36,9 @@ urlpatterns = [
     path("results/cellparams", results.cellparams),
     path("density/<result_id>", density.show, name="density"),
     path("dual_density/<result_id>", density.compare_poses, name="dual_density"),
+    path("pandda/results/", pandda.results),
+    path("pandda/events/<proc>/<refine>", pandda.events),
+    path("pandda/download/<proc>/<refine>", pandda.download),
     # fragment libraries views
     path("libraries/show", libraries.show, name="libraries"),
     path("libraries/new", libraries.new, name="libraries"),

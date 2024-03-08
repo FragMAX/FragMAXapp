@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}PanDDA Analysis Results{% endblock %}
+{% block content %}
+
+<script src="/static/js/vue-3.2.32.global.prod.js"></script>
+<script src="/static/js/utils.js"></script>
+
+<script>
+const CSRF_TOKEN = "{{csrf_token}}";
+
+class ToolsCombo
+{
+    constructor(proc, refine, uiLabel)
+    {
+        this.proc = proc;
+        this.refine = refine;
+        this.uiLabel = uiLabel;
+    }
+}
+
+const RESULT_COMBOS = [
+    {% for combo in result_combos %}
+        new ToolsCombo("{{combo.proc}}", "{{combo.refine}}", "{{combo.ui_label}}"),
+    {% endfor %}
+];
+</script>
+
+<style>
+.container
+{
+    margin: 0 50px 50px 300px !important;
+    max-width: 100% !important;
+    width: calc(100% - 350px) !important;
+}
+
+/* Style the tab */
+.tab
+{
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button
+{
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+.selectbox
+{
+   display: flex !important;
+   width: 200px;
+}
+</style>
+
+{% verbatim %}
+<div id="app">
+
+    <h4>PanDDA Analysis Results</h4>
+
+    <div class="card">
+        <div class="card-content">
+            <div v-if="selectedCombo">
+                <div class="card-title">
+                    Processed with:
+                </div>
+                <div>
+                    <select v-model="selectedCombo" class="selectbox">
+                        <option v-for="combo in resultCombos" :value=combo>
+                            {{combo.uiLabel}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <!-- selectedCombo is null when project does not have any sucessful PanDDA runs -->
+            <div v-else>
+                No datasets analysed with PanDDA yet.
+            </div>
+        </div>
+    </div>
+
+    <div v-if="selectedCombo != null">
+        <div class="card tab">
+            <button class="tablinks">
+                Coot Inspection
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <div class="card-title">
+                To start inspection in Coot:
+                </div>
+                <p>
+                    Download PanDDA analysis <a :href="downloadUrl" download>files</a>.
+                </p>
+                <p>
+                    Install the <a href="https://github.com/tkrojer/pandda_inspect_tools">PanDDA inspect tools</a> plugin.
+                </p>
+                <p>
+                    Follow <a href="https://github.com/tkrojer/pandda_inspect_tools?tab=readme-ov-file#usage-1">
+                    instructions</a> for PanDDA inspect tools.
+                </p>
+            </div>
+        </div>
+
+        <div class="card tab">
+            <button class="tablinks">
+                Events
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dtag</th>
+                            <th>Event number</th>
+                            <th>Event Fraction</th>
+                            <th>BDC</th>
+                            <th>Z-peak</th>
+                            <th>Z-mean</th>
+                            <th>Cluster size</th>
+                            <th>Map uncertainty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="event in events">
+                            <td>{{event.dtag}}</td>
+                            <td>{{event.event_num}}</td>
+                            <td>{{event.event_fraction}}</td>
+                            <td>{{event.bdc}}</td>
+                            <td>{{event.z_peak}}</td>
+                            <td>{{event.z_mean}}</td>
+                            <td>{{event.cluster_size}}</td>
+                            <td>{{event.map_uncertainty}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadEvents(combo)
+{
+    const response = await fetch(`/pandda/events/${combo.proc}/${combo.refine}`);
+    if (!response.ok)
+    {
+        throw new Error(await response.text());
+    }
+
+    const data = await response.json();
+    return data.events;
+}
+
+function createVueApp()
+{
+return Vue.createApp({
+    data() {
+        return {
+            resultCombos: RESULT_COMBOS,
+            selectedCombo: null,
+            events: [],
+        };
+    },
+    mounted()
+    {
+        // Set selected combo on mount, so that we trigger the 'selectedCombo'
+        // watcher. This way we'll load the initial list of events.
+        const defaultCombo = this.combosAvailable() ? RESULT_COMBOS[0] : null;
+        this.selectedCombo = defaultCombo;
+    },
+    computed:
+    {
+        downloadUrl()
+        {
+            return `/pandda/download/${this.selectedCombo.proc}/${this.selectedCombo.refine}`;
+        },
+    },
+    watch:
+    {
+        async selectedCombo(newCombo)
+        {
+            try
+            {
+                this.events = await loadEvents(newCombo);
+            }
+            catch (error)
+            {
+                alert(`Error loading events.\n${error.message}`);
+            }
+        },
+    },
+    methods: {
+        combosAvailable()
+        {
+            return RESULT_COMBOS.length > 0;
+        },
+    },
+});
+}
+
+createVueApp().mount('#app');
+</script>
+
+{% endverbatim %}
+{% endblock %}
