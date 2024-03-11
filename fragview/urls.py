@@ -16,7 +16,6 @@ from fragview.views import (
     crystals,
     fragment,
     result_pdbs,
-    download,
     dataset_info,
     logs,
     commit,
@@ -65,9 +64,6 @@ urlpatterns = [
     path("pdb/add", pdbs.add),
     path("pdb/new", pdbs.new),
     path("pdb/get/<int:id>", pdbs.get),
-    # download views
-    path("download/", download.page),
-    path("download/pandda", download.pandda),
     # generated PDB access views
     path("pdbs/refined/<result_id>", result_pdbs.refined),
     path("pdbs/ligand/<result_id>", result_pdbs.ligand),
