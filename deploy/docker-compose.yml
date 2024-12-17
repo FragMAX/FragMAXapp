@@ -1,6 +1,7 @@
 version: "3"
 services:
   fragmax:
+    restart: always
     image: docker.maxiv.lu.se/fragmax
     container_name: fragmax
     # needed to run py-spy
